@@ -20,12 +20,7 @@
         "OPENAI_API_KEY",
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
-        "MCP_SERVICE_TOKEN",
-        "MCP_SERVICE_ORG_ID",
-        "MCP_SERVICE_USER_ID",
-        "MCP_SERVICE_ROLE",
-        "MCP_SERVICE_USER_NAME",
-        "MCP_SERVICE_USER_EMAIL"
+        "MCP_RESOURCE_URL"
       ]
     },
     "lint": {
@@ -49,12 +44,7 @@
         "OPENAI_API_KEY",
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
-        "MCP_SERVICE_TOKEN",
-        "MCP_SERVICE_ORG_ID",
-        "MCP_SERVICE_USER_ID",
-        "MCP_SERVICE_ROLE",
-        "MCP_SERVICE_USER_NAME",
-        "MCP_SERVICE_USER_EMAIL"
+        "MCP_RESOURCE_URL"
       ]
     }
   }

@@ -1,0 +1,26 @@
+{
+  "consent": {
+    "title": "Authorize {client}",
+    "description": "{client} wants to access your Presk workspace.",
+    "unknownClient": "an application",
+    "scopesTitle": "This will allow it to:",
+    "scope_openid": "Verify your identity",
+    "scope_profile": "Read your basic profile",
+    "scope_email": "Read your email address",
+    "scope_offline_access": "Stay connected while you are away",
+    "scope_projects": "Read and manage projects and tasks",
+    "scope_calendars": "Read and manage calendars and events",
+    "scope_files": "Read and manage files",
+    "scope_messaging": "Read and send messages",
+    "allow": "Allow",
+    "deny": "Deny",
+    "genericError": "Unable to complete the authorization request."
+  },
+  "selectOrganization": {
+    "title": "Choose a workspace",
+    "description": "Select the workspace this application should access.",
+    "loading": "Loading workspaces...",
+    "noOrganizations": "You don't have a workspace yet.",
+    "genericError": "Unable to continue."
+  }
+}

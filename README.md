@@ -102,12 +102,7 @@ All variables live in `apps/web/.env` (see [`apps/web/.env.example`](./apps/web/
 | `OPENAI_API_KEY` | No | Enables AI assistant features. |
 | `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
 | `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
-| `MCP_SERVICE_TOKEN` | No | Token for machine-to-machine access to `/mcp`. |
-| `MCP_SERVICE_ORG_ID` | No | Organization bound to the MCP service account. |
-| `MCP_SERVICE_USER_ID` | No | User bound to the MCP service account. |
-| `MCP_SERVICE_ROLE` | No | Role for the MCP service account (default `member`). |
-| `MCP_SERVICE_USER_NAME` | No | Display name for the MCP service account. |
-| `MCP_SERVICE_USER_EMAIL` | No | Email for the MCP service account. |
+| `MCP_RESOURCE_URL` | No | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`). |
 
 ## Available scripts
 

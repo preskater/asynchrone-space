@@ -1,0 +1,26 @@
+{
+  "consent": {
+    "title": "Autoriser {client}",
+    "description": "{client} souhaite accéder à votre espace Presk.",
+    "unknownClient": "une application",
+    "scopesTitle": "Cela lui permettra de :",
+    "scope_openid": "Vérifier votre identité",
+    "scope_profile": "Lire votre profil de base",
+    "scope_email": "Lire votre adresse e-mail",
+    "scope_offline_access": "Rester connecté en votre absence",
+    "scope_projects": "Consulter et gérer les projets et les tâches",
+    "scope_calendars": "Consulter et gérer les agendas et les événements",
+    "scope_files": "Consulter et gérer les fichiers",
+    "scope_messaging": "Lire et envoyer des messages",
+    "allow": "Autoriser",
+    "deny": "Refuser",
+    "genericError": "Impossible de finaliser la demande d'autorisation."
+  },
+  "selectOrganization": {
+    "title": "Choisir un espace de travail",
+    "description": "Sélectionnez l'espace de travail auquel cette application doit accéder.",
+    "loading": "Chargement des espaces de travail...",
+    "noOrganizations": "Vous n'avez pas encore d'espace de travail.",
+    "genericError": "Impossible de continuer."
+  }
+}

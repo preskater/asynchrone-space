@@ -1,4 +1,5 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import type { AuthInfo, McpServer } from "@modelcontextprotocol/server"
+import type * as z from "zod"
 
 import { calendarTools } from "./tools/calendars"
 import { fileTools } from "./tools/files"
@@ -31,23 +32,26 @@ function errorResult(error: unknown) {
   }
 }
 
-export function registerTools(server: McpServer) {
+export function registerTools(
+  server: McpServer,
+  authInfo: AuthInfo | undefined
+) {
   for (const tool of allMcpTools) {
     server.registerTool(
       tool.name,
       {
         title: tool.title,
         description: tool.description,
-        inputSchema: tool.inputSchema,
+        inputSchema: tool.inputSchema as Record<string, z.ZodType>,
         annotations: {
           readOnlyHint: tool.readOnly,
           destructiveHint: !tool.readOnly,
           idempotentHint: tool.readOnly,
         },
       },
-      async (args, extra) => {
+      async (args: Record<string, unknown>) => {
         try {
-          const ctx = contextFromAuthInfo(extra.authInfo)
+          const ctx = contextFromAuthInfo(authInfo)
           const result = await tool.run(
             ctx,
             (args ?? {}) as Record<string, unknown>

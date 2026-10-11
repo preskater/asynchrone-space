@@ -22,6 +22,7 @@ import messaging from "./messaging.json"
 import metadata from "./metadata.json"
 import navbar from "./navbar.json"
 import notFound from "./notFound.json"
+import oauth from "./oauth.json"
 import org from "./org.json"
 import pricing from "./pricing.json"
 import projects from "./projects.json"
@@ -54,6 +55,7 @@ export default {
   Metadata: metadata,
   Navbar: navbar,
   NotFound: notFound,
+  Oauth: oauth,
   Org: org,
   Pricing: pricing,
   Projects: projects,
