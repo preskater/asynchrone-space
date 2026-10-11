@@ -2,6 +2,7 @@ import { cimd } from "@better-auth/cimd"
 import { fetchClientMetadataResource } from "@better-auth/cimd/node"
 import { mcp } from "@better-auth/mcp"
 import { betterAuth } from "better-auth"
+import { createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
 import { admin, jwt, organization } from "better-auth/plugins"
@@ -19,6 +20,18 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      // Dynamic Client Registration defaults an omitted `application_type`
+      // to `web`, which rejects the loopback `http://127.0.0.1` callback that
+      // native MCP clients such as opencode use. Default it to `native`.
+      if (ctx.path !== "/oauth2/register") return
+      const body = ctx.body as { application_type?: string } | undefined
+      if (body && body.application_type === undefined) {
+        body.application_type = "native"
+      }
+    }),
   },
   plugins: [
     organization({
@@ -50,6 +63,12 @@ export const auth = betterAuth({
       loginPage: "/sign-in",
       consentPage: "/consent",
       resource: mcpResource,
+      // CIMD is the primary client-identity mechanism; DCR stays enabled as a
+      // fallback for MCP clients that predate Client ID Metadata Documents
+      // (e.g. opencode), which self-register over RFC 7591. See the register
+      // hook above for the `application_type` default.
+      allowDynamicClientRegistration: true,
+      allowUnauthenticatedClientRegistration: true,
       resources: [
         {
           identifier: mcpResource,
