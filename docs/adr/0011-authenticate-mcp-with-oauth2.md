@@ -91,3 +91,17 @@ records the user's decision.
 - `apps/web/lib/mcp/context.ts`
 - `apps/web/app/[locale]/consent/page.tsx`
 - `apps/web/prisma/schema.prisma` — OAuth and JWKS tables
+
+## Update
+
+2026-10-10: Dynamic Client Registration (RFC 7591) was enabled alongside
+CIMD to support MCP clients that predate Client ID Metadata Documents (for
+example, opencode registers through DCR). `mcp()` sets
+`allowDynamicClientRegistration` and `allowUnauthenticatedClientRegistration`;
+discovery advertises `registration_endpoint`. Because DCR defaults an omitted
+`application_type` to `web` — which rejects the loopback `http://127.0.0.1`
+callback native MCP clients use — a global `hooks.before` defaults an omitted
+`application_type` to `native`. CIMD remains the preferred mechanism, and DCR
+can be turned off once clients in use support CIMD. An `opencode.jsonc` at the
+repo root wires the production endpoint into opencode.
+
