@@ -26,7 +26,7 @@ export function FileRenameDialog({
   onOpenChange,
 }: {
   file: FileNode
-  children: React.ReactElement
+  children?: React.ReactElement
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
@@ -45,7 +45,7 @@ export function FileRenameDialog({
         if (next) setName(file.name)
       }}
     >
-      <DialogTrigger render={children} />
+      {children ? <DialogTrigger render={children} /> : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>

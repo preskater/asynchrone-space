@@ -30,12 +30,20 @@ export function FilesGrid({
   onOpenFolder,
   onPreview,
   onOpenShare,
+  onOpenPermissions,
+  onRename,
+  onMove,
+  onDeleteForever,
 }: {
   files: FileNode[]
   location: FileLocation
   onOpenFolder: (file: FileNode) => void
   onPreview: (file: FileNode) => void
   onOpenShare: (file: FileNode) => void
+  onOpenPermissions: (file: FileNode) => void
+  onRename: (file: FileNode) => void
+  onMove: (file: FileNode) => void
+  onDeleteForever: (file: FileNode) => void
 }) {
   const { getMember } = useFiles()
   const t = useTranslations("Files")
@@ -85,6 +93,10 @@ export function FilesGrid({
                           onPreview={onPreview}
                           onOpenFolder={onOpenFolder}
                           onOpenShare={onOpenShare}
+                          onOpenPermissions={onOpenPermissions}
+                          onRename={onRename}
+                          onMove={onMove}
+                          onDeleteForever={onDeleteForever}
                         />
                       </DropdownMenuGroup>
                     </DropdownMenuContent>
@@ -124,6 +136,10 @@ export function FilesGrid({
                   onPreview={onPreview}
                   onOpenFolder={onOpenFolder}
                   onOpenShare={onOpenShare}
+                  onOpenPermissions={onOpenPermissions}
+                  onRename={onRename}
+                  onMove={onMove}
+                  onDeleteForever={onDeleteForever}
                 />
               </ContextMenuGroup>
             </ContextMenuContent>

@@ -92,6 +92,10 @@ export function FilesTable({
   onOpenFolder,
   onPreview,
   onOpenShare,
+  onOpenPermissions,
+  onRename,
+  onMove,
+  onDeleteForever,
   sortKey,
   sortDir,
   onSortChange,
@@ -103,6 +107,10 @@ export function FilesTable({
   onOpenFolder: (file: FileNode) => void
   onPreview: (file: FileNode) => void
   onOpenShare: (file: FileNode) => void
+  onOpenPermissions: (file: FileNode) => void
+  onRename: (file: FileNode) => void
+  onMove: (file: FileNode) => void
+  onDeleteForever: (file: FileNode) => void
   sortKey: SortOption
   sortDir: SortDir
   onSortChange: (key: SortOption) => void
@@ -260,6 +268,10 @@ export function FilesTable({
                               onPreview={onPreview}
                               onOpenFolder={onOpenFolder}
                               onOpenShare={onOpenShare}
+                              onOpenPermissions={onOpenPermissions}
+                              onRename={onRename}
+                              onMove={onMove}
+                              onDeleteForever={onDeleteForever}
                             />
                           </DropdownMenuGroup>
                         </DropdownMenuContent>
@@ -275,6 +287,10 @@ export function FilesTable({
                         onPreview={onPreview}
                         onOpenFolder={onOpenFolder}
                         onOpenShare={onOpenShare}
+                        onOpenPermissions={onOpenPermissions}
+                        onRename={onRename}
+                        onMove={onMove}
+                        onDeleteForever={onDeleteForever}
                       />
                     </ContextMenuGroup>
                   </ContextMenuContent>
