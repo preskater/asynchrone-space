@@ -12,11 +12,6 @@ import { EventDetailsSheet } from "@/components/calendars/event-details-sheet"
 import { EventDialog } from "@/components/calendars/event-dialog"
 import { MonthView } from "@/components/calendars/month-view"
 import { TimeGrid } from "@/components/calendars/time-grid"
-import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@workspace/ui/components/resizable"
 
 import {
   endOfWeek,
@@ -26,34 +21,33 @@ import {
 } from "@/lib/calendars/date-utils"
 import { useCalendars } from "@/lib/calendars/store"
 import { useRecents } from "@/lib/recents/store"
+import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 import type { CalendarEvent, CalendarView } from "@/lib/calendars/types"
 
-const VIEWS: CalendarView[] = [
-  "day",
-  "week",
-  "month",
-  "agenda",
-  "availability",
-]
+const VIEWS: CalendarView[] = ["day", "week", "month", "agenda", "availability"]
 
 export function CalendarsWorkspace() {
   const locale = useLocale()
   const t = useTranslations("Calendars")
-  const { moveEvent, members, currentUserId, showTasks, toggleShowTasks } =
-    useCalendars()
+  const { moveEvent, showTasks, toggleShowTasks } = useCalendars()
   const { record, active, hydrated } = useRecents()
-  const [focusDate, setFocusDate] = React.useState(new Date())
-  const [view, setView] = React.useState<CalendarView>("week")
+  const {
+    calendarView: view,
+    setCalendarView: setView,
+    calendarFocusDate: focusDate,
+    setCalendarFocusDate: setFocusDate,
+    calendarSelectedMemberIds: selectedMemberIds,
+    toggleCalendarMember: toggleMember,
+  } = useWorkspaceNav()
   const [searchOpen, setSearchOpen] = React.useState(false)
-  const [detailsEvent, setDetailsEvent] = React.useState<CalendarEvent | undefined>()
+  const [detailsEvent, setDetailsEvent] = React.useState<
+    CalendarEvent | undefined
+  >()
   const [detailsOpen, setDetailsOpen] = React.useState(false)
   const [createRange, setCreateRange] = React.useState<
     { start: Date; end: Date } | undefined
   >()
   const [createOpen, setCreateOpen] = React.useState(false)
-  const [selectedMemberIds, setSelectedMemberIds] = React.useState<string[]>(
-    () => members.filter((member) => member.id !== currentUserId).map((member) => member.id)
-  )
 
   const restoredRef = React.useRef(false)
   React.useEffect(() => {
@@ -64,6 +58,7 @@ export function CalendarsWorkspace() {
     if (VIEWS.includes(candidate)) setView(candidate)
     const parsed = new Date(active.calendars.slice(separator + 1))
     if (!Number.isNaN(parsed.getTime())) setFocusDate(parsed)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hydrated, active.calendars])
 
   React.useEffect(() => {
@@ -81,25 +76,22 @@ export function CalendarsWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, focusDate, hydrated])
 
-  React.useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault()
-        setSearchOpen(true)
-      }
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
-
   const weekDays = React.useMemo(
-    () => Array.from({ length: 7 }, (_, index) => addDays(startOfWeek(focusDate), index)),
+    () =>
+      Array.from({ length: 7 }, (_, index) =>
+        addDays(startOfWeek(focusDate), index)
+      ),
     [focusDate]
   )
 
   const rangeLabel =
     view === "week"
-      ? formatRange(startOfWeek(focusDate), endOfWeek(focusDate), "week", locale)
+      ? formatRange(
+          startOfWeek(focusDate),
+          endOfWeek(focusDate),
+          "week",
+          locale
+        )
       : formatRange(focusDate, focusDate, view, locale)
 
   function shift(direction: -1 | 1) {
@@ -125,88 +117,57 @@ export function CalendarsWorkspace() {
     setCreateOpen(true)
   }
 
-  function toggleMember(memberId: string) {
-    setSelectedMemberIds((prev) =>
-      prev.includes(memberId)
-        ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
-    )
-  }
-
   return (
     <>
-      <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl ring-1 ring-foreground/10">
-        <ResizablePanelGroup
-          id="calendar-layout"
-          orientation="horizontal"
-          className="h-full min-h-0"
-        >
-          <ResizablePanel
-            id="calendar-sidebar"
-            defaultSize="248px"
-            minSize="200px"
-            maxSize="360px"
-            className="hidden min-h-0 md:block"
-          >
-            <CalendarsSidebar
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl ring-1 ring-foreground/10">
+        <div className="flex min-h-0 flex-1 flex-col">
+          <CalendarsHeader
+            rangeLabel={rangeLabel}
+            view={view}
+            onViewChange={setView}
+            onToday={() => setFocusDate(new Date())}
+            onPrev={() => shift(-1)}
+            onNext={() => shift(1)}
+            onSearch={() => setSearchOpen(true)}
+            showTasks={showTasks}
+            onToggleTasks={toggleShowTasks}
+          />
+          {view === "month" ? (
+            <MonthView
               focusDate={focusDate}
               onSelectDate={setFocusDate}
+              onOpenEvent={openEvent}
+            />
+          ) : null}
+          {view === "week" ? (
+            <TimeGrid
+              days={weekDays}
+              onOpenEvent={openEvent}
+              onCreate={handleCreate}
+              onMove={moveEvent}
+              onSelectDate={setFocusDate}
+            />
+          ) : null}
+          {view === "day" ? (
+            <TimeGrid
+              days={[focusDate]}
+              onOpenEvent={openEvent}
+              onCreate={handleCreate}
+              onMove={moveEvent}
+              onSelectDate={setFocusDate}
+            />
+          ) : null}
+          {view === "agenda" ? (
+            <AgendaView focusDate={focusDate} onOpenEvent={openEvent} />
+          ) : null}
+          {view === "availability" ? (
+            <AvailabilityView
+              focusDate={focusDate}
               selectedMemberIds={selectedMemberIds}
-              onToggleMember={toggleMember}
+              onOpenEvent={openEvent}
             />
-          </ResizablePanel>
-
-          <ResizableHandle withHandle className="hidden md:flex" />
-
-          <ResizablePanel id="calendar-main" minSize="50%" className="flex min-h-0 flex-col">
-            <CalendarsHeader
-              rangeLabel={rangeLabel}
-              view={view}
-              onViewChange={setView}
-              onToday={() => setFocusDate(new Date())}
-              onPrev={() => shift(-1)}
-              onNext={() => shift(1)}
-              onSearch={() => setSearchOpen(true)}
-              showTasks={showTasks}
-              onToggleTasks={toggleShowTasks}
-            />
-            {view === "month" ? (
-              <MonthView
-                focusDate={focusDate}
-                onSelectDate={setFocusDate}
-                onOpenEvent={openEvent}
-              />
-            ) : null}
-            {view === "week" ? (
-              <TimeGrid
-                days={weekDays}
-                onOpenEvent={openEvent}
-                onCreate={handleCreate}
-                onMove={moveEvent}
-                onSelectDate={setFocusDate}
-              />
-            ) : null}
-            {view === "day" ? (
-              <TimeGrid
-                days={[focusDate]}
-                onOpenEvent={openEvent}
-                onCreate={handleCreate}
-                onMove={moveEvent}
-                onSelectDate={setFocusDate}
-              />
-            ) : null}
-            {view === "agenda" ? (
-              <AgendaView focusDate={focusDate} onOpenEvent={openEvent} />
-            ) : null}
-            {view === "availability" ? (
-              <AvailabilityView
-                focusDate={focusDate}
-                selectedMemberIds={selectedMemberIds}
-                onOpenEvent={openEvent}
-              />
-            ) : null}
-          </ResizablePanel>
-        </ResizablePanelGroup>
+          ) : null}
+        </div>
       </div>
 
       <EventDetailsSheet

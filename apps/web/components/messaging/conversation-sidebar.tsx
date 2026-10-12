@@ -15,22 +15,17 @@ import {
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 
 import { useMessaging } from "@/lib/messaging/store"
+import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 
-export function ConversationSidebar({
-  activeId,
-  onSelect,
-  onOpenSearch,
-}: {
-  activeId?: string
-  onSelect: (id: string) => void
-  onOpenSearch: () => void
-}) {
+export function ConversationSidebar() {
   const t = useTranslations("Messaging")
   const { unreadTotal } = useMessaging()
+  const { messagesActiveId, selectConversation, setMessagesSearchOpen } =
+    useWorkspaceNav()
   const [query, setQuery] = React.useState("")
 
   return (
-    <aside className="flex h-full min-h-0 flex-col border-e bg-sidebar text-sidebar-foreground">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center justify-between gap-2 p-3">
         <div className="flex items-center gap-2">
           <h2 className="text-sm font-semibold">{t("chat")}</h2>
@@ -41,13 +36,9 @@ export function ConversationSidebar({
           ) : null}
         </div>
         <NewMessageDialog
-          onStart={(id) => onSelect(id)}
+          onStart={(id) => selectConversation(id)}
           trigger={
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              aria-label={t("newMessage")}
-            >
+            <Button variant="ghost" size="icon-sm" aria-label={t("newMessage")}>
               <PlusIcon />
             </Button>
           }
@@ -63,7 +54,7 @@ export function ConversationSidebar({
             onKeyDown={(event) => {
               if (event.key === "Enter") {
                 event.preventDefault()
-                onOpenSearch()
+                setMessagesSearchOpen(true)
               }
             }}
           />
@@ -74,8 +65,12 @@ export function ConversationSidebar({
       </div>
 
       <ScrollArea className="min-h-0 flex-1">
-        <ConversationList activeId={activeId} onSelect={onSelect} query={query} />
+        <ConversationList
+          activeId={messagesActiveId}
+          onSelect={selectConversation}
+          query={query}
+        />
       </ScrollArea>
-    </aside>
+    </div>
   )
 }

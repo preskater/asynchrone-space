@@ -11,6 +11,7 @@ import { useTranslations } from "next-intl"
 
 import { authClient } from "@/lib/auth-client"
 import { Link, useRouter } from "@/i18n/navigation"
+import { Button } from "@workspace/ui/components/button"
 import {
   Avatar,
   AvatarFallback,
@@ -38,18 +39,20 @@ function getInitials(name: string) {
     return "?"
   }
   const first = parts[0]?.[0] ?? ""
-  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : ""
+  const last = parts.length > 1 ? (parts[parts.length - 1]?.[0] ?? "") : ""
   return `${first}${last}`.toUpperCase()
 }
 
 export function NavUser({
   user,
+  compact = false,
 }: {
   user: {
     name: string
     email: string
     image?: string | null
   }
+  compact?: boolean
 }) {
   const { isMobile } = useSidebar()
   const t = useTranslations("UserMenu")
@@ -62,74 +65,98 @@ export function NavUser({
     router.refresh()
   }
 
+  const dropdown = (
+    <DropdownMenu>
+      {compact ? (
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="rounded-full"
+              aria-label={user.name}
+            />
+          }
+        >
+          <Avatar className="size-7 rounded-full grayscale">
+            <AvatarImage src={user.image ?? undefined} alt={user.name} />
+            <AvatarFallback className="rounded-full text-xs">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+      ) : (
+        <DropdownMenuTrigger
+          render={
+            <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
+          }
+        >
+          <Avatar className="size-8 rounded-lg grayscale">
+            <AvatarImage src={user.image ?? undefined} alt={user.name} />
+            <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
+          </Avatar>
+          <div className="grid flex-1 text-start text-sm leading-tight">
+            <span className="truncate font-medium">{user.name}</span>
+            <span className="truncate text-xs text-foreground/70">
+              {user.email}
+            </span>
+          </div>
+          <EllipsisVerticalIcon className="ms-auto size-4" />
+        </DropdownMenuTrigger>
+      )}
+      <DropdownMenuContent
+        className="min-w-56"
+        side={isMobile ? "bottom" : "right"}
+        align="end"
+        sideOffset={4}
+      >
+        <DropdownMenuGroup>
+          <DropdownMenuLabel className="p-0 font-normal">
+            <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
+              <Avatar className="size-8">
+                <AvatarImage src={user.image ?? undefined} alt={user.name} />
+                <AvatarFallback className="rounded-lg">
+                  {initials}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-start text-sm leading-tight">
+                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  {user.email}
+                </span>
+              </div>
+            </div>
+          </DropdownMenuLabel>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link href="/settings/account" />}>
+            <CircleUserRoundIcon />
+            {t("account")}
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <CreditCardIcon />
+            {t("billing")}
+          </DropdownMenuItem>
+          <DropdownMenuItem>
+            <BellIcon />
+            {t("notifications")}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={handleSignOut}>
+          <LogOutIcon />
+          {t("logOut")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+
+  if (compact) return dropdown
+
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
-            }
-          >
-            <Avatar className="size-8 rounded-lg grayscale">
-              <AvatarImage src={user.image ?? undefined} alt={user.name} />
-              <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
-            </Avatar>
-            <div className="grid flex-1 text-start text-sm leading-tight">
-              <span className="truncate font-medium">{user.name}</span>
-              <span className="truncate text-xs text-foreground/70">
-                {user.email}
-              </span>
-            </div>
-            <EllipsisVerticalIcon className="ms-auto size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="min-w-56"
-            side={isMobile ? "bottom" : "right"}
-            align="end"
-            sideOffset={4}
-          >
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="flex items-center gap-2 px-1 py-1.5 text-start text-sm">
-                  <Avatar className="size-8">
-                    <AvatarImage src={user.image ?? undefined} alt={user.name} />
-                    <AvatarFallback className="rounded-lg">
-                      {initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="grid flex-1 text-start text-sm leading-tight">
-                    <span className="truncate font-medium">{user.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {user.email}
-                    </span>
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href="/settings/account" />}>
-                <CircleUserRoundIcon />
-                {t("account")}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                {t("billing")}
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                {t("notifications")}
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut}>
-              <LogOutIcon />
-              {t("logOut")}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
+      <SidebarMenuItem>{dropdown}</SidebarMenuItem>
     </SidebarMenu>
   )
 }
