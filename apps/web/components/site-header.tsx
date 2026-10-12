@@ -1,8 +1,15 @@
 "use client"
 
+import * as React from "react"
+import { SearchIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { AppSwitcher } from "@/components/app-switcher"
+import { CommandMenu } from "@/components/command-menu"
+import { NavUser } from "@/components/nav-user"
+import { OrgSwitcher } from "@/components/organization/org-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
@@ -34,14 +41,41 @@ function usePageTitle(orgSlug: string, pathname: string) {
   if (titleKey !== undefined) return t(titleKey)
   if (relative.startsWith("/projects/")) {
     const projectId = relative.split("/")[2]
-    return projectId ? (getProject(projectId)?.name ?? t("projects")) : t("projects")
+    return projectId
+      ? (getProject(projectId)?.name ?? t("projects"))
+      : t("projects")
   }
   return t("dashboard")
 }
 
-export function SiteHeader({ orgSlug }: { orgSlug: string }) {
+export function SiteHeader({
+  orgSlug,
+  user,
+  activeOrganizationId,
+}: {
+  orgSlug: string
+  user: {
+    name: string
+    email: string
+    image?: string | null
+  }
+  activeOrganizationId: string | null
+}) {
   const pathname = usePathname()
   const title = usePageTitle(orgSlug, pathname)
+  const t = useTranslations("Sidebar")
+  const [paletteOpen, setPaletteOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setPaletteOpen((prev) => !prev)
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
@@ -51,11 +85,37 @@ export function SiteHeader({ orgSlug }: { orgSlug: string }) {
           orientation="vertical"
           className="mx-2 h-4 data-vertical:self-auto"
         />
-        <h1 className="text-base font-medium">{title}</h1>
+        <AppSwitcher orgSlug={orgSlug} />
+        <Separator
+          orientation="vertical"
+          className="mx-2 hidden h-4 sm:block data-vertical:self-auto"
+        />
+        <h1 className="hidden truncate text-base font-medium sm:block">
+          {title}
+        </h1>
         <div className="ms-auto flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2 text-muted-foreground"
+            onClick={() => setPaletteOpen(true)}
+          >
+            <SearchIcon />
+            <span className="hidden md:inline">{t("search")}</span>
+            <kbd className="hidden rounded border px-1 font-sans text-[10px] md:inline">
+              ⌘K
+            </kbd>
+          </Button>
+          <OrgSwitcher activeOrganizationId={activeOrganizationId} compact />
           <ThemeToggle />
+          <NavUser user={user} compact />
         </div>
       </div>
+      <CommandMenu
+        orgSlug={orgSlug}
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+      />
     </header>
   )
 }

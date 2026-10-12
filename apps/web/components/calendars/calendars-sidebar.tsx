@@ -23,7 +23,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
-import { Field, FieldError, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import {
@@ -38,7 +43,12 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { EVENT_COLOR_VAR } from "@/lib/calendars/event-colors"
 import { useCalendars } from "@/lib/calendars/store"
-import { EVENT_COLORS, type CalendarKind, type EventColor } from "@/lib/calendars/types"
+import {
+  EVENT_COLORS,
+  type CalendarKind,
+  type EventColor,
+} from "@/lib/calendars/types"
+import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
@@ -100,7 +110,11 @@ function AddCalendarDialog() {
         if (next) setSubmitted(false)
       }}
     >
-      <DialogTrigger render={<Button variant="ghost" size="sm" className="w-full justify-start" />}>
+      <DialogTrigger
+        render={
+          <Button variant="ghost" size="sm" className="w-full justify-start" />
+        }
+      >
         <CalendarPlusIcon data-icon="inline-start" />
         Add calendar
       </DialogTrigger>
@@ -188,24 +202,22 @@ function AddCalendarDialog() {
   )
 }
 
-export function CalendarsSidebar({
-  focusDate,
-  onSelectDate,
-  selectedMemberIds,
-  onToggleMember,
-}: {
-  focusDate: Date
-  onSelectDate: (date: Date) => void
-  selectedMemberIds: string[]
-  onToggleMember: (memberId: string) => void
-}) {
+export function CalendarsSidebar() {
   const { calendars, members, currentUserId, toggleCalendar } = useCalendars()
+  const {
+    calendarFocusDate: focusDate,
+    setCalendarFocusDate: onSelectDate,
+    calendarSelectedMemberIds: selectedMemberIds,
+    toggleCalendarMember: onToggleMember,
+  } = useWorkspaceNav()
 
-  const myCalendars = calendars.filter((calendar) => calendar.kind === "personal")
+  const myCalendars = calendars.filter(
+    (calendar) => calendar.kind === "personal"
+  )
   const teamCalendars = calendars.filter((calendar) => calendar.kind === "team")
 
   return (
-    <aside className="flex h-full min-h-0 flex-col border-e bg-sidebar text-sidebar-foreground">
+    <div className="flex h-full min-h-0 flex-col">
       <div className="border-b p-2">
         <MiniCalendar focusDate={focusDate} onSelectDate={onSelectDate} />
       </div>
@@ -271,6 +283,6 @@ export function CalendarsSidebar({
           </Collapsible>
         </div>
       </ScrollArea>
-    </aside>
+    </div>
   )
 }

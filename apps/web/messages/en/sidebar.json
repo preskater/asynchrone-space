@@ -9,5 +9,7 @@
   "settings": "Settings",
   "account": "Account",
   "search": "Search",
+  "searchPlaceholder": "Search or jump to…",
+  "noResults": "No results found.",
   "getHelp": "Get Help"
 }

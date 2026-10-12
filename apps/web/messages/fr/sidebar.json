@@ -9,5 +9,7 @@
   "settings": "Paramètres",
   "account": "Compte",
   "search": "Rechercher",
+  "searchPlaceholder": "Rechercher ou accéder à…",
+  "noResults": "Aucun résultat.",
   "getHelp": "Aide"
 }
