@@ -6,10 +6,10 @@ import {
   CommandIcon,
   FileIcon,
   FolderIcon,
-  LayoutDashboardIcon,
   MessageSquareIcon,
   SearchIcon,
   Settings2Icon,
+  SparklesIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -33,9 +33,9 @@ export function useNavMain(orgSlug: string): NavApp[] {
   const t = useTranslations("Sidebar")
   return [
     {
-      title: t("dashboard"),
+      title: t("assistant"),
       url: `/${orgSlug}`,
-      icon: <LayoutDashboardIcon />,
+      icon: <SparklesIcon />,
     },
     {
       key: "projects",

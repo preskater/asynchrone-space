@@ -9,19 +9,18 @@ function SkeletonHeader() {
   )
 }
 
-export function DashboardSkeleton() {
+export function AssistantSkeleton() {
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <div className="grid gap-4 px-4 md:grid-cols-2 lg:px-6 xl:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-32 rounded-xl" />
-        ))}
-      </div>
-      <div className="px-4 lg:px-6">
-        <Skeleton className="h-72 rounded-xl" />
-      </div>
-      <div className="px-4 lg:px-6">
-        <Skeleton className="h-64 rounded-xl" />
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-4">
+        <div className="flex flex-1 flex-col justify-end gap-4 py-6">
+          <Skeleton className="ms-auto h-16 w-2/3 rounded-2xl" />
+          <div className="flex gap-2">
+            <Skeleton className="size-8 shrink-0 rounded-full" />
+            <Skeleton className="h-24 w-3/4 rounded-2xl" />
+          </div>
+        </div>
+        <Skeleton className="mb-4 h-11 w-full rounded-2xl" />
       </div>
     </div>
   )
@@ -58,7 +57,7 @@ export function PageSkeleton() {
 
 export function WorkspaceSkeleton() {
   return (
-    <div className="flex h-[calc(100svh_-_var(--header-height)_-_var(--assistant-bar-space))] min-h-0 gap-4 overflow-hidden p-4 md:h-[calc(100svh_-_var(--header-height)_-_var(--assistant-bar-space)_-_1rem)]">
+    <div className="flex h-[calc(100svh_-_var(--header-height))] min-h-0 gap-4 overflow-hidden p-4 md:h-[calc(100svh_-_var(--header-height)_-_1rem)]">
       <div className="hidden w-64 shrink-0 flex-col gap-3 lg:flex">
         <Skeleton className="h-8 w-full rounded-lg" />
         {Array.from({ length: 8 }).map((_, index) => (

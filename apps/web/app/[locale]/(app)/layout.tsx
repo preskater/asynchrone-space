@@ -2,12 +2,12 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { AppSidebar } from "@/components/app-sidebar"
-import { AssistantBar } from "@/components/assistant/assistant-bar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { auth } from "@/lib/auth"
+import { AssistantProvider } from "@/lib/assistant/use-assistant"
 import { calendarService } from "@/lib/calendars"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
 import { fileService } from "@/lib/files"
@@ -87,30 +87,30 @@ export default async function AppLayout({
                 members={projectData.members}
               >
                 <WorkspaceNavProvider>
-                  <SidebarProvider
-                    style={
-                      {
-                        "--sidebar-width": "calc(var(--spacing) * 72)",
-                        "--header-height": "calc(var(--spacing) * 12)",
-                        "--assistant-bar-space": "calc(var(--spacing) * 18)",
-                      } as React.CSSProperties
-                    }
-                  >
-                    <AppSidebar variant="inset" orgSlug={organization.slug} />
-                    <SidebarInset>
-                      <SiteHeader
-                        orgSlug={organization.slug}
-                        user={session.user}
-                        activeOrganizationId={organization.id}
-                      />
-                      <div className="flex flex-1 flex-col">
-                        <div className="@container/main flex flex-1 flex-col gap-2 pb-[var(--assistant-bar-space)]">
-                          {children}
+                  <AssistantProvider>
+                    <SidebarProvider
+                      style={
+                        {
+                          "--sidebar-width": "calc(var(--spacing) * 72)",
+                          "--header-height": "calc(var(--spacing) * 12)",
+                        } as React.CSSProperties
+                      }
+                    >
+                      <AppSidebar variant="inset" orgSlug={organization.slug} />
+                      <SidebarInset>
+                        <SiteHeader
+                          orgSlug={organization.slug}
+                          user={session.user}
+                          activeOrganizationId={organization.id}
+                        />
+                        <div className="flex flex-1 flex-col">
+                          <div className="@container/main flex flex-1 flex-col gap-2">
+                            {children}
+                          </div>
                         </div>
-                      </div>
-                    </SidebarInset>
-                    <AssistantBar />
-                  </SidebarProvider>
+                      </SidebarInset>
+                    </SidebarProvider>
+                  </AssistantProvider>
                 </WorkspaceNavProvider>
               </FilesProvider>
             </CalendarsProvider>

@@ -17,7 +17,7 @@ import { usePathname } from "@/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 
 const titleKeys = {
-  "": "dashboard",
+  "": "assistant",
   "/projects": "projects",
   "/messages": "messages",
   "/calendars": "calendars",
@@ -45,7 +45,7 @@ function usePageTitle(orgSlug: string, pathname: string) {
       ? (getProject(projectId)?.name ?? t("projects"))
       : t("projects")
   }
-  return t("dashboard")
+  return t("assistant")
 }
 
 export function SiteHeader({
