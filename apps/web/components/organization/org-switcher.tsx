@@ -61,6 +61,8 @@ export function OrgSwitcher({
       return
     }
     router.push(`/${organization.slug}`)
+    router.refresh()
+    setSwitching(false)
   }
 
   const menu = (
