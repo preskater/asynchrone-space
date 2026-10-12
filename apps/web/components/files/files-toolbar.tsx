@@ -191,7 +191,7 @@ export function FilesToolbar({
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option}
-                  onSelect={() => onSortChange(option)}
+                  onClick={() => onSortChange(option)}
                 >
                   {sortLabels[option]}
                 </DropdownMenuItem>

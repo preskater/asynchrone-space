@@ -7,6 +7,7 @@ import {
   EyeIcon,
   FolderInputIcon,
   LinkIcon,
+  LockIcon,
   PencilIcon,
   RotateCcwIcon,
   Share2Icon,
@@ -17,19 +18,6 @@ import {
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
-import { FileRenameDialog } from "@/components/files/file-rename-dialog"
-import { FileMoveDialog } from "@/components/files/file-move-dialog"
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@workspace/ui/components/alert-dialog"
 import {
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -50,6 +38,10 @@ export function FileMenuItems({
   onPreview,
   onOpenFolder,
   onOpenShare,
+  onOpenPermissions,
+  onRename,
+  onMove,
+  onDeleteForever,
 }: {
   menu: "dropdown" | "context"
   file: FileNode
@@ -57,10 +49,13 @@ export function FileMenuItems({
   onPreview: (file: FileNode) => void
   onOpenFolder: (file: FileNode) => void
   onOpenShare: (file: FileNode) => void
+  onOpenPermissions: (file: FileNode) => void
+  onRename: (file: FileNode) => void
+  onMove: (file: FileNode) => void
+  onDeleteForever: (file: FileNode) => void
 }) {
   const t = useTranslations("Files")
-  const { duplicateFile, toggleStar, trashFile, restoreFile, deleteForever } =
-    useFiles()
+  const { duplicateFile, toggleStar, trashFile, restoreFile } = useFiles()
   const orgSlug = useOrgSlug()
 
   const Item =
@@ -87,16 +82,14 @@ export function FileMenuItems({
   if (location === "trash") {
     return (
       <>
-        <Item onSelect={() => restoreFile(file.id)}>
+        <Item onClick={() => restoreFile(file.id)}>
           <RotateCcwIcon />
           {t("restore")}
         </Item>
-        <DeleteForeverDialog onConfirm={() => deleteForever(file.id)} name={file.name}>
-          <Item variant="destructive" onSelect={(event) => event.preventDefault()}>
-            <Trash2Icon />
-            {t("deleteForever")}
-          </Item>
-        </DeleteForeverDialog>
+        <Item variant="destructive" onClick={() => onDeleteForever(file)}>
+          <Trash2Icon />
+          {t("deleteForever")}
+        </Item>
       </>
     )
   }
@@ -104,88 +97,55 @@ export function FileMenuItems({
   return (
     <>
       {isFolder ? (
-        <Item onSelect={() => onOpenFolder(file)}>
+        <Item onClick={() => onOpenFolder(file)}>
           <FolderInputIcon />
           {t("open")}
         </Item>
       ) : (
         <>
-          <Item onSelect={() => onPreview(file)}>
+          <Item onClick={() => onPreview(file)}>
             <EyeIcon />
             {t("preview")}
           </Item>
-          <Item onSelect={download}>
+          <Item onClick={download}>
             <DownloadIcon />
             {t("download")}
           </Item>
         </>
       )}
-      <Item onSelect={() => duplicateFile(file.id)}>
+      <Item onClick={() => duplicateFile(file.id)}>
         <CopyIcon />
         {t("makeCopy")}
       </Item>
-      <FileRenameDialog file={file}>
-        <Item onSelect={(event) => event.preventDefault()}>
-          <PencilIcon />
-          {t("rename")}
-        </Item>
-      </FileRenameDialog>
-      <FileMoveDialog file={file}>
-        <Item onSelect={(event) => event.preventDefault()}>
-          <FolderInputIcon />
-          {t("moveTo")}
-        </Item>
-      </FileMoveDialog>
-      <Item onSelect={copyLink}>
+      <Item onClick={() => onRename(file)}>
+        <PencilIcon />
+        {t("rename")}
+      </Item>
+      <Item onClick={() => onMove(file)}>
+        <FolderInputIcon />
+        {t("moveTo")}
+      </Item>
+      <Item onClick={copyLink}>
         <LinkIcon />
         {t("copyLink")}
       </Item>
-      {!isFolder ? (
-        <Item onSelect={() => onOpenShare(file)}>
-          <Share2Icon />
-          {t("share")}
-        </Item>
-      ) : null}
-      <Item onSelect={() => toggleStar(file.id)}>
+      <Item onClick={() => onOpenShare(file)}>
+        <Share2Icon />
+        {t("share")}
+      </Item>
+      <Item onClick={() => onOpenPermissions(file)}>
+        <LockIcon />
+        {t("managePermissions")}
+      </Item>
+      <Item onClick={() => toggleStar(file.id)}>
         {file.starred ? <StarOffIcon /> : <StarIcon />}
         {file.starred ? t("removeFromFavorites") : t("addToFavorites")}
       </Item>
       <Separator />
-      <Item variant="destructive" onSelect={() => trashFile(file.id)}>
+      <Item variant="destructive" onClick={() => trashFile(file.id)}>
         <Trash2Icon />
         {t("moveToTrash")}
       </Item>
     </>
-  )
-}
-
-function DeleteForeverDialog({
-  name,
-  onConfirm,
-  children,
-}: {
-  name: string
-  onConfirm: () => void
-  children: React.ReactElement
-}) {
-  const t = useTranslations("Files")
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger render={children} />
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t("deleteForeverQuestion")}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {t("deleteForeverDescription", { name })}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            {t("deleteForever")}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   )
 }

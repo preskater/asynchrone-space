@@ -9,8 +9,11 @@ import { FilesSearchCommand } from "@/components/files/files-search-command"
 import { FilesSidebar } from "@/components/files/files-sidebar"
 import { FilesTable } from "@/components/files/files-table"
 import { FilesToolbar, type SortOption, type ViewMode } from "@/components/files/files-toolbar"
+import { FileDeleteDialog } from "@/components/files/file-delete-dialog"
+import { FileMoveDialog } from "@/components/files/file-move-dialog"
 import { FilePermissionsSheet } from "@/components/files/file-permissions-sheet"
 import { FilePreviewSheet } from "@/components/files/file-preview-sheet"
+import { FileRenameDialog } from "@/components/files/file-rename-dialog"
 import { FileShareDialog } from "@/components/files/file-share-dialog"
 import { UploadQueue } from "@/components/files/file-upload-dialog"
 import { Badge } from "@workspace/ui/components/badge"
@@ -57,6 +60,11 @@ export function FilesWorkspace() {
   const [shareOpen, setShareOpen] = React.useState(false)
   const [permissionsFile, setPermissionsFile] = React.useState<FileNode | undefined>()
   const [permissionsOpen, setPermissionsOpen] = React.useState(false)
+  const [renameTarget, setRenameTarget] = React.useState<FileNode | undefined>()
+  const [renameOpen, setRenameOpen] = React.useState(false)
+  const [moveTarget, setMoveTarget] = React.useState<FileNode | undefined>()
+  const [moveOpen, setMoveOpen] = React.useState(false)
+  const [deleteTarget, setDeleteTarget] = React.useState<FileNode | undefined>()
 
   const restored = React.useRef(false)
   React.useEffect(() => {
@@ -167,6 +175,21 @@ export function FilesWorkspace() {
   function openShare(file: FileNode) {
     setShareFile(file)
     setShareOpen(true)
+  }
+
+  function openPermissions(file: FileNode) {
+    setPermissionsFile(file)
+    setPermissionsOpen(true)
+  }
+
+  function openRename(file: FileNode) {
+    setRenameTarget(file)
+    setRenameOpen(true)
+  }
+
+  function openMove(file: FileNode) {
+    setMoveTarget(file)
+    setMoveOpen(true)
   }
 
   function openFile(file: FileNode) {
@@ -287,6 +310,10 @@ export function FilesWorkspace() {
                   onOpenFolder={openFolder}
                   onPreview={openPreview}
                   onOpenShare={openShare}
+                  onOpenPermissions={openPermissions}
+                  onRename={openRename}
+                  onMove={openMove}
+                  onDeleteForever={setDeleteTarget}
                   sortKey={sortKey}
                   sortDir={sortDir}
                   onSortChange={changeSort}
@@ -298,6 +325,10 @@ export function FilesWorkspace() {
                   onOpenFolder={openFolder}
                   onPreview={openPreview}
                   onOpenShare={openShare}
+                  onOpenPermissions={openPermissions}
+                  onRename={openRename}
+                  onMove={openMove}
+                  onDeleteForever={setDeleteTarget}
                 />
               )}
             </div>
@@ -310,10 +341,7 @@ export function FilesWorkspace() {
         open={previewOpen}
         onOpenChange={setPreviewOpen}
         onOpenShare={openShare}
-        onOpenPermissions={(file) => {
-          setPermissionsFile(file)
-          setPermissionsOpen(true)
-        }}
+        onOpenPermissions={openPermissions}
       />
 
       {shareFile ? (
@@ -329,6 +357,30 @@ export function FilesWorkspace() {
         file={permissionsFile}
         open={permissionsOpen}
         onOpenChange={setPermissionsOpen}
+      />
+
+      {renameTarget ? (
+        <FileRenameDialog
+          file={renameTarget}
+          open={renameOpen}
+          onOpenChange={setRenameOpen}
+        />
+      ) : null}
+
+      {moveTarget ? (
+        <FileMoveDialog
+          file={moveTarget}
+          open={moveOpen}
+          onOpenChange={setMoveOpen}
+        />
+      ) : null}
+
+      <FileDeleteDialog
+        file={deleteTarget}
+        open={deleteTarget !== undefined}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(undefined)
+        }}
       />
 
       <FilesSearchCommand
