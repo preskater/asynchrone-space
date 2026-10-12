@@ -76,7 +76,7 @@ function word(
       key: string,
       values?: Record<string, string | number>
     ) => string
-    return translate(`Common.${key}`, values)
+    return translate(key, values)
   }
   const template = FALLBACK[key] ?? ""
   return values
