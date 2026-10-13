@@ -3,6 +3,7 @@ import type * as z from "zod"
 
 import { calendarTools } from "./tools/calendars"
 import { fileTools } from "./tools/files"
+import { hrTools } from "./tools/hr"
 import { messagingTools } from "./tools/messaging"
 import { projectTools } from "./tools/projects"
 import type { McpTool } from "./tools/projects"
@@ -11,6 +12,7 @@ import { contextFromAuthInfo } from "./context"
 export const allMcpTools: McpTool[] = [
   ...projectTools,
   ...calendarTools,
+  ...hrTools,
   ...fileTools,
   ...messagingTools,
 ]

@@ -111,6 +111,17 @@ model Organization {
   chatTeams      ChatTeam[]
   conversations  Conversation[]
 
+  hrProfiles         HrProfile[]
+  attendanceEntries  AttendanceEntry[]
+  leaveRequests      LeaveRequest[]
+  leaveBalances      LeaveBalance[]
+  leaveAdjustments   LeaveAdjustment[]
+  clients            Client[]
+  internalActivities InternalActivity[]
+  auditLogs          AuditLog[]
+  hrSettings         HrSettings?
+  salaryProfiles     SalaryProfile[]
+
   @@unique([slug])
   @@map("organization")
 }
@@ -190,14 +201,22 @@ model Project {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   dueDate        DateTime?
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  plannedHours   Float?
+  isBillable     Boolean      @default(true)
+  startDate      DateTime?
+  endDate        DateTime?
 
-  members    ProjectMember[]
-  labels     ProjectLabel[]
-  tasks      Task[]
-  activities ProjectActivity[]
-  templates  TaskTemplate[]
+  members           ProjectMember[]
+  labels            ProjectLabel[]
+  tasks             Task[]
+  activities        ProjectActivity[]
+  templates         TaskTemplate[]
+  attendanceEntries AttendanceEntry[]
 
   @@index([organizationId])
+  @@index([clientId])
   @@map("project")
 }
 
@@ -614,6 +633,219 @@ model MessageAttachment {
 }
 
 // ---------------------------------------------------------------------------
+// HR: time, attendance, leave & capacity
+// ---------------------------------------------------------------------------
+
+/// Per-user HR settings for the time & attendance module: employment type,
+/// contract, weekly hours, optional manager/validator designation.
+model HrProfile {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  employmentType String       @default("employee") // associate | employee | intern | contractor
+  contractType   String       @default("cdi") // cdi | cdd | internship | freelance | other
+  weeklyHours    Float        @default(35)
+  managerId      String?
+  isValidator    Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@map("hrProfile")
+}
+
+/// Half-day attendance: up to two rows per user per day (morning/afternoon).
+/// `status` is the primary half-day status; `location` refines where working
+/// halves are spent. A half-day can be allocated to a project or an internal
+/// activity (at most one of the two).
+model AttendanceEntry {
+  id                 String            @id @default(cuid())
+  organizationId     String
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId             String
+  date               DateTime          @db.Date
+  period             String // morning | afternoon
+  status             String // on_site | remote | leave | rtt | sick_leave | training | business_trip | holiday | unavailable | other
+  location           String? // on_site | remote | client_site | traveling | other
+  projectId          String?
+  project            Project?          @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  internalActivityId String?
+  internalActivity   InternalActivity? @relation(fields: [internalActivityId], references: [id], onDelete: SetNull)
+  leaveRequestId     String?
+  leaveRequest       LeaveRequest?     @relation(fields: [leaveRequestId], references: [id], onDelete: SetNull)
+  isBillable         Boolean           @default(false)
+  comment            String?
+  createdBy          String
+  updatedBy          String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@unique([organizationId, userId, date, period])
+  @@index([organizationId, date])
+  @@index([userId, date])
+  @@index([projectId])
+  @@map("attendanceEntry")
+}
+
+/// A leave request covering [startDate .. endDate] with half-day precision.
+/// `halfDays` counts working half-days (Mon-Fri, excluding French public
+/// holidays). Approved requests materialize `AttendanceEntry` rows and count
+/// against the requester's leave balance.
+model LeaveRequest {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId          String
+  type            String // paid_leave | rtt | unpaid | sick | training | other
+  status          String       @default("pending") // pending | approved | rejected | cancelled
+  startDate       DateTime     @db.Date
+  endDate         DateTime     @db.Date
+  startPeriod     String       @default("morning") // morning | afternoon
+  endPeriod       String       @default("afternoon") // morning | afternoon
+  halfDays        Float
+  comment         String?
+  validatorId     String?
+  decisionDate    DateTime?
+  decisionComment String?
+  attachmentUrl   String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  attendanceEntries AttendanceEntry[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, userId])
+  @@map("leaveRequest")
+}
+
+/// Days allowance for one user, leave type and year. `allowanceDays` is the
+/// acquired amount; manual adjustments are tracked in `LeaveAdjustment`.
+model LeaveBalance {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  leaveType      String // paid_leave | rtt | recovery | unpaid | training | other
+  year           Int
+  allowanceDays  Float        @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId, leaveType, year])
+  @@map("leaveBalance")
+}
+
+/// A manual balance adjustment (positive or negative), with an audit trail.
+model LeaveAdjustment {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  leaveType      String
+  year           Int
+  days           Float
+  note           String?
+  createdBy      String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId, year])
+  @@map("leaveAdjustment")
+}
+
+/// A client of the company (for project billing).
+model Client {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  contactEmail   String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  projects Project[]
+
+  @@unique([organizationId, name])
+  @@map("client")
+}
+
+/// An internal (non-client) activity time can be allocated to, e.g. product
+/// development, sales, administration. `kind` is internal (investment) or
+/// non_billable.
+model InternalActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  kind           String       @default("internal") // internal | non_billable
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  attendanceEntries AttendanceEntry[]
+
+  @@unique([organizationId, name])
+  @@map("internalActivity")
+}
+
+/// Audit trail for sensitive HR actions: who did what, on which entity, with
+/// before/after snapshots.
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorId        String
+  action         String
+  entityType     String
+  entityId       String
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@map("auditLog")
+}
+
+/// Organization-wide HR defaults for the time & attendance module.
+model HrSettings {
+  id                    String       @id @default(cuid())
+  organizationId        String       @unique
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  defaultWeeklyHours    Float        @default(35)
+  defaultAllowanceDays  Float        @default(25)
+  lowBalanceThreshold   Float        @default(5)
+  pendingValidationDays Int          @default(3)
+  defaultEmployeeRate   Float        @default(22)
+  defaultEmployerRate   Float        @default(42)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@map("hrSettings")
+}
+
+/// Payroll settings for one member: hourly wage, payroll category and French
+/// contribution rates (employee = cotisations salariales, employer =
+/// cotisations patronales). Rates are percentages of the gross pay.
+model SalaryProfile {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  salaryType     String       @default("full_time") // full_time | part_time | intern | apprentice | contractor | other
+  hourlyRate     Float        @default(0)
+  employeeRate   Float        @default(22)
+  employerRate   Float        @default(42)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@map("salaryProfile")
+}
+
 // OAuth / MCP (better-auth jwt + mcp plugins)
 // ---------------------------------------------------------------------------
 

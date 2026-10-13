@@ -6,6 +6,8 @@
   "searchDescription": "Search across your projects, messages, and files.",
   "settingsTitle": "Settings",
   "settingsDescription": "Manage your organization, members and roles.",
+  "hrTitle": "Time & attendance",
+  "hrDescription": "Presence, leave, time tracking and capacity for your team.",
   "helpTitle": "Get help",
   "helpDescription": "Guides and support resources will appear here.",
   "backToDashboard": "Back to dashboard",

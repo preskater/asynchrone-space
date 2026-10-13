@@ -22,6 +22,11 @@ const CODE_KEYS: Record<string, string> = {
   role_cannot_modify_calendars: "roleCannotModifyCalendars",
   role_cannot_send_messages: "roleCannotSendMessages",
   label_color_already_used: "labelColorAlreadyUsed",
+  role_cannot_modify_hr: "roleCannotModifyHr",
+  role_cannot_manage_hr: "roleCannotManageHr",
+  leave_overlapping: "leaveOverlapping",
+  leave_self_approval: "leaveSelfApproval",
+  leave_not_pending: "leaveNotPending",
 }
 
 export function useErrorTranslator() {

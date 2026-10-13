@@ -12,7 +12,7 @@ services:
       POSTGRES_PASSWORD: preskater
       POSTGRES_DB: preskater
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - postgres-data:/var/lib/postgresql
     networks:
@@ -42,12 +42,12 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3002:3000"
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://preskater:preskater@postgres:5432/preskater?schema=public
       - BETTER_AUTH_SECRET=dev-secret-change-me-in-production
-      - BETTER_AUTH_URL=http://localhost:3000
+      - BETTER_AUTH_URL=http://localhost:3002
     depends_on:
       postgres:
         condition: service_healthy

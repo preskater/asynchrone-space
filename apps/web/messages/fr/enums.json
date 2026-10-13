@@ -79,6 +79,76 @@
     "channel": "Canal",
     "dm": "Message direct"
   },
+  "attendanceStatus": {
+    "on_site": "Sur site",
+    "remote": "Télétravail",
+    "leave": "Congé",
+    "rtt": "RTT",
+    "sick_leave": "Maladie",
+    "training": "Formation",
+    "business_trip": "Déplacement",
+    "holiday": "Férié",
+    "unavailable": "Indisponible",
+    "other": "Autre"
+  },
+  "dayPeriod": {
+    "morning": "Matin",
+    "afternoon": "Après-midi"
+  },
+  "workLocationKind": {
+    "on_site": "Sur site",
+    "remote": "À distance",
+    "client_site": "Chez le client",
+    "traveling": "En déplacement",
+    "other": "Autre"
+  },
+  "leaveType": {
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "unpaid": "Sans solde",
+    "sick": "Maladie",
+    "training": "Formation",
+    "other": "Autre"
+  },
+  "leaveStatus": {
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Refusé",
+    "cancelled": "Annulé"
+  },
+  "balanceType": {
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "recovery": "Récupération",
+    "unpaid": "Sans solde",
+    "training": "Formation",
+    "other": "Autre"
+  },
+  "activityKind": {
+    "internal": "Interne",
+    "non_billable": "Non facturable"
+  },
+  "employmentType": {
+    "associate": "Associé",
+    "employee": "Salarié",
+    "intern": "Stagiaire",
+    "contractor": "Prestataire"
+  },
+  "contractType": {
+    "cdi": "CDI",
+    "cdd": "CDD",
+    "internship": "Stage",
+    "freelance": "Freelance",
+    "other": "Autre"
+  },
+  "salaryType": {
+    "full_time": "Temps plein",
+    "part_time": "Temps partiel",
+    "intern": "Stagiaire",
+    "apprentice": "Alternant",
+    "contractor": "Prestataire",
+    "other": "Autre"
+  },
   "presence": {
     "available": "Disponible",
     "away": "Absent",

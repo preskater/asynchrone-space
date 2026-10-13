@@ -13,6 +13,7 @@ import errors from "./errors.json"
 import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
+import hr from "./hr.json"
 import landing from "./landing.json"
 import legal from "./legal.json"
 import marketing from "./marketing.json"
@@ -45,6 +46,7 @@ export default {
   Files: files,
   Footer: footer,
   Forms: forms,
+  Hr: hr,
   Landing: landing,
   Legal: legal,
   Marketing: marketing,

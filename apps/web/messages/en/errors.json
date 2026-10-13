@@ -18,6 +18,11 @@
   "roleCannotModifyCalendars": "Your role cannot modify calendars.",
   "roleCannotSendMessages": "Your role cannot send messages.",
   "labelColorAlreadyUsed": "That color is already used by another label.",
+  "roleCannotModifyHr": "Your role cannot update HR data.",
+  "roleCannotManageHr": "Your role cannot manage HR settings or approvals.",
+  "leaveOverlapping": "This request overlaps an existing leave request.",
+  "leaveSelfApproval": "You cannot decide on your own leave request.",
+  "leaveNotPending": "This request has already been decided or cancelled.",
   "validationMessages": {
     "required": "This field is required.",
     "email": "Please enter a valid email address.",

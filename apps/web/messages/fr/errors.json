@@ -18,6 +18,11 @@
   "roleCannotModifyCalendars": "Votre rôle ne permet pas de modifier les calendriers.",
   "roleCannotSendMessages": "Votre rôle ne permet pas d'envoyer des messages.",
   "labelColorAlreadyUsed": "Cette couleur est déjà utilisée par une autre étiquette.",
+  "roleCannotModifyHr": "Votre rôle ne permet pas de modifier les données RH.",
+  "roleCannotManageHr": "Votre rôle ne permet pas de gérer les paramètres RH ou les approbations.",
+  "leaveOverlapping": "Cette demande chevauche une demande de congé existante.",
+  "leaveSelfApproval": "Vous ne pouvez pas valider votre propre demande de congé.",
+  "leaveNotPending": "Cette demande a déjà été traitée ou annulée.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",
