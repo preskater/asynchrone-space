@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in the CRM web app
+description: Report a bug in the Presk web app
 title: "[Bug] "
 labels: ["bug", "triage"]
 body:
@@ -13,7 +13,7 @@ body:
     attributes:
       label: Short summary
       description: One-sentence description of the bug.
-      placeholder: e.g., Contact list fails to load when filtering by tag
+      placeholder: e.g., Task list fails to load when filtering by label
     validations:
       required: true
 
@@ -44,7 +44,7 @@ body:
     attributes:
       label: Environment
       description: Browser, OS, device, and app version/commit.
-      placeholder: e.g., Chrome 131, macOS 15, staging, commit abc123
+      placeholder: e.g., Chrome 131, macOS 15, production, commit abc123
     validations:
       required: true
 
@@ -60,7 +60,7 @@ body:
     attributes:
       label: Impact / severity
       description: Who is affected and how badly?
-      placeholder: e.g., All users; blocks viewing contact details
+      placeholder: e.g., All users; blocks viewing task details
     validations:
       required: true
 

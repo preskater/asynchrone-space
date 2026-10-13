@@ -7,22 +7,22 @@ import {
   CommandIcon,
   FileIcon,
   FolderIcon,
-  LayoutDashboardIcon,
   MessageSquareIcon,
   SearchIcon,
   Settings2Icon,
+  SparklesIcon,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { CalendarsSidebar } from "@/components/calendars/calendars-sidebar"
+import { ConversationSidebar } from "@/components/messaging/conversation-sidebar"
+import { FilesSidebar } from "@/components/files/files-sidebar"
 import { NavMain, type NavApp } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
-import { OrgSwitcher } from "@/components/organization/org-switcher"
-import { Link } from "@/i18n/navigation"
+import { Link, usePathname } from "@/i18n/navigation"
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -30,13 +30,13 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 
-function useNavMain(orgSlug: string): NavApp[] {
+export function useNavMain(orgSlug: string): NavApp[] {
   const t = useTranslations("Sidebar")
   return [
     {
-      title: t("dashboard"),
+      title: t("assistant"),
       url: `/${orgSlug}`,
-      icon: <LayoutDashboardIcon />,
+      icon: <SparklesIcon />,
     },
     {
       key: "projects",
@@ -70,7 +70,7 @@ function useNavMain(orgSlug: string): NavApp[] {
   ]
 }
 
-function useNavSecondary(orgSlug: string) {
+export function useNavSecondary(orgSlug: string) {
   const t = useTranslations("Sidebar")
   return [
     {
@@ -92,21 +92,38 @@ function useNavSecondary(orgSlug: string) {
 }
 
 export function AppSidebar({
-  user,
   orgSlug,
-  activeOrganizationId,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
-  user: {
-    name: string
-    email: string
-    image?: string | null
-  }
   orgSlug: string
-  activeOrganizationId: string | null
 }) {
+  const pathname = usePathname()
   const navMain = useNavMain(orgSlug)
   const navSecondary = useNavSecondary(orgSlug)
+
+  const prefix = `/${orgSlug}`
+  const relative = pathname.startsWith(prefix)
+    ? pathname.slice(prefix.length)
+    : pathname
+
+  const contextual =
+    relative === "/messages" || relative.startsWith("/messages/") ? (
+      <ConversationSidebar />
+    ) : relative === "/files" || relative.startsWith("/files/") ? (
+      <FilesSidebar />
+    ) : relative === "/calendars" || relative.startsWith("/calendars/") ? (
+      <CalendarsSidebar />
+    ) : null
+
+  if (contextual) {
+    return (
+      <Sidebar collapsible="offcanvas" {...props}>
+        <SidebarContent>{contextual}</SidebarContent>
+        <SidebarRail />
+      </Sidebar>
+    )
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="gap-2">
@@ -121,15 +138,11 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <OrgSwitcher activeOrganizationId={activeOrganizationId} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />
         <NavSecondary items={navSecondary} className="mt-auto" />
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={user} />
-      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   )

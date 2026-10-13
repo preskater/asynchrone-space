@@ -13,7 +13,7 @@ body:
     attributes:
       label: Scope
       description: Feature/bug this QA issue covers.
-      placeholder: e.g., Bulk email to contacts from list view (#98)
+      placeholder: e.g., Bulk actions on tasks from list view (#98)
     validations:
       required: true
 
@@ -23,8 +23,8 @@ body:
       label: Test scenarios
       description: List main flows to test.
       placeholder: |
-        - Select 1–N contacts and send bulk email.
-        - Send with valid/invalid template.
+        - Select 1–N tasks and apply a bulk action.
+        - Apply with valid/invalid input.
         - Behavior with filters, pagination, and permissions.
     validations:
       required: true
@@ -35,16 +35,16 @@ body:
       label: Edge cases & negative tests
       description: Unusual inputs, failure modes, permission issues.
       placeholder: |
-        - No contacts selected.
-        - 500+ contacts selected.
-        - User without `emails:send` permission.
+        - No tasks selected.
+        - 500+ tasks selected.
+        - User without `tasks:write` permission.
 
   - type: textarea
     id: data_setup
     attributes:
       label: Test data setup
       description: What data/fixtures are needed?
-      placeholder: e.g., 3 companies, 50 contacts, 2 email templates.
+      placeholder: e.g., 3 projects, 50 tasks, 2 labels.
 
   - type: textarea
     id: checklist
@@ -54,7 +54,7 @@ body:
       placeholder: |
         - [ ] Verify UI selection behavior
         - [ ] Verify API responses and error codes
-        - [ ] Verify audit logs and contact timelines
+        - [ ] Verify audit logs and project activity feed
 
   - type: textarea
     id: notes

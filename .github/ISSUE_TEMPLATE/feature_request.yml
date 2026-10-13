@@ -1,19 +1,19 @@
 name: Feature Request
-description: Propose a new feature for the CRM
+description: Propose a new feature for Presk
 title: "[Feature] "
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this template to propose new CRM features or improvements.
+        Use this template to propose new Presk features or improvements.
 
   - type: input
     id: summary
     attributes:
       label: Feature summary
       description: One-sentence description of the feature.
-      placeholder: e.g., Add bulk email to contacts from list view
+      placeholder: e.g., Add bulk actions to tasks from list view
     validations:
       required: true
 
@@ -44,9 +44,9 @@ body:
       label: Acceptance criteria
       description: Clear, testable conditions for “done”.
       placeholder: |
-        - User can select multiple contacts and trigger bulk email.
-        - System validates email templates before sending.
-        - Sent emails are logged on each contact timeline.
+        - User can select multiple tasks and trigger a bulk action.
+        - System validates the request before applying it.
+        - Changes are recorded in the project activity feed.
     validations:
       required: true
 

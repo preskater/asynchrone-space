@@ -2,7 +2,7 @@
   "workspace": "Workspace",
   "quickCreate": "Quick Create",
   "messages": "Messages",
-  "dashboard": "Dashboard",
+  "assistant": "Assistant",
   "projects": "Projects",
   "calendars": "Calendars",
   "files": "Files",
@@ -10,5 +10,7 @@
   "settings": "Settings",
   "account": "Account",
   "search": "Search",
+  "searchPlaceholder": "Search or jump to…",
+  "noResults": "No results found.",
   "getHelp": "Get Help"
 }

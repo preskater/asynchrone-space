@@ -1,10 +1,7 @@
 {
   "mcpServers": {
     "presk": {
-      "url": "http://localhost:3000/mcp",
-      "headers": {
-        "Authorization": "Bearer ${MCP_SERVICE_TOKEN}"
-      }
+      "url": "http://localhost:3000/mcp"
     }
   }
 }

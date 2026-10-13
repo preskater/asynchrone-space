@@ -27,7 +27,7 @@ export function FileMoveDialog({
   onOpenChange,
 }: {
   file: FileNode
-  children: React.ReactElement
+  children?: React.ReactElement
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
@@ -43,8 +43,14 @@ export function FileMoveDialog({
   )
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={children} />
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) setTarget(file.parentId)
+      }}
+    >
+      {children ? <DialogTrigger render={children} /> : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("moveTitle", { name: file.name })}</DialogTitle>

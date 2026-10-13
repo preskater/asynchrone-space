@@ -2,7 +2,7 @@
   "workspace": "Espace de travail",
   "quickCreate": "Création rapide",
   "messages": "Messages",
-  "dashboard": "Tableau de bord",
+  "assistant": "Assistant",
   "projects": "Projets",
   "calendars": "Calendriers",
   "files": "Fichiers",
@@ -10,5 +10,7 @@
   "settings": "Paramètres",
   "account": "Compte",
   "search": "Rechercher",
+  "searchPlaceholder": "Rechercher ou accéder à…",
+  "noResults": "Aucun résultat.",
   "getHelp": "Aide"
 }

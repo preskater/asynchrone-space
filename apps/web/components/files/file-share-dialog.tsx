@@ -139,7 +139,7 @@ export function FileShareDialog({
                 </Command>
               </PopoverContent>
             </Popover>
-            <Button variant="outline">
+            <Button variant="outline" onClick={copyLink}>
               <LinkIcon data-icon="inline-start" />
               {t("copyLink")}
             </Button>

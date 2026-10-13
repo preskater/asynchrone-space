@@ -1,5 +1,5 @@
 name: Documentation
-description: Update or add documentation for the CRM
+description: Update or add documentation for Presk
 title: "[Docs] "
 labels: ["documentation", "triage"]
 body:
@@ -22,7 +22,7 @@ body:
     attributes:
       label: Target audience
       description: Who is this documentation for?
-      placeholder: e.g., End users (sales reps), admins, developers.
+      placeholder: e.g., End users, admins, developers.
     validations:
       required: true
 
@@ -33,8 +33,8 @@ body:
       description: Sections or topics to cover.
       placeholder: |
         - Overview
-        - How to select contacts
-        - How to send bulk email
+        - How to select tasks
+        - How to apply a bulk action
         - Limits & permissions
         - Troubleshooting
     validations:
@@ -45,7 +45,7 @@ body:
     attributes:
       label: Where should this live?
       description: Docs site, README, wiki, Notion, etc.
-      placeholder: e.g., /docs/user-guide/contacts/bulk-actions.md
+      placeholder: e.g., /docs/user-guide/projects/bulk-actions.md
 
   - type: textarea
     id: notes

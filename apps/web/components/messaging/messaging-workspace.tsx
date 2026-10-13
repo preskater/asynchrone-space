@@ -5,20 +5,21 @@ import { useTranslations } from "next-intl"
 
 import { ChatPanel } from "@/components/messaging/chat-panel"
 import { ConversationDetailsSheet } from "@/components/messaging/conversation-details-sheet"
-import { ConversationSidebar } from "@/components/messaging/conversation-sidebar"
 import { SearchCommand } from "@/components/messaging/search-command"
 import { ThreadSheet } from "@/components/messaging/thread-sheet"
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@workspace/ui/components/empty"
 import {
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@workspace/ui/components/resizable"
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@workspace/ui/components/empty"
 import { MessageSquareIcon } from "lucide-react"
 
 import { useEnumLabel } from "@/lib/i18n/labels"
 import { useMessaging } from "@/lib/messaging/store"
 import { useRecents } from "@/lib/recents/store"
+import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 
 export function MessagingWorkspace() {
   const t = useTranslations("Messaging")
@@ -26,13 +27,15 @@ export function MessagingWorkspace() {
   const { conversations, getConversation, getMember, dmPartner, markRead } =
     useMessaging()
   const { record, active, hydrated } = useRecents()
-  const [activeId, setActiveId] = React.useState<string | undefined>(
-    () => active.messages ?? conversations[0]?.id
-  )
+  const {
+    messagesActiveId: activeId,
+    selectConversation,
+    messagesSearchOpen: searchOpen,
+    setMessagesSearchOpen: setSearchOpen,
+  } = useWorkspaceNav()
   const [threadId, setThreadId] = React.useState<string | undefined>()
   const [threadOpen, setThreadOpen] = React.useState(false)
   const [detailsOpen, setDetailsOpen] = React.useState(false)
-  const [searchOpen, setSearchOpen] = React.useState(false)
 
   const activeConversation = getConversation(activeId)
 
@@ -48,8 +51,12 @@ export function MessagingWorkspace() {
   React.useEffect(() => {
     if (!hydrated || restoredRef.current) return
     restoredRef.current = true
-    if (active.messages) setActiveId(active.messages)
-  }, [hydrated, active.messages])
+    if (active.messages) {
+      selectConversation(active.messages)
+    } else if (!activeId && conversations[0]) {
+      selectConversation(conversations[0].id)
+    }
+  }, [hydrated, active.messages, activeId, conversations, selectConversation])
 
   React.useEffect(() => {
     if (!hydrated || !activeId) return
@@ -68,22 +75,6 @@ export function MessagingWorkspace() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId, hydrated])
 
-  React.useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
-        event.preventDefault()
-        setSearchOpen(true)
-      }
-    }
-    window.addEventListener("keydown", onKeyDown)
-    return () => window.removeEventListener("keydown", onKeyDown)
-  }, [])
-
-  function selectConversation(id: string) {
-    setActiveId(id)
-    markRead(id)
-  }
-
   function openThread(messageId: string) {
     setThreadId(messageId)
     setThreadOpen(true)
@@ -92,50 +83,26 @@ export function MessagingWorkspace() {
   return (
     <>
       <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl ring-1 ring-foreground/10">
-        <ResizablePanelGroup
-          id="messages-layout"
-          orientation="horizontal"
-          className="h-full min-h-0"
-        >
-          <ResizablePanel
-            id="conversations"
-            defaultSize="288px"
-            minSize="220px"
-            maxSize="440px"
-            className="min-h-0"
-          >
-            <ConversationSidebar
-              activeId={activeId}
-              onSelect={selectConversation}
-              onOpenSearch={() => setSearchOpen(true)}
-            />
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
-
-          <ResizablePanel id="chat" minSize="50%" className="min-h-0">
-            {activeConversation ? (
-              <ChatPanel
-                conversation={activeConversation}
-                onOpenDetails={() => setDetailsOpen(true)}
-                onOpenSearch={() => setSearchOpen(true)}
-                onReply={openThread}
-              />
-            ) : (
-              <Empty className="h-full">
-                <EmptyHeader>
-                  <EmptyMedia variant="icon">
-                    <MessageSquareIcon />
-                  </EmptyMedia>
-                  <EmptyTitle>{t("noConversationSelected")}</EmptyTitle>
-                  <EmptyDescription>
-                    {t("noConversationSelectedDescription")}
-                  </EmptyDescription>
-                </EmptyHeader>
-              </Empty>
-            )}
-          </ResizablePanel>
-        </ResizablePanelGroup>
+        {activeConversation ? (
+          <ChatPanel
+            conversation={activeConversation}
+            onOpenDetails={() => setDetailsOpen(true)}
+            onOpenSearch={() => setSearchOpen(true)}
+            onReply={openThread}
+          />
+        ) : (
+          <Empty className="h-full">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <MessageSquareIcon />
+              </EmptyMedia>
+              <EmptyTitle>{t("noConversationSelected")}</EmptyTitle>
+              <EmptyDescription>
+                {t("noConversationSelectedDescription")}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        )}
       </div>
 
       <ThreadSheet

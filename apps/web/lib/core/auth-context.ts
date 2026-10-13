@@ -36,46 +36,17 @@ async function contextFromSession(): Promise<RequestContext | null> {
   }
 }
 
-function contextFromServiceToken(token: string): RequestContext | null {
-  const expected = process.env.MCP_SERVICE_TOKEN
-  if (!expected || token !== expected) return null
-
-  const organizationId = process.env.MCP_SERVICE_ORG_ID
-  const userId = process.env.MCP_SERVICE_USER_ID
-  const role = resolveRole(process.env.MCP_SERVICE_ROLE)
-
-  if (!organizationId || !userId) return null
-
-  return {
-    userId,
-    userName: process.env.MCP_SERVICE_USER_NAME ?? "Presk Assistant",
-    userEmail: process.env.MCP_SERVICE_USER_EMAIL ?? "assistant@presk.app",
-    organizationId,
-    role,
-  }
-}
-
 export interface GetRequestContextOptions {
   request?: Request
   required?: boolean
 }
 
 export async function getRequestContext(
-  options: GetRequestContextOptions = {}
+  _options: GetRequestContextOptions = {}
 ): Promise<RequestContext> {
-  // Only an explicit Bearer token (machine-to-machine) or an authenticated
-  // session may establish context. We never fall back to the service token
-  // implicitly, otherwise any unauthenticated request would inherit the MCP
-  // service organization's context.
-  const token = options.request?.headers
-    .get("authorization")
-    ?.replace(/^Bearer\s+/i, "")
-
-  if (token) {
-    const fromToken = contextFromServiceToken(token)
-    if (fromToken) return fromToken
-  }
-
+  // The web app and its API routes authenticate with the session cookie.
+  // Machine-to-machine access goes through the OAuth2-protected MCP endpoint
+  // (`app/mcp/route.ts`), which builds its own context from verified tokens.
   const ctx = await contextFromSession()
   if (ctx) return ctx
 

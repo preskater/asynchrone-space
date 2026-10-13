@@ -13,7 +13,7 @@ body:
     attributes:
       label: Task summary
       description: One-sentence description of the work.
-      placeholder: e.g., Implement API endpoint to bulk-update contact tags
+      placeholder: e.g., Implement API endpoint to bulk-update task labels
     validations:
       required: true
 
@@ -22,7 +22,7 @@ body:
     attributes:
       label: Context
       description: Why is this task needed? Link to parent feature/bug if any.
-      placeholder: e.g., Part of “Bulk actions on contacts” feature (#123).
+      placeholder: e.g., Part of “Bulk actions on tasks” feature (#123).
 
   - type: textarea
     id: requirements
@@ -30,9 +30,9 @@ body:
       label: Technical requirements
       description: Key implementation details and constraints.
       placeholder: |
-        - Endpoint: POST /api/contacts/bulk-update-tags
-        - Auth: requires `contacts:write`
-        - Input: array of contact IDs + tags to add/remove
+        - Endpoint: POST /api/tasks/bulk-update-labels
+        - Auth: requires `tasks:write`
+        - Input: array of task IDs + labels to add/remove
         - Rate limits, idempotency, error codes, etc.
     validations:
       required: true
@@ -43,9 +43,9 @@ body:
       label: Acceptance criteria
       description: Testable conditions for completion.
       placeholder: |
-        - Endpoint accepts up to 500 contact IDs per call.
+        - Endpoint accepts up to 500 task IDs per call.
         - Returns 200 with summary of updated/failed IDs.
-        - Logs audit events for tag changes.
+        - Logs audit events for label changes.
     validations:
       required: true
 

@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions & Discussions
+    url: https://github.com/preskater/presk/discussions
+    about: Ask questions, share ideas, and discuss Presk with the community.
+  - name: Security vulnerability
+    url: https://github.com/preskater/presk/security/advisories/new
+    about: Please report security issues privately — do not open a public issue.
+  - name: Website
+    url: https://presk.re
+    about: Learn more about Presk.

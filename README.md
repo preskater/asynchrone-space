@@ -1,5 +1,7 @@
 # Presk
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+
 **AI‑Native Productivity Platform**
 
 Presk is an AI‑first workspace that automates your workflow, centralizes your tasks, and connects your team in one place. It combines calendars, projects, files, and messaging with built‑in AI assistants to help you move faster and stay aligned.
@@ -17,6 +19,103 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 - **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.  
 - **Unified workspace**: No more switching between tools; everything you need lives in one platform.  
 - **Team‑first**: Built for collaboration, with real‑time editing, shared context, and clear ownership.
+
+## Tech stack
+
+- **Framework**: [Next.js](https://nextjs.org) (App Router) + React 19
+- **Monorepo**: [Turborepo](https://turborepo.com) with npm workspaces
+- **Database**: PostgreSQL via [Prisma](https://www.prisma.io) 7 (driver adapter `@prisma/adapter-pg`)
+- **Auth**: [Better Auth](https://www.better-auth.com)
+- **UI**: [shadcn/ui](https://ui.shadcn.com) + [Base UI](https://base-ui.com) + Tailwind CSS
+- **AI**: [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/), exposed to clients over MCP
+- **i18n**: [next-intl](https://next-intl.dev) (English and French)
+
+## Repository structure
+
+| Path | Description |
+| --- | --- |
+| `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
+| `packages/ui` | Shared UI component library. |
+| `packages/eslint-config` | Shared ESLint configuration. |
+| `packages/typescript-config` | Shared TypeScript configuration. |
+
+## Getting started
+
+### Prerequisites
+
+- **Node.js** >= 20.9.0
+- **npm** 11 (declared via `packageManager`; run `corepack enable` to match)
+- **Docker** (recommended) for a local PostgreSQL instance
+
+### Setup
+
+1. Install dependencies from the repository root:
+
+   ```bash
+   npm install
+   ```
+
+2. Start PostgreSQL:
+
+   ```bash
+   docker compose up -d postgres
+   ```
+
+3. Create your environment file and fill in the values:
+
+   ```bash
+   cp apps/web/.env.example apps/web/.env
+   ```
+
+   At minimum set `DATABASE_URL` and `BETTER_AUTH_SECRET`. An `OPENAI_API_KEY`
+   is only required for AI assistant features. See
+   [Environment variables](#environment-variables) below.
+
+4. Generate the Prisma client and apply migrations:
+
+   ```bash
+   npm run generate --workspace=web
+   npx prisma migrate deploy --schema apps/web/prisma/schema.prisma
+   ```
+
+5. Start the dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+   The app is available at http://localhost:3000.
+
+> Prefer containers? `docker compose up --build` runs PostgreSQL, applies
+> migrations, and serves the production build on port 3000.
+
+## Environment variables
+
+All variables live in `apps/web/.env` (see [`apps/web/.env.example`](./apps/web/.env.example)).
+
+| Variable | Required | Description |
+| --- | --- | --- |
+| `DATABASE_URL` | Yes | PostgreSQL connection string. |
+| `DATABASE_POOL_MAX` | No | Max Postgres connections per instance (default `3`). |
+| `BETTER_AUTH_SECRET` | Yes | Secret used to sign sessions. |
+| `BETTER_AUTH_URL` | Yes | Public base URL of the app. |
+| `OPENAI_API_KEY` | No | Enables AI assistant features. |
+| `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
+| `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
+| `MCP_RESOURCE_URL` | No | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`). |
+
+## Available scripts
+
+Run these from the repository root; Turborepo fans them out to the relevant
+workspaces.
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the dev servers in watch mode. |
+| `npm run build` | Build all workspaces. |
+| `npm run lint` | Lint all workspaces. |
+| `npm run typecheck` | Type-check all workspaces. |
+| `npm run format` | Format with Prettier. |
 
 ## File storage
 
@@ -84,4 +183,13 @@ chunked create/append/hash paths; it then deletes/aborts and asserts
 npm run verify:large-object --workspace=web
 ```
 
+## Contributing
 
+Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for
+setup instructions and our workflow, and note our
+[Code of Conduct](./CODE_OF_CONDUCT.md). To report a security issue, see
+[SECURITY.md](./SECURITY.md).
+
+## License
+
+Released under the [MIT License](./LICENSE).
