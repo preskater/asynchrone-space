@@ -51,6 +51,7 @@ type ExportReport =
   | "project-time"
   | "client-time"
   | "capacity"
+  | "payroll"
   | "audit"
 
 export function AdminPanel({ data }: { data: HrOverviewData }) {
@@ -67,6 +68,8 @@ export function AdminPanel({ data }: { data: HrOverviewData }) {
     defaultAllowanceDays: String(data.settings.defaultAllowanceDays),
     lowBalanceThreshold: String(data.settings.lowBalanceThreshold),
     pendingValidationDays: String(data.settings.pendingValidationDays),
+    defaultEmployeeRate: String(data.settings.defaultEmployeeRate),
+    defaultEmployerRate: String(data.settings.defaultEmployerRate),
   })
   const [savingSettings, setSavingSettings] = React.useState(false)
 
@@ -76,6 +79,7 @@ export function AdminPanel({ data }: { data: HrOverviewData }) {
     { key: "project-time", label: t("admin.reportProjectTime") },
     { key: "client-time", label: t("admin.reportClientTime") },
     { key: "capacity", label: t("admin.reportCapacity") },
+    { key: "payroll", label: t("admin.reportPayroll"), adminOnly: true },
     { key: "audit", label: t("admin.reportAudit"), adminOnly: true },
   ]
 
@@ -102,6 +106,8 @@ export function AdminPanel({ data }: { data: HrOverviewData }) {
           defaultAllowanceDays: Number(settings.defaultAllowanceDays),
           lowBalanceThreshold: Number(settings.lowBalanceThreshold),
           pendingValidationDays: Number(settings.pendingValidationDays),
+          defaultEmployeeRate: Number(settings.defaultEmployeeRate),
+          defaultEmployerRate: Number(settings.defaultEmployerRate),
         })
       )
       toast.success(tT("settingsUpdated"))
@@ -219,6 +225,38 @@ export function AdminPanel({ data }: { data: HrOverviewData }) {
                       setSettings((prev) => ({
                         ...prev,
                         pendingValidationDays: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm">
+                  {t("admin.defaultEmployeeRate")}
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    value={settings.defaultEmployeeRate}
+                    onChange={(event) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        defaultEmployeeRate: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-sm">
+                  {t("admin.defaultEmployerRate")}
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    step={0.5}
+                    value={settings.defaultEmployerRate}
+                    onChange={(event) =>
+                      setSettings((prev) => ({
+                        ...prev,
+                        defaultEmployerRate: event.target.value,
                       }))
                     }
                   />

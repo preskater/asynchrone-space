@@ -30,6 +30,7 @@ export function enumLabels(t: Translator) {
     activityKind: (value: string) => t(`activityKind.${value}` as never),
     employmentType: (value: string) => t(`employmentType.${value}` as never),
     contractType: (value: string) => t(`contractType.${value}` as never),
+    salaryType: (value: string) => t(`salaryType.${value}` as never),
     resource: (value: string) => t(`resource.${value}` as never),
   }
 }

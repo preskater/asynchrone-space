@@ -13,11 +13,13 @@ import {
   exportSchema,
   fetchRangeSchema,
   hrService,
+  monthKeySchema,
   projectHrSchema,
   setAllowanceSchema,
   setAttendanceSchema,
   setDayStatusSchema,
   updateProfileSchema,
+  updateSalarySchema,
   updateSettingsSchema,
 } from "@/lib/hr"
 import { revalidateOrgPath } from "@/lib/organization/paths"
@@ -37,6 +39,12 @@ export const fetchTrackingAction = withAction(
     return hrService.fetchTracking(ctx, parsed.from, parsed.to)
   }
 )
+
+export const fetchPayrollAction = withAction(async (monthKey: string) => {
+  const ctx = await getRequestContext()
+  const parsed = monthKeySchema.parse(monthKey)
+  return hrService.getPayroll(ctx, parsed)
+})
 
 export const setAttendanceAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
@@ -117,6 +125,14 @@ export const updateProfileAction = withAction(async (input: unknown) => {
   const profile = await hrService.updateProfile(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
   return profile
+})
+
+export const updateSalaryAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(updateSalarySchema, input)
+  const salary = await hrService.updateSalary(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return salary
 })
 
 export const saveClientAction = withAction(async (input: unknown) => {

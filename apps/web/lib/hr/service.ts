@@ -1,6 +1,7 @@
 import {
   addDaysToKey,
   addMonthsToKey,
+  isMonthKey,
   monthDateRange,
   monthKeyOf,
   parseDateKey,
@@ -33,6 +34,7 @@ import type {
   SetAttendanceInput,
   SetDayStatusInput,
   UpdateProfileInput,
+  UpdateSalaryInput,
   UpdateSettingsInput,
 } from "./schemas"
 import {
@@ -40,6 +42,7 @@ import {
   LEAVE_STATUS_TO_ATTENDANCE,
   TRACKED_LEAVE_TYPES,
   isAbsenceStatus,
+  isWorkingStatus,
   type AttendanceEntryData,
   type AttendanceStatus,
   type AuditLogData,
@@ -55,7 +58,10 @@ import {
   type LeaveBalanceData,
   type LeaveRequestData,
   type LeaveType,
+  type PayrollData,
   type ProjectOptionData,
+  type SalaryProfileData,
+  type SalaryType,
   type TrackingResult,
   type TrackingRow,
   type WorkLocationKind,
@@ -71,6 +77,8 @@ const DEFAULT_SETTINGS: HrSettingsData = {
   defaultAllowanceDays: 25,
   lowBalanceThreshold: 5,
   pendingValidationDays: 3,
+  defaultEmployeeRate: 22,
+  defaultEmployerRate: 42,
 }
 
 const QUICK_LOCATION: Partial<Record<AttendanceStatus, WorkLocationKind>> = {
@@ -115,6 +123,7 @@ type AuditRow = Awaited<ReturnType<HrRepository["listAudit"]>>[number]
 type AllocationRow = Awaited<
   ReturnType<HrRepository["listAllocationEntries"]>
 >[number]
+type SalaryRow = Awaited<ReturnType<HrRepository["listSalaryProfiles"]>>[number]
 
 export class HrService {
   constructor(private readonly repo: HrRepository) {}
@@ -270,6 +279,8 @@ export class HrService {
           defaultAllowanceDays: settingsRow.defaultAllowanceDays,
           lowBalanceThreshold: settingsRow.lowBalanceThreshold,
           pendingValidationDays: settingsRow.pendingValidationDays,
+          defaultEmployeeRate: settingsRow.defaultEmployeeRate,
+          defaultEmployerRate: settingsRow.defaultEmployerRate,
         }
       : DEFAULT_SETTINGS
     const profileByUser = new Map(profileRows.map((row) => [row.userId, row]))
@@ -306,6 +317,7 @@ export class HrService {
       activityRows,
       projectRows,
       allocationRows,
+      salaryRows,
       auditRows,
     ] = await Promise.all([
       this.loadMembers(ctx.organizationId),
@@ -323,6 +335,7 @@ export class HrService {
       this.repo.listActivities(ctx.organizationId),
       this.repo.listProjects(ctx.organizationId),
       this.repo.listAllocationEntries(ctx.organizationId),
+      access.isAdmin ? this.repo.listSalaryProfiles(ctx.organizationId) : [],
       access.isAdmin ? this.repo.listAudit(ctx.organizationId, 100) : [],
     ])
 
@@ -386,6 +399,10 @@ export class HrService {
       projectTotals,
     })
 
+    const payroll = access.isAdmin
+      ? this.computePayroll(members, salaryRows, settings, attendance, monthKey)
+      : null
+
     return {
       todayKey,
       year,
@@ -408,6 +425,7 @@ export class HrService {
       capacityWeeks,
       capacityMonth,
       alerts,
+      payroll,
       clients: clientRows.map((row) => this.mapClient(row)),
       activities: activityRows.map((row) => this.mapActivity(row)),
       projects: projectRows.map((row) => this.mapProject(row)),
@@ -1075,6 +1093,8 @@ export class HrService {
       defaultAllowanceDays: row.defaultAllowanceDays,
       lowBalanceThreshold: row.lowBalanceThreshold,
       pendingValidationDays: row.pendingValidationDays,
+      defaultEmployeeRate: row.defaultEmployeeRate,
+      defaultEmployerRate: row.defaultEmployerRate,
     }
   }
 
@@ -1122,6 +1142,160 @@ export class HrService {
     ])
 
     return this.mapProfile(row, DEFAULT_SETTINGS)
+  }
+
+  // ---------------------------------------------------------------------------
+  // Payroll
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Build one payroll line per member for a month: worked hours come from
+   * attendance entries with a working status, money columns from the salary
+   * profile (or the organization defaults) and the contribution rates.
+   */
+  private computePayroll(
+    members: HrMemberData[],
+    salaryRows: SalaryRow[],
+    settings: HrSettingsData,
+    entries: AttendanceEntryData[],
+    monthKey: string
+  ): PayrollData {
+    const salaryByUser = new Map(salaryRows.map((row) => [row.userId, row]))
+    const rows = members.map((member) => {
+      const salary = salaryByUser.get(member.id)
+      const hourlyRate = salary?.hourlyRate ?? 0
+      const employeeRate = salary?.employeeRate ?? settings.defaultEmployeeRate
+      const employerRate = salary?.employerRate ?? settings.defaultEmployerRate
+      const halfHours = halfDayHours(member.profile.weeklyHours)
+      const workedHours = sum(
+        entries
+          .filter(
+            (entry) =>
+              entry.userId === member.id &&
+              entry.date.slice(0, 7) === monthKey &&
+              isWorkingStatus(entry.status)
+          )
+          .map(() => halfHours)
+      )
+      const grossPay = round2(workedHours * hourlyRate)
+      const employeeContribution = round2((grossPay * employeeRate) / 100)
+      const employerContribution = round2((grossPay * employerRate) / 100)
+      return {
+        userId: member.id,
+        userName: member.name,
+        salaryType: (salary?.salaryType ?? "full_time") as SalaryType,
+        workedHours,
+        hourlyRate,
+        employeeRate,
+        employerRate,
+        grossPay,
+        employeeContribution,
+        employerContribution,
+        netBeforeTax: round2(grossPay - employeeContribution),
+        totalCost: round2(grossPay + employerContribution),
+        hasSalaryProfile: Boolean(salary),
+      }
+    })
+    return {
+      monthKey,
+      rows,
+      totals: {
+        workedHours: sum(rows.map((row) => row.workedHours)),
+        grossPay: sum(rows.map((row) => row.grossPay)),
+        employeeContribution: sum(rows.map((row) => row.employeeContribution)),
+        employerContribution: sum(rows.map((row) => row.employerContribution)),
+        netBeforeTax: sum(rows.map((row) => row.netBeforeTax)),
+        totalCost: sum(rows.map((row) => row.totalCost)),
+      },
+    }
+  }
+
+  async getPayroll(ctx: RequestContext, monthKey: string): Promise<PayrollData> {
+    const access = await this.accessFor(ctx)
+    requireAdmin(access)
+    if (!isMonthKey(monthKey)) {
+      throw new ValidationError("Invalid payroll month.")
+    }
+    const range = monthDateRange(monthKey)
+    const [memberInfo, salaryRows, attendanceRows] = await Promise.all([
+      this.loadMembers(ctx.organizationId),
+      this.repo.listSalaryProfiles(ctx.organizationId),
+      this.repo.listAttendance(
+        ctx.organizationId,
+        parseDateKey(range.start),
+        parseDateKey(range.end)
+      ),
+    ])
+    const entries = attendanceRows.map((row) =>
+      this.mapAttendance(row, false, ctx.userId)
+    )
+    return this.computePayroll(
+      memberInfo.members,
+      salaryRows,
+      memberInfo.settings,
+      entries,
+      monthKey
+    )
+  }
+
+  async updateSalary(
+    ctx: RequestContext,
+    input: UpdateSalaryInput
+  ): Promise<SalaryProfileData> {
+    const access = await this.accessFor(ctx)
+    requireAdmin(access)
+
+    const members = await this.repo.listMembers(ctx.organizationId)
+    if (!members.some((member) => member.userId === input.userId)) {
+      throw new NotFoundError("Member")
+    }
+
+    const before = await this.repo.findSalaryProfile(
+      ctx.organizationId,
+      input.userId
+    )
+    const row = await this.repo.upsertSalaryProfile(
+      ctx.organizationId,
+      input.userId,
+      {
+        salaryType: input.salaryType,
+        hourlyRate: input.hourlyRate,
+        employeeRate: input.employeeRate,
+        employerRate: input.employerRate,
+      }
+    )
+
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: "salary.update",
+        entityType: "salaryProfile",
+        entityId: row.id,
+        before: before
+          ? {
+              salaryType: before.salaryType,
+              hourlyRate: before.hourlyRate,
+              employeeRate: before.employeeRate,
+              employerRate: before.employerRate,
+            }
+          : undefined,
+        after: {
+          salaryType: row.salaryType,
+          hourlyRate: row.hourlyRate,
+          employeeRate: row.employeeRate,
+          employerRate: row.employerRate,
+        },
+      },
+    ])
+
+    return {
+      userId: row.userId,
+      salaryType: row.salaryType as SalaryType,
+      hourlyRate: row.hourlyRate,
+      employeeRate: row.employeeRate,
+      employerRate: row.employerRate,
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1459,6 +1633,8 @@ export class HrService {
         return this.exportTime(ctx, access, todayKey, "client")
       case "capacity":
         return this.exportCapacity(ctx, access, todayKey)
+      case "payroll":
+        return this.exportPayroll(ctx, access, input.month ?? monthKeyOf(todayKey))
       case "audit":
         return this.exportAudit(ctx)
       default:
@@ -1680,6 +1856,56 @@ export class HrService {
     }
     return {
       filename: `presk-capacity-${todayKey}.csv`,
+      content: toCsv(csvRows),
+    }
+  }
+
+  private async exportPayroll(
+    ctx: RequestContext,
+    access: HrAccess,
+    monthKey: string
+  ): Promise<CsvFile> {
+    requireAdmin(access)
+    const payroll = await this.getPayroll(ctx, monthKey)
+    const csvRows: (string | number)[][] = [
+      [
+        "Worker",
+        "Type",
+        "Worked hours",
+        "Hourly wage",
+        "Gross total",
+        "Employee contributions",
+        "Employer contributions",
+        "Net before tax",
+        "Total cost",
+      ],
+    ]
+    for (const row of payroll.rows) {
+      csvRows.push([
+        row.userName,
+        row.salaryType,
+        row.workedHours,
+        row.hourlyRate,
+        row.grossPay,
+        row.employeeContribution,
+        row.employerContribution,
+        row.netBeforeTax,
+        row.totalCost,
+      ])
+    }
+    csvRows.push([
+      "Total",
+      "",
+      payroll.totals.workedHours,
+      "",
+      payroll.totals.grossPay,
+      payroll.totals.employeeContribution,
+      payroll.totals.employerContribution,
+      payroll.totals.netBeforeTax,
+      payroll.totals.totalCost,
+    ])
+    return {
+      filename: `presk-payroll-${monthKey}.csv`,
       content: toCsv(csvRows),
     }
   }

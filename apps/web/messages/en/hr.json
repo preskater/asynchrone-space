@@ -5,6 +5,7 @@
     "leave": "Leave",
     "tracking": "Tracking",
     "capacity": "Capacity",
+    "payroll": "Payroll",
     "admin": "Admin"
   },
   "common": {
@@ -174,6 +175,34 @@
     "allocated": "Allocated",
     "remaining": "Remaining"
   },
+  "payroll": {
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "exportCsv": "Export payroll (CSV)",
+    "member": "Worker",
+    "type": "Type",
+    "hours": "Worked hours",
+    "hourlyRate": "Hourly wage",
+    "grossPay": "Gross total",
+    "employeeContribution": "Employee contributions",
+    "employerContribution": "Employer contributions",
+    "netBeforeTax": "Net before tax",
+    "totalCost": "Total",
+    "total": "Total",
+    "tableTitle": "Payroll — {month}",
+    "tableDescription": "Worked hours come from attendance records in the selected month.",
+    "formulaHint": "Gross = hours × hourly wage · Net before tax = gross − employee contributions · Total = gross + employer contributions.",
+    "noRate": "Set an hourly wage to compute amounts.",
+    "empty": "No team members yet.",
+    "edit": "Edit salary",
+    "dialogDescription": "Payroll settings for {name}.",
+    "salaryType": "Payroll type",
+    "hourlyRateLabel": "Hourly wage (€)",
+    "employeeRateLabel": "Employee contribution rate (%)",
+    "employerRateLabel": "Employer contribution rate (%)",
+    "previewTitle": "Monthly estimate",
+    "previewHours": "{hours} worked hours in {month}."
+  },
   "admin": {
     "exportsTitle": "Exports",
     "exportsDescription": "CSV files respect your permissions (semicolon separator, UTF-8).",
@@ -182,6 +211,7 @@
     "reportProjectTime": "Project time",
     "reportClientTime": "Client time",
     "reportCapacity": "Capacity",
+    "reportPayroll": "Payroll",
     "reportAudit": "Audit log",
     "settingsTitle": "HR settings",
     "settingsDescription": "Defaults and alert thresholds for the module.",
@@ -189,6 +219,8 @@
     "defaultAllowance": "Default yearly allowance",
     "lowBalanceThreshold": "Low balance threshold (days)",
     "pendingValidationDays": "Pending alert after (days)",
+    "defaultEmployeeRate": "Default employee contribution (%)",
+    "defaultEmployerRate": "Default employer contribution (%)",
     "profilesTitle": "Team profiles",
     "profilesDescription": "Employment, contract, weekly hours and validator role.",
     "member": "Member",
@@ -266,6 +298,7 @@
     "client_update": "Client updated",
     "activity_create": "Activity created",
     "activity_update": "Activity updated",
-    "project_update": "Project updated"
+    "project_update": "Project updated",
+    "salary_update": "Salary updated"
   }
 }

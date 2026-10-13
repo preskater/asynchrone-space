@@ -69,6 +69,16 @@ export const CONTRACT_TYPES = [
 ] as const
 export type ContractType = (typeof CONTRACT_TYPES)[number]
 
+export const SALARY_TYPES = [
+  "full_time",
+  "part_time",
+  "intern",
+  "apprentice",
+  "contractor",
+  "other",
+] as const
+export type SalaryType = (typeof SALARY_TYPES)[number]
+
 export const ACTIVITY_KINDS = ["internal", "non_billable"] as const
 export type ActivityKind = (typeof ACTIVITY_KINDS)[number]
 
@@ -238,6 +248,9 @@ export interface HrSettingsData {
   defaultAllowanceDays: number
   lowBalanceThreshold: number
   pendingValidationDays: number
+  /** Defaults for payroll when a member has no salary profile yet. */
+  defaultEmployeeRate: number
+  defaultEmployerRate: number
 }
 
 export interface AlertData {
@@ -296,6 +309,57 @@ export interface TrackingResult {
   }
 }
 
+export interface SalaryProfileData {
+  userId: string
+  salaryType: SalaryType
+  hourlyRate: number
+  /** Employee contribution rate (cotisations salariales), % of gross. */
+  employeeRate: number
+  /** Employer contribution rate (cotisations patronales), % of gross. */
+  employerRate: number
+}
+
+/**
+ * One payroll line for a member and month. Hours are the worked half-days
+ * recorded in attendance (on-site, remote, business trip) converted with the
+ * member's weekly hours; money columns derive from the hourly wage and the
+ * contribution rates.
+ */
+export interface PayrollRow {
+  userId: string
+  userName: string
+  salaryType: SalaryType
+  workedHours: number
+  hourlyRate: number
+  employeeRate: number
+  employerRate: number
+  /** Gross pay = worked hours × hourly wage. */
+  grossPay: number
+  employeeContribution: number
+  employerContribution: number
+  /** Gross minus employee contributions. */
+  netBeforeTax: number
+  /** Gross plus employer contributions (total employer cost). */
+  totalCost: number
+  /** True when the member has an explicit salary profile. */
+  hasSalaryProfile: boolean
+}
+
+export interface PayrollTotals {
+  workedHours: number
+  grossPay: number
+  employeeContribution: number
+  employerContribution: number
+  netBeforeTax: number
+  totalCost: number
+}
+
+export interface PayrollData {
+  monthKey: string
+  rows: PayrollRow[]
+  totals: PayrollTotals
+}
+
 export interface CapacityWeek {
   weekStart: string
   rows: CapacityUserRow[]
@@ -331,6 +395,8 @@ export interface HrOverviewData {
   capacityWeeks: CapacityWeek[]
   capacityMonth: { rows: CapacityUserRow[]; totals: CapacityWeek["totals"] }
   alerts: AlertData[]
+  /** Salary overview for the current month; admins only. */
+  payroll: PayrollData | null
   clients: ClientData[]
   activities: InternalActivityData[]
   projects: ProjectOptionData[]

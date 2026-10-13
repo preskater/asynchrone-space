@@ -335,6 +335,35 @@ export class HrRepository {
     return this.db.project.update({ where: { id }, data })
   }
 
+  // --- Payroll ---------------------------------------------------------------
+
+  listSalaryProfiles(organizationId: string) {
+    return this.db.salaryProfile.findMany({ where: { organizationId } })
+  }
+
+  findSalaryProfile(organizationId: string, userId: string) {
+    return this.db.salaryProfile.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+    })
+  }
+
+  upsertSalaryProfile(
+    organizationId: string,
+    userId: string,
+    data: {
+      salaryType: string
+      hourlyRate: number
+      employeeRate: number
+      employerRate: number
+    }
+  ) {
+    return this.db.salaryProfile.upsert({
+      where: { organizationId_userId: { organizationId, userId } },
+      create: { organizationId, userId, ...data },
+      update: data,
+    })
+  }
+
   // --- Audit -------------------------------------------------------------------
 
   createAudit(entries: {
@@ -381,6 +410,8 @@ export class HrRepository {
       defaultAllowanceDays: number
       lowBalanceThreshold: number
       pendingValidationDays: number
+      defaultEmployeeRate: number
+      defaultEmployerRate: number
     }
   ) {
     return this.db.hrSettings.upsert({

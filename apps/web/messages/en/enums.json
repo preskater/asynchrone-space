@@ -141,6 +141,14 @@
     "freelance": "Freelance",
     "other": "Other"
   },
+  "salaryType": {
+    "full_time": "Full-time",
+    "part_time": "Part-time",
+    "intern": "Intern",
+    "apprentice": "Apprentice",
+    "contractor": "Contractor",
+    "other": "Other"
+  },
   "presence": {
     "available": "Available",
     "away": "Away",

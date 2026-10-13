@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  BanknoteIcon,
   BarChart3Icon,
   CalendarDaysIcon,
   GaugeIcon,
@@ -23,6 +24,7 @@ import type { HrOverviewData } from "@/lib/hr/types"
 import { AdminPanel } from "./admin-panel"
 import { CapacityPanel } from "./capacity-panel"
 import { LeavePanel } from "./leave-panel"
+import { PayrollPanel } from "./payroll-panel"
 import { TeamCalendar } from "./team-calendar"
 import { TodayPanel } from "./today-panel"
 import { TrackingPanel } from "./tracking-panel"
@@ -58,6 +60,12 @@ export function HrWorkspace({ data }: { data: HrOverviewData }) {
           <GaugeIcon data-icon="inline-start" />
           {t("tabs.capacity")}
         </TabsTrigger>
+        {data.access.isAdmin ? (
+          <TabsTrigger value="payroll">
+            <BanknoteIcon data-icon="inline-start" />
+            {t("tabs.payroll")}
+          </TabsTrigger>
+        ) : null}
         <TabsTrigger value="admin">
           <Settings2Icon data-icon="inline-start" />
           {t("tabs.admin")}
@@ -79,6 +87,11 @@ export function HrWorkspace({ data }: { data: HrOverviewData }) {
       <TabsContent value="capacity">
         <CapacityPanel data={data} />
       </TabsContent>
+      {data.access.isAdmin ? (
+        <TabsContent value="payroll">
+          <PayrollPanel data={data} />
+        </TabsContent>
+      ) : null}
       <TabsContent value="admin">
         <AdminPanel data={data} />
       </TabsContent>

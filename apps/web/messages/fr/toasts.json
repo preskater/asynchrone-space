@@ -51,7 +51,7 @@
   "profileUpdated": "Profil mis à jour.",
   "clientSaved": "Client enregistré.",
   "activitySaved": "Activité interne enregistrée.",
-  "projectUpdated": "Projet mis à jour.",
+  "salaryUpdated": "Salaire mis à jour.",
   "exportReady": "Export prêt.",
   "settingsUpdated": "Paramètres RH mis à jour.",
   "hrLoadFailed": "Impossible de charger les données.",
@@ -61,5 +61,6 @@
   "hrCancelFailed": "Impossible d'annuler la demande.",
   "hrBalanceFailed": "Impossible de mettre à jour le solde.",
   "hrSettingsFailed": "Impossible d'enregistrer les modifications.",
+  "hrSalaryFailed": "Impossible d'enregistrer le salaire.",
   "hrExportFailed": "L'export a échoué."
 }

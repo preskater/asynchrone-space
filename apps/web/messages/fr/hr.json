@@ -5,6 +5,7 @@
     "leave": "Congés",
     "tracking": "Suivi",
     "capacity": "Capacité",
+    "payroll": "Salaires",
     "admin": "Admin"
   },
   "common": {
@@ -174,6 +175,34 @@
     "allocated": "Affecté",
     "remaining": "Restant"
   },
+  "payroll": {
+    "previousMonth": "Mois précédent",
+    "nextMonth": "Mois suivant",
+    "exportCsv": "Exporter les salaires (CSV)",
+    "member": "Salarié",
+    "type": "Type",
+    "hours": "Heures travaillées",
+    "hourlyRate": "Salaire horaire",
+    "grossPay": "Total brut",
+    "employeeContribution": "Cotisations salariales",
+    "employerContribution": "Cotisations patronales",
+    "netBeforeTax": "Net avant impôts",
+    "totalCost": "Total",
+    "total": "Total",
+    "tableTitle": "Salaires — {month}",
+    "tableDescription": "Les heures travaillées proviennent des pointages du mois sélectionné.",
+    "formulaHint": "Brut = heures × salaire horaire · Net avant impôts = brut − cotisations salariales · Total = brut + cotisations patronales.",
+    "noRate": "Renseignez un salaire horaire pour calculer les montants.",
+    "empty": "Aucun membre dans l'équipe.",
+    "edit": "Modifier le salaire",
+    "dialogDescription": "Paramètres de paie pour {name}.",
+    "salaryType": "Type de paie",
+    "hourlyRateLabel": "Salaire horaire (€)",
+    "employeeRateLabel": "Taux des cotisations salariales (%)",
+    "employerRateLabel": "Taux des cotisations patronales (%)",
+    "previewTitle": "Estimation du mois",
+    "previewHours": "{hours} heures travaillées en {month}."
+  },
   "admin": {
     "exportsTitle": "Exports",
     "exportsDescription": "Les fichiers CSV respectent vos permissions (séparateur point-virgule, UTF-8).",
@@ -182,6 +211,7 @@
     "reportProjectTime": "Temps par projet",
     "reportClientTime": "Temps par client",
     "reportCapacity": "Capacité",
+    "reportPayroll": "Salaires",
     "reportAudit": "Journal d'audit",
     "settingsTitle": "Paramètres RH",
     "settingsDescription": "Valeurs par défaut et seuils d'alerte du module.",
@@ -189,6 +219,8 @@
     "defaultAllowance": "Solde annuel par défaut",
     "lowBalanceThreshold": "Seuil de solde bas (jours)",
     "pendingValidationDays": "Alerte après (jours)",
+    "defaultEmployeeRate": "Taux par défaut des cotisations salariales (%)",
+    "defaultEmployerRate": "Taux par défaut des cotisations patronales (%)",
     "profilesTitle": "Profils de l'équipe",
     "profilesDescription": "Emploi, contrat, heures hebdomadaires et rôle de valideur.",
     "member": "Membre",
@@ -266,6 +298,7 @@
     "client_update": "Client modifié",
     "activity_create": "Activité créée",
     "activity_update": "Activité modifiée",
-    "project_update": "Projet modifié"
+    "project_update": "Projet modifié",
+    "salary_update": "Salaire mis à jour"
   }
 }

@@ -141,6 +141,14 @@
     "freelance": "Freelance",
     "other": "Autre"
   },
+  "salaryType": {
+    "full_time": "Temps plein",
+    "part_time": "Temps partiel",
+    "intern": "Stagiaire",
+    "apprentice": "Alternant",
+    "contractor": "Prestataire",
+    "other": "Autre"
+  },
   "presence": {
     "available": "Disponible",
     "away": "Absent",

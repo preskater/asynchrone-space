@@ -7,12 +7,17 @@ import {
   CONTRACT_TYPES,
   EMPLOYMENT_TYPES,
   LEAVE_TYPES,
+  SALARY_TYPES,
   WORK_LOCATION_KINDS,
 } from "./types"
 
 export const dateKeySchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a YYYY-MM-DD date.")
+
+export const monthKeySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}$/, "Expected a YYYY-MM month.")
 
 export const periodSchema = z.enum(["morning", "afternoon"])
 
@@ -98,6 +103,16 @@ export const updateSettingsSchema = z.object({
   defaultAllowanceDays: z.number().min(0).max(365),
   lowBalanceThreshold: z.number().min(0).max(100),
   pendingValidationDays: z.number().int().min(0).max(30),
+  defaultEmployeeRate: z.number().min(0).max(100),
+  defaultEmployerRate: z.number().min(0).max(100),
+})
+
+export const updateSalarySchema = z.object({
+  userId: z.string().min(1),
+  salaryType: z.enum(SALARY_TYPES),
+  hourlyRate: z.number().min(0).max(10_000),
+  employeeRate: z.number().min(0).max(100),
+  employerRate: z.number().min(0).max(100),
 })
 
 export const updateProfileSchema = z.object({
@@ -146,10 +161,13 @@ export const exportSchema = z.object({
     "project-time",
     "client-time",
     "capacity",
+    "payroll",
     "audit",
   ]),
   from: dateKeySchema.optional(),
   to: dateKeySchema.optional(),
+  /** Payroll exports only: the month to report on (defaults to the current one). */
+  month: monthKeySchema.optional(),
 })
 
 export type SetAttendanceInput = z.infer<typeof setAttendanceSchema>
@@ -160,6 +178,7 @@ export type DecideLeaveInput = z.infer<typeof decideLeaveSchema>
 export type AdjustBalanceInput = z.infer<typeof adjustBalanceSchema>
 export type SetAllowanceInput = z.infer<typeof setAllowanceSchema>
 export type UpdateSettingsInput = z.infer<typeof updateSettingsSchema>
+export type UpdateSalaryInput = z.infer<typeof updateSalarySchema>
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 export type ClientInput = z.infer<typeof clientSchema>
 export type ActivityInput = z.infer<typeof activitySchema>

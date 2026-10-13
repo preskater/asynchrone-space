@@ -51,7 +51,7 @@
   "profileUpdated": "Profile updated.",
   "clientSaved": "Client saved.",
   "activitySaved": "Internal activity saved.",
-  "projectUpdated": "Project updated.",
+  "salaryUpdated": "Salary updated.",
   "exportReady": "Export ready.",
   "settingsUpdated": "HR settings updated.",
   "hrLoadFailed": "Could not load data.",
@@ -61,5 +61,6 @@
   "hrCancelFailed": "Could not cancel the request.",
   "hrBalanceFailed": "Could not update the balance.",
   "hrSettingsFailed": "Could not save the changes.",
+  "hrSalaryFailed": "Could not save the salary.",
   "hrExportFailed": "Export failed."
 }
