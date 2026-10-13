@@ -79,21 +79,67 @@
     "channel": "Canal",
     "dm": "Message direct"
   },
-  "workLocation": {
-    "office": "Bureau",
-    "remote": "Télétravail"
+  "attendanceStatus": {
+    "on_site": "Sur site",
+    "remote": "Télétravail",
+    "leave": "Congé",
+    "rtt": "RTT",
+    "sick_leave": "Maladie",
+    "training": "Formation",
+    "business_trip": "Déplacement",
+    "holiday": "Férié",
+    "unavailable": "Indisponible",
+    "other": "Autre"
+  },
+  "dayPeriod": {
+    "morning": "Matin",
+    "afternoon": "Après-midi"
+  },
+  "workLocationKind": {
+    "on_site": "Sur site",
+    "remote": "À distance",
+    "client_site": "Chez le client",
+    "traveling": "En déplacement",
+    "other": "Autre"
   },
   "leaveType": {
-    "vacation": "Congés payés",
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "unpaid": "Sans solde",
     "sick": "Maladie",
-    "personal": "Personnel",
-    "unpaid": "Sans solde"
+    "training": "Formation",
+    "other": "Autre"
   },
   "leaveStatus": {
     "pending": "En attente",
     "approved": "Approuvé",
     "rejected": "Refusé",
     "cancelled": "Annulé"
+  },
+  "balanceType": {
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "recovery": "Récupération",
+    "unpaid": "Sans solde",
+    "training": "Formation",
+    "other": "Autre"
+  },
+  "activityKind": {
+    "internal": "Interne",
+    "non_billable": "Non facturable"
+  },
+  "employmentType": {
+    "associate": "Associé",
+    "employee": "Salarié",
+    "intern": "Stagiaire",
+    "contractor": "Prestataire"
+  },
+  "contractType": {
+    "cdi": "CDI",
+    "cdd": "CDD",
+    "internship": "Stage",
+    "freelance": "Freelance",
+    "other": "Autre"
   },
   "presence": {
     "available": "Disponible",

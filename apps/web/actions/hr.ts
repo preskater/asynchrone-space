@@ -4,85 +4,147 @@ import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
 import { parseLocalized } from "@/lib/core/validation-server"
 import {
-  createTimeOffRequestSchema,
-  decideTimeOffRequestSchema,
+  activitySchema,
+  adjustBalanceSchema,
+  clearAttendanceSchema,
+  clientSchema,
+  createLeaveSchema,
+  decideLeaveSchema,
+  exportSchema,
+  fetchRangeSchema,
   hrService,
-  logTimeEntrySchema,
-  monthKeySchema,
-  setTimeOffAllowanceSchema,
-  setWorkLocationSchema,
-  updateHrSettingsSchema,
+  projectHrSchema,
+  setAllowanceSchema,
+  setAttendanceSchema,
+  setDayStatusSchema,
+  updateProfileSchema,
+  updateSettingsSchema,
 } from "@/lib/hr"
 import { revalidateOrgPath } from "@/lib/organization/paths"
 
-export const fetchWorkLocationsAction = withAction(async (month: string) => {
+export const fetchAttendanceAction = withAction(
+  async (from: string, to: string) => {
+    const ctx = await getRequestContext()
+    const parsed = fetchRangeSchema.parse({ from, to })
+    return hrService.fetchAttendance(ctx, parsed.from, parsed.to)
+  }
+)
+
+export const fetchTrackingAction = withAction(
+  async (from: string, to: string) => {
+    const ctx = await getRequestContext()
+    const parsed = fetchRangeSchema.parse({ from, to })
+    return hrService.fetchTracking(ctx, parsed.from, parsed.to)
+  }
+)
+
+export const setAttendanceAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = monthKeySchema.parse(month)
-  return hrService.listLocations(ctx, parsed)
+  const parsed = await parseLocalized(setAttendanceSchema, input)
+  const entry = await hrService.setAttendance(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return entry
 })
 
-export const setWorkLocationAction = withAction(async (input: unknown) => {
+export const clearAttendanceAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = await parseLocalized(setWorkLocationSchema, input)
-  const result = await hrService.setWorkLocation(ctx, parsed)
+  const parsed = await parseLocalized(clearAttendanceSchema, input)
+  const result = await hrService.clearAttendance(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
   return result
 })
 
-export const createTimeOffRequestAction = withAction(
-  async (input: unknown) => {
-    const ctx = await getRequestContext()
-    const parsed = await parseLocalized(createTimeOffRequestSchema, input)
-    const request = await hrService.createTimeOffRequest(ctx, parsed)
-    await revalidateOrgPath(ctx.organizationId, "/hr")
-    return request
-  }
-)
-
-export const cancelTimeOffRequestAction = withAction(async (id: string) => {
+export const setDayStatusAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const request = await hrService.cancelTimeOffRequest(ctx, id)
+  const parsed = await parseLocalized(setDayStatusSchema, input)
+  const result = await hrService.setDayStatus(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return result
+})
+
+export const createLeaveAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(createLeaveSchema, input)
+  const request = await hrService.createLeave(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
   return request
 })
 
-export const decideTimeOffRequestAction = withAction(
-  async (id: string, input: unknown) => {
+export const decideLeaveAction = withAction(
+  async (requestId: string, input: unknown) => {
     const ctx = await getRequestContext()
-    const parsed = await parseLocalized(decideTimeOffRequestSchema, input)
-    const request = await hrService.decideTimeOffRequest(ctx, id, parsed)
+    const parsed = await parseLocalized(decideLeaveSchema, input)
+    const request = await hrService.decideLeave(ctx, requestId, parsed)
     await revalidateOrgPath(ctx.organizationId, "/hr")
     return request
   }
 )
 
-export const setTimeOffAllowanceAction = withAction(async (input: unknown) => {
+export const cancelLeaveAction = withAction(async (requestId: string) => {
   const ctx = await getRequestContext()
-  const parsed = await parseLocalized(setTimeOffAllowanceSchema, input)
-  const balance = await hrService.setTimeOffAllowance(ctx, parsed)
+  const request = await hrService.cancelLeave(ctx, requestId)
   await revalidateOrgPath(ctx.organizationId, "/hr")
-  return balance
+  return request
+})
+
+export const setAllowanceAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(setAllowanceSchema, input)
+  const result = await hrService.setAllowance(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return result
+})
+
+export const adjustBalanceAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(adjustBalanceSchema, input)
+  const adjustment = await hrService.adjustBalance(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return adjustment
 })
 
 export const updateHrSettingsAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = await parseLocalized(updateHrSettingsSchema, input)
+  const parsed = await parseLocalized(updateSettingsSchema, input)
   const settings = await hrService.updateSettings(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
   return settings
 })
 
-export const logTimeEntryAction = withAction(async (input: unknown) => {
+export const updateProfileAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = await parseLocalized(logTimeEntrySchema, input)
-  const entry = await hrService.logTimeEntry(ctx, parsed)
+  const parsed = await parseLocalized(updateProfileSchema, input)
+  const profile = await hrService.updateProfile(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
-  return entry
+  return profile
 })
 
-export const deleteTimeEntryAction = withAction(async (id: string) => {
+export const saveClientAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const result = await hrService.deleteTimeEntry(ctx, id)
+  const parsed = await parseLocalized(clientSchema, input)
+  const client = await hrService.saveClient(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/hr")
-  return result
+  return client
+})
+
+export const saveActivityAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(activitySchema, input)
+  const activity = await hrService.saveActivity(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return activity
+})
+
+export const updateProjectHrAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(projectHrSchema, input)
+  const project = await hrService.updateProjectHr(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, "/hr")
+  return project
+})
+
+export const exportCsvAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(exportSchema, input)
+  return hrService.exportCsv(ctx, parsed)
 })

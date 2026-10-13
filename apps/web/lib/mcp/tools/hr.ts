@@ -2,11 +2,9 @@ import { z } from "zod"
 
 import { hrService } from "@/lib/hr"
 import {
-  createTimeOffRequestSchema,
-  decideTimeOffRequestSchema,
-  logTimeEntrySchema,
-  monthKeySchema,
-  setWorkLocationSchema,
+  attendanceStatusSchema,
+  createLeaveBase,
+  fetchRangeSchema,
 } from "@/lib/hr/schemas"
 
 import type { McpTool } from "./projects"
@@ -16,87 +14,111 @@ export const hrTools: McpTool[] = [
     name: "get_hr_overview",
     title: "Get HR overview",
     description:
-      "Get the HR dashboard: members, declared office/remote days, time-off balance and requests, and logged hours for the current user.",
+      "Get the time & attendance dashboard: today's presence, leave requests, balances, capacity, alerts, clients, activities and projects.",
     inputSchema: {},
     readOnly: true,
-    run: (ctx) => hrService.overview(ctx),
+    run: (ctx) => hrService.getOverview(ctx),
   },
   {
-    name: "list_work_locations",
-    title: "List work locations",
+    name: "list_attendance",
+    title: "List attendance",
     description:
-      "List declared office/remote days for every member for a month (YYYY-MM), plus approved leave in that month.",
+      "List half-day attendance entries (status, allocation) for a date range (YYYY-MM-DD).",
     inputSchema: {
-      month: monthKeySchema.describe("Month key, e.g. 2026-10"),
+      from: z.string().describe("Start day, e.g. 2026-10-01"),
+      to: z.string().describe("End day, inclusive"),
     },
     readOnly: true,
-    run: (ctx, input) =>
-      hrService.listLocations(ctx, monthKeySchema.parse(input.month)),
+    run: (ctx, input) => {
+      const range = fetchRangeSchema.parse(input)
+      return hrService.fetchAttendance(ctx, range.from, range.to)
+    },
   },
   {
-    name: "set_work_location",
-    title: "Set work location",
+    name: "set_attendance",
+    title: "Set attendance",
     description:
-      "Declare, for the caller, whether they work from the office or remotely on a day. Pass status null to clear the day.",
+      "Declare the caller's attendance. Without `period`, sets both halves of the day (status only). With `period`, sets that half and can also attach a project or internal activity allocation.",
     inputSchema: {
-      date: z.string().describe("Day key, e.g. 2026-10-12"),
-      status: z
-        .enum(["office", "remote"])
-        .nullable()
-        .describe("office, remote, or null to clear the day"),
-      note: z.string().optional(),
+      date: z.string().describe("Day key, e.g. 2026-10-13"),
+      status: attendanceStatusSchema.describe(
+        "on_site | remote | leave | rtt | sick_leave | training | business_trip | holiday | unavailable | other"
+      ),
+      period: z.enum(["morning", "afternoon"]).optional(),
+      projectId: z.string().optional(),
+      internalActivityId: z.string().optional(),
+      comment: z.string().optional(),
     },
     readOnly: false,
-    run: (ctx, input) =>
-      hrService.setWorkLocation(ctx, setWorkLocationSchema.parse(input)),
+    run: (ctx, input) => {
+      const date = String(input.date)
+      const period = input.period as "morning" | "afternoon" | undefined
+      if (!period) {
+        return hrService.setDayStatus(ctx, {
+          date,
+          status: input.status as never,
+        })
+      }
+      return hrService.setAttendance(ctx, {
+        date,
+        period,
+        status: input.status as never,
+        projectId: (input.projectId as string | undefined) ?? undefined,
+        internalActivityId:
+          (input.internalActivityId as string | undefined) ?? undefined,
+        comment: (input.comment as string | undefined) ?? undefined,
+      })
+    },
   },
   {
-    name: "request_time_off",
-    title: "Request time off",
+    name: "request_leave",
+    title: "Request leave",
     description:
-      "Create a time-off request for the caller. Duration is counted in business days (Mon-Fri).",
+      "Create a leave request for the caller. Duration is counted in working half-days (Mon-Fri, excluding French public holidays).",
     inputSchema: {
       type: z
-        .enum(["vacation", "sick", "personal", "unpaid"])
-        .default("vacation"),
+        .enum(["paid_leave", "rtt", "unpaid", "sick", "training", "other"])
+        .default("paid_leave"),
       startDate: z.string().describe("Day key, e.g. 2026-10-26"),
       endDate: z.string().describe("Day key, inclusive"),
-      reason: z.string().optional(),
+      startPeriod: z.enum(["morning", "afternoon"]).optional(),
+      endPeriod: z.enum(["morning", "afternoon"]).optional(),
+      comment: z.string().optional(),
     },
     readOnly: false,
     run: (ctx, input) =>
-      hrService.createTimeOffRequest(
-        ctx,
-        createTimeOffRequestSchema.parse(input)
-      ),
+      hrService.createLeave(ctx, createLeaveBase.parse(input)),
   },
   {
-    name: "decide_time_off",
-    title: "Approve or reject time off",
+    name: "decide_leave",
+    title: "Approve or reject leave",
     description:
-      "Approve or reject a pending time-off request. Requires the admin or owner role.",
+      "Approve or reject a pending leave request. Requires the validator role; you cannot decide your own request.",
     inputSchema: {
       requestId: z.string(),
       decision: z.enum(["approved", "rejected"]),
+      comment: z.string().optional(),
     },
     readOnly: false,
     run: (ctx, input) =>
-      hrService.decideTimeOffRequest(ctx, String(input.requestId), {
-        ...decideTimeOffRequestSchema.parse({ decision: input.decision }),
+      hrService.decideLeave(ctx, String(input.requestId), {
+        decision: input.decision as "approved" | "rejected",
+        comment: (input.comment as string | undefined) ?? undefined,
       }),
   },
   {
-    name: "log_time_entry",
-    title: "Log hours worked",
+    name: "get_time_tracking",
+    title: "Get time tracking",
     description:
-      "Log (or replace) the hours the caller worked on a day. One entry per day.",
+      "Aggregate allocated time (billable, non-billable, internal) by user, project and client for a date range.",
     inputSchema: {
-      date: z.string().describe("Day key, e.g. 2026-10-12"),
-      hours: z.number().min(0.25).max(24),
-      note: z.string().optional(),
+      from: z.string().describe("Start day, e.g. 2026-10-01"),
+      to: z.string().describe("End day, inclusive"),
     },
-    readOnly: false,
-    run: (ctx, input) =>
-      hrService.logTimeEntry(ctx, logTimeEntrySchema.parse(input)),
+    readOnly: true,
+    run: (ctx, input) => {
+      const range = fetchRangeSchema.parse(input)
+      return hrService.fetchTracking(ctx, range.from, range.to)
+    },
   },
 ]

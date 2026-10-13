@@ -52,6 +52,10 @@ export function addDaysToKey(key: string, amount: number): string {
   return toDateKey(new Date(parseDateKey(key).getTime() + amount * DAY_MS))
 }
 
+export function addWeeksToKey(key: string, amount: number): string {
+  return addDaysToKey(key, amount * 7)
+}
+
 export function isWeekendKey(key: string): boolean {
   const day = parseDateKey(key).getUTCDay()
   return day === 0 || day === 6
@@ -65,7 +69,9 @@ export function startOfWeekKey(key: string): string {
 }
 
 export function monthKeyOf(date: Date | string): string {
-  return typeof date === "string" ? date.slice(0, 7) : toDateKey(date).slice(0, 7)
+  return typeof date === "string"
+    ? date.slice(0, 7)
+    : toDateKey(date).slice(0, 7)
 }
 
 export function addMonthsToKey(monthKey: string, amount: number): string {
@@ -79,36 +85,37 @@ export function addMonthsToKey(monthKey: string, amount: number): string {
  * First and last date keys of a month, e.g. "2026-10" ->
  * { start: "2026-10-01", end: "2026-10-31" }.
  */
-export function monthDateRange(monthKey: string): { start: string; end: string } {
+export function monthDateRange(monthKey: string): {
+  start: string
+  end: string
+} {
   const year = Number(monthKey.slice(0, 4))
   const month = Number(monthKey.slice(5, 7))
   const endDate = new Date(Date.UTC(year, month, 0))
   return { start: `${monthKey}-01`, end: toDateKey(endDate) }
 }
 
+/** Every date key in [startKey, endKey], inclusive. */
+export function eachDateKey(startKey: string, endKey: string): string[] {
+  const keys: string[] = []
+  let cursor = startKey
+  while (cursor <= endKey) {
+    keys.push(cursor)
+    cursor = addDaysToKey(cursor, 1)
+  }
+  return keys
+}
+
 /** Number of business days (Mon-Fri) in [startKey, endKey], inclusive. */
 export function countBusinessDays(startKey: string, endKey: string): number {
   if (!isDateKey(startKey) || !isDateKey(endKey) || endKey < startKey) return 0
   let count = 0
-  let cursor = parseDateKey(startKey)
-  const end = parseDateKey(endKey)
-  while (cursor <= end) {
-    const day = cursor.getUTCDay()
-    if (day !== 0 && day !== 6) count += 1
-    cursor = new Date(cursor.getTime() + DAY_MS)
+  let cursor = startKey
+  while (cursor <= endKey) {
+    if (!isWeekendKey(cursor)) count += 1
+    cursor = addDaysToKey(cursor, 1)
   }
   return count
-}
-
-/** Business days of a [startKey, endKey] range that fall inside `year`. */
-export function businessDaysInYear(
-  startKey: string,
-  endKey: string,
-  year: number
-): number {
-  const start = startKey > `${year}-01-01` ? startKey : `${year}-01-01`
-  const end = endKey < `${year}-12-31` ? endKey : `${year}-12-31`
-  return countBusinessDays(start, end)
 }
 
 export function round2(value: number): number {

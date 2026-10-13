@@ -1,34 +1,167 @@
-export type WorkLocation = "office" | "remote"
+export const DAY_PERIODS = ["morning", "afternoon"] as const
+export type DayPeriod = (typeof DAY_PERIODS)[number]
 
-export type LeaveType = "vacation" | "sick" | "personal" | "unpaid"
+export const ATTENDANCE_STATUSES = [
+  "on_site",
+  "remote",
+  "leave",
+  "rtt",
+  "sick_leave",
+  "training",
+  "business_trip",
+  "holiday",
+  "unavailable",
+  "other",
+] as const
+export type AttendanceStatus = (typeof ATTENDANCE_STATUSES)[number]
 
-export type LeaveStatus = "pending" | "approved" | "rejected" | "cancelled"
+export const WORK_LOCATION_KINDS = [
+  "on_site",
+  "remote",
+  "client_site",
+  "traveling",
+  "other",
+] as const
+export type WorkLocationKind = (typeof WORK_LOCATION_KINDS)[number]
 
-export const WORK_LOCATIONS: WorkLocation[] = ["office", "remote"]
-
-export const LEAVE_TYPES: LeaveType[] = [
-  "vacation",
-  "sick",
-  "personal",
+export const LEAVE_TYPES = [
+  "paid_leave",
+  "rtt",
   "unpaid",
+  "sick",
+  "training",
+  "other",
+] as const
+export type LeaveType = (typeof LEAVE_TYPES)[number]
+
+export const LEAVE_STATUSES = [
+  "pending",
+  "approved",
+  "rejected",
+  "cancelled",
+] as const
+export type LeaveStatus = (typeof LEAVE_STATUSES)[number]
+
+export const BALANCE_TYPES = [
+  "paid_leave",
+  "rtt",
+  "recovery",
+  "unpaid",
+  "training",
+  "other",
+] as const
+export type BalanceType = (typeof BALANCE_TYPES)[number]
+
+export const EMPLOYMENT_TYPES = [
+  "associate",
+  "employee",
+  "intern",
+  "contractor",
+] as const
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number]
+
+export const CONTRACT_TYPES = [
+  "cdi",
+  "cdd",
+  "internship",
+  "freelance",
+  "other",
+] as const
+export type ContractType = (typeof CONTRACT_TYPES)[number]
+
+export const ACTIVITY_KINDS = ["internal", "non_billable"] as const
+export type ActivityKind = (typeof ACTIVITY_KINDS)[number]
+
+export const ALERT_SEVERITIES = ["info", "warning", "critical"] as const
+export type AlertSeverity = (typeof ALERT_SEVERITIES)[number]
+
+export type AlertKind =
+  | "no_allocation"
+  | "overallocated"
+  | "low_balance"
+  | "pending_validation"
+  | "project_overrun"
+  | "missing_attendance"
+
+/** Half-day statuses that reduce working capacity. */
+export const ABSENCE_STATUSES: AttendanceStatus[] = [
+  "leave",
+  "rtt",
+  "sick_leave",
+  "training",
+  "holiday",
+  "unavailable",
 ]
 
-export interface HrMember {
+/** Half-day statuses that count as actual work (can carry an allocation). */
+export const WORKING_STATUSES: AttendanceStatus[] = [
+  "on_site",
+  "remote",
+  "business_trip",
+]
+
+export function isAbsenceStatus(status: AttendanceStatus): boolean {
+  return ABSENCE_STATUSES.includes(status)
+}
+
+export function isWorkingStatus(status: AttendanceStatus): boolean {
+  return WORKING_STATUSES.includes(status)
+}
+
+/** Attendance status materialized on the calendar for an approved leave type. */
+export const LEAVE_STATUS_TO_ATTENDANCE: Record<LeaveType, AttendanceStatus> = {
+  paid_leave: "leave",
+  rtt: "rtt",
+  unpaid: "leave",
+  sick: "sick_leave",
+  training: "training",
+  other: "other",
+}
+
+/** Leave types that consume a balance tracked in `LeaveBalance`. */
+export const TRACKED_LEAVE_TYPES: BalanceType[] = [
+  "paid_leave",
+  "rtt",
+  "recovery",
+  "unpaid",
+  "training",
+  "other",
+]
+
+export interface HrProfileData {
+  employmentType: EmploymentType
+  contractType: ContractType
+  weeklyHours: number
+  managerId?: string
+  isValidator: boolean
+  isActive: boolean
+}
+
+export interface HrMemberData {
   id: string
   name: string
   email: string
   avatarUrl?: string
-  role: string
+  /** Raw organization role (owner | admin | member | viewer). */
+  orgRole: string
+  profile: HrProfileData
 }
 
-export interface WorkLocationDayData {
+export interface AttendanceEntryData {
+  id: string
   userId: string
   date: string
-  status: WorkLocation
-  note?: string
+  period: DayPeriod
+  status: AttendanceStatus
+  location?: WorkLocationKind
+  projectId?: string
+  internalActivityId?: string
+  leaveRequestId?: string
+  isBillable: boolean
+  comment?: string
 }
 
-export interface TimeOffRequestData {
+export interface LeaveRequestData {
   id: string
   userId: string
   userName: string
@@ -36,64 +169,170 @@ export interface TimeOffRequestData {
   status: LeaveStatus
   startDate: string
   endDate: string
-  days: number
-  reason?: string
-  decidedBy?: string
-  decidedAt?: string
+  startPeriod: DayPeriod
+  endPeriod: DayPeriod
+  halfDays: number
+  comment?: string
+  validatorId?: string
+  validatorName?: string
+  decisionDate?: string
+  decisionComment?: string
   createdAt: string
 }
 
-export interface TimeOffBalanceData {
+export interface LeaveBalanceData {
   userId: string
   userName: string
+  leaveType: BalanceType
   year: number
   allowanceDays: number
+  adjustmentDays: number
+  acquiredDays: number
   usedDays: number
   pendingDays: number
-  availableDays: number
-  /** Whether an explicit allowance row exists for this user (vs. the org default). */
-  configured: boolean
+  remainingDays: number
+  expiresAt?: string
 }
 
-export interface TimeEntryData {
+export interface LeaveAdjustmentData {
   id: string
   userId: string
-  date: string
-  hours: number
+  userName: string
+  leaveType: BalanceType
+  year: number
+  days: number
   note?: string
+  createdBy: string
+  createdAt: string
+}
+
+export interface ClientData {
+  id: string
+  name: string
+  contactEmail?: string
+  isActive: boolean
+}
+
+export interface InternalActivityData {
+  id: string
+  name: string
+  description?: string
+  kind: ActivityKind
+  isActive: boolean
+}
+
+export interface ProjectOptionData {
+  id: string
+  name: string
+  status: string
+  clientId?: string
+  clientName?: string
+  isBillable: boolean
+  plannedHours?: number
+  startDate?: string
+  endDate?: string
 }
 
 export interface HrSettingsData {
+  defaultWeeklyHours: number
   defaultAllowanceDays: number
-  weeklyHourTarget: number
+  lowBalanceThreshold: number
+  pendingValidationDays: number
+}
+
+export interface AlertData {
+  id: string
+  kind: AlertKind
+  severity: AlertSeverity
+  userId?: string
+  userName?: string
+  projectId?: string
+  projectName?: string
+  count?: number
+  hours?: number
+  plannedHours?: number
+  days?: number
+  tab: "calendar" | "leave" | "capacity" | "tracking" | "admin"
+}
+
+export interface AuditLogData {
+  id: string
+  actorId: string
+  actorName: string
+  action: string
+  entityType: string
+  entityId: string
+  createdAt: string
+}
+
+export interface CapacityUserRow {
+  userId: string
+  userName: string
+  weeklyHours: number
+  availableHours: number
+  allocatedHours: number
+  remainingHours: number
+}
+
+export interface TrackingRow {
+  id: string
+  label: string
+  sublabel?: string
+  billableHours: number
+  nonBillableHours: number
+  internalHours: number
+  totalHours: number
+}
+
+export interface TrackingResult {
+  rowsByUser: TrackingRow[]
+  rowsByProject: TrackingRow[]
+  rowsByClient: TrackingRow[]
+  totals: {
+    billableHours: number
+    nonBillableHours: number
+    internalHours: number
+    totalHours: number
+  }
+}
+
+export interface CapacityWeek {
+  weekStart: string
+  rows: CapacityUserRow[]
+  totals: {
+    availableHours: number
+    allocatedHours: number
+    remainingHours: number
+  }
 }
 
 export interface HrOverviewData {
-  members: HrMember[]
-  currentUserId: string
-  /** Member or above: can set their location, request time off, log hours. */
-  canTrack: boolean
-  /** Admin or above: can approve requests and manage allowances/settings. */
-  canManage: boolean
-  settings: HrSettingsData
-  year: number
-  /** Server-side "today" fallback; the client prefers its local date. */
   todayKey: string
-  balance: TimeOffBalanceData
-  /** Populated for managers only. */
-  teamBalances: TimeOffBalanceData[] | null
-  myRequests: TimeOffRequestData[]
-  /** Populated for managers only. */
-  allRequests: TimeOffRequestData[] | null
-  /** Approved leave (all members) overlapping the presence window. */
-  teamLeave: TimeOffRequestData[]
-  entries: TimeEntryData[]
-  locations: WorkLocationDayData[]
-  /** Month keys ("YYYY-MM") covered by `locations`. */
-  locationMonths: string[]
-}
-
-export interface HrMonthLocations {
-  month: string
-  days: WorkLocationDayData[]
+  year: number
+  currentUserId: string
+  access: {
+    isAdmin: boolean
+    isValidator: boolean
+    canViewAll: boolean
+    canTrack: boolean
+  }
+  settings: HrSettingsData
+  members: HrMemberData[]
+  myProfile: HrProfileData
+  attendance: AttendanceEntryData[]
+  attendanceRange: { start: string; end: string }
+  /** Own requests, or every request when `canViewAll`. */
+  leaveRequests: LeaveRequestData[]
+  /** Pending requests the current user may act on (or follow). */
+  pendingApprovals: LeaveRequestData[]
+  /** Own balances, or every member's when `canViewAll`. */
+  balances: LeaveBalanceData[]
+  adjustments: LeaveAdjustmentData[]
+  capacityWeeks: CapacityWeek[]
+  capacityMonth: { rows: CapacityUserRow[]; totals: CapacityWeek["totals"] }
+  alerts: AlertData[]
+  clients: ClientData[]
+  activities: InternalActivityData[]
+  projects: ProjectOptionData[]
+  audit: AuditLogData[]
 }

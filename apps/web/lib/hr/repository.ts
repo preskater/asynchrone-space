@@ -3,6 +3,8 @@ import type { PrismaClient } from "@/lib/generated/prisma/client"
 export class HrRepository {
   constructor(private readonly db: PrismaClient) {}
 
+  // --- Members & profiles ---------------------------------------------------
+
   listMembers(organizationId: string) {
     return this.db.member.findMany({
       where: { organizationId },
@@ -15,46 +17,141 @@ export class HrRepository {
     })
   }
 
-  findSettings(organizationId: string) {
-    return this.db.hrSettings.findUnique({ where: { organizationId } })
+  listProfiles(organizationId: string) {
+    return this.db.hrProfile.findMany({ where: { organizationId } })
   }
 
-  upsertSettings(
+  findProfile(organizationId: string, userId: string) {
+    return this.db.hrProfile.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+    })
+  }
+
+  upsertProfile(
     organizationId: string,
-    data: { defaultAllowanceDays: number; weeklyHourTarget: number }
+    userId: string,
+    data: {
+      employmentType: string
+      contractType: string
+      weeklyHours: number
+      managerId: string | null
+      isValidator: boolean
+      isActive: boolean
+    }
   ) {
-    return this.db.hrSettings.upsert({
-      where: { organizationId },
-      create: { organizationId, ...data },
+    return this.db.hrProfile.upsert({
+      where: { organizationId_userId: { organizationId, userId } },
+      create: { organizationId, userId, ...data },
       update: data,
     })
   }
 
-  listBalances(organizationId: string, year: number) {
-    return this.db.timeOffBalance.findMany({
-      where: { organizationId, year },
+  // --- Attendance -----------------------------------------------------------
+
+  listAttendance(organizationId: string, from: Date, to: Date) {
+    return this.db.attendanceEntry.findMany({
+      where: { organizationId, date: { gte: from, lte: to } },
+      orderBy: [{ date: "asc" }, { period: "asc" }],
     })
   }
 
-  upsertBalance(
+  findAttendance(
     organizationId: string,
     userId: string,
-    year: number,
-    allowanceDays: number
+    date: Date,
+    period: string
   ) {
-    return this.db.timeOffBalance.upsert({
-      where: { organizationId_userId_year: { organizationId, userId, year } },
-      create: { organizationId, userId, year, allowanceDays },
-      update: { allowanceDays },
+    return this.db.attendanceEntry.findUnique({
+      where: {
+        organizationId_userId_date_period: {
+          organizationId,
+          userId,
+          date,
+          period,
+        },
+      },
     })
   }
 
-  /**
-   * Requests that still matter: anything ending on/after `from`, plus every
-   * pending request regardless of age (so nothing stays stuck unapproved).
-   */
-  listRequests(organizationId: string, options: { from?: Date } = {}) {
-    return this.db.timeOffRequest.findMany({
+  createAttendance(data: {
+    organizationId: string
+    userId: string
+    date: Date
+    period: string
+    status: string
+    location?: string | null
+    projectId?: string | null
+    internalActivityId?: string | null
+    leaveRequestId?: string | null
+    isBillable?: boolean
+    comment?: string | null
+    createdBy: string
+    updatedBy: string
+  }) {
+    return this.db.attendanceEntry.create({ data })
+  }
+
+  updateAttendance(
+    id: string,
+    data: {
+      status?: string
+      location?: string | null
+      projectId?: string | null
+      internalActivityId?: string | null
+      leaveRequestId?: string | null
+      isBillable?: boolean
+      comment?: string | null
+      updatedBy: string
+    }
+  ) {
+    return this.db.attendanceEntry.update({ where: { id }, data })
+  }
+
+  deleteAttendance(
+    organizationId: string,
+    userId: string,
+    date: Date,
+    periods: string[]
+  ) {
+    return this.db.attendanceEntry.deleteMany({
+      where: { organizationId, userId, date, period: { in: periods } },
+    })
+  }
+
+  deleteAttendanceByLeaveRequest(leaveRequestId: string) {
+    return this.db.attendanceEntry.deleteMany({ where: { leaveRequestId } })
+  }
+
+  /** Allocation-bearing entries (any period), optionally limited to a range. */
+  listAllocationEntries(
+    organizationId: string,
+    options: { from?: Date; to?: Date } = {}
+  ) {
+    return this.db.attendanceEntry.findMany({
+      where: {
+        organizationId,
+        OR: [
+          { projectId: { not: null } },
+          { internalActivityId: { not: null } },
+        ],
+        ...(options.from || options.to
+          ? {
+              date: {
+                ...(options.from ? { gte: options.from } : {}),
+                ...(options.to ? { lte: options.to } : {}),
+              },
+            }
+          : {}),
+      },
+      orderBy: { date: "asc" },
+    })
+  }
+
+  // --- Leave ----------------------------------------------------------------
+
+  /** Requests that still matter: ending on/after `from`, plus pending ones. */
+  listLeaveRequests(organizationId: string, options: { from?: Date } = {}) {
+    return this.db.leaveRequest.findMany({
       where: {
         organizationId,
         ...(options.from
@@ -70,100 +167,226 @@ export class HrRepository {
     })
   }
 
-  findRequest(organizationId: string, id: string) {
-    return this.db.timeOffRequest.findFirst({
-      where: { id, organizationId },
-    })
+  findLeaveRequest(organizationId: string, id: string) {
+    return this.db.leaveRequest.findFirst({ where: { id, organizationId } })
   }
 
-  createRequest(data: {
+  createLeaveRequest(data: {
     organizationId: string
     userId: string
     type: string
     startDate: Date
     endDate: Date
-    days: number
-    reason?: string
+    startPeriod: string
+    endPeriod: string
+    halfDays: number
+    comment?: string
   }) {
-    return this.db.timeOffRequest.create({ data })
+    return this.db.leaveRequest.create({ data })
   }
 
-  updateRequest(
+  updateLeaveRequest(
     id: string,
     data: {
       status?: string
-      decidedBy?: string
-      decidedAt?: Date
+      validatorId?: string
+      decisionDate?: Date
+      decisionComment?: string
+      comment?: string
     }
   ) {
-    return this.db.timeOffRequest.update({ where: { id }, data })
+    return this.db.leaveRequest.update({ where: { id }, data })
   }
 
-  listLocations(organizationId: string, from: Date, to: Date) {
-    return this.db.workLocationDay.findMany({
-      where: { organizationId, date: { gte: from, lte: to } },
-      orderBy: { date: "asc" },
+  // --- Balances ---------------------------------------------------------------
+
+  listBalances(organizationId: string, year: number) {
+    return this.db.leaveBalance.findMany({
+      where: { organizationId, year },
     })
   }
 
-  upsertLocation(data: {
-    organizationId: string
-    userId: string
-    date: Date
-    status: string
-    note?: string
-  }) {
-    return this.db.workLocationDay.upsert({
+  upsertBalance(
+    organizationId: string,
+    userId: string,
+    leaveType: string,
+    year: number,
+    data: { allowanceDays: number; expiresAt: Date | null }
+  ) {
+    return this.db.leaveBalance.upsert({
       where: {
-        organizationId_userId_date: {
-          organizationId: data.organizationId,
-          userId: data.userId,
-          date: data.date,
+        organizationId_userId_leaveType_year: {
+          organizationId,
+          userId,
+          leaveType,
+          year,
         },
       },
-      create: data,
-      update: { status: data.status, note: data.note ?? null },
+      create: { organizationId, userId, leaveType, year, ...data },
+      update: data,
     })
   }
 
-  clearLocation(organizationId: string, userId: string, date: Date) {
-    return this.db.workLocationDay.deleteMany({
-      where: { organizationId, userId, date },
+  listAdjustments(organizationId: string, year: number) {
+    return this.db.leaveAdjustment.findMany({
+      where: { organizationId, year },
+      orderBy: { createdAt: "desc" },
     })
   }
 
-  listEntries(organizationId: string, userId: string, from: Date, to: Date) {
-    return this.db.timeEntry.findMany({
-      where: { organizationId, userId, date: { gte: from, lte: to } },
-      orderBy: { date: "desc" },
-    })
-  }
-
-  findEntry(organizationId: string, id: string) {
-    return this.db.timeEntry.findFirst({ where: { id, organizationId } })
-  }
-
-  upsertEntry(data: {
+  createAdjustment(data: {
     organizationId: string
     userId: string
-    date: Date
-    hours: number
+    leaveType: string
+    year: number
+    days: number
     note?: string
+    createdBy: string
   }) {
-    return this.db.timeEntry.upsert({
-      where: {
-        organizationId_userId_date: {
-          organizationId: data.organizationId,
-          userId: data.userId,
-          date: data.date,
-        },
-      },
-      create: data,
-      update: { hours: data.hours, note: data.note ?? null },
+    return this.db.leaveAdjustment.create({ data })
+  }
+
+  // --- Clients, activities, projects -----------------------------------------
+
+  listClients(organizationId: string) {
+    return this.db.client.findMany({
+      where: { organizationId },
+      orderBy: { name: "asc" },
     })
   }
 
-  deleteEntry(id: string) {
-    return this.db.timeEntry.delete({ where: { id } })
+  findClient(organizationId: string, id: string) {
+    return this.db.client.findFirst({ where: { id, organizationId } })
+  }
+
+  createClient(data: {
+    organizationId: string
+    name: string
+    contactEmail?: string | null
+    isActive: boolean
+  }) {
+    return this.db.client.create({ data })
+  }
+
+  updateClient(
+    id: string,
+    data: { name: string; contactEmail?: string | null; isActive: boolean }
+  ) {
+    return this.db.client.update({ where: { id }, data })
+  }
+
+  listActivities(organizationId: string) {
+    return this.db.internalActivity.findMany({
+      where: { organizationId },
+      orderBy: { name: "asc" },
+    })
+  }
+
+  findActivity(organizationId: string, id: string) {
+    return this.db.internalActivity.findFirst({
+      where: { id, organizationId },
+    })
+  }
+
+  createActivity(data: {
+    organizationId: string
+    name: string
+    description?: string | null
+    kind: string
+    isActive: boolean
+  }) {
+    return this.db.internalActivity.create({ data })
+  }
+
+  updateActivity(
+    id: string,
+    data: {
+      name: string
+      description?: string | null
+      kind: string
+      isActive: boolean
+    }
+  ) {
+    return this.db.internalActivity.update({ where: { id }, data })
+  }
+
+  listProjects(organizationId: string) {
+    return this.db.project.findMany({
+      where: { organizationId },
+      include: { client: { select: { id: true, name: true } } },
+      orderBy: { name: "asc" },
+    })
+  }
+
+  findProject(organizationId: string, id: string) {
+    return this.db.project.findFirst({ where: { id, organizationId } })
+  }
+
+  updateProject(
+    id: string,
+    data: {
+      clientId?: string | null
+      plannedHours?: number | null
+      isBillable?: boolean
+      startDate?: Date | null
+      endDate?: Date | null
+    }
+  ) {
+    return this.db.project.update({ where: { id }, data })
+  }
+
+  // --- Audit -------------------------------------------------------------------
+
+  createAudit(entries: {
+    organizationId: string
+    actorId: string
+    action: string
+    entityType: string
+    entityId: string
+    before?: unknown
+    after?: unknown
+  }[]) {
+    if (entries.length === 0) return Promise.resolve({ count: 0 })
+    return this.db.auditLog.createMany({
+      data: entries.map((entry) => ({
+        organizationId: entry.organizationId,
+        actorId: entry.actorId,
+        action: entry.action,
+        entityType: entry.entityType,
+        entityId: entry.entityId,
+        before: (entry.before ?? undefined) as never,
+        after: (entry.after ?? undefined) as never,
+      })),
+    })
+  }
+
+  listAudit(organizationId: string, limit = 100) {
+    return this.db.auditLog.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    })
+  }
+
+  // --- Settings ------------------------------------------------------------------
+
+  findSettings(organizationId: string) {
+    return this.db.hrSettings.findUnique({ where: { organizationId } })
+  }
+
+  upsertSettings(
+    organizationId: string,
+    data: {
+      defaultWeeklyHours: number
+      defaultAllowanceDays: number
+      lowBalanceThreshold: number
+      pendingValidationDays: number
+    }
+  ) {
+    return this.db.hrSettings.upsert({
+      where: { organizationId },
+      create: { organizationId, ...data },
+      update: data,
+    })
   }
 }

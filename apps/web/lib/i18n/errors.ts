@@ -24,7 +24,9 @@ const CODE_KEYS: Record<string, string> = {
   label_color_already_used: "labelColorAlreadyUsed",
   role_cannot_modify_hr: "roleCannotModifyHr",
   role_cannot_manage_hr: "roleCannotManageHr",
-  time_off_not_pending: "timeOffNotPending",
+  leave_overlapping: "leaveOverlapping",
+  leave_self_approval: "leaveSelfApproval",
+  leave_not_pending: "leaveNotPending",
 }
 
 export function useErrorTranslator() {

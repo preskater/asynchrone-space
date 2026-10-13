@@ -28,7 +28,9 @@ export type ServiceErrorCode =
   | "label_color_already_used"
   | "role_cannot_modify_hr"
   | "role_cannot_manage_hr"
-  | "time_off_not_pending"
+  | "leave_overlapping"
+  | "leave_self_approval"
+  | "leave_not_pending"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

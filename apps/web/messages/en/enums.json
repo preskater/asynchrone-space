@@ -79,21 +79,67 @@
     "channel": "Channel",
     "dm": "Direct message"
   },
-  "workLocation": {
-    "office": "Office",
-    "remote": "Remote"
+  "attendanceStatus": {
+    "on_site": "On-site",
+    "remote": "Remote",
+    "leave": "Leave",
+    "rtt": "RTT",
+    "sick_leave": "Sick leave",
+    "training": "Training",
+    "business_trip": "Business trip",
+    "holiday": "Holiday",
+    "unavailable": "Unavailable",
+    "other": "Other"
+  },
+  "dayPeriod": {
+    "morning": "Morning",
+    "afternoon": "Afternoon"
+  },
+  "workLocationKind": {
+    "on_site": "On-site",
+    "remote": "Remote",
+    "client_site": "Client site",
+    "traveling": "Traveling",
+    "other": "Other"
   },
   "leaveType": {
-    "vacation": "Vacation",
+    "paid_leave": "Paid leave",
+    "rtt": "RTT",
+    "unpaid": "Unpaid",
     "sick": "Sick leave",
-    "personal": "Personal",
-    "unpaid": "Unpaid"
+    "training": "Training",
+    "other": "Other"
   },
   "leaveStatus": {
     "pending": "Pending",
     "approved": "Approved",
     "rejected": "Rejected",
     "cancelled": "Cancelled"
+  },
+  "balanceType": {
+    "paid_leave": "Paid leave",
+    "rtt": "RTT",
+    "recovery": "Recovery time",
+    "unpaid": "Unpaid",
+    "training": "Training",
+    "other": "Other"
+  },
+  "activityKind": {
+    "internal": "Internal",
+    "non_billable": "Non-billable"
+  },
+  "employmentType": {
+    "associate": "Associate",
+    "employee": "Employee",
+    "intern": "Intern",
+    "contractor": "Contractor"
+  },
+  "contractType": {
+    "cdi": "CDI",
+    "cdd": "CDD",
+    "internship": "Internship",
+    "freelance": "Freelance",
+    "other": "Other"
   },
   "presence": {
     "available": "Available",

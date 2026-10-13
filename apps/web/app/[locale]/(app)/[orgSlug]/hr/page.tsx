@@ -33,7 +33,7 @@ export default async function HrPage({
 
   const ctx = await getRequestContextForOrganization(organization.id)
   const [data, t] = await Promise.all([
-    hrService.overview(ctx),
+    hrService.getOverview(ctx),
     getTranslations("AppPages"),
   ])
 
