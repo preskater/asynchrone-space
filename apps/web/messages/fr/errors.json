@@ -18,6 +18,9 @@
   "roleCannotModifyCalendars": "Votre rôle ne permet pas de modifier les calendriers.",
   "roleCannotSendMessages": "Votre rôle ne permet pas d'envoyer des messages.",
   "labelColorAlreadyUsed": "Cette couleur est déjà utilisée par une autre étiquette.",
+  "roleCannotModifyHr": "Votre rôle ne permet pas de modifier les données RH.",
+  "roleCannotManageHr": "Votre rôle ne permet pas de gérer les paramètres RH ou les approbations.",
+  "timeOffNotPending": "Cette demande a déjà été traitée.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

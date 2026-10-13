@@ -19,6 +19,9 @@ export function enumLabels(t: Translator) {
     response: (value: string) => t(`response.${value}` as never),
     conversationKind: (value: string) => t(`conversationKind.${value}` as never),
     presence: (value: string) => t(`presence.${value}` as never),
+    workLocation: (value: string) => t(`workLocation.${value}` as never),
+    leaveType: (value: string) => t(`leaveType.${value}` as never),
+    leaveStatus: (value: string) => t(`leaveStatus.${value}` as never),
     resource: (value: string) => t(`resource.${value}` as never),
   }
 }

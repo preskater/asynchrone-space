@@ -18,7 +18,7 @@ function fromServiceToken(token: string): AuthInfo | undefined {
   return {
     token,
     clientId: "presk-service",
-    scopes: ["projects", "calendars", "files", "messaging"],
+    scopes: ["projects", "calendars", "files", "messaging", "hr"],
     extra: {
       userId,
       organizationId,
@@ -43,7 +43,7 @@ async function fromSession(request: Request): Promise<AuthInfo | undefined> {
   return {
     token: session.session.token,
     clientId: session.user.id,
-    scopes: ["projects", "calendars", "files", "messaging"],
+    scopes: ["projects", "calendars", "files", "messaging", "hr"],
     extra: {
       userId: session.user.id,
       organizationId,

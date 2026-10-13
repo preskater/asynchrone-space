@@ -79,6 +79,22 @@
     "channel": "Canal",
     "dm": "Message direct"
   },
+  "workLocation": {
+    "office": "Bureau",
+    "remote": "Télétravail"
+  },
+  "leaveType": {
+    "vacation": "Congés payés",
+    "sick": "Maladie",
+    "personal": "Personnel",
+    "unpaid": "Sans solde"
+  },
+  "leaveStatus": {
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Refusé",
+    "cancelled": "Annulé"
+  },
   "presence": {
     "available": "Disponible",
     "away": "Absent",

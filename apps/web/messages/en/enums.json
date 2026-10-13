@@ -79,6 +79,22 @@
     "channel": "Channel",
     "dm": "Direct message"
   },
+  "workLocation": {
+    "office": "Office",
+    "remote": "Remote"
+  },
+  "leaveType": {
+    "vacation": "Vacation",
+    "sick": "Sick leave",
+    "personal": "Personal",
+    "unpaid": "Unpaid"
+  },
+  "leaveStatus": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
   "presence": {
     "available": "Available",
     "away": "Away",

@@ -103,6 +103,12 @@ model Organization {
   chatTeams      ChatTeam[]
   conversations  Conversation[]
 
+  workLocationDays WorkLocationDay[]
+  timeOffRequests  TimeOffRequest[]
+  timeOffBalances  TimeOffBalance[]
+  timeEntries      TimeEntry[]
+  hrSettings       HrSettings?
+
   @@unique([slug])
   @@map("organization")
 }
@@ -603,4 +609,99 @@ model MessageAttachment {
 
   @@index([messageId])
   @@map("messageAttachment")
+}
+
+// ---------------------------------------------------------------------------
+// HR
+// ---------------------------------------------------------------------------
+
+/// One row per user per day the user declared where they work, either from
+/// the office or remotely. Days without a row have no declared status.
+/// `date` is a calendar day (no time component).
+model WorkLocationDay {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  date           DateTime     @db.Date
+  status         String // "office" | "remote"
+  note           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId, date])
+  @@index([organizationId, date])
+  @@map("workLocationDay")
+}
+
+/// A paid or unpaid time-off request. `days` counts the business days
+/// (Mon-Fri) covered by [startDate, endDate]; approved requests count against
+/// the requester's `TimeOffBalance.allowanceDays` for the year they fall in.
+model TimeOffRequest {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  type           String       @default("vacation") // "vacation" | "sick" | "personal" | "unpaid"
+  status         String       @default("pending") // "pending" | "approved" | "rejected" | "cancelled"
+  startDate      DateTime     @db.Date
+  endDate        DateTime     @db.Date
+  days           Float
+  reason         String?
+  decidedBy      String?
+  decidedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, status])
+  @@index([organizationId, userId])
+  @@map("timeOffRequest")
+}
+
+/// Paid-days-off allowance for one user in one year.
+model TimeOffBalance {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  year           Int
+  allowanceDays  Float        @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId, year])
+  @@map("timeOffBalance")
+}
+
+/// Hours worked on a given day. One row per user per day; logging again for
+/// the same day replaces the previous value.
+model TimeEntry {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  date           DateTime     @db.Date
+  hours          Float
+  note           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId, date])
+  @@index([organizationId, date])
+  @@map("timeEntry")
+}
+
+/// Organization-wide HR defaults: fallback yearly allowance for members
+/// without a custom `TimeOffBalance`, and the weekly hours target used to put
+/// logged hours in context.
+model HrSettings {
+  id                   String       @id @default(cuid())
+  organizationId       String       @unique
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  defaultAllowanceDays Float        @default(25)
+  weeklyHourTarget     Float        @default(35)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  @@map("hrSettings")
 }

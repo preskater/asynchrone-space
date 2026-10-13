@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  BriefcaseIcon,
   CalendarIcon,
   CircleHelpIcon,
   CommandIcon,
@@ -60,6 +61,11 @@ function useNavMain(orgSlug: string): NavApp[] {
       title: t("files"),
       url: `/${orgSlug}/files`,
       icon: <FileIcon />,
+    },
+    {
+      title: t("hr"),
+      url: `/${orgSlug}/hr`,
+      icon: <BriefcaseIcon />,
     },
   ]
 }

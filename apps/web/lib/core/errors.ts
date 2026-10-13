@@ -26,6 +26,9 @@ export type ServiceErrorCode =
   | "role_cannot_modify_calendars"
   | "role_cannot_send_messages"
   | "label_color_already_used"
+  | "role_cannot_modify_hr"
+  | "role_cannot_manage_hr"
+  | "time_off_not_pending"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
