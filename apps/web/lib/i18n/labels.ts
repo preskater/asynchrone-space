@@ -39,6 +39,8 @@ export function enumLabels(t: Translator) {
     dealStatus: (value: string) => t(`dealStatus.${value}` as never),
     pipelineStageType: (value: string) =>
       t(`pipelineStageType.${value}` as never),
+    crmDocumentVisibility: (value: string) =>
+      t(`crmDocumentVisibility.${value}` as never),
     resource: (value: string) => t(`resource.${value}` as never),
   }
 }

@@ -6,7 +6,10 @@ import {
   clientInputSchema,
   contactInputSchema,
   dealInputSchema,
+  linkDocumentSchema,
+  linkProjectSchema,
   moveDealSchema,
+  unlinkProjectSchema,
 } from "@/lib/crm/schemas"
 
 import type { McpTool } from "./projects"
@@ -103,5 +106,67 @@ export const crmTools: McpTool[] = [
     readOnly: false,
     run: (ctx, input) =>
       crmService.createActivity(ctx, activityInputSchema.parse(input)),
+  },
+  {
+    name: "list_crm_documents",
+    title: "List documents of a CRM record",
+    description:
+      "List the files linked to a company, contact or deal (name, kind, visibility).",
+    inputSchema: {
+      entity: z.enum(["client", "contact", "deal"]),
+      entityId: z.string(),
+    },
+    readOnly: true,
+    run: (ctx, input) =>
+      crmService.listDocuments(
+        ctx,
+        input.entity as "client" | "contact" | "deal",
+        String(input.entityId)
+      ),
+  },
+  {
+    name: "link_crm_document",
+    title: "Link a file to a CRM record",
+    description:
+      "Attach an existing file (from the Files section) to a company, contact or deal.",
+    inputSchema: {
+      entity: z.enum(["client", "contact", "deal"]),
+      entityId: z.string(),
+      fileId: z.string(),
+      visibility: z.enum(["internal", "client"]).optional(),
+    },
+    readOnly: false,
+    run: (ctx, input) =>
+      crmService.linkDocument(ctx, linkDocumentSchema.parse(input)),
+  },
+  {
+    name: "unlink_crm_document",
+    title: "Unlink a document from a CRM record",
+    description:
+      "Remove the link between a file and a CRM record. The file itself stays in Files.",
+    inputSchema: { documentId: z.string() },
+    readOnly: false,
+    run: (ctx, input) =>
+      crmService.unlinkDocument(ctx, String(input.documentId)),
+  },
+  {
+    name: "link_crm_project",
+    title: "Link a project to a company",
+    description:
+      "Link an existing project to a company (client). If the project was linked to another company, it is re-linked to this one.",
+    inputSchema: { clientId: z.string(), projectId: z.string() },
+    readOnly: false,
+    run: (ctx, input) =>
+      crmService.linkProject(ctx, linkProjectSchema.parse(input)),
+  },
+  {
+    name: "unlink_crm_project",
+    title: "Unlink a project from a company",
+    description:
+      "Remove the link between a project and a company. The project itself is kept.",
+    inputSchema: { clientId: z.string(), projectId: z.string() },
+    readOnly: false,
+    run: (ctx, input) =>
+      crmService.unlinkProject(ctx, unlinkProjectSchema.parse(input)),
   },
 ]

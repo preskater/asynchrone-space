@@ -41,6 +41,10 @@ export type ServiceErrorCode =
   | "pipeline_not_empty"
   | "stage_not_empty"
   | "stage_last_required"
+  | "file_already_linked"
+  | "file_in_trash"
+  | "project_already_linked"
+  | "project_not_linked"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

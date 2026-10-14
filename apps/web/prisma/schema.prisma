@@ -127,6 +127,8 @@ model Organization {
   deals               Deal[]
   crmActivities       CrmActivity[]
   crmFieldDefinitions CrmFieldDefinition[]
+  crmDocuments        CrmDocument[]
+  notifications       Notification[]
 
   @@unique([slug])
   @@map("organization")
@@ -458,6 +460,7 @@ model FileNode {
   shares     FileShare[]
   versions   FileVersion[]
   activities FileActivity[]
+  crmDocuments CrmDocument[]
 
   @@index([organizationId, parentId])
   @@index([ownerId])
@@ -965,6 +968,43 @@ model CrmFieldDefinition {
 
   @@unique([organizationId, entity, key])
   @@map("crmFieldDefinition")
+}
+
+/// A file attached to a CRM record (company, contact or deal). `visibility`
+/// is internal | client; client-visible documents are exposed in the portal.
+model CrmDocument {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fileId         String
+  file           FileNode     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  entity         String
+  entityId       String
+  visibility     String       @default("internal")
+  addedBy        String
+  createdAt      DateTime     @default(now())
+
+  @@unique([fileId, entity, entityId])
+  @@index([organizationId, entity, entityId])
+  @@map("crmDocument")
+}
+
+/// In-app notification for one user. `data` carries the interpolation values
+/// (names, identifiers, ids) for the type-specific message rendered by the UI.
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  actorId        String?
+  type           String
+  data           Json?
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notification")
 }
 
 /// An internal (non-client) activity time can be allocated to, e.g. product

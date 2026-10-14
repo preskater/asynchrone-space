@@ -40,6 +40,7 @@
   "delete": "Supprimer",
   "noDescription": "Aucune description",
   "memberCount": "{count, plural, one {# membre} other {# membres}}",
+  "client": "Client",
   "target": "Échéance {date}",
   "due": "Pour le {date}",
   "createTask": "Créer une tâche",

@@ -206,6 +206,15 @@ export interface CrmProjectOptionData {
   status: string
 }
 
+/** Project entry with its current company link, used by the link picker. */
+export interface CrmProjectLinkOptionData {
+  id: string
+  name: string
+  status: string
+  clientId: string | null
+  clientName: string | null
+}
+
 export interface CrmClientOptionData {
   id: string
   name: string
@@ -215,6 +224,34 @@ export interface CrmContactOptionData {
   id: string
   name: string
   email?: string
+}
+
+export const CRM_DOCUMENT_VISIBILITIES = ["internal", "client"] as const
+export type CrmDocumentVisibility =
+  (typeof CRM_DOCUMENT_VISIBILITIES)[number]
+
+/** A file linked to a CRM record. */
+export interface CrmDocumentData {
+  id: string
+  fileId: string
+  name: string
+  kind: string
+  mimeType?: string
+  sizeBytes?: number
+  visibility: CrmDocumentVisibility
+  trashed: boolean
+  addedById: string
+  addedByName?: string
+  createdAt: string
+}
+
+/** Light file entry used by the "add document" picker. */
+export interface CrmFileOptionData {
+  id: string
+  name: string
+  kind: string
+  mimeType?: string
+  modifiedAt: string
 }
 
 export interface CrmOverviewData {
@@ -239,6 +276,7 @@ export interface CrmClientDetailData {
   contacts: CrmContactData[]
   deals: CrmDealData[]
   projects: CrmProjectOptionData[]
+  documents: CrmDocumentData[]
   timeline: CrmTimelineEntryData[]
 }
 
@@ -249,6 +287,7 @@ export interface CrmContactDetailData {
   clients: CrmClientOptionData[]
   contact: CrmContactData
   deals: CrmDealData[]
+  documents: CrmDocumentData[]
   timeline: CrmTimelineEntryData[]
 }
 
@@ -260,6 +299,7 @@ export interface CrmDealDetailData {
   contactOptions: CrmContactOptionData[]
   pipelines: CrmPipelineData[]
   deal: CrmDealData
+  documents: CrmDocumentData[]
   timeline: CrmTimelineEntryData[]
 }
 

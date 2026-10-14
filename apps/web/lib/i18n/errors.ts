@@ -37,6 +37,10 @@ const CODE_KEYS: Record<string, string> = {
   pipeline_not_empty: "pipelineNotEmpty",
   stage_not_empty: "stageNotEmpty",
   stage_last_required: "stageLastRequired",
+  file_already_linked: "fileAlreadyLinked",
+  file_in_trash: "fileInTrash",
+  project_already_linked: "projectAlreadyLinked",
+  project_not_linked: "projectNotLinked",
 }
 
 export function useErrorTranslator() {

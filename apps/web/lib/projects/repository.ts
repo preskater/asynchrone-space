@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 export const projectInclude = {
+  client: { select: { id: true, name: true } },
   members: { include: { project: false } },
   labels: { include: { label: true } },
   tasks: {

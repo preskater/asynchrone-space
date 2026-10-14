@@ -79,5 +79,11 @@
   "crmExportFailed": "Export failed.",
   "crmSaveFailed": "Could not save the record.",
   "crmActivityFailed": "Could not log the activity.",
-  "crmImportFailed": "Import failed."
+  "crmImportFailed": "Import failed.",
+  "crmDocumentLinked": "Document added.",
+  "crmDocumentUnlinked": "Document unlinked.",
+  "crmDocumentShared": "Document visibility updated.",
+  "crmProjectLinked": "Project linked.",
+  "crmProjectUnlinked": "Project unlinked.",
+  "notificationsAllRead": "All notifications marked as read."
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { Building2Icon, EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -86,6 +86,16 @@ export function ProjectHeader({
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold">{project.name}</h2>
             <Badge variant="outline">{L.projectStatus(project.status)}</Badge>
+            {project.clientId ? (
+              <Link
+                href={`/${orgSlug}/clients/${project.clientId}`}
+                className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:underline"
+                title={t("client")}
+              >
+                <Building2Icon className="size-3.5" />
+                {project.clientName ?? t("client")}
+              </Link>
+            ) : null}
           </div>
           <p className="max-w-2xl text-sm text-muted-foreground">
             {project.description ?? t("noDescription")}

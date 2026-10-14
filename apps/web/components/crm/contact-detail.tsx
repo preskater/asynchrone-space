@@ -40,6 +40,7 @@ import { useEnumLabel } from "@/lib/i18n/labels"
 
 import { ContactDialog } from "./contact-dialog"
 import { CustomFieldValuesView } from "./custom-fields"
+import { DocumentsCard } from "./documents"
 import { ActivityDialog, ActivityTimeline } from "./timeline"
 import { useCrmFormat } from "./use-crm"
 
@@ -302,6 +303,13 @@ export function ContactDetail({
             )}
           </CardContent>
         </Card>
+
+        <DocumentsCard
+          entity="contact"
+          entityId={contact.id}
+          documents={data.documents}
+          canEdit={data.access.canEdit}
+        />
       </div>
 
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>

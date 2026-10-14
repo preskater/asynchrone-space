@@ -6,6 +6,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/lib/core/errors"
+import { notificationService } from "@/lib/notifications"
 
 import { parseDateKey, toDateKey } from "./dates"
 import { resolveCrmAccess, type CrmAccess } from "./access"
@@ -20,10 +21,14 @@ import type {
   FieldDefinitionInput,
   ImportClientsInput,
   ImportContactsInput,
+  LinkDocumentInput,
+  LinkProjectInput,
   MoveDealInput,
   MoveStageInput,
   PipelineInput,
   StageInput,
+  UnlinkProjectInput,
+  UpdateDocumentVisibilityInput,
 } from "./schemas"
 import type {
   CrmAccessData,
@@ -36,15 +41,18 @@ import type {
   CrmContactOptionData,
   CrmDealData,
   CrmDealDetailData,
+  CrmDocumentData,
   CrmExportResultData,
   CrmFieldDefinitionData,
   CrmFieldEntity,
   CrmFieldValue,
   CrmFieldValues,
+  CrmFileOptionData,
   CrmImportResultData,
   CrmMemberOptionData,
   CrmOverviewData,
   CrmPipelineData,
+  CrmProjectLinkOptionData,
   CrmProjectOptionData,
   CrmSystemEventData,
   CrmTimelineEntryData,
@@ -76,6 +84,9 @@ type AuditRow = Awaited<
 >[number]
 type ProjectOptionRow = Awaited<
   ReturnType<CrmRepository["listProjectOptions"]>
+>[number]
+type DocumentRow = Awaited<
+  ReturnType<CrmRepository["listDocuments"]>
 >[number]
 
 interface WorkspaceRows {
@@ -184,6 +195,31 @@ export class CrmService {
           (item): item is string => typeof item === "string"
         )
       : []
+  }
+
+  private mapDocument(
+    row: DocumentRow,
+    nameById: Map<string, string>
+  ): CrmDocumentData {
+    return {
+      id: row.id,
+      fileId: row.file.id,
+      name: row.file.name,
+      kind: row.file.kind,
+      mimeType: text(row.file.mimeType),
+      sizeBytes: row.file.sizeBytes ?? undefined,
+      visibility: row.visibility as CrmDocumentData["visibility"],
+      trashed: row.file.trashed,
+      addedById: row.addedBy,
+      addedByName: nameById.get(row.addedBy),
+      createdAt: row.createdAt.toISOString(),
+    }
+  }
+
+  private async memberNameById(
+    organizationId: string
+  ): Promise<Map<string, string>> {
+    return this.nameById(await this.repo.listMembers(organizationId))
   }
 
   private coerceFieldValue(def: FieldRow, raw: unknown): CrmFieldValue {
@@ -583,6 +619,7 @@ export class CrmService {
       contactRows,
       dealRows,
       projectRows,
+      documentRows,
     ] = await Promise.all([
       this.repo.findClient(ctx.organizationId, clientId),
       this.repo.listMembers(ctx.organizationId),
@@ -591,6 +628,7 @@ export class CrmService {
       this.repo.listContacts(ctx.organizationId),
       this.repo.listDealsByClient(ctx.organizationId, clientId),
       this.repo.listProjectOptions(ctx.organizationId),
+      this.repo.listDocuments(ctx.organizationId, "client", clientId),
     ])
     if (!row) throw new NotFoundError("Client")
     const nameById = this.nameById(memberRows)
@@ -640,6 +678,7 @@ export class CrmService {
           name: project.name,
           status: project.status,
         })),
+      documents: documentRows.map((doc) => this.mapDocument(doc, nameById)),
       timeline: this.mergeTimeline(activityRows, auditRows, nameById),
     }
   }
@@ -649,13 +688,15 @@ export class CrmService {
     contactId: string
   ): Promise<CrmContactDetailData> {
     const access = this.accessFor(ctx)
-    const [row, memberRows, fieldRows, clientRows, dealRows] = await Promise.all([
-      this.repo.findContact(ctx.organizationId, contactId),
-      this.repo.listMembers(ctx.organizationId),
-      this.repo.listFieldDefinitions(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
-      this.repo.listDealsByContact(ctx.organizationId, contactId),
-    ])
+    const [row, memberRows, fieldRows, clientRows, dealRows, documentRows] =
+      await Promise.all([
+        this.repo.findContact(ctx.organizationId, contactId),
+        this.repo.listMembers(ctx.organizationId),
+        this.repo.listFieldDefinitions(ctx.organizationId),
+        this.repo.listClients(ctx.organizationId),
+        this.repo.listDealsByContact(ctx.organizationId, contactId),
+        this.repo.listDocuments(ctx.organizationId, "contact", contactId),
+      ])
     if (!row) throw new NotFoundError("Contact")
     const nameById = this.nameById(memberRows)
     const [activityRows, auditRows] = await Promise.all([
@@ -686,6 +727,7 @@ export class CrmService {
       deals: dealRows.map((deal) =>
         this.mapDeal(deal, deal.ownerId ? nameById.get(deal.ownerId) : undefined)
       ),
+      documents: documentRows.map((doc) => this.mapDocument(doc, nameById)),
       timeline: this.mergeTimeline(activityRows, auditRows, nameById),
     }
   }
@@ -696,7 +738,7 @@ export class CrmService {
   ): Promise<CrmDealDetailData> {
     const access = this.accessFor(ctx)
     await this.ensureDefaultPipeline(ctx.organizationId)
-    const [row, memberRows, fieldRows, clientRows, contactRows, pipelineRows] =
+    const [row, memberRows, fieldRows, clientRows, contactRows, pipelineRows, documentRows] =
       await Promise.all([
         this.repo.findDeal(ctx.organizationId, dealId),
         this.repo.listMembers(ctx.organizationId),
@@ -704,6 +746,7 @@ export class CrmService {
         this.repo.listClients(ctx.organizationId),
         this.repo.listContacts(ctx.organizationId),
         this.repo.listPipelines(ctx.organizationId),
+        this.repo.listDocuments(ctx.organizationId, "deal", dealId),
       ])
     if (!row) throw new NotFoundError("Deal")
     const nameById = this.nameById(memberRows)
@@ -733,6 +776,7 @@ export class CrmService {
         row,
         row.ownerId ? nameById.get(row.ownerId) : undefined
       ),
+      documents: documentRows.map((doc) => this.mapDocument(doc, nameById)),
       timeline: this.mergeTimeline(activityRows, auditRows, nameById),
     }
   }
@@ -1249,6 +1293,20 @@ export class CrmService {
           after: this.dealSnapshot(row),
         },
       ])
+      if (stageChanged) {
+        await notificationService.notify({
+          organizationId: ctx.organizationId,
+          userId: row.ownerId,
+          actorId: ctx.userId,
+          type: "deal.stage_changed",
+          data: {
+            dealId: row.id,
+            dealName: row.name,
+            stageName: row.stage?.name ?? "",
+            actorName: ctx.userName,
+          },
+        })
+      }
       return this.returnDeal(ctx, row.id)
     }
 
@@ -1336,6 +1394,18 @@ export class CrmService {
           after: this.dealSnapshot(updated),
         },
       ])
+      await notificationService.notify({
+        organizationId: ctx.organizationId,
+        userId: updated.ownerId,
+        actorId: ctx.userId,
+        type: "deal.stage_changed",
+        data: {
+          dealId: updated.id,
+          dealName: updated.name,
+          stageName: stage.name,
+          actorName: ctx.userName,
+        },
+      })
     }
 
     return this.returnDeal(ctx, deal.id)
@@ -1367,6 +1437,18 @@ export class CrmService {
         after: this.dealSnapshot(row),
       },
     ])
+    await notificationService.notify({
+      organizationId: ctx.organizationId,
+      userId: row.ownerId,
+      actorId: ctx.userId,
+      type: input.status === "won" ? "deal.won" : "deal.lost",
+      data: {
+        dealId: row.id,
+        dealName: row.name,
+        stageName: row.stage?.name ?? "",
+        actorName: ctx.userName,
+      },
+    })
     return this.returnDeal(ctx, row.id)
   }
 
@@ -1768,6 +1850,248 @@ export class CrmService {
       },
     ])
     return { id }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Documents
+  // ---------------------------------------------------------------------------
+
+  private async entityExists(
+    organizationId: string,
+    entity: CrmFieldEntity,
+    entityId: string
+  ): Promise<boolean> {
+    if (entity === "client") {
+      return Boolean(await this.repo.findClient(organizationId, entityId))
+    }
+    if (entity === "contact") {
+      return Boolean(await this.repo.findContact(organizationId, entityId))
+    }
+    return Boolean(await this.repo.findDeal(organizationId, entityId))
+  }
+
+  private entityLabel(entity: CrmFieldEntity): string {
+    if (entity === "client") return "Client"
+    if (entity === "contact") return "Contact"
+    return "Deal"
+  }
+
+  async listDocuments(
+    ctx: RequestContext,
+    entity: CrmFieldEntity,
+    entityId: string
+  ): Promise<CrmDocumentData[]> {
+    if (!(await this.entityExists(ctx.organizationId, entity, entityId))) {
+      throw new NotFoundError(this.entityLabel(entity))
+    }
+    const [rows, nameById] = await Promise.all([
+      this.repo.listDocuments(ctx.organizationId, entity, entityId),
+      this.memberNameById(ctx.organizationId),
+    ])
+    return rows.map((row) => this.mapDocument(row, nameById))
+  }
+
+  async linkDocument(
+    ctx: RequestContext,
+    input: LinkDocumentInput
+  ): Promise<CrmDocumentData> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const [file, exists] = await Promise.all([
+      this.repo.findFileForLink(ctx.organizationId, input.fileId),
+      this.entityExists(ctx.organizationId, input.entity, input.entityId),
+    ])
+    if (!exists) throw new NotFoundError(this.entityLabel(input.entity))
+    if (!file) throw new NotFoundError("File")
+    if (file.trashed) {
+      throw new ConflictError("This file is in the trash.", {
+        code: "file_in_trash",
+      })
+    }
+    const existing = await this.repo.findDocumentLink(
+      ctx.organizationId,
+      input.fileId,
+      input.entity,
+      input.entityId
+    )
+    if (existing) {
+      throw new ConflictError("This file is already linked to this record.", {
+        code: "file_already_linked",
+      })
+    }
+    const row = await this.repo.createDocument({
+      organizationId: ctx.organizationId,
+      fileId: input.fileId,
+      entity: input.entity,
+      entityId: input.entityId,
+      visibility: input.visibility,
+      addedBy: ctx.userId,
+    })
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: `${input.entity}.document.linked`,
+        entityType: input.entity,
+        entityId: input.entityId,
+        after: { fileName: row.file.name },
+      },
+    ])
+    return this.mapDocument(row, new Map([[ctx.userId, ctx.userName]]))
+  }
+
+  async unlinkDocument(
+    ctx: RequestContext,
+    id: string
+  ): Promise<{ id: string }> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const row = await this.repo.findDocument(ctx.organizationId, id)
+    if (!row) throw new NotFoundError("Document")
+    await this.repo.deleteDocument(id)
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: `${row.entity}.document.unlinked`,
+        entityType: row.entity,
+        entityId: row.entityId,
+        after: { fileName: row.file.name },
+      },
+    ])
+    return { id }
+  }
+
+  async updateDocumentVisibility(
+    ctx: RequestContext,
+    input: UpdateDocumentVisibilityInput
+  ): Promise<CrmDocumentData> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const row = await this.repo.findDocument(ctx.organizationId, input.id)
+    if (!row) throw new NotFoundError("Document")
+    const updated = await this.repo.updateDocumentVisibility(
+      input.id,
+      input.visibility
+    )
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action:
+          input.visibility === "client"
+            ? `${row.entity}.document.shared`
+            : `${row.entity}.document.unshared`,
+        entityType: row.entity,
+        entityId: row.entityId,
+        after: { fileName: row.file.name },
+      },
+    ])
+    return this.mapDocument(
+      updated,
+      await this.memberNameById(ctx.organizationId)
+    )
+  }
+
+  /** Files of the organization that can be linked to a CRM record. */
+  async fetchFileOptions(ctx: RequestContext): Promise<CrmFileOptionData[]> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const rows = await this.repo.listFileOptions(ctx.organizationId)
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      kind: row.kind,
+      mimeType: text(row.mimeType),
+      modifiedAt: row.modifiedAt.toISOString(),
+    }))
+  }
+
+  // ---------------------------------------------------------------------------
+  // Linked projects
+  // ---------------------------------------------------------------------------
+
+  /** Projects of the organization with their current company, for the picker. */
+  async fetchProjectOptions(
+    ctx: RequestContext
+  ): Promise<CrmProjectLinkOptionData[]> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const rows = await this.repo.listProjectLinkOptions(ctx.organizationId)
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      status: row.status,
+      clientId: row.clientId,
+      clientName: row.client?.name ?? null,
+    }))
+  }
+
+  /** Link a project to a company; re-links it if it had another company. */
+  async linkProject(
+    ctx: RequestContext,
+    input: LinkProjectInput
+  ): Promise<CrmProjectOptionData> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const [client, project] = await Promise.all([
+      this.repo.findClient(ctx.organizationId, input.clientId),
+      this.repo.findProject(ctx.organizationId, input.projectId),
+    ])
+    if (!client) throw new NotFoundError("Client")
+    if (!project) throw new NotFoundError("Project")
+    if (project.clientId === input.clientId) {
+      throw new ConflictError("This project is already linked to this client.", {
+        code: "project_already_linked",
+      })
+    }
+    const updated = await this.repo.setProjectClient(
+      input.projectId,
+      input.clientId
+    )
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: "client.project.linked",
+        entityType: "client",
+        entityId: input.clientId,
+        after: { projectName: project.name },
+      },
+    ])
+    return { id: updated.id, name: updated.name, status: updated.status }
+  }
+
+  async unlinkProject(
+    ctx: RequestContext,
+    input: UnlinkProjectInput
+  ): Promise<{ id: string }> {
+    const access = this.accessFor(ctx)
+    requireEdit(access)
+    const [client, project] = await Promise.all([
+      this.repo.findClient(ctx.organizationId, input.clientId),
+      this.repo.findProject(ctx.organizationId, input.projectId),
+    ])
+    if (!client) throw new NotFoundError("Client")
+    if (!project) throw new NotFoundError("Project")
+    if (project.clientId !== input.clientId) {
+      throw new ConflictError(
+        "This project is not linked to this client.",
+        { code: "project_not_linked" }
+      )
+    }
+    await this.repo.setProjectClient(input.projectId, null)
+    await this.repo.createAudit([
+      {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: "client.project.unlinked",
+        entityType: "client",
+        entityId: input.clientId,
+        after: { projectName: project.name },
+      },
+    ])
+    return { id: input.projectId }
   }
 
   // ---------------------------------------------------------------------------

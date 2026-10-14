@@ -56,6 +56,7 @@ import { useEnumLabel } from "@/lib/i18n/labels"
 
 import { CustomFieldValuesView } from "./custom-fields"
 import { DealDialog } from "./deal-dialog"
+import { DocumentsCard } from "./documents"
 import { ActivityDialog, ActivityTimeline } from "./timeline"
 import { useCrmFormat } from "./use-crm"
 
@@ -425,6 +426,13 @@ export function DealDetail({
             ))}
           </CardContent>
         </Card>
+
+        <DocumentsCard
+          entity="deal"
+          entityId={deal.id}
+          documents={data.documents}
+          canEdit={data.access.canEdit}
+        />
       </div>
 
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>

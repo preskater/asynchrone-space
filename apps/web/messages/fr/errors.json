@@ -33,6 +33,10 @@
   "pipelineNotEmpty": "Ce pipeline contient encore {count} affaire(s).",
   "stageNotEmpty": "Cette étape contient encore {count} affaire(s).",
   "stageLastRequired": "Un pipeline doit conserver au moins une étape.",
+  "fileAlreadyLinked": "Ce fichier est déjà lié à cet enregistrement.",
+  "fileInTrash": "Ce fichier est dans la corbeille.",
+  "projectAlreadyLinked": "Ce projet est déjà lié à cette société.",
+  "projectNotLinked": "Ce projet n'est pas lié à cette société.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

@@ -15,12 +15,17 @@ import {
   fieldDefinitionSchema,
   importClientsSchema,
   importContactsSchema,
+  linkDocumentSchema,
+  linkProjectSchema,
   moveDealSchema,
   moveStageSchema,
   pipelineInputSchema,
   reopenDealSchema,
   setDefaultPipelineSchema,
   stageInputSchema,
+  unlinkDocumentSchema,
+  unlinkProjectSchema,
+  updateDocumentVisibilitySchema,
 } from "@/lib/crm"
 import { revalidateOrgPath } from "@/lib/organization/paths"
 
@@ -230,4 +235,66 @@ export const importContactsAction = withAction(async (input: unknown) => {
   const result = await crmService.importContacts(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/contacts")
   return result
+})
+
+// --- Documents -------------------------------------------------------------------
+
+export const linkDocumentAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(linkDocumentSchema, input)
+  const document = await crmService.linkDocument(ctx, parsed)
+  await revalidateCrm(ctx.organizationId)
+  return document
+})
+
+export const unlinkDocumentAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(unlinkDocumentSchema, input)
+  const result = await crmService.unlinkDocument(ctx, parsed.id)
+  await revalidateCrm(ctx.organizationId)
+  return result
+})
+
+export const updateDocumentVisibilityAction = withAction(
+  async (input: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = await parseLocalized(updateDocumentVisibilitySchema, input)
+    const document = await crmService.updateDocumentVisibility(ctx, parsed)
+    await revalidateCrm(ctx.organizationId)
+    return document
+  }
+)
+
+export const fetchCrmFileOptionsAction = withAction(async () => {
+  const ctx = await getRequestContext()
+  return crmService.fetchFileOptions(ctx)
+})
+
+// --- Projects --------------------------------------------------------------------
+
+export const linkProjectAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(linkProjectSchema, input)
+  const project = await crmService.linkProject(ctx, parsed)
+  await Promise.all([
+    revalidateCrm(ctx.organizationId),
+    revalidateOrgPath(ctx.organizationId, "/projects"),
+  ])
+  return project
+})
+
+export const unlinkProjectAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(unlinkProjectSchema, input)
+  const result = await crmService.unlinkProject(ctx, parsed)
+  await Promise.all([
+    revalidateCrm(ctx.organizationId),
+    revalidateOrgPath(ctx.organizationId, "/projects"),
+  ])
+  return result
+})
+
+export const fetchCrmProjectOptionsAction = withAction(async () => {
+  const ctx = await getRequestContext()
+  return crmService.fetchProjectOptions(ctx)
 })

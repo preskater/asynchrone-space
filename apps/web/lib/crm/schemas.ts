@@ -4,6 +4,7 @@ import {
   CRM_ACTIVITY_TYPES,
   CRM_CLIENT_STATUSES,
   CRM_CURRENCIES,
+  CRM_DOCUMENT_VISIBILITIES,
   CRM_FIELD_ENTITIES,
   CRM_FIELD_TYPES,
   DEAL_STATUSES,
@@ -171,6 +172,32 @@ export const exportSchema = z.object({
   entity: z.enum(["clients", "contacts", "deals"]),
 })
 
+export const linkDocumentSchema = z.object({
+  entity: z.enum(CRM_FIELD_ENTITIES),
+  entityId: z.string().min(1),
+  fileId: z.string().min(1),
+  visibility: z.enum(CRM_DOCUMENT_VISIBILITIES).default("internal"),
+})
+
+export const unlinkDocumentSchema = z.object({
+  id: z.string().min(1),
+})
+
+export const updateDocumentVisibilitySchema = z.object({
+  id: z.string().min(1),
+  visibility: z.enum(CRM_DOCUMENT_VISIBILITIES),
+})
+
+export const linkProjectSchema = z.object({
+  clientId: z.string().min(1),
+  projectId: z.string().min(1),
+})
+
+export const unlinkProjectSchema = z.object({
+  clientId: z.string().min(1),
+  projectId: z.string().min(1),
+})
+
 const importClientRowSchema = z.object({
   name: z.string().trim().min(1).max(120),
   status: z.enum(CRM_CLIENT_STATUSES).optional(),
@@ -214,3 +241,10 @@ export type ActivityInput = z.infer<typeof activityInputSchema>
 export type ExportInput = z.infer<typeof exportSchema>
 export type ImportClientsInput = z.infer<typeof importClientsSchema>
 export type ImportContactsInput = z.infer<typeof importContactsSchema>
+export type LinkDocumentInput = z.infer<typeof linkDocumentSchema>
+export type UnlinkDocumentInput = z.infer<typeof unlinkDocumentSchema>
+export type UpdateDocumentVisibilityInput = z.infer<
+  typeof updateDocumentVisibilitySchema
+>
+export type LinkProjectInput = z.infer<typeof linkProjectSchema>
+export type UnlinkProjectInput = z.infer<typeof unlinkProjectSchema>

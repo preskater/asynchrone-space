@@ -45,6 +45,8 @@ import { useEnumLabel } from "@/lib/i18n/labels"
 
 import { ClientDialog } from "./client-dialog"
 import { ContactDialog } from "./contact-dialog"
+import { DocumentsCard } from "./documents"
+import { ProjectsCard } from "./project-links"
 import { ActivityDialog, ActivityTimeline } from "./timeline"
 import { CustomFieldValuesView } from "./custom-fields"
 import { useCrmFormat } from "./use-crm"
@@ -359,38 +361,19 @@ export function ClientDetail({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">
-              {t("clients.related.projects")}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {projects.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                {t("clients.related.noProjects")}
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-2">
-                {projects.map((project) => (
-                  <li
-                    key={project.id}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <Link
-                      href={`/${orgSlug}/projects/${project.id}`}
-                      prefetch={false}
-                      className="text-sm font-medium hover:underline"
-                    >
-                      {project.name}
-                    </Link>
-                    <Badge variant="outline">{project.status}</Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
+        <ProjectsCard
+          orgSlug={orgSlug}
+          clientId={client.id}
+          projects={projects}
+          canEdit={data.access.canEdit}
+        />
+
+        <DocumentsCard
+          entity="client"
+          entityId={client.id}
+          documents={data.documents}
+          canEdit={data.access.canEdit}
+        />
       </div>
 
       <AlertDialog open={archiveOpen} onOpenChange={setArchiveOpen}>

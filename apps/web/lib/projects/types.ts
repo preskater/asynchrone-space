@@ -70,6 +70,8 @@ export interface Project {
   name: string
   description?: string
   status: ProjectStatus
+  clientId?: string
+  clientName?: string
   memberIds: string[]
   labelIds: string[]
   createdAt: string

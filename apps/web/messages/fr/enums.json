@@ -181,6 +181,10 @@
     "won": "Gagnée",
     "lost": "Perdue"
   },
+  "crmDocumentVisibility": {
+    "internal": "Interne",
+    "client": "Visible client"
+  },
   "presence": {
     "available": "Disponible",
     "away": "Absent",

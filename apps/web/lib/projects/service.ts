@@ -1,6 +1,7 @@
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import { toMemberView } from "@/lib/core/members"
 import type { RequestContext } from "@/lib/core/context"
+import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
@@ -113,6 +114,8 @@ export class ProjectService {
       name: row.name,
       description: row.description ?? undefined,
       status: row.status as Project["status"],
+      clientId: row.clientId ?? undefined,
+      clientName: row.client?.name,
       memberIds: row.members.map((member) => member.userId),
       labelIds: row.labels.map((label) => label.labelId),
       createdAt: requiredIso(row.createdAt),
@@ -298,6 +301,20 @@ export class ProjectService {
       action: "created",
       target: identifier,
     })
+    await notificationService.notify({
+      organizationId: ctx.organizationId,
+      userId: input.assigneeId,
+      actorId: ctx.userId,
+      type: "task.assigned",
+      data: {
+        taskId: row.id,
+        identifier,
+        title: input.title,
+        projectId: project.id,
+        projectName: project.name,
+        actorName: ctx.userName,
+      },
+    })
     return this.mapTask(row)
   }
 
@@ -329,6 +346,26 @@ export class ProjectService {
             : new Date(input.endDate),
     })
     if (input.labelIds) await this.repo.setTaskLabels(id, input.labelIds)
+    if (
+      typeof input.assigneeId === "string" &&
+      input.assigneeId !== existing.assigneeId
+    ) {
+      const project = await this.get(ctx, existing.projectId)
+      await notificationService.notify({
+        organizationId: ctx.organizationId,
+        userId: input.assigneeId,
+        actorId: ctx.userId,
+        type: "task.assigned",
+        data: {
+          taskId: existing.id,
+          identifier: existing.identifier,
+          title: input.title ?? existing.title,
+          projectId: existing.projectId,
+          projectName: project.name,
+          actorName: ctx.userName,
+        },
+      })
+    }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
     return this.mapTask(fresh ?? existing)
   }

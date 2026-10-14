@@ -79,5 +79,11 @@
   "crmExportFailed": "L'export a échoué.",
   "crmSaveFailed": "Impossible d'enregistrer l'enregistrement.",
   "crmActivityFailed": "Impossible d'enregistrer l'activité.",
-  "crmImportFailed": "L'import a échoué."
+  "crmImportFailed": "L'import a échoué.",
+  "crmDocumentLinked": "Document ajouté.",
+  "crmDocumentUnlinked": "Document délié.",
+  "crmDocumentShared": "Visibilité du document mise à jour.",
+  "crmProjectLinked": "Projet lié.",
+  "crmProjectUnlinked": "Projet délié.",
+  "notificationsAllRead": "Toutes les notifications sont marquées comme lues."
 }

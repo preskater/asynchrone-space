@@ -216,6 +216,29 @@
     "deleteNote": "Supprimer la note",
     "createdBy": "par {name}"
   },
+  "documents": {
+    "title": "Documents",
+    "add": "Ajouter un document",
+    "empty": "Aucun document lié pour le moment.",
+    "files": "Fichiers",
+    "search": "Rechercher un fichier…",
+    "noFiles": "Aucun fichier à lier.",
+    "allLinked": "Tous les fichiers sont déjà liés à cet enregistrement.",
+    "visibility": "Visibilité",
+    "linkSelected": "Lier {count, plural, one {# fichier} other {# fichiers}}",
+    "unlink": "Délier",
+    "trashed": "Dans la corbeille"
+  },
+  "projectLinks": {
+    "add": "Lier un projet",
+    "dialogTitle": "Lier un projet",
+    "search": "Rechercher des projets…",
+    "empty": "Aucun projet à lier pour le moment.",
+    "allLinked": "Tous les projets sont déjà liés à cette société.",
+    "linkedTo": "Actuellement lié à {name}",
+    "unlink": "Délier",
+    "linkSelected": "Lier {count, plural, one {# projet} other {# projets}}"
+  },
   "timeline": {
     "system": {
       "client": {
@@ -223,14 +246,30 @@
         "updated": "Société mise à jour",
         "archived": "Société archivée",
         "restored": "Société restaurée",
-        "import": "Sociétés importées"
+        "import": "Sociétés importées",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        },
+        "project": {
+          "linked": "Projet « {projectName} » lié",
+          "unlinked": "Projet « {projectName} » délié"
+        }
       },
       "contact": {
         "created": "Contact créé",
         "updated": "Contact mis à jour",
         "archived": "Contact archivé",
         "restored": "Contact restauré",
-        "import": "Contacts importés"
+        "import": "Contacts importés",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        }
       },
       "deal": {
         "created": "Affaire créée",
@@ -240,7 +279,13 @@
         "lost": "Affaire perdue",
         "reopened": "Affaire réouverte",
         "archived": "Affaire archivée",
-        "restored": "Affaire restaurée"
+        "restored": "Affaire restaurée",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        }
       }
     },
     "by": "{name}"

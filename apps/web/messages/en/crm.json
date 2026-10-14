@@ -216,6 +216,29 @@
     "deleteNote": "Delete note",
     "createdBy": "by {name}"
   },
+  "documents": {
+    "title": "Documents",
+    "add": "Add document",
+    "empty": "No documents linked yet.",
+    "files": "Files",
+    "search": "Search files…",
+    "noFiles": "No files available to link.",
+    "allLinked": "Every file is already linked to this record.",
+    "visibility": "Visibility",
+    "linkSelected": "Link {count, plural, one {# file} other {# files}}",
+    "unlink": "Unlink",
+    "trashed": "In trash"
+  },
+  "projectLinks": {
+    "add": "Link project",
+    "dialogTitle": "Link project",
+    "search": "Search projects…",
+    "empty": "No projects to link yet.",
+    "allLinked": "Every project is already linked to this company.",
+    "linkedTo": "Currently linked to {name}",
+    "unlink": "Unlink",
+    "linkSelected": "Link {count, plural, one {# project} other {# projects}}"
+  },
   "timeline": {
     "system": {
       "client": {
@@ -223,14 +246,30 @@
         "updated": "Company updated",
         "archived": "Company archived",
         "restored": "Company restored",
-        "import": "Companies imported"
+        "import": "Companies imported",
+        "document": {
+          "linked": "Document “{fileName}” attached",
+          "unlinked": "Document “{fileName}” removed",
+          "shared": "Document “{fileName}” shared with the client",
+          "unshared": "Document “{fileName}” set back to internal"
+        },
+        "project": {
+          "linked": "Project “{projectName}” linked",
+          "unlinked": "Project “{projectName}” unlinked"
+        }
       },
       "contact": {
         "created": "Contact created",
         "updated": "Contact updated",
         "archived": "Contact archived",
         "restored": "Contact restored",
-        "import": "Contacts imported"
+        "import": "Contacts imported",
+        "document": {
+          "linked": "Document “{fileName}” attached",
+          "unlinked": "Document “{fileName}” removed",
+          "shared": "Document “{fileName}” shared with the client",
+          "unshared": "Document “{fileName}” set back to internal"
+        }
       },
       "deal": {
         "created": "Deal created",
@@ -240,7 +279,13 @@
         "lost": "Deal lost",
         "reopened": "Deal reopened",
         "archived": "Deal archived",
-        "restored": "Deal restored"
+        "restored": "Deal restored",
+        "document": {
+          "linked": "Document “{fileName}” attached",
+          "unlinked": "Document “{fileName}” removed",
+          "shared": "Document “{fileName}” shared with the client",
+          "unshared": "Document “{fileName}” set back to internal"
+        }
       }
     },
     "by": "{name}"

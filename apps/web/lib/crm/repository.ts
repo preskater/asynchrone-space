@@ -124,6 +124,36 @@ export class CrmRepository {
     })
   }
 
+  findProject(organizationId: string, id: string) {
+    return this.db.project.findFirst({
+      where: { id, organizationId },
+      select: { id: true, name: true, status: true, clientId: true },
+    })
+  }
+
+  setProjectClient(id: string, clientId: string | null) {
+    return this.db.project.update({
+      where: { id },
+      data: { clientId },
+      select: { id: true, name: true, status: true, clientId: true },
+    })
+  }
+
+  /** Projects with their current company, used by the CRM link picker. */
+  listProjectLinkOptions(organizationId: string) {
+    return this.db.project.findMany({
+      where: { organizationId },
+      select: {
+        id: true,
+        name: true,
+        status: true,
+        clientId: true,
+        client: { select: { name: true } },
+      },
+      orderBy: { name: "asc" },
+    })
+  }
+
   // --- Contacts ----------------------------------------------------------------
 
   listContacts(organizationId: string) {
@@ -562,6 +592,95 @@ export class CrmRepository {
 
   deleteFieldDefinition(id: string) {
     return this.db.crmFieldDefinition.delete({ where: { id } })
+  }
+
+  // --- Documents ------------------------------------------------------------------
+
+  private static readonly DOCUMENT_INCLUDE = {
+    file: {
+      select: {
+        id: true,
+        name: true,
+        kind: true,
+        mimeType: true,
+        sizeBytes: true,
+        trashed: true,
+      },
+    },
+  } as const
+
+  listDocuments(organizationId: string, entity: string, entityId: string) {
+    return this.db.crmDocument.findMany({
+      where: { organizationId, entity, entityId },
+      include: CrmRepository.DOCUMENT_INCLUDE,
+      orderBy: { createdAt: "desc" },
+    })
+  }
+
+  findDocument(organizationId: string, id: string) {
+    return this.db.crmDocument.findFirst({
+      where: { id, organizationId },
+      include: CrmRepository.DOCUMENT_INCLUDE,
+    })
+  }
+
+  findDocumentLink(
+    organizationId: string,
+    fileId: string,
+    entity: string,
+    entityId: string
+  ) {
+    return this.db.crmDocument.findFirst({
+      where: { organizationId, fileId, entity, entityId },
+      select: { id: true },
+    })
+  }
+
+  createDocument(data: {
+    organizationId: string
+    fileId: string
+    entity: string
+    entityId: string
+    visibility: string
+    addedBy: string
+  }) {
+    return this.db.crmDocument.create({
+      data,
+      include: CrmRepository.DOCUMENT_INCLUDE,
+    })
+  }
+
+  updateDocumentVisibility(id: string, visibility: string) {
+    return this.db.crmDocument.update({
+      where: { id },
+      data: { visibility },
+      include: CrmRepository.DOCUMENT_INCLUDE,
+    })
+  }
+
+  deleteDocument(id: string) {
+    return this.db.crmDocument.delete({ where: { id } })
+  }
+
+  findFileForLink(organizationId: string, fileId: string) {
+    return this.db.fileNode.findFirst({
+      where: { id: fileId, organizationId },
+      select: { id: true, name: true, trashed: true },
+    })
+  }
+
+  listFileOptions(organizationId: string) {
+    return this.db.fileNode.findMany({
+      where: { organizationId, trashed: false, kind: { not: "folder" } },
+      select: {
+        id: true,
+        name: true,
+        kind: true,
+        mimeType: true,
+        modifiedAt: true,
+      },
+      orderBy: { name: "asc" },
+    })
   }
 
   // --- Audit ----------------------------------------------------------------------
