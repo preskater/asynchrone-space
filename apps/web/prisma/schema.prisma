@@ -90,16 +90,16 @@ model Verification {
 }
 
 model Organization {
-  id                 String       @id
-  name               String
-  slug               String
-  logo               String?
-  createdAt          DateTime
-  metadata           String?
-  storageQuotaBytes  BigInt?
-  teams              Team[]
-  members            Member[]
-  invitations        Invitation[]
+  id                String       @id
+  name              String
+  slug              String
+  logo              String?
+  createdAt         DateTime
+  metadata          String?
+  storageQuotaBytes BigInt?
+  teams             Team[]
+  members           Member[]
+  invitations       Invitation[]
 
   projects       Project[]
   labels         Label[]
@@ -166,18 +166,18 @@ model TeamMember {
 }
 
 model Member {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String       @default("member")
+  id               String       @id
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             String       @default("member")
   /// Set for client-portal members: the company whose projects they can see.
-  clientId       String?
-  client         Client?      @relation("PortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
+  clientId         String?
+  client           Client?      @relation("PortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
   /// Last time the portal user opened their dashboard or a project (unread badges).
   portalLastSeenAt DateTime?
-  createdAt      DateTime
+  createdAt        DateTime
 
   @@index([organizationId])
   @@index([userId])
@@ -208,21 +208,25 @@ model Invitation {
 // ---------------------------------------------------------------------------
 
 model Project {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  description    String?
-  status         String       @default("active")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  dueDate        DateTime?
-  clientId       String?
-  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  plannedHours   Float?
-  isBillable     Boolean      @default(true)
-  startDate      DateTime?
-  endDate        DateTime?
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  status             String       @default("active")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  dueDate            DateTime?
+  clientId           String?
+  client             Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  /// Client-portal visibility and contribution policies (`none | read | read_write`).
+  clientVisible      Boolean      @default(true)
+  clientDiscussion   String       @default("read_write")
+  clientTaskComments String       @default("read_write")
+  plannedHours       Float?
+  isBillable         Boolean      @default(true)
+  startDate          DateTime?
+  endDate            DateTime?
 
   members           ProjectMember[]
   labels            ProjectLabel[]
@@ -345,12 +349,15 @@ model Subtask {
 }
 
 model TaskComment {
-  id        String   @id @default(cuid())
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  authorId  String
-  body      String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId   String
+  /// internal | client — frozen at write time so the two sides render differently.
+  authorKind String   @default("internal")
+  authorName String?
+  body       String
+  createdAt  DateTime @default(now())
 
   @@index([taskId])
   @@map("taskComment")
@@ -485,9 +492,9 @@ model FileNode {
   sha256         String?
   createdAt      DateTime     @default(now())
 
-  shares     FileShare[]
-  versions   FileVersion[]
-  activities FileActivity[]
+  shares       FileShare[]
+  versions     FileVersion[]
+  activities   FileActivity[]
   crmDocuments CrmDocument[]
 
   @@index([organizationId, parentId])
@@ -537,16 +544,16 @@ model FileShare {
 }
 
 model FileVersion {
-  id         String   @id @default(cuid())
-  fileId     String
-  file       FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  userId     String
-  at         DateTime @default(now())
-  note       String
-  oid        BigInt?
-  mimeType   String?
-  sha256     String?
-  sizeBytes  Int?
+  id        String   @id @default(cuid())
+  fileId    String
+  file      FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  at        DateTime @default(now())
+  note      String
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
 
   @@index([fileId])
   @@map("fileVersion")
@@ -654,16 +661,16 @@ model MessageReaction {
 }
 
 model MessageAttachment {
-  id         String  @id @default(cuid())
-  messageId  String
-  message    Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  name       String
-  kind       String  @default("file")
-  meta       String?
-  oid        BigInt?
-  mimeType   String?
-  sha256     String?
-  sizeBytes  Int?
+  id        String  @id @default(cuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  name      String
+  kind      String  @default("file")
+  meta      String?
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
 
   @@index([messageId])
   @@map("messageAttachment")
@@ -815,11 +822,11 @@ model Client {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  projects   Project[]
-  contacts   ContactCompany[]
-  deals      Deal[]
-  activities CrmActivity[]
-  portalMembers Member[]       @relation("PortalMembers")
+  projects      Project[]
+  contacts      ContactCompany[]
+  deals         Deal[]
+  activities    CrmActivity[]
+  portalMembers Member[]         @relation("PortalMembers")
   portalInvites PortalInvite[]
 
   @@unique([organizationId, name])
@@ -1147,43 +1154,43 @@ model Jwks {
 }
 
 model OauthClient {
-  id                              String       @id
-  clientId                        String       @unique
-  clientSecret                    String?
-  clientDiscoveryId               String?
-  disabled                        Boolean?     @default(false)
-  skipConsent                     Boolean?
-  enableEndSession                Boolean?
-  subjectType                     String?
-  scopes                          String[] @default([])
-  clientCredentialsScopes         String[]     @default([])
-  userId                          String?
-  user                            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt                       DateTime?
-  updatedAt                       DateTime?
-  name                            String?
-  uri                             String?
-  icon                            String?
-  contacts                        String[] @default([])
-  tos                             String?
-  policy                          String?
-  softwareId                      String?
-  softwareVersion                 String?
-  softwareStatement               String?
-  redirectUris                    String[] @default([])
-  postLogoutRedirectUris          String[] @default([])
-  backchannelLogoutUri            String?
+  id                               String    @id
+  clientId                         String    @unique
+  clientSecret                     String?
+  clientDiscoveryId                String?
+  disabled                         Boolean?  @default(false)
+  skipConsent                      Boolean?
+  enableEndSession                 Boolean?
+  subjectType                      String?
+  scopes                           String[]  @default([])
+  clientCredentialsScopes          String[]  @default([])
+  userId                           String?
+  user                             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?
+  updatedAt                        DateTime?
+  name                             String?
+  uri                              String?
+  icon                             String?
+  contacts                         String[]  @default([])
+  tos                              String?
+  policy                           String?
+  softwareId                       String?
+  softwareVersion                  String?
+  softwareStatement                String?
+  redirectUris                     String[]  @default([])
+  postLogoutRedirectUris           String[]  @default([])
+  backchannelLogoutUri             String?
   backchannelLogoutSessionRequired Boolean?
-  tokenEndpointAuthMethod         String?
-  applicationType                 String?
-  jwks                            String?
-  jwksUri                         String?
-  grantTypes                      String[] @default([])
-  responseTypes                   String[] @default([])
-  requirePKCE                     Boolean?
-  dpopBoundAccessTokens           Boolean?     @default(false)
-  referenceId                     String?
-  metadata                        Json?
+  tokenEndpointAuthMethod          String?
+  applicationType                  String?
+  jwks                             String?
+  jwksUri                          String?
+  grantTypes                       String[]  @default([])
+  responseTypes                    String[]  @default([])
+  requirePKCE                      Boolean?
+  dpopBoundAccessTokens            Boolean?  @default(false)
+  referenceId                      String?
+  metadata                         Json?
 
   refreshTokens   OauthRefreshToken[]
   accessTokens    OauthAccessToken[]
@@ -1195,21 +1202,21 @@ model OauthClient {
 }
 
 model OauthResource {
-  id                           String    @id
-  identifier                   String    @unique
-  name                         String
-  accessTokenTtl               Int?
-  refreshTokenTtl              Int?
-  signingAlgorithm             String?
-  signingKeyId                 String?
-  allowedScopes                String[] @default([])
-  customClaims                 Json?
-  dpopBoundAccessTokensRequired Boolean? @default(false)
-  disabled                     Boolean?  @default(false)
-  createdAt                    DateTime?
-  updatedAt                    DateTime?
-  policyVersion                Int?      @default(1)
-  metadata                     Json?
+  id                            String    @id
+  identifier                    String    @unique
+  name                          String
+  accessTokenTtl                Int?
+  refreshTokenTtl               Int?
+  signingAlgorithm              String?
+  signingKeyId                  String?
+  allowedScopes                 String[]  @default([])
+  customClaims                  Json?
+  dpopBoundAccessTokensRequired Boolean?  @default(false)
+  disabled                      Boolean?  @default(false)
+  createdAt                     DateTime?
+  updatedAt                     DateTime?
+  policyVersion                 Int?      @default(1)
+  metadata                      Json?
 
   clientResources OauthClientResource[]
 
@@ -1232,8 +1239,8 @@ model OauthClientResource {
 }
 
 model OauthRefreshToken {
-  id                      String     @id
-  token                   String     @unique
+  id                      String      @id
+  token                   String      @unique
   clientId                String
   client                  OauthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   sessionId               String?
@@ -1242,8 +1249,8 @@ model OauthRefreshToken {
   user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
   authorizationCodeId     String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
   expiresAt               DateTime
   createdAt               DateTime
   revoked                 DateTime?
@@ -1252,7 +1259,7 @@ model OauthRefreshToken {
   rotationReplayExpiresAt DateTime?
   authTime                DateTime?
   confirmation            Json?
-  scopes                  String[] @default([])
+  scopes                  String[]    @default([])
 
   accessTokens OauthAccessToken[]
 
@@ -1264,25 +1271,25 @@ model OauthRefreshToken {
 }
 
 model OauthAccessToken {
-  id                      String            @id
-  token                   String            @unique
+  id                      String             @id
+  token                   String             @unique
   clientId                String
-  client                  OauthClient       @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  client                  OauthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   sessionId               String?
-  session                 Session?          @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  session                 Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   userId                  String?
-  user                    User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                    User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
   authorizationCodeId     String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
+  resources               String[]           @default([])
+  requestedUserInfoClaims String[]           @default([])
   refreshId               String?
   refresh                 OauthRefreshToken? @relation(fields: [refreshId], references: [id], onDelete: Cascade)
   expiresAt               DateTime
   createdAt               DateTime
   revoked                 DateTime?
   confirmation            Json?
-  scopes                  String[] @default([])
+  scopes                  String[]           @default([])
 
   @@index([clientId])
   @@index([sessionId])
@@ -1299,9 +1306,9 @@ model OauthConsent {
   userId                  String?
   user                    User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
-  scopes                  String[] @default([])
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
+  scopes                  String[]    @default([])
   createdAt               DateTime
   updatedAt               DateTime
 

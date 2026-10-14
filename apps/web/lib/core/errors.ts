@@ -46,6 +46,7 @@ export type ServiceErrorCode =
   | "project_already_linked"
   | "project_not_linked"
   | "portal_invite_exists"
+  | "portal_read_only"
   | "file_too_large"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode

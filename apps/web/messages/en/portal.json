@@ -27,5 +27,14 @@
   "discussionEmpty": "No messages yet — start the conversation with the team.",
   "discussionPlaceholder": "Write a message to the team…",
   "sendMessage": "Send",
-  "teamBadge": "Team"
+  "teamBadge": "Team",
+  "readOnlyDiscussion": "The discussion is read-only for your account.",
+  "readOnlyComments": "Comments are read-only for your account.",
+  "backToProject": "Back to project",
+  "checklistTitle": "Checklist",
+  "commentsTitle": "Comments",
+  "commentsEmpty": "No comments yet.",
+  "commentPlaceholder": "Write a comment…",
+  "sendComment": "Send",
+  "endDate": "Ends {date}"
 }

@@ -45,7 +45,6 @@ export default async function PortalProjectPage({
   }
 
   const messages = await portalService.listMessages(ctx, projectId)
-
   const date = (iso?: string) =>
     iso
       ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
@@ -120,7 +119,13 @@ export default async function PortalProjectPage({
                   key={task.id}
                   className="flex items-center justify-between gap-3 border-b pb-3 last:border-b-0 last:pb-0"
                 >
-                  <span className="min-w-0 truncate text-sm">{task.title}</span>
+                  <Link
+                    href={`/portal/projects/${project.id}/tasks/${task.id}`}
+                    prefetch={false}
+                    className="min-w-0 truncate text-sm hover:underline"
+                  >
+                    {task.title}
+                  </Link>
                   <span className="flex shrink-0 items-center gap-2">
                     {task.dueDate ? (
                       <span className="text-xs text-muted-foreground">
@@ -140,7 +145,13 @@ export default async function PortalProjectPage({
         </CardContent>
       </Card>
 
-      <PortalDiscussion projectId={project.id} messages={messages} />
+      {project.discussionPolicy !== "none" ? (
+        <PortalDiscussion
+          projectId={project.id}
+          messages={messages}
+          canPost={project.discussionPolicy === "read_write"}
+        />
+      ) : null}
     </div>
   )
 }

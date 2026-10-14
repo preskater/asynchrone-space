@@ -91,5 +91,6 @@
   "portalInviteCancelled": "Invitation cancelled.",
   "portalMessageSent": "Message sent.",
   "portalDocumentUploaded": "Document shared.",
+  "projectClientSettingsSaved": "Client portal access updated.",
   "notificationsAllRead": "All notifications marked as read."
 }

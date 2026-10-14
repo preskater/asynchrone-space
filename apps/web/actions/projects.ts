@@ -14,6 +14,7 @@ import {
   createTaskTemplateSchema,
   moveTaskSchema,
   updateMemberRoleSchema,
+  updateProjectClientSettingsSchema,
   updateProjectSchema,
   updateTaskSchema,
   updateTaskTemplateSchema,
@@ -51,6 +52,17 @@ export const deleteProjectAction = withAction(async (id: string) => {
   await revalidateOrgPath(ctx.organizationId)
   return result
 })
+
+/** Client-portal visibility and contribution policies of a project. */
+export const updateProjectClientSettingsAction = withAction(
+  async (input: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = await parseLocalized(updateProjectClientSettingsSchema, input)
+    const project = await projectService.updateClientSettings(ctx, parsed)
+    await revalidateOrgPath(ctx.organizationId, `/projects/${parsed.projectId}`)
+    return project
+  }
+)
 
 export const createTaskAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()

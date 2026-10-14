@@ -37,7 +37,7 @@ function iconFor(type: string) {
   if (type.startsWith("task.")) {
     return <ListTodoIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   }
-  if (type === "portal.message") {
+  if (type === "portal.message" || type === "portal.comment") {
     return <MessageSquareIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   }
   if (type === "portal.document") {
@@ -126,6 +126,12 @@ export function NotificationBell({
           actor,
           client: String(data.clientName ?? ""),
         })
+      case "portal.comment":
+        return t("portalComment", {
+          actor,
+          identifier: String(data.identifier ?? ""),
+          title: String(data.title ?? ""),
+        })
       default:
         return item.type
     }
@@ -143,6 +149,12 @@ export function NotificationBell({
     }
     if (
       item.type === "portal.message" &&
+      typeof item.data.projectId === "string"
+    ) {
+      return `/${orgSlug}/projects/${item.data.projectId}`
+    }
+    if (
+      item.type === "portal.comment" &&
       typeof item.data.projectId === "string"
     ) {
       return `/${orgSlug}/projects/${item.data.projectId}`

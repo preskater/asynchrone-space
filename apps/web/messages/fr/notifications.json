@@ -9,5 +9,6 @@
   "dealWon": "{actor} a marqué « {deal} » comme gagnée",
   "dealLost": "{actor} a marqué « {deal} » comme perdu",
   "portalMessage": "{actor} a envoyé un message client dans {project}",
-  "portalDocument": "{actor} a partagé un document sur {client}"
+  "portalDocument": "{actor} a partagé un document sur {client}",
+  "portalComment": "{actor} a commenté {identifier} · {title}"
 }

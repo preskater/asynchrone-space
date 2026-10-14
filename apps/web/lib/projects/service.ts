@@ -6,6 +6,7 @@ import { roleRank } from "@/lib/organization/roles"
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 import { ProjectRepository } from "./repository"
+import { createTaskComment } from "./task-comments"
 import type {
   AddCommentInput,
   AddLabelInput,
@@ -15,12 +16,14 @@ import type {
   CreateTaskTemplateInput,
   MoveTaskInput,
   UpdateMemberRoleInput,
+  UpdateProjectClientSettingsInput,
   UpdateProjectInput,
   UpdateTaskInput,
   UpdateTaskTemplateInput,
 } from "./schemas"
 import type {
   Activity,
+  Comment,
   Label,
   Member,
   Project,
@@ -116,6 +119,10 @@ export class ProjectService {
       status: row.status as Project["status"],
       clientId: row.clientId ?? undefined,
       clientName: row.client?.name,
+      clientVisible: row.clientVisible,
+      clientDiscussion: row.clientDiscussion as Project["clientDiscussion"],
+      clientTaskComments:
+        row.clientTaskComments as Project["clientTaskComments"],
       memberIds: row.members.map((member) => member.userId),
       labelIds: row.labels.map((label) => label.labelId),
       createdAt: requiredIso(row.createdAt),
@@ -144,12 +151,17 @@ export class ProjectService {
           done: subtask.done,
         })
       ),
-      comments: row.comments.map((comment) => ({
-        id: comment.id,
-        authorId: comment.authorId,
-        body: comment.body,
-        createdAt: requiredIso(comment.createdAt),
-      })),
+      comments: row.comments.map(
+        (comment): Comment => ({
+          id: comment.id,
+          authorId: comment.authorId,
+          authorKind:
+            comment.authorKind === "client" ? "client" : "internal",
+          authorName: comment.authorName ?? undefined,
+          body: comment.body,
+          createdAt: requiredIso(comment.createdAt),
+        })
+      ),
     }
   }
 
@@ -258,6 +270,23 @@ export class ProjectService {
     await this.get(ctx, id)
     await this.repo.delete(id)
     return { id }
+  }
+
+  /** Client-portal visibility and contribution policies of a project. */
+  async updateClientSettings(
+    ctx: RequestContext,
+    input: UpdateProjectClientSettingsInput
+  ): Promise<Project> {
+    this.canManage(ctx)
+    await this.get(ctx, input.projectId)
+    await this.repo.update(input.projectId, {
+      clientVisible: input.clientVisible,
+      clientDiscussion: input.clientDiscussion,
+      clientTaskComments: input.clientTaskComments,
+    })
+    const fresh = await this.repo.findById(ctx.organizationId, input.projectId)
+    if (!fresh) throw new NotFoundError("Project")
+    return this.mapProject(fresh)
   }
 
   async listTasks(ctx: RequestContext, projectId: string): Promise<Task[]> {
@@ -426,7 +455,14 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, taskId)
     if (!existing) throw new NotFoundError("Task")
-    await this.repo.addComment(taskId, ctx.userId, input.body)
+    await createTaskComment({
+      organizationId: ctx.organizationId,
+      taskId,
+      authorId: ctx.userId,
+      authorKind: "internal",
+      authorName: ctx.userName,
+      body: input.body,
+    })
     await this.repo.addActivity({
       projectId: existing.projectId,
       actorId: ctx.userId,

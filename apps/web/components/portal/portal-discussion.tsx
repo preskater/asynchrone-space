@@ -33,9 +33,11 @@ function initialsOf(name: string) {
 export function PortalDiscussion({
   projectId,
   messages,
+  canPost,
 }: {
   projectId: string
   messages: ProjectMessageData[]
+  canPost: boolean
 }) {
   const t = useTranslations("Portal")
   const tT = useTranslations("Toasts")
@@ -122,25 +124,31 @@ export function PortalDiscussion({
           </ul>
         )}
 
-        <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
-          <Textarea
-            value={body}
-            onChange={(event) => setBody(event.target.value)}
-            placeholder={t("discussionPlaceholder")}
-            maxLength={4000}
-            rows={3}
-          />
-          <div className="flex justify-end">
-            <Button type="submit" disabled={sending || !body.trim()}>
-              {sending ? (
-                <Spinner className="size-4" />
-              ) : (
-                <SendIcon data-icon="inline-start" />
-              )}
-              {t("sendMessage")}
-            </Button>
-          </div>
-        </form>
+        {canPost ? (
+          <form className="flex flex-col gap-2" onSubmit={handleSubmit}>
+            <Textarea
+              value={body}
+              onChange={(event) => setBody(event.target.value)}
+              placeholder={t("discussionPlaceholder")}
+              maxLength={4000}
+              rows={3}
+            />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={sending || !body.trim()}>
+                {sending ? (
+                  <Spinner className="size-4" />
+                ) : (
+                  <SendIcon data-icon="inline-start" />
+                )}
+                {t("sendMessage")}
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            {t("readOnlyDiscussion")}
+          </p>
+        )}
       </CardContent>
     </Card>
   )

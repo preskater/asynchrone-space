@@ -71,6 +71,9 @@ export class ProjectRepository {
       description?: string | null
       status?: string
       dueDate?: Date | null
+      clientVisible?: boolean
+      clientDiscussion?: string
+      clientTaskComments?: string
     }
   ) {
     return this.db.project.update({
@@ -227,8 +230,21 @@ export class ProjectRepository {
       )
   }
 
-  addComment(taskId: string, authorId: string, body: string) {
-    return this.db.taskComment.create({ data: { taskId, authorId, body } })
+  addComment(
+    taskId: string,
+    authorId: string,
+    body: string,
+    options: { authorKind: "internal" | "client"; authorName?: string }
+  ) {
+    return this.db.taskComment.create({
+      data: {
+        taskId,
+        authorId,
+        body,
+        authorKind: options.authorKind,
+        authorName: options.authorName ?? null,
+      },
+    })
   }
 
   // --- activity ---

@@ -56,10 +56,12 @@ The CRM core is live; the data model is documented in
 - **Client portal**: portal accounts invited from a company record (admin
   creates an invitation and shares the link), a `client` organization role
   scoped to one company, read-only dashboard and project pages (progress,
-  tasks, shared documents), shared discussion thread with the team, client
-  document uploads and unread “new since last visit” badges; downloads go
-  through a dedicated portal endpoint and internal workspace access is
-  blocked for portal users.
+  tasks, shared documents), shared discussion thread with the team, task
+  detail (read-only) with comments, client document uploads and unread “new
+  since last visit” badges; per-project **client access policies** (portal
+  visibility, discussion and task comments: hidden / read / read & write)
+  in the project settings; downloads go through a dedicated portal endpoint
+  and internal workspace access is blocked for portal users.
 - **HR**: time tracking (half-day entries allocated to projects), leave,
   capacity, payroll.
 - **Assistant**: CRM data available to the AI assistant through MCP tools
@@ -76,14 +78,20 @@ Shipped: email/password portal accounts as restricted organization members
 (the admin shares the invitation link manually); dashboard with the
 company's projects (progress, due dates) and its client-visible documents;
 project page with status, progress, tasks/milestones and the **shared
-discussion thread**; clients can **post messages** (the team is notified in
-the header bell) and **upload documents** (max 25 MB, stored as workspace
-files and linked to the company as client-visible documents); the team gets
-a **Discussion tab** on the project page and unread “new since last visit”
-badges greet the client; downloads are served by a dedicated portal
-endpoint that enforces the client-visible link; portal users are redirected
-to `/portal` and blocked from the internal workspace (pages, server
-actions, file API and MCP).
+discussion thread**; **task detail pages** (read-only: status, priority,
+description, labels, checklist) with a **shared task comment thread**;
+clients can **post messages** and **task comments** (the team is notified
+in the header bell) and **upload documents** (max 25 MB, stored as workspace
+files and linked to the company as client-visible documents); per-project
+**client access policies** in the project settings — portal visibility,
+discussion and task comments each set to **hidden / read-only / read &
+write** (the internal task panel shows client comments with a “Client”
+badge and internal authors can reply there); the team gets a **Discussion
+tab** on the project page and unread “new since last visit” badges greet
+the client; downloads are served by a dedicated portal endpoint that
+enforces the client-visible link; portal users are redirected to `/portal`
+and blocked from the internal workspace (pages, server actions, file API
+and MCP).
 
 Remaining:
 

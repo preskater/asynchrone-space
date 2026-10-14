@@ -27,5 +27,14 @@
   "discussionEmpty": "Aucun message pour le moment — lancez la conversation avec l'équipe.",
   "discussionPlaceholder": "Écrivez un message à l'équipe…",
   "sendMessage": "Envoyer",
-  "teamBadge": "Équipe"
+  "teamBadge": "Équipe",
+  "readOnlyDiscussion": "La discussion est en lecture seule pour votre compte.",
+  "readOnlyComments": "Les commentaires sont en lecture seule pour votre compte.",
+  "backToProject": "Retour au projet",
+  "checklistTitle": "Checklist",
+  "commentsTitle": "Commentaires",
+  "commentsEmpty": "Aucun commentaire pour le moment.",
+  "commentPlaceholder": "Écrivez un commentaire…",
+  "sendComment": "Envoyer",
+  "endDate": "Fin {date}"
 }

@@ -1,5 +1,16 @@
 import { z } from "zod"
 
+import { PORTAL_POLICIES } from "./types"
+
+export const portalPolicySchema = z.enum(PORTAL_POLICIES)
+
+export const updateProjectClientSettingsSchema = z.object({
+  projectId: z.string().min(1),
+  clientVisible: z.boolean(),
+  clientDiscussion: portalPolicySchema,
+  clientTaskComments: portalPolicySchema,
+})
+
 export const taskStatusSchema = z.enum([
   "backlog",
   "todo",
@@ -100,6 +111,9 @@ export const addLabelSchema = z.object({
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>
+export type UpdateProjectClientSettingsInput = z.infer<
+  typeof updateProjectClientSettingsSchema
+>
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
 export type MoveTaskInput = z.infer<typeof moveTaskSchema>

@@ -21,6 +21,12 @@ import {
   listProjectMessages,
   type ProjectMessageData,
 } from "@/lib/projects/thread"
+import {
+  createTaskComment,
+  listTaskComments,
+  type TaskCommentData,
+} from "@/lib/projects/task-comments"
+import type { PortalPolicy } from "@/lib/projects/types"
 
 import type { PortalContext } from "./context"
 import type { InvitePortalUserInput } from "./schemas"
@@ -29,6 +35,7 @@ import type {
   PortalDashboardData,
   PortalDocumentData,
   PortalProjectDetailData,
+  PortalTaskDetailData,
 } from "./types"
 
 /** Direct uploads from the portal are capped to keep the single request sane. */
@@ -65,6 +72,7 @@ export class PortalService {
         where: {
           organizationId: ctx.organizationId,
           clientId: ctx.clientId,
+          clientVisible: true,
         },
         select: {
           id: true,
@@ -151,6 +159,7 @@ export class PortalService {
         id: projectId,
         organizationId: ctx.organizationId,
         clientId: ctx.clientId,
+        clientVisible: true,
       },
       select: {
         id: true,
@@ -159,6 +168,8 @@ export class PortalService {
         status: true,
         dueDate: true,
         createdAt: true,
+        clientDiscussion: true,
+        clientTaskComments: true,
         tasks: {
           select: { id: true, title: true, status: true, dueDate: true },
           orderBy: { order: "asc" },
@@ -181,6 +192,8 @@ export class PortalService {
         status: task.status,
         dueDate: iso(task.dueDate),
       })),
+      discussionPolicy: project.clientDiscussion as PortalPolicy,
+      taskCommentsPolicy: project.clientTaskComments as PortalPolicy,
     }
   }
 
@@ -198,10 +211,12 @@ export class PortalService {
         id: projectId,
         organizationId: ctx.organizationId,
         clientId: ctx.clientId,
+        clientVisible: true,
       },
-      select: { id: true },
+      select: { id: true, clientDiscussion: true },
     })
     if (!project) throw new NotFoundError("Project")
+    if (project.clientDiscussion === "none") return []
     return listProjectMessages(ctx.organizationId, projectId)
   }
 
@@ -218,15 +233,135 @@ export class PortalService {
         id: projectId,
         organizationId: ctx.organizationId,
         clientId: ctx.clientId,
+        clientVisible: true,
       },
-      select: { id: true },
+      select: { id: true, clientDiscussion: true },
     })
     if (!project) throw new NotFoundError("Project")
+    if (project.clientDiscussion !== "read_write") {
+      throw new ForbiddenError("The discussion is read-only for this client.", {
+        code: "portal_read_only",
+      })
+    }
     return createProjectMessage({
       organizationId: ctx.organizationId,
       projectId,
       authorId: ctx.userId,
       authorKind: "client",
+      body: text,
+    })
+  }
+
+  /** One task of a client project, read-only, with its comments. */
+  async getTaskDetail(
+    ctx: PortalContext,
+    projectId: string,
+    taskId: string
+  ): Promise<{
+    task: PortalTaskDetailData
+    comments: TaskCommentData[]
+    commentsPolicy: PortalPolicy
+  }> {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organizationId: ctx.organizationId,
+        clientId: ctx.clientId,
+        clientVisible: true,
+      },
+      select: { id: true, clientTaskComments: true },
+    })
+    if (!project) throw new NotFoundError("Project")
+
+    const task = await prisma.task.findFirst({
+      where: {
+        id: taskId,
+        projectId,
+        organizationId: ctx.organizationId,
+      },
+      select: {
+        id: true,
+        identifier: true,
+        title: true,
+        description: true,
+        status: true,
+        priority: true,
+        dueDate: true,
+        endDate: true,
+        createdAt: true,
+        subtasks: {
+          select: { id: true, title: true, done: true },
+          orderBy: { order: "asc" },
+        },
+        labels: { include: { label: { select: { name: true } } } },
+      },
+    })
+    if (!task) throw new NotFoundError("Task")
+
+    const policy = project.clientTaskComments as PortalPolicy
+    const comments =
+      policy === "none"
+        ? []
+        : await listTaskComments(ctx.organizationId, taskId)
+
+    return {
+      task: {
+        id: task.id,
+        identifier: task.identifier,
+        title: task.title,
+        description: task.description ?? undefined,
+        status: task.status,
+        priority: task.priority,
+        dueDate: iso(task.dueDate),
+        endDate: iso(task.endDate),
+        createdAt: task.createdAt.toISOString(),
+        labels: task.labels.map((entry) => entry.label.name),
+        subtasks: task.subtasks.map((subtask) => ({
+          id: subtask.id,
+          title: subtask.title,
+          done: subtask.done,
+        })),
+      },
+      comments,
+      commentsPolicy: policy,
+    }
+  }
+
+  /** Add a comment to a task as the client (if the policy allows it). */
+  async postTaskComment(
+    ctx: PortalContext,
+    projectId: string,
+    taskId: string,
+    body: string
+  ): Promise<TaskCommentData> {
+    const text = body.trim()
+    if (!text) throw new ValidationError("The comment is empty.")
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organizationId: ctx.organizationId,
+        clientId: ctx.clientId,
+        clientVisible: true,
+      },
+      select: { id: true, clientTaskComments: true },
+    })
+    if (!project) throw new NotFoundError("Project")
+    if (project.clientTaskComments !== "read_write") {
+      throw new ForbiddenError("Task comments are read-only for this client.", {
+        code: "portal_read_only",
+      })
+    }
+    const task = await prisma.task.findFirst({
+      where: { id: taskId, projectId, organizationId: ctx.organizationId },
+      select: { id: true },
+    })
+    if (!task) throw new NotFoundError("Task")
+    return createTaskComment({
+      organizationId: ctx.organizationId,
+      taskId,
+      authorId: ctx.userId,
+      authorKind: "client",
+      authorName: ctx.userName,
       body: text,
     })
   }

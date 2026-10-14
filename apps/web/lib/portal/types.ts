@@ -1,3 +1,5 @@
+import type { PortalPolicy } from "@/lib/projects/types"
+
 /** One project of the client's company, with its task progress. */
 export interface PortalProjectSummary {
   id: string
@@ -45,6 +47,31 @@ export interface PortalProjectDetailData {
   dueDate?: string
   createdAt: string
   tasks: PortalTaskData[]
+  /** Whether the client sees the discussion, and whether they can post. */
+  discussionPolicy: PortalPolicy
+  /** Whether the client sees task comments, and whether they can add them. */
+  taskCommentsPolicy: PortalPolicy
+}
+
+/** A subtask of a client-visible task. */
+export interface PortalSubtaskData {
+  id: string
+  title: string
+  done: boolean
+}
+
+export interface PortalTaskDetailData {
+  id: string
+  identifier: string
+  title: string
+  description?: string
+  status: string
+  priority: string
+  dueDate?: string
+  endDate?: string
+  createdAt: string
+  labels: string[]
+  subtasks: PortalSubtaskData[]
 }
 
 /** A portal user of a company (internal view). */

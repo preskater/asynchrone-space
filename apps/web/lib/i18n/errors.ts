@@ -42,6 +42,7 @@ const CODE_KEYS: Record<string, string> = {
   project_already_linked: "projectAlreadyLinked",
   project_not_linked: "projectNotLinked",
   portal_invite_exists: "portalInviteExists",
+  portal_read_only: "portalReadOnly",
   file_too_large: "fileTooLarge",
 }
 

@@ -44,6 +44,8 @@ export interface Subtask {
 export interface Comment {
   id: string
   authorId: string
+  authorKind: "internal" | "client"
+  authorName?: string
   body: string
   createdAt: string
 }
@@ -72,11 +74,19 @@ export interface Project {
   status: ProjectStatus
   clientId?: string
   clientName?: string
+  /** Client-portal visibility and contribution policies. */
+  clientVisible: boolean
+  clientDiscussion: PortalPolicy
+  clientTaskComments: PortalPolicy
   memberIds: string[]
   labelIds: string[]
   createdAt: string
   dueDate?: string
 }
+
+/** Client-portal contribution policy: hidden, read-only, or read & write. */
+export const PORTAL_POLICIES = ["none", "read", "read_write"] as const
+export type PortalPolicy = (typeof PORTAL_POLICIES)[number]
 
 export interface Activity {
   id: string

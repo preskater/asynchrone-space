@@ -11,6 +11,7 @@ import {
   claimPortalAccessSchema,
   invitePortalUserSchema,
   postProjectMessageSchema,
+  postTaskCommentSchema,
   revokePortalMemberSchema,
 } from "@/lib/portal/schemas"
 import { revalidateOrgPath } from "@/lib/organization/paths"
@@ -63,4 +64,17 @@ export const markPortalSeenAction = withAction(async () => {
   if (!ctx) throw new UnauthorizedError()
   await portalService.markSeen(ctx)
   return { ok: true }
+})
+
+/** Add a comment to a task from the portal (subject to the project policy). */
+export const postPortalTaskCommentAction = withAction(async (input: unknown) => {
+  const ctx = await getPortalContext()
+  if (!ctx) throw new UnauthorizedError()
+  const parsed = await parseLocalized(postTaskCommentSchema, input)
+  return portalService.postTaskComment(
+    ctx,
+    parsed.projectId,
+    parsed.taskId,
+    parsed.body
+  )
 })
