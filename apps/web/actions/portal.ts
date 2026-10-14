@@ -2,12 +2,15 @@
 
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { UnauthorizedError } from "@/lib/core/errors"
 import { parseLocalized } from "@/lib/core/validation-server"
 import { portalService } from "@/lib/portal"
+import { getPortalContext } from "@/lib/portal/context"
 import {
   cancelPortalInviteSchema,
   claimPortalAccessSchema,
   invitePortalUserSchema,
+  postProjectMessageSchema,
   revokePortalMemberSchema,
 } from "@/lib/portal/schemas"
 import { revalidateOrgPath } from "@/lib/organization/paths"
@@ -44,4 +47,20 @@ export const cancelPortalInviteAction = withAction(async (input: unknown) => {
 export const claimPortalAccessAction = withAction(async (input: unknown) => {
   const parsed = await parseLocalized(claimPortalAccessSchema, input)
   return portalService.claim(parsed.invitationId)
+})
+
+/** Post a message on the shared project thread as the signed-in client. */
+export const postPortalMessageAction = withAction(async (input: unknown) => {
+  const ctx = await getPortalContext()
+  if (!ctx) throw new UnauthorizedError()
+  const parsed = await parseLocalized(postProjectMessageSchema, input)
+  return portalService.postMessage(ctx, parsed.projectId, parsed.body)
+})
+
+/** Clears the client's unread badges for the next visit. */
+export const markPortalSeenAction = withAction(async () => {
+  const ctx = await getPortalContext()
+  if (!ctx) throw new UnauthorizedError()
+  await portalService.markSeen(ctx)
+  return { ok: true }
 })

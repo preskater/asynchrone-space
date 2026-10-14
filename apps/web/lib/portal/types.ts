@@ -6,6 +6,8 @@ export interface PortalProjectSummary {
   dueDate?: string
   doneTasks: number
   totalTasks: number
+  /** Messages posted since the client last opened the portal. */
+  unreadCount: number
 }
 
 /** A client-visible document shared with the company. */
@@ -15,6 +17,9 @@ export interface PortalDocumentData {
   name: string
   sizeBytes?: number
   createdAt: string
+  addedByName?: string
+  /** Shared since the client last opened the portal. */
+  isNew?: boolean
 }
 
 export interface PortalDashboardData {

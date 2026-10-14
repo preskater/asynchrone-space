@@ -1,12 +1,20 @@
 {
   "clientSpace": "Client portal · {name}",
   "signOut": "Sign out",
+  "navProjects": "Projects",
+  "navDocuments": "Documents",
   "welcome": "Welcome, {name}",
   "dashboardDescription": "Follow the progress of your projects and find the documents shared with you.",
   "projectsTitle": "Your projects",
   "noProjects": "No projects have been shared with you yet.",
+  "unreadBadge": "{count} new",
   "documentsTitle": "Shared documents",
+  "documentsPageTitle": "Documents",
+  "documentsPageDescription": "Files shared with you by the team — upload your own designs, briefs or feedback.",
   "noDocuments": "No documents have been shared with you yet.",
+  "viewAll": "All documents",
+  "upload": "Upload",
+  "newBadge": "New",
   "download": "Download",
   "tasksProgress": "{done} of {total} tasks",
   "percentComplete": "{percent}% complete",
@@ -14,5 +22,10 @@
   "backToDashboard": "Back to dashboard",
   "progressTitle": "Progress",
   "milestonesTitle": "Tasks and milestones",
-  "noTasks": "No tasks in this project yet."
+  "noTasks": "No tasks in this project yet.",
+  "discussionTitle": "Discussion",
+  "discussionEmpty": "No messages yet — start the conversation with the team.",
+  "discussionPlaceholder": "Write a message to the team…",
+  "sendMessage": "Send",
+  "teamBadge": "Team"
 }

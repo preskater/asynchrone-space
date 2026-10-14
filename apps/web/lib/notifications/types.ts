@@ -5,6 +5,8 @@ export const NOTIFICATION_TYPES = [
   "deal.stage_changed",
   "deal.won",
   "deal.lost",
+  "portal.message",
+  "portal.document",
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 

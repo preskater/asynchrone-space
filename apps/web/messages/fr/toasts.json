@@ -89,5 +89,7 @@
   "portalLinkCopied": "Lien copié.",
   "portalAccessRevoked": "Accès au portail révoqué.",
   "portalInviteCancelled": "Invitation annulée.",
+  "portalMessageSent": "Message envoyé.",
+  "portalDocumentUploaded": "Document partagé.",
   "notificationsAllRead": "Toutes les notifications sont marquées comme lues."
 }

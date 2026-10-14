@@ -14,6 +14,8 @@ import { Progress } from "@workspace/ui/components/progress"
 import { Link } from "@/i18n/navigation"
 import { getPortalContext } from "@/lib/portal/context"
 import { portalService } from "@/lib/portal"
+import { PortalSeenTracker } from "@/components/portal/portal-seen-tracker"
+import { PortalUpload } from "@/components/portal/portal-upload"
 
 function formatBytes(bytes?: number): string {
   if (!bytes || bytes <= 0) return ""
@@ -47,6 +49,7 @@ export default async function PortalDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <PortalSeenTracker />
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-semibold">
           {t("welcome", { name: data.clientName })}
@@ -84,9 +87,18 @@ export default async function PortalDashboardPage() {
                       >
                         {project.name}
                       </Link>
-                      <Badge variant="secondary">
-                        {tEnums(`projectStatus.${project.status}` as never)}
-                      </Badge>
+                      <div className="flex shrink-0 items-center gap-2">
+                        {project.unreadCount > 0 ? (
+                          <Badge>
+                            {t("unreadBadge", {
+                              count: project.unreadCount,
+                            })}
+                          </Badge>
+                        ) : null}
+                        <Badge variant="secondary">
+                          {tEnums(`projectStatus.${project.status}` as never)}
+                        </Badge>
+                      </div>
                     </div>
                   </CardHeader>
                   <CardContent className="flex flex-col gap-3">
@@ -117,9 +129,21 @@ export default async function PortalDashboardPage() {
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          {t("documentsTitle")}
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">
+            {t("documentsTitle")}
+          </h2>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/portal/documents"
+              prefetch={false}
+              className="text-xs text-muted-foreground hover:underline"
+            >
+              {t("viewAll")}
+            </Link>
+            <PortalUpload />
+          </div>
+        </div>
         <Card>
           <CardContent>
             {data.documents.length === 0 ? (
@@ -144,11 +168,16 @@ export default async function PortalDashboardPage() {
                         {document.name}
                       </a>
                       <span className="text-xs text-muted-foreground">
-                        {[formatBytes(document.sizeBytes), date(document.createdAt)]
+                        {[
+                          formatBytes(document.sizeBytes),
+                          date(document.createdAt),
+                          document.addedByName,
+                        ]
                           .filter(Boolean)
                           .join(" · ")}
                       </span>
                     </div>
+                    {document.isNew ? <Badge>{t("newBadge")}</Badge> : null}
                     <a
                       href={`/api/portal/files/${document.fileId}/download`}
                       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:underline"

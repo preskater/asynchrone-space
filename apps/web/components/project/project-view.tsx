@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { useRouter } from "@/i18n/navigation"
 import { ProjectFilters, defaultFilters, filterTasks, type TaskFilters } from "@/components/project/project-filters"
+import { ProjectDiscussion } from "@/components/project/project-discussion"
 import { ProjectHeader } from "@/components/project/project-header"
 import { ProjectOverview } from "@/components/project/project-overview"
 import { ProjectSettings } from "@/components/project/project-settings"
@@ -66,11 +67,12 @@ export function ProjectView({ project }: { project: Project }) {
             <TabsTrigger value="board">{t("board")}</TabsTrigger>
             <TabsTrigger value="list">{t("list")}</TabsTrigger>
             <TabsTrigger value="calendar">{t("calendar")}</TabsTrigger>
+            <TabsTrigger value="discussion">{t("discussion")}</TabsTrigger>
             <TabsTrigger value="settings">{t("settings")}</TabsTrigger>
           </TabsList>
         </div>
 
-        {tab !== "overview" && tab !== "settings" ? (
+        {tab !== "overview" && tab !== "settings" && tab !== "discussion" ? (
           <ProjectFilters filters={filters} onChange={setFilters} />
         ) : null}
 
@@ -92,6 +94,10 @@ export function ProjectView({ project }: { project: Project }) {
 
         <TabsContent value="calendar">
           <TaskCalendar tasks={filteredTasks} onOpen={openTask} />
+        </TabsContent>
+
+        <TabsContent value="discussion">
+          <ProjectDiscussion projectId={project.id} />
         </TabsContent>
 
         <TabsContent value="settings">

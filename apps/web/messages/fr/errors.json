@@ -38,6 +38,7 @@
   "projectAlreadyLinked": "Ce projet est déjà lié à cette société.",
   "projectNotLinked": "Ce projet n'est pas lié à cette société.",
   "portalInviteExists": "Cette adresse e-mail a déjà une invitation au portail en attente.",
+  "fileTooLarge": "Ce fichier est trop volumineux (maximum {max} Mo).",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

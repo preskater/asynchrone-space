@@ -2,7 +2,13 @@
 
 import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
-import { BellIcon, HandshakeIcon, ListTodoIcon } from "lucide-react"
+import {
+  BellIcon,
+  FileUpIcon,
+  HandshakeIcon,
+  ListTodoIcon,
+  MessageSquareIcon,
+} from "lucide-react"
 import { toast } from "sonner"
 
 import { Button } from "@workspace/ui/components/button"
@@ -30,6 +36,12 @@ import { useErrorTranslator } from "@/lib/i18n/errors"
 function iconFor(type: string) {
   if (type.startsWith("task.")) {
     return <ListTodoIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+  }
+  if (type === "portal.message") {
+    return <MessageSquareIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+  }
+  if (type === "portal.document") {
+    return <FileUpIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   }
   return (
     <HandshakeIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -104,6 +116,16 @@ export function NotificationBell({
           actor,
           deal: String(data.dealName ?? ""),
         })
+      case "portal.message":
+        return t("portalMessage", {
+          actor,
+          project: String(data.projectName ?? ""),
+        })
+      case "portal.document":
+        return t("portalDocument", {
+          actor,
+          client: String(data.clientName ?? ""),
+        })
       default:
         return item.type
     }
@@ -118,6 +140,18 @@ export function NotificationBell({
     }
     if (item.type.startsWith("deal.") && typeof item.data.dealId === "string") {
       return `/${orgSlug}/deals/${item.data.dealId}`
+    }
+    if (
+      item.type === "portal.message" &&
+      typeof item.data.projectId === "string"
+    ) {
+      return `/${orgSlug}/projects/${item.data.projectId}`
+    }
+    if (
+      item.type === "portal.document" &&
+      typeof item.data.clientId === "string"
+    ) {
+      return `/${orgSlug}/clients/${item.data.clientId}`
     }
     return null
   }

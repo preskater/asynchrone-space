@@ -53,12 +53,13 @@ The CRM core is live; the data model is documented in
 - **Notifications (in-app)**: header bell with unread count, read/unread
   state, triggers on task assignment, deal stage changes and deal won/lost,
   click-through to the related record.
-- **Client portal (v1)**: portal accounts invited from a company record (admin
+- **Client portal**: portal accounts invited from a company record (admin
   creates an invitation and shares the link), a `client` organization role
-  scoped to one company, read-only dashboard (their projects, progress and
-  shared documents) and project pages with tasks/milestones; portal goes
-  through a dedicated account-free endpoint for client-visible downloads and
-  internal workspace access is blocked for portal users.
+  scoped to one company, read-only dashboard and project pages (progress,
+  tasks, shared documents), shared discussion thread with the team, client
+  document uploads and unread “new since last visit” badges; downloads go
+  through a dedicated portal endpoint and internal workspace access is
+  blocked for portal users.
 - **HR**: time tracking (half-day entries allocated to projects), leave,
   capacity, payroll.
 - **Assistant**: CRM data available to the AI assistant through MCP tools
@@ -68,22 +69,29 @@ The CRM core is live; the data model is documented in
 
 ## P0 — Remaining
 
-### 1. Client portal — read-only project view (v1 shipped)
+### 1. Client portal — read-only project view (shipped)
 
 Shipped: email/password portal accounts as restricted organization members
 (the `client` role linked to one company), invited from the company record
-the admin shares the invitation link manually; read-only dashboard listing
-the company's projects with progress and its client-visible documents;
-project page with status, progress and tasks/milestones; downloads served by
-a dedicated portal endpoint that enforces the client-visible link; portal
-users are redirected to `/portal` and blocked from the internal workspace
-(pages, server actions, file API and MCP).
+(the admin shares the invitation link manually); dashboard with the
+company's projects (progress, due dates) and its client-visible documents;
+project page with status, progress, tasks/milestones and the **shared
+discussion thread**; clients can **post messages** (the team is notified in
+the header bell) and **upload documents** (max 25 MB, stored as workspace
+files and linked to the company as client-visible documents); the team gets
+a **Discussion tab** on the project page and unread “new since last visit”
+badges greet the client; downloads are served by a dedicated portal
+endpoint that enforces the client-visible link; portal users are redirected
+to `/portal` and blocked from the internal workspace (pages, server
+actions, file API and MCP).
 
 Remaining:
 
-- Client-visible project updates (needs per-activity visibility).
-- Client comments or validation requests on specific deliverables.
-- Notify internal users of portal activity; notify clients of updates.
+- Per-activity visibility so internal project updates can be marked
+  client-visible.
+- Validation requests / approvals on specific deliverables.
+- Email notifications and digests for clients (they currently rely on the
+  “new since last visit” badges).
 - Magic-link sign-in and multiple companies per portal user.
 
 **Goal:** Improve transparency, reduce status-request emails, and build client

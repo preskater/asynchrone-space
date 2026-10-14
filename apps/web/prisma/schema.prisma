@@ -130,6 +130,7 @@ model Organization {
   crmDocuments        CrmDocument[]
   notifications       Notification[]
   portalInvites       PortalInvite[]
+  projectMessages     ProjectMessage[]
 
   @@unique([slug])
   @@map("organization")
@@ -174,6 +175,8 @@ model Member {
   /// Set for client-portal members: the company whose projects they can see.
   clientId       String?
   client         Client?      @relation("PortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
+  /// Last time the portal user opened their dashboard or a project (unread badges).
+  portalLastSeenAt DateTime?
   createdAt      DateTime
 
   @@index([organizationId])
@@ -227,6 +230,7 @@ model Project {
   activities        ProjectActivity[]
   templates         TaskTemplate[]
   attendanceEntries AttendanceEntry[]
+  messages          ProjectMessage[]
 
   @@index([organizationId])
   @@index([clientId])
@@ -363,6 +367,25 @@ model ProjectActivity {
 
   @@index([projectId])
   @@map("projectActivity")
+}
+
+/// A message of the shared project thread between the team and the client.
+/// `authorKind` is internal | client and is frozen at write time so the two
+/// sides render differently even if the author's membership changes.
+model ProjectMessage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId       String
+  authorKind     String       @default("internal")
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([projectId, createdAt])
+  @@map("projectMessage")
 }
 
 // ---------------------------------------------------------------------------

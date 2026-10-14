@@ -12,6 +12,8 @@ import {
 import { Progress } from "@workspace/ui/components/progress"
 
 import { Link } from "@/i18n/navigation"
+import { PortalDiscussion } from "@/components/portal/portal-discussion"
+import { PortalSeenTracker } from "@/components/portal/portal-seen-tracker"
 import { getPortalContext } from "@/lib/portal/context"
 import { portalService } from "@/lib/portal"
 import { isAppError } from "@/lib/core/errors"
@@ -42,6 +44,8 @@ export default async function PortalProjectPage({
     throw error
   }
 
+  const messages = await portalService.listMessages(ctx, projectId)
+
   const date = (iso?: string) =>
     iso
       ? new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
@@ -57,6 +61,7 @@ export default async function PortalProjectPage({
 
   return (
     <div className="flex flex-col gap-6">
+      <PortalSeenTracker />
       <Link
         href="/portal"
         prefetch={false}
@@ -134,6 +139,8 @@ export default async function PortalProjectPage({
           )}
         </CardContent>
       </Card>
+
+      <PortalDiscussion projectId={project.id} messages={messages} />
     </div>
   )
 }

@@ -1,18 +1,38 @@
 import { headers } from "next/headers"
+import type { Readable } from "node:stream"
 
 import { auth } from "@/lib/auth"
 import type { RequestContext } from "@/lib/core/context"
-import { ConflictError, ForbiddenError, NotFoundError, UnauthorizedError } from "@/lib/core/errors"
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+} from "@/lib/core/errors"
+import { fileService } from "@/lib/files"
+import { orgQuotaBytes, orgUsedBytes } from "@/lib/files/storage"
+import { MaxBytesExceededError, uploadLargeObject } from "@/lib/large-object"
+import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"
+import {
+  createProjectMessage,
+  listProjectMessages,
+  type ProjectMessageData,
+} from "@/lib/projects/thread"
 
 import type { PortalContext } from "./context"
 import type { InvitePortalUserInput } from "./schemas"
 import type {
   PortalAccessData,
   PortalDashboardData,
+  PortalDocumentData,
   PortalProjectDetailData,
 } from "./types"
+
+/** Direct uploads from the portal are capped to keep the single request sane. */
+export const MAX_PORTAL_UPLOAD_BYTES = 25 * 1024 * 1024
 
 function requirePortalManager(ctx: RequestContext) {
   if (roleRank(ctx.role) >= 3) return
@@ -39,6 +59,7 @@ export class PortalService {
 
   /** Dashboard of the signed-in client: their projects and shared documents. */
   async getDashboard(ctx: PortalContext): Promise<PortalDashboardData> {
+    const lastSeen = await this.lastSeenAt(ctx)
     const [projects, links] = await Promise.all([
       prisma.project.findMany({
         where: {
@@ -72,7 +93,29 @@ export class PortalService {
       }),
     ])
 
-    return {
+    // Unread messages per project: anything the client has not seen yet,
+    // excluding their own posts.
+    const projectIds = projects.map((project) => project.id)
+    const unreadByProject = new Map<string, number>()
+    if (projectIds.length > 0) {
+      const messages = await prisma.projectMessage.findMany({
+        where: {
+          organizationId: ctx.organizationId,
+          projectId: { in: projectIds },
+          authorId: { not: ctx.userId },
+          ...(lastSeen ? { createdAt: { gt: lastSeen } } : {}),
+        },
+        select: { projectId: true },
+      })
+      for (const message of messages) {
+        unreadByProject.set(
+          message.projectId,
+          (unreadByProject.get(message.projectId) ?? 0) + 1
+        )
+      }
+    }
+
+    const data: PortalDashboardData = {
       organizationName: ctx.organizationName,
       clientName: ctx.clientName,
       projects: projects.map((project) => ({
@@ -83,6 +126,7 @@ export class PortalService {
         doneTasks: project.tasks.filter((task) => task.status === "done")
           .length,
         totalTasks: project.tasks.length,
+        unreadCount: unreadByProject.get(project.id) ?? 0,
       })),
       documents: links.map((link) => ({
         id: link.id,
@@ -90,8 +134,11 @@ export class PortalService {
         name: link.file.name,
         sizeBytes: link.file.sizeBytes ? Number(link.file.sizeBytes) : undefined,
         createdAt: link.createdAt.toISOString(),
+        isNew: lastSeen ? link.createdAt.getTime() > lastSeen.getTime() : true,
       })),
     }
+
+    return data
   }
 
   /** One project of the client's company. Anything else is not found. */
@@ -135,6 +182,256 @@ export class PortalService {
         dueDate: iso(task.dueDate),
       })),
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Client collaboration
+  // ---------------------------------------------------------------------------
+
+  /** The shared project thread of one of the client's projects. */
+  async listMessages(
+    ctx: PortalContext,
+    projectId: string
+  ): Promise<ProjectMessageData[]> {
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organizationId: ctx.organizationId,
+        clientId: ctx.clientId,
+      },
+      select: { id: true },
+    })
+    if (!project) throw new NotFoundError("Project")
+    return listProjectMessages(ctx.organizationId, projectId)
+  }
+
+  /** Post a message as the client; the team gets an in-app notification. */
+  async postMessage(
+    ctx: PortalContext,
+    projectId: string,
+    body: string
+  ): Promise<ProjectMessageData> {
+    const text = body.trim()
+    if (!text) throw new ValidationError("The message is empty.")
+    const project = await prisma.project.findFirst({
+      where: {
+        id: projectId,
+        organizationId: ctx.organizationId,
+        clientId: ctx.clientId,
+      },
+      select: { id: true },
+    })
+    if (!project) throw new NotFoundError("Project")
+    return createProjectMessage({
+      organizationId: ctx.organizationId,
+      projectId,
+      authorId: ctx.userId,
+      authorKind: "client",
+      body: text,
+    })
+  }
+
+  /** All documents shared with the client's company. */
+  async getDocuments(ctx: PortalContext): Promise<PortalDocumentData[]> {
+    const links = await prisma.crmDocument.findMany({
+      where: {
+        organizationId: ctx.organizationId,
+        entity: "client",
+        entityId: ctx.clientId,
+        visibility: "client",
+        file: { trashed: false },
+      },
+      select: {
+        id: true,
+        fileId: true,
+        addedBy: true,
+        file: { select: { name: true, sizeBytes: true } },
+        createdAt: true,
+      },
+      orderBy: { createdAt: "desc" },
+    })
+
+    const nameById = new Map<string, string>()
+    const addedByIds = [...new Set(links.map((link) => link.addedBy))]
+    if (addedByIds.length > 0) {
+      const users = await prisma.user.findMany({
+        where: { id: { in: addedByIds } },
+        select: { id: true, name: true },
+      })
+      for (const user of users) nameById.set(user.id, user.name)
+    }
+
+    return links.map((link) => ({
+      id: link.id,
+      fileId: link.fileId,
+      name: link.file.name,
+      sizeBytes: link.file.sizeBytes ? Number(link.file.sizeBytes) : undefined,
+      createdAt: link.createdAt.toISOString(),
+      addedByName: nameById.get(link.addedBy),
+    }))
+  }
+
+  /**
+   * Upload a document from the portal: stored in the workspace files, linked
+   * to the client's company as a client-visible document (so both the team
+   * and the client see it) and announced to the client owner and admins.
+   */
+  async uploadDocument(
+    ctx: PortalContext,
+    input: {
+      name: string
+      mimeType?: string
+      sizeBytes: number
+      stream: Readable
+    }
+  ): Promise<PortalDocumentData> {
+    if (input.sizeBytes <= 0) {
+      throw new ValidationError("The file is empty.")
+    }
+    if (input.sizeBytes > MAX_PORTAL_UPLOAD_BYTES) {
+      throw new ValidationError("The file is too large.", undefined, {
+        code: "file_too_large",
+        params: { max: String(MAX_PORTAL_UPLOAD_BYTES / (1024 * 1024)) },
+      })
+    }
+
+    const [quota, used] = await Promise.all([
+      orgQuotaBytes(ctx.organizationId),
+      orgUsedBytes(ctx.organizationId),
+    ])
+    if (used + input.sizeBytes > quota) {
+      throw new ConflictError("The workspace is out of storage.", {
+        code: "storage_quota_exceeded",
+      })
+    }
+
+    let uploaded
+    try {
+      uploaded = await uploadLargeObject(input.stream, {
+        maxBytes: MAX_PORTAL_UPLOAD_BYTES,
+      })
+    } catch (error) {
+      if (error instanceof MaxBytesExceededError) {
+        throw new ValidationError("The file is too large.", undefined, {
+          code: "file_too_large",
+          params: { max: String(MAX_PORTAL_UPLOAD_BYTES / (1024 * 1024)) },
+        })
+      }
+      throw error
+    }
+
+    const fileCtx: RequestContext = {
+      userId: ctx.userId,
+      userName: ctx.userName,
+      userEmail: ctx.userEmail,
+      organizationId: ctx.organizationId,
+      role: "client",
+    }
+    const file = await fileService.createUploadedFile(fileCtx, {
+      name: input.name,
+      parentId: null,
+      sizeBytes: uploaded.size,
+      mimeType: input.mimeType,
+      oid: uploaded.oid,
+      sha256: uploaded.sha256,
+    })
+
+    const link = await prisma.crmDocument.create({
+      data: {
+        organizationId: ctx.organizationId,
+        fileId: file.id,
+        entity: "client",
+        entityId: ctx.clientId,
+        visibility: "client",
+        addedBy: ctx.userId,
+      },
+      select: { id: true, createdAt: true },
+    })
+
+    // Surface the upload on the company timeline like an internal link would.
+    await prisma.auditLog.create({
+      data: {
+        organizationId: ctx.organizationId,
+        actorId: ctx.userId,
+        action: "client.document.linked",
+        entityType: "client",
+        entityId: ctx.clientId,
+        after: { fileName: input.name },
+      },
+    })
+
+    await this.notifyTeamOfClientDocument(ctx, input.name)
+
+    return {
+      id: link.id,
+      fileId: file.id,
+      name: input.name,
+      sizeBytes: uploaded.size,
+      createdAt: link.createdAt.toISOString(),
+      addedByName: ctx.userName,
+      isNew: true,
+    }
+  }
+
+  /** The company owner and the workspace admins hear about client uploads. */
+  private async notifyTeamOfClientDocument(
+    ctx: PortalContext,
+    fileName: string
+  ): Promise<void> {
+    const [client, admins] = await Promise.all([
+      prisma.client.findUnique({
+        where: { id: ctx.clientId },
+        select: { ownerId: true, name: true },
+      }),
+      prisma.member.findMany({
+        where: {
+          organizationId: ctx.organizationId,
+          clientId: null,
+          role: { in: ["owner", "admin"] },
+        },
+        select: { userId: true },
+      }),
+    ])
+
+    const recipients = new Set<string>()
+    if (client?.ownerId) recipients.add(client.ownerId)
+    for (const admin of admins) recipients.add(admin.userId)
+
+    await Promise.all(
+      [...recipients].map((userId) =>
+        notificationService.notify({
+          organizationId: ctx.organizationId,
+          userId,
+          actorId: ctx.userId,
+          type: "portal.document",
+          data: {
+            clientId: ctx.clientId,
+            clientName: client?.name ?? ctx.clientName,
+            fileName,
+            actorName: ctx.userName,
+          },
+        })
+      )
+    )
+  }
+
+  private async lastSeenAt(ctx: PortalContext): Promise<Date | null> {
+    const member = await prisma.member.findFirst({
+      where: { organizationId: ctx.organizationId, userId: ctx.userId },
+      select: { portalLastSeenAt: true },
+    })
+    return member?.portalLastSeenAt ?? null
+  }
+
+  /**
+   * Called from the client after the portal paints: anything rendered as new
+   * stays new for this visit and only clears on the next one.
+   */
+  async markSeen(ctx: PortalContext): Promise<void> {
+    await prisma.member.updateMany({
+      where: { organizationId: ctx.organizationId, userId: ctx.userId },
+      data: { portalLastSeenAt: new Date() },
+    })
   }
 
   // ---------------------------------------------------------------------------

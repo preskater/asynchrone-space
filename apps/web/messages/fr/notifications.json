@@ -7,5 +7,7 @@
   "taskAssigned": "{actor} vous a assigné {identifier} · {title}",
   "dealStageChanged": "{actor} a déplacé « {deal} » vers {stage}",
   "dealWon": "{actor} a marqué « {deal} » comme gagnée",
-  "dealLost": "{actor} a marqué « {deal} » comme perdue"
+  "dealLost": "{actor} a marqué « {deal} » comme perdu",
+  "portalMessage": "{actor} a envoyé un message client dans {project}",
+  "portalDocument": "{actor} a partagé un document sur {client}"
 }
