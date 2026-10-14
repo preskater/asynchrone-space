@@ -32,7 +32,8 @@
     "confirmArchiveDescription": "Les enregistrements archivés sont masqués des listes et peuvent être restaurés plus tard.",
     "archiveFailed": "Impossible d'archiver l'enregistrement.",
     "restoreFailed": "Impossible de restaurer l'enregistrement.",
-    "saving": "Enregistrement…"
+    "saving": "Enregistrement…",
+    "close": "Fermer"
   },
   "clients": {
     "new": "Nouvelle société",
@@ -238,6 +239,27 @@
     "linkedTo": "Actuellement lié à {name}",
     "unlink": "Délier",
     "linkSelected": "Lier {count, plural, one {# projet} other {# projets}}"
+  },
+  "portal": {
+    "title": "Portail client",
+    "description": "Donnez aux contacts de cette société un accès en lecture seule à leurs projets, leur avancement et les documents partagés.",
+    "invite": "Inviter au portail",
+    "inviteTitle": "Inviter un contact au portail",
+    "inviteDescription": "La personne reçoit un lien pour créer son compte. Elle ne voit que les projets de cette société et les documents partagés.",
+    "name": "Nom",
+    "namePlaceholder": "ex. Jane Dupont",
+    "email": "E-mail",
+    "emailPlaceholder": "client@societe.com",
+    "sendInvite": "Créer l'invitation",
+    "linkLabel": "Lien d'invitation",
+    "copyLink": "Copier le lien",
+    "shareHint": "Copiez ce lien et envoyez-le à votre contact. Il expire comme toute invitation de l'espace de travail.",
+    "copyFailed": "Impossible de copier le lien.",
+    "empty": "Aucun accès au portail pour le moment.",
+    "activeBadge": "Accès actif",
+    "pendingBadge": "Invité",
+    "revoke": "Révoquer l'accès",
+    "cancelInvite": "Annuler l'invitation"
   },
   "timeline": {
     "system": {

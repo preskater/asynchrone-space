@@ -313,7 +313,7 @@ export class ProjectRepository {
 
   listMembers(organizationId: string) {
     return this.db.member.findMany({
-      where: { organizationId },
+      where: { organizationId, clientId: null },
       include: { user: true },
       orderBy: { createdAt: "asc" },
     })

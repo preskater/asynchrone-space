@@ -32,7 +32,8 @@
     "confirmArchiveDescription": "Archived records are hidden from lists and can be restored later.",
     "archiveFailed": "Could not archive the record.",
     "restoreFailed": "Could not restore the record.",
-    "saving": "Saving…"
+    "saving": "Saving…",
+    "close": "Close"
   },
   "clients": {
     "new": "New company",
@@ -238,6 +239,27 @@
     "linkedTo": "Currently linked to {name}",
     "unlink": "Unlink",
     "linkSelected": "Link {count, plural, one {# project} other {# projects}}"
+  },
+  "portal": {
+    "title": "Client portal",
+    "description": "Give this company's contacts read-only access to their projects, progress and shared documents.",
+    "invite": "Invite to portal",
+    "inviteTitle": "Invite a contact to the portal",
+    "inviteDescription": "The person receives a link to create their account. They only ever see this company's projects and the documents shared with them.",
+    "name": "Name",
+    "namePlaceholder": "e.g. Jane Doe",
+    "email": "Email",
+    "emailPlaceholder": "client@company.com",
+    "sendInvite": "Create invitation",
+    "linkLabel": "Invitation link",
+    "copyLink": "Copy link",
+    "shareHint": "Copy this link and send it to your contact. It expires like any workspace invitation.",
+    "copyFailed": "Could not copy the link.",
+    "empty": "No portal access yet.",
+    "activeBadge": "Has access",
+    "pendingBadge": "Invited",
+    "revoke": "Revoke access",
+    "cancelInvite": "Cancel invitation"
   },
   "timeline": {
     "system": {

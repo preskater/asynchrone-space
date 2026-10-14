@@ -7,7 +7,7 @@ export class HrRepository {
 
   listMembers(organizationId: string) {
     return this.db.member.findMany({
-      where: { organizationId },
+      where: { organizationId, clientId: null },
       include: {
         user: {
           select: { id: true, name: true, email: true, image: true },

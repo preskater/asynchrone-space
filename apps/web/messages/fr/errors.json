@@ -37,6 +37,7 @@
   "fileInTrash": "Ce fichier est dans la corbeille.",
   "projectAlreadyLinked": "Ce projet est déjà lié à cette société.",
   "projectNotLinked": "Ce projet n'est pas lié à cette société.",
+  "portalInviteExists": "Cette adresse e-mail a déjà une invitation au portail en attente.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

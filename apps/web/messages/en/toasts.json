@@ -85,5 +85,9 @@
   "crmDocumentShared": "Document visibility updated.",
   "crmProjectLinked": "Project linked.",
   "crmProjectUnlinked": "Project unlinked.",
+  "portalInviteCreated": "Invitation created — copy the link and send it to your contact.",
+  "portalLinkCopied": "Link copied.",
+  "portalAccessRevoked": "Portal access revoked.",
+  "portalInviteCancelled": "Invitation cancelled.",
   "notificationsAllRead": "All notifications marked as read."
 }

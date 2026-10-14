@@ -129,6 +129,7 @@ model Organization {
   crmFieldDefinitions CrmFieldDefinition[]
   crmDocuments        CrmDocument[]
   notifications       Notification[]
+  portalInvites       PortalInvite[]
 
   @@unique([slug])
   @@map("organization")
@@ -170,10 +171,14 @@ model Member {
   userId         String
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   role           String       @default("member")
+  /// Set for client-portal members: the company whose projects they can see.
+  clientId       String?
+  client         Client?      @relation("PortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
   createdAt      DateTime
 
   @@index([organizationId])
   @@index([userId])
+  @@index([clientId])
   @@map("member")
 }
 
@@ -791,6 +796,8 @@ model Client {
   contacts   ContactCompany[]
   deals      Deal[]
   activities CrmActivity[]
+  portalMembers Member[]       @relation("PortalMembers")
+  portalInvites PortalInvite[]
 
   @@unique([organizationId, name])
   @@index([organizationId, status])
@@ -1005,6 +1012,26 @@ model Notification {
   @@index([organizationId, userId, createdAt])
   @@index([userId, readAt])
   @@map("notification")
+}
+
+/// Pending portal access for a company contact: tracks the matching better-auth
+/// invitation so that the member row can be linked to the company on acceptance.
+model PortalInvite {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  email          String
+  name           String?
+  invitationId   String?      @unique
+  invitedById    String?
+  createdAt      DateTime     @default(now())
+  acceptedAt     DateTime?
+
+  @@index([organizationId, clientId])
+  @@index([email])
+  @@map("portalInvite")
 }
 
 /// An internal (non-client) activity time can be allocated to, e.g. product

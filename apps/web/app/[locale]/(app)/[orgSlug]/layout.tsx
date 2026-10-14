@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { OrganizationSync } from "@/components/organization/organization-sync"
 
 import { auth } from "@/lib/auth"
+import { isPortalMember } from "@/lib/portal/context"
 
 export default async function OrganizationLayout({
   children,
@@ -32,6 +33,11 @@ export default async function OrganizationLayout({
 
   if (!organization) {
     redirect(`/${organizations[0]?.slug}`)
+  }
+
+  // Client-portal members only ever see their portal.
+  if (await isPortalMember(organization.id, session.user.id)) {
+    redirect("/portal")
   }
 
   const needsSync = session.session.activeOrganizationId !== organization.id

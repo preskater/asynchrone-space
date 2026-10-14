@@ -40,12 +40,14 @@ import {
 import { Link, useRouter } from "@/i18n/navigation"
 import { unwrapActionResult } from "@/lib/core/action"
 import type { CrmClientDetailData } from "@/lib/crm/types"
+import type { PortalAccessData } from "@/lib/portal/types"
 import { useErrorTranslator } from "@/lib/i18n/errors"
 import { useEnumLabel } from "@/lib/i18n/labels"
 
 import { ClientDialog } from "./client-dialog"
 import { ContactDialog } from "./contact-dialog"
 import { DocumentsCard } from "./documents"
+import { PortalAccessCard } from "./portal-access"
 import { ProjectsCard } from "./project-links"
 import { ActivityDialog, ActivityTimeline } from "./timeline"
 import { CustomFieldValuesView } from "./custom-fields"
@@ -60,9 +62,11 @@ const STATUS_VARIANTS: Record<string, "default" | "secondary" | "outline"> = {
 export function ClientDetail({
   orgSlug,
   data,
+  portal,
 }: {
   orgSlug: string
   data: CrmClientDetailData
+  portal: PortalAccessData
 }) {
   const t = useTranslations("Crm")
   const tT = useTranslations("Toasts")
@@ -373,6 +377,12 @@ export function ClientDetail({
           entityId={client.id}
           documents={data.documents}
           canEdit={data.access.canEdit}
+        />
+
+        <PortalAccessCard
+          clientId={client.id}
+          access={portal}
+          canManage={data.access.canManage}
         />
       </div>
 

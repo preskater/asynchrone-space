@@ -41,6 +41,7 @@ const CODE_KEYS: Record<string, string> = {
   file_in_trash: "fileInTrash",
   project_already_linked: "projectAlreadyLinked",
   project_not_linked: "projectNotLinked",
+  portal_invite_exists: "portalInviteExists",
 }
 
 export function useErrorTranslator() {

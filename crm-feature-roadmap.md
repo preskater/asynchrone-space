@@ -53,6 +53,12 @@ The CRM core is live; the data model is documented in
 - **Notifications (in-app)**: header bell with unread count, read/unread
   state, triggers on task assignment, deal stage changes and deal won/lost,
   click-through to the related record.
+- **Client portal (v1)**: portal accounts invited from a company record (admin
+  creates an invitation and shares the link), a `client` organization role
+  scoped to one company, read-only dashboard (their projects, progress and
+  shared documents) and project pages with tasks/milestones; portal goes
+  through a dedicated account-free endpoint for client-visible downloads and
+  internal workspace access is blocked for portal users.
 - **HR**: time tracking (half-day entries allocated to projects), leave,
   capacity, payroll.
 - **Assistant**: CRM data available to the AI assistant through MCP tools
@@ -62,20 +68,23 @@ The CRM core is live; the data model is documented in
 
 ## P0 — Remaining
 
-### 1. Client portal — read-only project view
+### 1. Client portal — read-only project view (v1 shipped)
 
-- Secure client accounts, separate from internal users (email/password with
-  optional magic link; decide between a standalone auth realm and restricted
-  members).
-- Client dashboard listing their active projects (`Project.clientId` already
-  links projects to companies, so visibility can key off that).
-- Project detail page showing: project status, progress percentage or
-  completed milestones, milestones and deadlines, latest client-visible
-  updates, and relevant documents.
-- Clear distinction between internal notes and client-visible updates
-  (depends on items 2 and 3).
-- No client editing of internal project data; optional client comments or
-  validation requests on specific deliverables.
+Shipped: email/password portal accounts as restricted organization members
+(the `client` role linked to one company), invited from the company record
+the admin shares the invitation link manually; read-only dashboard listing
+the company's projects with progress and its client-visible documents;
+project page with status, progress and tasks/milestones; downloads served by
+a dedicated portal endpoint that enforces the client-visible link; portal
+users are redirected to `/portal` and blocked from the internal workspace
+(pages, server actions, file API and MCP).
+
+Remaining:
+
+- Client-visible project updates (needs per-activity visibility).
+- Client comments or validation requests on specific deliverables.
+- Notify internal users of portal activity; notify clients of updates.
+- Magic-link sign-in and multiple companies per portal user.
 
 **Goal:** Improve transparency, reduce status-request emails, and build client
 trust.
@@ -281,6 +290,4 @@ is stable, through a modular integration layer rather than inside the CRM:
 
 1. **Global search** (item 16) — the route already exists as a placeholder.
 2. **Dashboards** (item 4) — build on the existing stat computations.
-3. **Client portal** (item 1) — the flagship P0 feature; its dependencies
-   (documents on records, notifications) are shipped.
-4. **Quotes → invoicing → time tracking/profitability** (items 9 → 10 → 11).
+3. **Quotes → invoicing → time tracking/profitability** (items 9 → 10 → 11).

@@ -21,13 +21,15 @@
     "owner": "Propriétaire",
     "admin": "Administrateur",
     "member": "Membre",
-    "viewer": "Lecteur"
+    "viewer": "Lecteur",
+    "client": "Client (portail)"
   },
   "orgRoleDescription": {
     "owner": "Accès complet, y compris la suppression de l'organisation.",
     "admin": "Gérer les membres, les invitations et les paramètres de l'organisation.",
     "member": "Utiliser l'espace de travail. Ne peut pas gérer les personnes ni les paramètres.",
-    "viewer": "Accès en lecture seule à l'espace de travail."
+    "viewer": "Accès en lecture seule à l'espace de travail.",
+    "client": "Accès en lecture seule aux projets de leur société dans le portail client."
   },
   "fileKind": {
     "folder": "Dossier",

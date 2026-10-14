@@ -24,8 +24,13 @@ async function contextFromSession(): Promise<RequestContext | null> {
 
   const member = await prisma.member.findFirst({
     where: { organizationId, userId: session.user.id },
-    select: { role: true },
+    select: { role: true, clientId: true },
   })
+
+  // Client-portal members only ever act through the portal endpoints.
+  if (member?.clientId) {
+    throw new ForbiddenError("Portal accounts cannot access the workspace.")
+  }
 
   return {
     userId: session.user.id,
@@ -69,8 +74,13 @@ export async function getRequestContextForOrganization(
 
   const member = await prisma.member.findFirst({
     where: { organizationId, userId: session.user.id },
-    select: { role: true },
+    select: { role: true, clientId: true },
   })
+
+  // Client-portal members only ever act through the portal endpoints.
+  if (member?.clientId) {
+    throw new ForbiddenError("Portal accounts cannot access the workspace.")
+  }
 
   return {
     userId: session.user.id,

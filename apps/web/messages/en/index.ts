@@ -26,6 +26,7 @@ import notFound from "./notFound.json"
 import notifications from "./notifications.json"
 import oauth from "./oauth.json"
 import org from "./org.json"
+import portal from "./portal.json"
 import pricing from "./pricing.json"
 import projects from "./projects.json"
 import sidebar from "./sidebar.json"
@@ -61,6 +62,7 @@ export default {
   Notifications: notifications,
   Oauth: oauth,
   Org: org,
+  Portal: portal,
   Pricing: pricing,
   Projects: projects,
   Sidebar: sidebar,

@@ -1,0 +1,18 @@
+{
+  "clientSpace": "Client portal · {name}",
+  "signOut": "Sign out",
+  "welcome": "Welcome, {name}",
+  "dashboardDescription": "Follow the progress of your projects and find the documents shared with you.",
+  "projectsTitle": "Your projects",
+  "noProjects": "No projects have been shared with you yet.",
+  "documentsTitle": "Shared documents",
+  "noDocuments": "No documents have been shared with you yet.",
+  "download": "Download",
+  "tasksProgress": "{done} of {total} tasks",
+  "percentComplete": "{percent}% complete",
+  "dueDate": "Due {date}",
+  "backToDashboard": "Back to dashboard",
+  "progressTitle": "Progress",
+  "milestonesTitle": "Tasks and milestones",
+  "noTasks": "No tasks in this project yet."
+}

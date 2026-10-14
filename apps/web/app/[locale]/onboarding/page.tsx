@@ -5,6 +5,7 @@ import { AuthHomeButton } from "@/components/auth-home-button"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 
 import { auth } from "@/lib/auth"
+import { getPortalContext } from "@/lib/portal/context"
 import { prisma } from "@/lib/prisma"
 
 export default async function OnboardingPage({
@@ -18,6 +19,11 @@ export default async function OnboardingPage({
 
   if (!session) {
     redirect("/sign-in")
+  }
+
+  // Client-portal users belong in their portal, not the onboarding flow.
+  if (await getPortalContext()) {
+    redirect("/portal")
   }
 
   const organizations = await auth.api.listOrganizations({

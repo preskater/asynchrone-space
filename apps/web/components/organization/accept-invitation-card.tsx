@@ -18,6 +18,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { authClient } from "@/lib/auth-client"
+import { claimPortalAccessAction } from "@/actions/portal"
 import { useEnumLabel } from "@/lib/i18n/labels"
 import { parseRoles } from "@/lib/organization/roles"
 
@@ -86,8 +87,17 @@ export function AcceptInvitationCard({
       setPending(null)
       return
     }
+    // Client-portal invitations link the new member to the invited company.
+    const claim = await claimPortalAccessAction({ invitationId })
+    const isPortal = claim.ok && claim.data.portal
     toast.success(t("invitationAccepted"))
-    router.push(invitation ? `/${invitation.organizationSlug}` : "/onboarding")
+    router.push(
+      isPortal
+        ? "/portal"
+        : invitation
+          ? `/${invitation.organizationSlug}`
+          : "/onboarding"
+    )
     router.refresh()
   }
 

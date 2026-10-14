@@ -14,6 +14,7 @@ import { fileService } from "@/lib/files"
 import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
+import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
 import { CalendarsProvider } from "@/lib/calendars/store"
 import { FilesProvider } from "@/lib/files/store"
@@ -45,6 +46,11 @@ export default async function AppLayout({
     organizations.find(
       (org) => org.id === session.session.activeOrganizationId
     ) ?? organizations[0]!
+
+  // Client-portal members never reach the internal workspace.
+  if (await isPortalMember(organization.id, session.user.id)) {
+    redirect("/portal")
+  }
 
   const ctx = await getRequestContextForOrganization(organization.id)
 

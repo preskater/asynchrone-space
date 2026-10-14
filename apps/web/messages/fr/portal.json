@@ -1,0 +1,18 @@
+{
+  "clientSpace": "Portail client · {name}",
+  "signOut": "Se déconnecter",
+  "welcome": "Bienvenue, {name}",
+  "dashboardDescription": "Suivez l'avancement de vos projets et retrouvez les documents partagés.",
+  "projectsTitle": "Vos projets",
+  "noProjects": "Aucun projet ne vous a encore été partagé.",
+  "documentsTitle": "Documents partagés",
+  "noDocuments": "Aucun document ne vous a encore été partagé.",
+  "download": "Télécharger",
+  "tasksProgress": "{done} tâches sur {total}",
+  "percentComplete": "{percent} % terminé",
+  "dueDate": "Échéance {date}",
+  "backToDashboard": "Retour au tableau de bord",
+  "progressTitle": "Avancement",
+  "milestonesTitle": "Tâches et jalons",
+  "noTasks": "Aucune tâche dans ce projet pour le moment."
+}

@@ -45,6 +45,7 @@ export type ServiceErrorCode =
   | "file_in_trash"
   | "project_already_linked"
   | "project_not_linked"
+  | "portal_invite_exists"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
