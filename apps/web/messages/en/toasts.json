@@ -62,5 +62,22 @@
   "hrBalanceFailed": "Could not update the balance.",
   "hrSettingsFailed": "Could not save the changes.",
   "hrSalaryFailed": "Could not save the salary.",
-  "hrExportFailed": "Export failed."
+  "hrExportFailed": "Export failed.",
+  "crmClientSaved": "Company saved.",
+  "crmContactSaved": "Contact saved.",
+  "crmDealSaved": "Deal saved.",
+  "crmDealMoved": "Deal moved.",
+  "crmDealClosed": "Deal updated.",
+  "crmDealReopened": "Deal reopened.",
+  "crmArchived": "Record archived.",
+  "crmRestored": "Record restored.",
+  "crmPipelineSaved": "Pipeline updated.",
+  "crmFieldSaved": "Custom field saved.",
+  "crmFieldDeleted": "Custom field deleted.",
+  "crmActivityLogged": "Activity logged.",
+  "crmImportDone": "Import finished.",
+  "crmExportFailed": "Export failed.",
+  "crmSaveFailed": "Could not save the record.",
+  "crmActivityFailed": "Could not log the activity.",
+  "crmImportFailed": "Import failed."
 }

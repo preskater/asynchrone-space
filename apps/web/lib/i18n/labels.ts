@@ -31,6 +31,14 @@ export function enumLabels(t: Translator) {
     employmentType: (value: string) => t(`employmentType.${value}` as never),
     contractType: (value: string) => t(`contractType.${value}` as never),
     salaryType: (value: string) => t(`salaryType.${value}` as never),
+    crmClientStatus: (value: string) =>
+      t(`crmClientStatus.${value}` as never),
+    crmActivityType: (value: string) =>
+      t(`crmActivityType.${value}` as never),
+    crmFieldType: (value: string) => t(`crmFieldType.${value}` as never),
+    dealStatus: (value: string) => t(`dealStatus.${value}` as never),
+    pipelineStageType: (value: string) =>
+      t(`pipelineStageType.${value}` as never),
     resource: (value: string) => t(`resource.${value}` as never),
   }
 }

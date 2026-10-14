@@ -27,6 +27,16 @@ const CODE_KEYS: Record<string, string> = {
   leave_overlapping: "leaveOverlapping",
   leave_self_approval: "leaveSelfApproval",
   leave_not_pending: "leaveNotPending",
+  role_cannot_modify_crm: "roleCannotModifyCrm",
+  role_cannot_manage_crm: "roleCannotManageCrm",
+  role_cannot_export_crm: "roleCannotExportCrm",
+  client_name_taken: "clientNameTaken",
+  contact_email_exists: "contactEmailExists",
+  custom_field_required: "customFieldRequired",
+  pipeline_is_default: "pipelineIsDefault",
+  pipeline_not_empty: "pipelineNotEmpty",
+  stage_not_empty: "stageNotEmpty",
+  stage_last_required: "stageLastRequired",
 }
 
 export function useErrorTranslator() {
@@ -40,7 +50,7 @@ export function useErrorTranslator() {
     const err = error as {
       code?: string
       message?: string
-      params?: { resource?: string }
+      params?: Record<string, string | number> & { resource?: string }
     }
     const code = err?.code
     if (code && CODE_KEYS[code]) {
@@ -50,7 +60,7 @@ export function useErrorTranslator() {
           resource: resource ? tEnums(`resource.${resource}` as never) : "",
         })
       }
-      return t(CODE_KEYS[code] as never)
+      return t(CODE_KEYS[code] as never, (err?.params ?? {}) as never)
     }
     if (fallbackKey) return t(fallbackKey as never)
     return err?.message ?? t("internal")

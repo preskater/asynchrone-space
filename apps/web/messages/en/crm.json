@@ -1,0 +1,268 @@
+{
+  "tabs": {
+    "navigation": "CRM",
+    "clients": "Clients",
+    "contacts": "Contacts",
+    "deals": "Deals"
+  },
+  "common": {
+    "search": "Search…",
+    "all": "All",
+    "none": "None",
+    "unassigned": "Unassigned",
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "archive": "Archive",
+    "restore": "Restore",
+    "delete": "Delete",
+    "export": "Export CSV",
+    "import": "Import CSV",
+    "showArchived": "Show archived",
+    "archivedBadge": "Archived",
+    "owner": "Owner",
+    "status": "Status",
+    "created": "Created",
+    "updated": "Updated",
+    "activities": "Activities",
+    "customFields": "Additional information",
+    "empty": "Nothing here yet.",
+    "confirmArchiveTitle": "Archive this record?",
+    "confirmArchiveDescription": "Archived records are hidden from lists and can be restored later.",
+    "archiveFailed": "Could not archive the record.",
+    "restoreFailed": "Could not restore the record.",
+    "saving": "Saving…"
+  },
+  "clients": {
+    "new": "New company",
+    "edit": "Edit company",
+    "stats": {
+      "total": "Companies",
+      "active": "Active clients",
+      "prospects": "Prospects",
+      "openValue": "Open pipeline"
+    },
+    "table": {
+      "name": "Company",
+      "status": "Status",
+      "industry": "Industry",
+      "owner": "Owner",
+      "contacts": "Contacts",
+      "deals": "Open deals",
+      "projects": "Projects",
+      "created": "Created"
+    },
+    "fields": {
+      "name": "Name",
+      "status": "Status",
+      "industry": "Industry",
+      "website": "Website",
+      "phone": "Phone",
+      "address": "Address",
+      "contactEmail": "Contact email",
+      "source": "Source",
+      "owner": "Owner",
+      "description": "Description",
+      "isActive": "Available for project tracking"
+    },
+    "empty": "No companies match your filters.",
+    "emptyAll": "No companies yet. Create your first client to get started.",
+    "archiveTitle": "Archive “{name}”?",
+    "related": {
+      "contacts": "Contacts",
+      "deals": "Deals",
+      "projects": "Projects",
+      "noContacts": "No contacts linked to this company yet.",
+      "noDeals": "No deals for this company yet.",
+      "noProjects": "No projects linked to this company yet."
+    }
+  },
+  "contacts": {
+    "new": "New contact",
+    "edit": "Edit contact",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "jobTitle": "Job title",
+      "companies": "Companies",
+      "owner": "Owner",
+      "deals": "Open deals"
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "phone": "Phone",
+      "jobTitle": "Job title",
+      "owner": "Owner",
+      "notes": "Notes",
+      "companies": "Companies",
+      "primary": "Primary contact"
+    },
+    "addCompany": "Link a company",
+    "empty": "No contacts match your filters.",
+    "emptyAll": "No contacts yet. Add the people you work with.",
+    "archiveTitle": "Archive “{name}”?",
+    "noCompanies": "Not linked to a company"
+  },
+  "deals": {
+    "new": "New deal",
+    "edit": "Edit deal",
+    "board": "Board",
+    "list": "List",
+    "managePipeline": "Manage pipeline",
+    "stats": {
+      "open": "Open pipeline",
+      "weighted": "Weighted forecast",
+      "won": "Won (last 30 days)",
+      "openCount": "Open deals"
+    },
+    "table": {
+      "name": "Deal",
+      "company": "Company",
+      "stage": "Stage",
+      "amount": "Amount",
+      "probability": "Probability",
+      "close": "Expected close",
+      "owner": "Owner",
+      "status": "Status"
+    },
+    "fields": {
+      "name": "Name",
+      "company": "Company",
+      "pipeline": "Pipeline",
+      "stage": "Stage",
+      "amount": "Amount",
+      "currency": "Currency",
+      "probability": "Probability (%)",
+      "expectedCloseDate": "Expected close",
+      "source": "Source",
+      "owner": "Owner",
+      "contacts": "Contacts",
+      "description": "Description"
+    },
+    "markWon": "Mark as won",
+    "markLost": "Mark as lost",
+    "reopen": "Reopen deal",
+    "lostTitle": "Mark “{name}” as lost",
+    "lostReason": "Loss reason",
+    "wonTitle": "Mark “{name}” as won",
+    "closedDate": "Close date",
+    "confirmWon": "Mark won",
+    "confirmLost": "Mark lost",
+    "emptyColumn": "No deals",
+    "empty": "No deals match your filters.",
+    "noCompany": "No company",
+    "archiveTitle": "Archive “{name}”?",
+    "weightedHint": "Amount × probability"
+  },
+  "pipeline": {
+    "title": "Pipeline configuration",
+    "description": "Stages drive the board columns, deal status and the forecast.",
+    "default": "Default",
+    "makeDefault": "Make default",
+    "addStage": "Add stage",
+    "editStage": "Edit stage",
+    "stageName": "Stage name",
+    "stageType": "Outcome",
+    "typeOpen": "Open",
+    "typeWon": "Won",
+    "typeLost": "Lost",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "deleteStage": "Delete stage",
+    "newTitle": "New pipeline",
+    "editTitle": "Rename pipeline",
+    "nameLabel": "Name",
+    "deletePipeline": "Delete pipeline",
+    "deletePipelineTitle": "Delete “{name}”?",
+    "deletePipelineDescription": "Only empty, non-default pipelines can be deleted.",
+    "empty": "No pipeline configured yet."
+  },
+  "fields": {
+    "title": "Custom fields",
+    "description": "Add your own fields to companies, contacts and deals.",
+    "add": "Add field",
+    "edit": "Edit field",
+    "entity": "Applies to",
+    "label": "Label",
+    "type": "Type",
+    "options": "Options",
+    "optionsHint": "Comma-separated values",
+    "required": "Required",
+    "delete": "Delete field",
+    "deleteTitle": "Delete “{label}”?",
+    "deleteDescription": "Existing values are kept in the database but no longer shown.",
+    "empty": "No custom fields yet.",
+    "entities": {
+      "client": "Companies",
+      "contact": "Contacts",
+      "deal": "Deals"
+    }
+  },
+  "activity": {
+    "title": "Activity",
+    "add": "Log activity",
+    "type": "Type",
+    "subject": "Subject",
+    "subjectPlaceholder": "Optional title",
+    "body": "Details",
+    "bodyPlaceholder": "Write a note, meeting summary, call outcome…",
+    "when": "Date",
+    "empty": "No activity yet. Log the first note, call or meeting.",
+    "showMore": "Show more",
+    "deleteNote": "Delete note",
+    "createdBy": "by {name}"
+  },
+  "timeline": {
+    "system": {
+      "client": {
+        "created": "Company created",
+        "updated": "Company updated",
+        "archived": "Company archived",
+        "restored": "Company restored",
+        "import": "Companies imported"
+      },
+      "contact": {
+        "created": "Contact created",
+        "updated": "Contact updated",
+        "archived": "Contact archived",
+        "restored": "Contact restored",
+        "import": "Contacts imported"
+      },
+      "deal": {
+        "created": "Deal created",
+        "updated": "Deal updated",
+        "stage_changed": "Stage changed to {stageName}",
+        "won": "Deal won",
+        "lost": "Deal lost",
+        "reopened": "Deal reopened",
+        "archived": "Deal archived",
+        "restored": "Deal restored"
+      }
+    },
+    "by": "{name}"
+  },
+  "import": {
+    "title": "Import {entity}",
+    "description": "Paste CSV content (semicolon or comma separated). The first line is the header.",
+    "chooseFile": "Choose a file",
+    "paste": "Paste CSV content",
+    "preview": "Preview",
+    "rowsDetected": "{count, plural, one {# row} other {# rows}} detected",
+    "invalid": "Could not read the CSV file.",
+    "empty": "No rows detected.",
+    "confirm": "Import",
+    "result": {
+      "created": "{count} created",
+      "restored": "{count} restored",
+      "skipped": "{count} skipped",
+      "errors": "{count} errors"
+    },
+    "duplicatesHint": "Existing records are skipped; archived companies are restored.",
+    "clientsHint": "Columns: name; status; industry; website; phone; address; contact email; description; source",
+    "contactsHint": "Columns: first name; last name; email; phone; job title; company (must already exist)"
+  }
+}

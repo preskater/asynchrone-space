@@ -7,6 +7,7 @@ import auth from "./auth.json"
 import blog from "./blog.json"
 import calendars from "./calendars.json"
 import common from "./common.json"
+import crm from "./crm.json"
 import enums from "./enums.json"
 import error from "./error.json"
 import errors from "./errors.json"
@@ -40,6 +41,7 @@ export default {
   Blog: blog,
   Calendars: calendars,
   Common: common,
+  Crm: crm,
   Enums: enums,
   Error: error,
   Errors: errors,

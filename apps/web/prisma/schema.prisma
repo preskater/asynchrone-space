@@ -122,6 +122,12 @@ model Organization {
   hrSettings         HrSettings?
   salaryProfiles     SalaryProfile[]
 
+  contacts            Contact[]
+  pipelines           Pipeline[]
+  deals               Deal[]
+  crmActivities       CrmActivity[]
+  crmFieldDefinitions CrmFieldDefinition[]
+
   @@unique([slug])
   @@map("organization")
 }
@@ -755,7 +761,7 @@ model LeaveAdjustment {
   @@map("leaveAdjustment")
 }
 
-/// A client of the company (for project billing).
+/// A client company. Serves both the CRM (companies) and project billing.
 model Client {
   id             String       @id @default(cuid())
   organizationId String
@@ -763,13 +769,202 @@ model Client {
   name           String
   contactEmail   String?
   isActive       Boolean      @default(true)
+  /// CRM lifecycle: prospect | active | inactive
+  status         String       @default("prospect")
+  industry       String?
+  website        String?
+  phone          String?
+  address        String?
+  description    String?
+  source         String?
+  ownerId        String?
+  /// CRM custom field values keyed by CrmFieldDefinition.key.
+  customFields   Json?
+  deletedAt      DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  projects Project[]
+  projects   Project[]
+  contacts   ContactCompany[]
+  deals      Deal[]
+  activities CrmActivity[]
 
   @@unique([organizationId, name])
+  @@index([organizationId, status])
   @@map("client")
+}
+
+/// A person working at one or more client companies.
+model Contact {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  jobTitle       String?
+  notes          String?
+  ownerId        String?
+  customFields   Json?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  companies  ContactCompany[]
+  deals      DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId])
+  @@index([organizationId, email])
+  @@map("contact")
+}
+
+/// Many-to-many association between contacts and companies.
+model ContactCompany {
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  jobTitle  String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@id([contactId, clientId])
+  @@index([clientId])
+  @@map("contactCompany")
+}
+
+/// A configurable sales pipeline.
+model Pipeline {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  stages PipelineStage[]
+  deals  Deal[]
+
+  @@unique([organizationId, name])
+  @@map("pipeline")
+}
+
+/// A stage of a pipeline. `type` is open | won | lost and drives forecasting.
+model PipelineStage {
+  id         String   @id @default(cuid())
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name       String
+  position   Int      @default(0)
+  type       String   @default("open")
+  color      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  deals Deal[]
+
+  @@unique([pipelineId, name])
+  @@index([pipelineId, position])
+  @@map("pipelineStage")
+}
+
+/// A sales opportunity linked to a company and one or more contacts.
+model Deal {
+  id                String         @id @default(cuid())
+  organizationId    String
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name              String
+  clientId          String?
+  client            Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  pipelineId        String?
+  pipeline          Pipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  stageId           String?
+  stage             PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  amount            Float          @default(0)
+  currency          String         @default("EUR")
+  probability       Int            @default(50)
+  /// open | won | lost
+  status            String         @default("open")
+  expectedCloseDate DateTime?      @db.Date
+  actualCloseDate   DateTime?      @db.Date
+  lossReason        String?
+  source            String?
+  description       String?
+  ownerId           String?
+  position          Int            @default(0)
+  customFields      Json?
+  deletedAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  contacts   DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId, status])
+  @@index([clientId])
+  @@index([stageId])
+  @@map("deal")
+}
+
+/// Many-to-many association between deals and contacts.
+model DealContact {
+  dealId    String
+  deal      Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  isPrimary Boolean @default(false)
+
+  @@id([dealId, contactId])
+  @@index([contactId])
+  @@map("dealContact")
+}
+
+/// CRM timeline entry: note, call, email or meeting.
+model CrmActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           String       @default("note")
+  subject        String?
+  body           String
+  occurredAt     DateTime     @default(now())
+  authorId       String
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId         String?
+  deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, occurredAt])
+  @@index([clientId])
+  @@index([contactId])
+  @@index([dealId])
+  @@map("crmActivity")
+}
+
+/// Custom field definition for CRM records (client | contact | deal).
+model CrmFieldDefinition {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entity         String
+  key            String
+  label          String
+  type           String
+  options        Json?
+  isRequired     Boolean      @default(false)
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, entity, key])
+  @@map("crmFieldDefinition")
 }
 
 /// An internal (non-client) activity time can be allocated to, e.g. product

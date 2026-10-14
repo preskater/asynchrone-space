@@ -62,5 +62,22 @@
   "hrBalanceFailed": "Impossible de mettre à jour le solde.",
   "hrSettingsFailed": "Impossible d'enregistrer les modifications.",
   "hrSalaryFailed": "Impossible d'enregistrer le salaire.",
-  "hrExportFailed": "L'export a échoué."
+  "hrExportFailed": "L'export a échoué.",
+  "crmClientSaved": "Société enregistrée.",
+  "crmContactSaved": "Contact enregistré.",
+  "crmDealSaved": "Affaire enregistrée.",
+  "crmDealMoved": "Affaire déplacée.",
+  "crmDealClosed": "Affaire mise à jour.",
+  "crmDealReopened": "Affaire réouverte.",
+  "crmArchived": "Enregistrement archivé.",
+  "crmRestored": "Enregistrement restauré.",
+  "crmPipelineSaved": "Pipeline mis à jour.",
+  "crmFieldSaved": "Champ personnalisé enregistré.",
+  "crmFieldDeleted": "Champ personnalisé supprimé.",
+  "crmActivityLogged": "Activité enregistrée.",
+  "crmImportDone": "Import terminé.",
+  "crmExportFailed": "L'export a échoué.",
+  "crmSaveFailed": "Impossible d'enregistrer l'enregistrement.",
+  "crmActivityFailed": "Impossible d'enregistrer l'activité.",
+  "crmImportFailed": "L'import a échoué."
 }

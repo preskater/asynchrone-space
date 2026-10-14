@@ -31,6 +31,16 @@ export type ServiceErrorCode =
   | "leave_overlapping"
   | "leave_self_approval"
   | "leave_not_pending"
+  | "role_cannot_modify_crm"
+  | "role_cannot_manage_crm"
+  | "role_cannot_export_crm"
+  | "client_name_taken"
+  | "contact_email_exists"
+  | "custom_field_required"
+  | "pipeline_is_default"
+  | "pipeline_not_empty"
+  | "stage_not_empty"
+  | "stage_last_required"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
@@ -107,8 +117,16 @@ export class NotFoundError extends AppError {
 }
 
 export class ValidationError extends AppError {
-  constructor(message = "The request was invalid.", details?: unknown) {
-    super("validation_error", message, { details, status: 422 })
+  constructor(
+    message = "The request was invalid.",
+    details?: unknown,
+    options: CodedErrorOptions = {}
+  ) {
+    super(options.code ?? "validation_error", message, {
+      details,
+      params: options.params,
+      status: 422,
+    })
     this.name = "ValidationError"
   }
 }

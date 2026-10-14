@@ -16,6 +16,7 @@
 ## Environment & data
 
 - Env lives in `apps/web/.env` (Next loads it from the app cwd; `prisma.config.ts` loads it via `dotenv/config`). Start from `apps/web/.env.example`.
+- `docker compose` loads `apps/web/.env` into the `web` container (its `environment` block still overrides `DATABASE_URL`/`BETTER_AUTH_URL`), so local dev and Docker share `BETTER_AUTH_SECRET`; rotating that secret breaks the encrypted JWKS rows in the DB — clear the `jwks` table to regenerate them.
 - `generate` and `build` require `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` to be set; CI and Docker use non-connecting placeholders.
 - When adding an env var, also add it to the `env` arrays in `turbo.json` (build + dev) so Turbo passes it through, update `.env.example`, and add a build-time placeholder in `Dockerfile` / `.github/workflows/turbo.yml` if it is read at build time.
 - `DATABASE_POOL_MAX` defaults to `3`. One shared `pg.Pool` in `apps/web/lib/prisma.ts` serves both Prisma and the large-object code.
