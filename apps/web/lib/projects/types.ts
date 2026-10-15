@@ -106,6 +106,12 @@ export interface Task {
   templateId?: string
   /** Values for the template's custom fields. */
   customFields: TaskCustomFieldValues
+  /** Repository issue this task is synced with (repository connection). */
+  externalIssueNumber?: number
+  externalIssueUrl?: string
+  /** Pull/merge request opened from this task's issue, if any. */
+  externalPrNumber?: number
+  externalPrUrl?: string
   createdAt: string
   subtasks: Subtask[]
   comments: Comment[]

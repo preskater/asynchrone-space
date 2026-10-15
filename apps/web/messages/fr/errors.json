@@ -41,6 +41,10 @@
   "portalReadOnly": "Cette zone est en lecture seule pour le portail client.",
   "fileTooLarge": "Ce fichier est trop volumineux (maximum {max} Mo).",
   "messageNotAuthor": "Vous ne pouvez modifier que vos propres messages.",
+  "roleCannotManageIntegrations": "Votre rôle ne permet pas de gérer les connexions aux dépôts.",
+  "repositoryAlreadyConnected": "Ce dépôt est déjà connecté à un autre projet.",
+  "repositoryConnectFailed": "Impossible de joindre le dépôt. Vérifiez le propriétaire, le nom et le jeton d'accès.",
+  "repositoryNotConnected": "Aucun dépôt n'est connecté à ce projet.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

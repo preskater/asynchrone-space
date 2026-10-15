@@ -92,5 +92,9 @@
   "portalMessageSent": "Message sent.",
   "portalDocumentUploaded": "Document shared.",
   "projectClientSettingsSaved": "Client portal access updated.",
-  "notificationsAllRead": "All notifications marked as read."
+  "notificationsAllRead": "All notifications marked as read.",
+  "repositoryConnected": "Repository connected.",
+  "repositorySyncDone": "Repository synced.",
+  "repositoryDisconnected": "Repository disconnected.",
+  "repositoryValueCopied": "Copied to clipboard."
 }

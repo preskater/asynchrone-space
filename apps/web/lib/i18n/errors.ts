@@ -45,6 +45,10 @@ const CODE_KEYS: Record<string, string> = {
   portal_read_only: "portalReadOnly",
   file_too_large: "fileTooLarge",
   message_not_author: "messageNotAuthor",
+  role_cannot_manage_integrations: "roleCannotManageIntegrations",
+  repository_already_connected: "repositoryAlreadyConnected",
+  repository_connect_failed: "repositoryConnectFailed",
+  repository_not_connected: "repositoryNotConnected",
 }
 
 export function useErrorTranslator() {

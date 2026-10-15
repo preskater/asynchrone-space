@@ -14,12 +14,41 @@ import { prisma } from "./prisma"
 const mcpResource =
   process.env.MCP_RESOURCE_URL || `${process.env.BETTER_AUTH_URL}/mcp`
 
+/**
+ * GitHub/GitLab OAuth apps power optional account linking: a linked account
+ * lets repository writes (issues, pull requests) be made as the user instead
+ * of the project's bot token. Scopes cover issue and PR access; the token is
+ * stored on the `account` row by Better Auth.
+ */
+function oauthApp(
+  clientId: string | undefined,
+  clientSecret: string | undefined,
+  scope: string[]
+) {
+  return clientId && clientSecret ? { clientId, clientSecret, scope } : undefined
+}
+
+const githubOauth = oauthApp(
+  process.env.GITHUB_CLIENT_ID,
+  process.env.GITHUB_CLIENT_SECRET,
+  ["user:email", "repo"]
+)
+const gitlabOauth = oauthApp(
+  process.env.GITLAB_CLIENT_ID,
+  process.env.GITLAB_CLIENT_SECRET,
+  ["read_user", "api"]
+)
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
   emailAndPassword: {
     enabled: true,
+  },
+  socialProviders: {
+    ...(githubOauth ? { github: githubOauth } : {}),
+    ...(gitlabOauth ? { gitlab: gitlabOauth } : {}),
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {

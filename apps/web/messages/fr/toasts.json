@@ -92,5 +92,9 @@
   "portalMessageSent": "Message envoyé.",
   "portalDocumentUploaded": "Document partagé.",
   "projectClientSettingsSaved": "Accès client au portail mis à jour.",
-  "notificationsAllRead": "Toutes les notifications sont marquées comme lues."
+  "notificationsAllRead": "Toutes les notifications sont marquées comme lues.",
+  "repositoryConnected": "Dépôt connecté.",
+  "repositorySyncDone": "Dépôt synchronisé.",
+  "repositoryDisconnected": "Dépôt déconnecté.",
+  "repositoryValueCopied": "Copié dans le presse-papiers."
 }

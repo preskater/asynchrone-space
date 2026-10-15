@@ -25,5 +25,14 @@
   "updatePassword": "Mettre à jour le mot de passe",
   "updating": "Mise à jour...",
   "passwordUpdated": "Mot de passe mis à jour",
-  "unableToUpdatePassword": "Impossible de mettre à jour votre mot de passe."
+  "unableToUpdatePassword": "Impossible de mettre à jour votre mot de passe.",
+  "connectedAccounts": "Comptes connectés",
+  "connectedAccountsDescription": "Liez votre compte GitHub ou GitLab pour que les issues et pull requests créées le soient en votre nom.",
+  "connected": "Connecté",
+  "notConnected": "Non connecté",
+  "connect": "Connecter",
+  "unlink": "Délier",
+  "linkFailed": "Impossible de lier le compte.",
+  "unlinkFailed": "Impossible de délier le compte.",
+  "accountUnlinked": "Compte délié."
 }

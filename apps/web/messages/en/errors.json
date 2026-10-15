@@ -41,6 +41,10 @@
   "portalReadOnly": "This area is read-only for the client portal.",
   "fileTooLarge": "This file is too large (maximum {max} MB).",
   "messageNotAuthor": "You can only modify your own messages.",
+  "roleCannotManageIntegrations": "Your role cannot manage repository connections.",
+  "repositoryAlreadyConnected": "This repository is already connected to another project.",
+  "repositoryConnectFailed": "Could not reach the repository. Check the owner, name and access token.",
+  "repositoryNotConnected": "This project has no repository connected.",
   "validationMessages": {
     "required": "This field is required.",
     "email": "Please enter a valid email address.",

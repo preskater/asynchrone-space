@@ -73,6 +73,7 @@ import {
   LabelColorPicker,
 } from "./label-color-picker"
 import { ProjectPortalSettings } from "./project-portal-settings"
+import { ProjectRepositorySettings } from "./project-repository-settings"
 import { TaskTemplatesManager } from "./task-templates-manager"
 
 const ROLE_VALUES: MemberRole[] = ["owner", "admin", "member", "viewer"]
@@ -273,6 +274,9 @@ export function ProjectSettings({ project }: { project: Project }) {
           <TabsTrigger value="clientPortal">{t("clientPortal")}</TabsTrigger>
         ) : null}
         {canManage ? (
+          <TabsTrigger value="repository">{t("repository")}</TabsTrigger>
+        ) : null}
+        {canManage ? (
           <TabsTrigger value="templates">{t("templates")}</TabsTrigger>
         ) : null}
       </TabsList>
@@ -442,6 +446,12 @@ export function ProjectSettings({ project }: { project: Project }) {
       {canManage ? (
         <TabsContent value="clientPortal">
           <ProjectPortalSettings project={project} />
+        </TabsContent>
+      ) : null}
+
+      {canManage ? (
+        <TabsContent value="repository">
+          <ProjectRepositorySettings project={project} />
         </TabsContent>
       ) : null}
 

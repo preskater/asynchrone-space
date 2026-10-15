@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -229,7 +230,141 @@ function SecurityCard() {
   )
 }
 
-export function AccountSettings() {
+function ConnectedAccountsCard({
+  providers,
+}: {
+  providers: Array<"github" | "gitlab">
+}) {
+  const t = useTranslations("Account")
+  const [accounts, setAccounts] = React.useState<
+    Array<{ providerId: string; accountId: string }> | null
+  >(null)
+  const [busy, setBusy] = React.useState<string | null>(null)
+
+  const labels: Record<"github" | "gitlab", string> = {
+    github: "GitHub",
+    gitlab: "GitLab",
+  }
+
+  React.useEffect(() => {
+    let active = true
+    async function load() {
+      try {
+        const { data } = await authClient.listAccounts()
+        if (active) {
+          setAccounts(
+            (data ?? []).map((account) => ({
+              providerId: account.providerId,
+              accountId: account.accountId,
+            }))
+          )
+        }
+      } catch {
+        if (active) setAccounts([])
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  async function link(provider: "github" | "gitlab") {
+    setBusy(provider)
+    try {
+      // Redirects to the provider on success; only failures return here.
+      const { error } = await authClient.linkSocial({
+        provider,
+        callbackURL: window.location.href,
+      })
+      if (error) toast.error(error.message ?? t("linkFailed"))
+    } catch {
+      toast.error(t("linkFailed"))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function unlink(provider: "github" | "gitlab") {
+    const account = accounts?.find((item) => item.providerId === provider)
+    if (!account) return
+    setBusy(provider)
+    try {
+      const { error } = await authClient.unlinkAccount({
+        accountId: account.accountId,
+      })
+      if (error) {
+        toast.error(error.message ?? t("unlinkFailed"))
+        return
+      }
+      setAccounts((previous) =>
+        (previous ?? []).filter((item) => item.providerId !== provider)
+      )
+      toast.success(t("accountUnlinked"))
+    } catch {
+      toast.error(t("unlinkFailed"))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("connectedAccounts")}</CardTitle>
+        <CardDescription>{t("connectedAccountsDescription")}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        {providers.map((provider) => {
+          const connected =
+            accounts?.some((item) => item.providerId === provider) ?? false
+          return (
+            <div
+              key={provider}
+              className="flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{labels[provider]}</span>
+                <Badge variant={connected ? "secondary" : "outline"}>
+                  {connected ? t("connected") : t("notConnected")}
+                </Badge>
+              </div>
+              {connected ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => void unlink(provider)}
+                >
+                  {busy === provider ? <Spinner /> : null}
+                  {t("unlink")}
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => void link(provider)}
+                >
+                  {busy === provider ? <Spinner /> : null}
+                  {t("connect")}
+                </Button>
+              )}
+            </div>
+          )
+        })}
+      </CardContent>
+    </Card>
+  )
+}
+
+export function AccountSettings({
+  socialProviders = [],
+}: {
+  socialProviders?: Array<"github" | "gitlab">
+}) {
   const t = useTranslations("Account")
 
   return (
@@ -239,6 +374,9 @@ export function AccountSettings() {
       <div className="mt-3 flex flex-col gap-4">
         <ProfileCard />
         <SecurityCard />
+        {socialProviders.length > 0 ? (
+          <ConnectedAccountsCard providers={socialProviders} />
+        ) : null}
       </div>
     </div>
   )

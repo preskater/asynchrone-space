@@ -25,5 +25,14 @@
   "updatePassword": "Update password",
   "updating": "Updating...",
   "passwordUpdated": "Password updated",
-  "unableToUpdatePassword": "Unable to update your password."
+  "unableToUpdatePassword": "Unable to update your password.",
+  "connectedAccounts": "Connected accounts",
+  "connectedAccountsDescription": "Link your GitHub or GitLab account so issues and pull requests you create are authored by you.",
+  "connected": "Connected",
+  "notConnected": "Not connected",
+  "connect": "Connect",
+  "unlink": "Unlink",
+  "linkFailed": "Could not link the account.",
+  "unlinkFailed": "Could not unlink the account.",
+  "accountUnlinked": "Account unlinked."
 }
