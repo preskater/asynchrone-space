@@ -42,7 +42,7 @@ export function AvailabilityView({
   const slotCount = HOURS.length - 1
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-auto">
+    <div tabIndex={0} className="flex min-h-0 flex-1 flex-col overflow-auto">
       <div className="sticky top-0 z-10 flex border-b bg-background">
         <div className="w-44 shrink-0 border-e px-3 py-2 text-xs font-medium text-muted-foreground">
           {t("teamMember")}
