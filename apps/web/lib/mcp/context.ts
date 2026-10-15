@@ -1,6 +1,6 @@
 import type { AuthInfo } from "@modelcontextprotocol/server"
 
-import { UnauthorizedError } from "@/lib/core/errors"
+import { UnauthorizedError, ForbiddenError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
 import type { OrgRole } from "@/lib/organization/roles"
 
@@ -52,6 +52,10 @@ export function contextFromAuthInfo(
     throw new UnauthorizedError(
       "The MCP access token is missing a workspace context."
     )
+  }
+  // Client-portal members have no access to the assistant.
+  if (extra.role === "client") {
+    throw new ForbiddenError("Portal accounts cannot access the workspace.")
   }
   return {
     userId: extra.userId,

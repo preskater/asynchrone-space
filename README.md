@@ -87,7 +87,9 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
    The app is available at http://localhost:3000.
 
 > Prefer containers? `docker compose up --build` runs PostgreSQL, applies
-> migrations, and serves the production build on port 3000.
+> migrations, and serves the production build on port 3000. The `web`
+> container loads `apps/web/.env` (then overrides the container-specific
+> values), so it uses the same `BETTER_AUTH_SECRET` as local development.
 
 ## Environment variables
 
@@ -97,7 +99,7 @@ All variables live in `apps/web/.env` (see [`apps/web/.env.example`](./apps/web/
 | --- | --- | --- |
 | `DATABASE_URL` | Yes | PostgreSQL connection string. |
 | `DATABASE_POOL_MAX` | No | Max Postgres connections per instance (default `3`). |
-| `BETTER_AUTH_SECRET` | Yes | Secret used to sign sessions. |
+| `BETTER_AUTH_SECRET` | Yes | Secret used to sign sessions and encrypt the stored MCP/OAuth JWKS keys. Keep it stable across runtimes; clear the `jwks` table when rotating it. |
 | `BETTER_AUTH_URL` | Yes | Public base URL of the app. |
 | `OPENAI_API_KEY` | No | Enables AI assistant features. |
 | `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |

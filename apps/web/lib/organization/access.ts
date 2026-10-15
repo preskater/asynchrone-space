@@ -42,4 +42,15 @@ export const viewer = ac.newRole({
   ac: ["read"],
 })
 
-export const orgRoles = { owner, admin, member, viewer }
+/// Read-only client-portal accounts. They hold no organization permissions;
+/// their data scope (one company, its projects and shared documents) is
+/// enforced by the portal routes, not by the access-control statements.
+export const client = ac.newRole({
+  organization: [],
+  member: [],
+  invitation: [],
+  team: [],
+  ac: [],
+})
+
+export const orgRoles = { owner, admin, member, viewer, client }

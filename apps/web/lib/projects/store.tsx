@@ -206,6 +206,9 @@ export function ProjectStoreProvider({
           name: input.name,
           description: input.description,
           status: input.status ?? "active",
+          clientVisible: true,
+          clientDiscussion: "read_write",
+          clientTaskComments: "read_write",
           memberIds: input.memberIds?.length
             ? input.memberIds
             : [currentUserId],
@@ -363,6 +366,7 @@ export function ProjectStoreProvider({
         const comment: Comment = {
           id: uid("c"),
           authorId: currentUserId,
+          authorKind: "internal",
           body,
           createdAt: new Date().toISOString(),
         }

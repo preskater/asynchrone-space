@@ -21,13 +21,15 @@
     "owner": "Owner",
     "admin": "Admin",
     "member": "Member",
-    "viewer": "Viewer"
+    "viewer": "Viewer",
+    "client": "Client (portal)"
   },
   "orgRoleDescription": {
     "owner": "Full access, including deleting the organization.",
     "admin": "Manage members, invitations and organization settings.",
     "member": "Use the workspace. Cannot manage people or settings.",
-    "viewer": "Read-only access to the workspace."
+    "viewer": "Read-only access to the workspace.",
+    "client": "Read-only access to their company's projects in the client portal."
   },
   "fileKind": {
     "folder": "Folder",
@@ -148,6 +150,42 @@
     "apprentice": "Apprentice",
     "contractor": "Contractor",
     "other": "Other"
+  },
+  "crmClientStatus": {
+    "prospect": "Prospect",
+    "active": "Active client",
+    "inactive": "Inactive"
+  },
+  "crmActivityType": {
+    "note": "Note",
+    "call": "Call",
+    "email": "Email",
+    "meeting": "Meeting"
+  },
+  "crmFieldType": {
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "select": "Select",
+    "multiselect": "Multi-select",
+    "boolean": "Yes / No",
+    "url": "URL",
+    "email": "Email",
+    "phone": "Phone"
+  },
+  "dealStatus": {
+    "open": "Open",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "pipelineStageType": {
+    "open": "Open",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "crmDocumentVisibility": {
+    "internal": "Internal",
+    "client": "Client-visible"
   },
   "presence": {
     "available": "Available",

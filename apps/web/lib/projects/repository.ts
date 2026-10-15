@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 export const projectInclude = {
+  client: { select: { id: true, name: true } },
   members: { include: { project: false } },
   labels: { include: { label: true } },
   tasks: {
@@ -70,6 +71,9 @@ export class ProjectRepository {
       description?: string | null
       status?: string
       dueDate?: Date | null
+      clientVisible?: boolean
+      clientDiscussion?: string
+      clientTaskComments?: string
     }
   ) {
     return this.db.project.update({
@@ -226,8 +230,21 @@ export class ProjectRepository {
       )
   }
 
-  addComment(taskId: string, authorId: string, body: string) {
-    return this.db.taskComment.create({ data: { taskId, authorId, body } })
+  addComment(
+    taskId: string,
+    authorId: string,
+    body: string,
+    options: { authorKind: "internal" | "client"; authorName?: string }
+  ) {
+    return this.db.taskComment.create({
+      data: {
+        taskId,
+        authorId,
+        body,
+        authorKind: options.authorKind,
+        authorName: options.authorName ?? null,
+      },
+    })
   }
 
   // --- activity ---
@@ -312,7 +329,7 @@ export class ProjectRepository {
 
   listMembers(organizationId: string) {
     return this.db.member.findMany({
-      where: { organizationId },
+      where: { organizationId, clientId: null },
       include: { user: true },
       orderBy: { createdAt: "asc" },
     })

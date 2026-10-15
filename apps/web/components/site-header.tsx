@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import { AppSwitcher } from "@/components/app-switcher"
 import { CommandMenu } from "@/components/command-menu"
 import { NavUser } from "@/components/nav-user"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 import { OrgSwitcher } from "@/components/organization/org-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Button } from "@workspace/ui/components/button"
@@ -14,6 +15,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
 import { usePathname } from "@/i18n/navigation"
+import type { NotificationsData } from "@/lib/notifications/types"
 import { useProjectStore } from "@/lib/projects/store"
 
 const titleKeys = {
@@ -53,6 +55,7 @@ export function SiteHeader({
   orgSlug,
   user,
   activeOrganizationId,
+  notifications,
 }: {
   orgSlug: string
   user: {
@@ -61,6 +64,7 @@ export function SiteHeader({
     image?: string | null
   }
   activeOrganizationId: string | null
+  notifications: NotificationsData
 }) {
   const pathname = usePathname()
   const title = usePageTitle(orgSlug, pathname)
@@ -107,6 +111,7 @@ export function SiteHeader({
               ⌘K
             </kbd>
           </Button>
+          <NotificationBell orgSlug={orgSlug} initial={notifications} />
           <OrgSwitcher activeOrganizationId={activeOrganizationId} compact />
           <ThemeToggle />
           <NavUser user={user} compact />

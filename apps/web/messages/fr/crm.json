@@ -1,0 +1,335 @@
+{
+  "tabs": {
+    "navigation": "CRM",
+    "clients": "Clients",
+    "contacts": "Contacts",
+    "deals": "Affaires"
+  },
+  "common": {
+    "search": "Rechercher…",
+    "all": "Tous",
+    "none": "Aucun",
+    "unassigned": "Non assigné",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "create": "Créer",
+    "edit": "Modifier",
+    "archive": "Archiver",
+    "restore": "Restaurer",
+    "delete": "Supprimer",
+    "export": "Exporter CSV",
+    "import": "Importer CSV",
+    "showArchived": "Afficher les archives",
+    "archivedBadge": "Archivé",
+    "owner": "Responsable",
+    "status": "Statut",
+    "created": "Créé le",
+    "updated": "Mis à jour",
+    "activities": "Activités",
+    "customFields": "Informations complémentaires",
+    "empty": "Rien pour le moment.",
+    "confirmArchiveTitle": "Archiver cet enregistrement ?",
+    "confirmArchiveDescription": "Les enregistrements archivés sont masqués des listes et peuvent être restaurés plus tard.",
+    "archiveFailed": "Impossible d'archiver l'enregistrement.",
+    "restoreFailed": "Impossible de restaurer l'enregistrement.",
+    "saving": "Enregistrement…",
+    "close": "Fermer"
+  },
+  "clients": {
+    "new": "Nouvelle société",
+    "edit": "Modifier la société",
+    "stats": {
+      "total": "Sociétés",
+      "active": "Clients actifs",
+      "prospects": "Prospects",
+      "openValue": "Pipeline ouvert"
+    },
+    "table": {
+      "name": "Société",
+      "status": "Statut",
+      "industry": "Secteur",
+      "owner": "Responsable",
+      "contacts": "Contacts",
+      "deals": "Affaires ouvertes",
+      "projects": "Projets",
+      "created": "Créée le"
+    },
+    "fields": {
+      "name": "Nom",
+      "status": "Statut",
+      "industry": "Secteur",
+      "website": "Site web",
+      "phone": "Téléphone",
+      "address": "Adresse",
+      "contactEmail": "E-mail de contact",
+      "source": "Source",
+      "owner": "Responsable",
+      "description": "Description",
+      "isActive": "Disponible pour le suivi de projet"
+    },
+    "empty": "Aucune société ne correspond à vos filtres.",
+    "emptyAll": "Aucune société pour le moment. Créez votre premier client pour commencer.",
+    "archiveTitle": "Archiver « {name} » ?",
+    "related": {
+      "contacts": "Contacts",
+      "deals": "Affaires",
+      "projects": "Projets",
+      "noContacts": "Aucun contact lié à cette société pour le moment.",
+      "noDeals": "Aucune affaire pour cette société pour le moment.",
+      "noProjects": "Aucun projet lié à cette société pour le moment."
+    }
+  },
+  "contacts": {
+    "new": "Nouveau contact",
+    "edit": "Modifier le contact",
+    "table": {
+      "name": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "jobTitle": "Fonction",
+      "companies": "Sociétés",
+      "owner": "Responsable",
+      "deals": "Affaires ouvertes"
+    },
+    "fields": {
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "jobTitle": "Fonction",
+      "owner": "Responsable",
+      "notes": "Notes",
+      "companies": "Sociétés",
+      "primary": "Contact principal"
+    },
+    "addCompany": "Lier une société",
+    "empty": "Aucun contact ne correspond à vos filtres.",
+    "emptyAll": "Aucun contact pour le moment. Ajoutez les personnes avec qui vous travaillez.",
+    "archiveTitle": "Archiver « {name} » ?",
+    "noCompanies": "Non lié à une société"
+  },
+  "deals": {
+    "new": "Nouvelle affaire",
+    "edit": "Modifier l'affaire",
+    "board": "Tableau",
+    "list": "Liste",
+    "managePipeline": "Configurer le pipeline",
+    "stats": {
+      "open": "Pipeline ouvert",
+      "weighted": "Prévision pondérée",
+      "won": "Gagné (30 derniers jours)",
+      "openCount": "Affaires ouvertes"
+    },
+    "table": {
+      "name": "Affaire",
+      "company": "Société",
+      "stage": "Étape",
+      "amount": "Montant",
+      "probability": "Probabilité",
+      "close": "Clôture prévue",
+      "owner": "Responsable",
+      "status": "Statut"
+    },
+    "fields": {
+      "name": "Nom",
+      "company": "Société",
+      "pipeline": "Pipeline",
+      "stage": "Étape",
+      "amount": "Montant",
+      "currency": "Devise",
+      "probability": "Probabilité (%)",
+      "expectedCloseDate": "Clôture prévue",
+      "source": "Source",
+      "owner": "Responsable",
+      "contacts": "Contacts",
+      "description": "Description"
+    },
+    "markWon": "Marquer gagnée",
+    "markLost": "Marquer perdue",
+    "reopen": "Réouvrir l'affaire",
+    "lostTitle": "Marquer « {name} » comme perdue",
+    "lostReason": "Motif de perte",
+    "wonTitle": "Marquer « {name} » comme gagnée",
+    "closedDate": "Date de clôture",
+    "confirmWon": "Marquer gagnée",
+    "confirmLost": "Marquer perdue",
+    "emptyColumn": "Aucune affaire",
+    "empty": "Aucune affaire ne correspond à vos filtres.",
+    "noCompany": "Sans société",
+    "archiveTitle": "Archiver « {name} » ?",
+    "weightedHint": "Montant × probabilité"
+  },
+  "pipeline": {
+    "title": "Configuration du pipeline",
+    "description": "Les étapes déterminent les colonnes du tableau, le statut des affaires et la prévision.",
+    "default": "Par défaut",
+    "makeDefault": "Définir par défaut",
+    "addStage": "Ajouter une étape",
+    "editStage": "Modifier l'étape",
+    "stageName": "Nom de l'étape",
+    "stageType": "Résultat",
+    "typeOpen": "Ouverte",
+    "typeWon": "Gagnée",
+    "typeLost": "Perdue",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "deleteStage": "Supprimer l'étape",
+    "newTitle": "Nouveau pipeline",
+    "editTitle": "Renommer le pipeline",
+    "nameLabel": "Nom",
+    "deletePipeline": "Supprimer le pipeline",
+    "deletePipelineTitle": "Supprimer « {name} » ?",
+    "deletePipelineDescription": "Seuls les pipelines vides et non par défaut peuvent être supprimés.",
+    "empty": "Aucun pipeline configuré pour le moment."
+  },
+  "fields": {
+    "title": "Champs personnalisés",
+    "description": "Ajoutez vos propres champs aux sociétés, contacts et affaires.",
+    "add": "Ajouter un champ",
+    "edit": "Modifier le champ",
+    "entity": "S'applique à",
+    "label": "Libellé",
+    "type": "Type",
+    "options": "Options",
+    "optionsHint": "Valeurs séparées par des virgules",
+    "required": "Obligatoire",
+    "delete": "Supprimer le champ",
+    "deleteTitle": "Supprimer « {label} » ?",
+    "deleteDescription": "Les valeurs existantes sont conservées en base mais ne seront plus affichées.",
+    "empty": "Aucun champ personnalisé pour le moment.",
+    "entities": {
+      "client": "Sociétés",
+      "contact": "Contacts",
+      "deal": "Affaires"
+    }
+  },
+  "activity": {
+    "title": "Activité",
+    "add": "Ajouter une activité",
+    "type": "Type",
+    "subject": "Sujet",
+    "subjectPlaceholder": "Titre facultatif",
+    "body": "Détails",
+    "bodyPlaceholder": "Note, compte rendu de réunion, résultat d'appel…",
+    "when": "Date",
+    "empty": "Aucune activité pour le moment. Consignez une première note, un appel ou une réunion.",
+    "showMore": "Afficher plus",
+    "deleteNote": "Supprimer la note",
+    "createdBy": "par {name}"
+  },
+  "documents": {
+    "title": "Documents",
+    "add": "Ajouter un document",
+    "empty": "Aucun document lié pour le moment.",
+    "files": "Fichiers",
+    "search": "Rechercher un fichier…",
+    "noFiles": "Aucun fichier à lier.",
+    "allLinked": "Tous les fichiers sont déjà liés à cet enregistrement.",
+    "visibility": "Visibilité",
+    "linkSelected": "Lier {count, plural, one {# fichier} other {# fichiers}}",
+    "unlink": "Délier",
+    "trashed": "Dans la corbeille"
+  },
+  "projectLinks": {
+    "add": "Lier un projet",
+    "dialogTitle": "Lier un projet",
+    "search": "Rechercher des projets…",
+    "empty": "Aucun projet à lier pour le moment.",
+    "allLinked": "Tous les projets sont déjà liés à cette société.",
+    "linkedTo": "Actuellement lié à {name}",
+    "unlink": "Délier",
+    "linkSelected": "Lier {count, plural, one {# projet} other {# projets}}"
+  },
+  "portal": {
+    "title": "Portail client",
+    "description": "Donnez aux contacts de cette société un accès en lecture seule à leurs projets, leur avancement et les documents partagés.",
+    "invite": "Inviter au portail",
+    "inviteTitle": "Inviter un contact au portail",
+    "inviteDescription": "La personne reçoit un lien pour créer son compte. Elle ne voit que les projets de cette société et les documents partagés.",
+    "name": "Nom",
+    "namePlaceholder": "ex. Jane Dupont",
+    "email": "E-mail",
+    "emailPlaceholder": "client@societe.com",
+    "sendInvite": "Créer l'invitation",
+    "linkLabel": "Lien d'invitation",
+    "copyLink": "Copier le lien",
+    "shareHint": "Copiez ce lien et envoyez-le à votre contact. Il expire comme toute invitation de l'espace de travail.",
+    "copyFailed": "Impossible de copier le lien.",
+    "empty": "Aucun accès au portail pour le moment.",
+    "activeBadge": "Accès actif",
+    "pendingBadge": "Invité",
+    "revoke": "Révoquer l'accès",
+    "cancelInvite": "Annuler l'invitation"
+  },
+  "timeline": {
+    "system": {
+      "client": {
+        "created": "Société créée",
+        "updated": "Société mise à jour",
+        "archived": "Société archivée",
+        "restored": "Société restaurée",
+        "import": "Sociétés importées",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        },
+        "project": {
+          "linked": "Projet « {projectName} » lié",
+          "unlinked": "Projet « {projectName} » délié"
+        }
+      },
+      "contact": {
+        "created": "Contact créé",
+        "updated": "Contact mis à jour",
+        "archived": "Contact archivé",
+        "restored": "Contact restauré",
+        "import": "Contacts importés",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        }
+      },
+      "deal": {
+        "created": "Affaire créée",
+        "updated": "Affaire mise à jour",
+        "stage_changed": "Étape changée : {stageName}",
+        "won": "Affaire gagnée",
+        "lost": "Affaire perdue",
+        "reopened": "Affaire réouverte",
+        "archived": "Affaire archivée",
+        "restored": "Affaire restaurée",
+        "document": {
+          "linked": "Document « {fileName} » ajouté",
+          "unlinked": "Document « {fileName} » retiré",
+          "shared": "Document « {fileName} » partagé avec le client",
+          "unshared": "Document « {fileName} » repassé en interne"
+        }
+      }
+    },
+    "by": "{name}"
+  },
+  "import": {
+    "title": "Importer {entity}",
+    "description": "Collez un contenu CSV (séparateur point-virgule ou virgule). La première ligne est l'en-tête.",
+    "chooseFile": "Choisir un fichier",
+    "paste": "Coller le contenu CSV",
+    "preview": "Aperçu",
+    "rowsDetected": "{count, plural, one {# ligne} other {# lignes}} détectée(s)",
+    "invalid": "Impossible de lire le fichier CSV.",
+    "empty": "Aucune ligne détectée.",
+    "confirm": "Importer",
+    "result": {
+      "created": "{count} créé(s)",
+      "restored": "{count} restauré(s)",
+      "skipped": "{count} ignoré(s)",
+      "errors": "{count} erreur(s)"
+    },
+    "duplicatesHint": "Les enregistrements existants sont ignorés ; les sociétés archivées sont restaurées.",
+    "clientsHint": "Colonnes : nom ; statut ; secteur ; site web ; téléphone ; adresse ; e-mail ; description ; source",
+    "contactsHint": "Colonnes : prénom ; nom ; e-mail ; téléphone ; fonction ; société (doit déjà exister)"
+  }
+}

@@ -7,6 +7,7 @@ import {
   CommandIcon,
   FileIcon,
   FolderIcon,
+  HandshakeIcon,
   MessageSquareIcon,
   SearchIcon,
   Settings2Icon,
@@ -61,6 +62,12 @@ export function useNavMain(orgSlug: string): NavApp[] {
       title: t("files"),
       url: `/${orgSlug}/files`,
       icon: <FileIcon />,
+    },
+    {
+      title: t("crm"),
+      url: `/${orgSlug}/clients`,
+      icon: <HandshakeIcon />,
+      match: [`/${orgSlug}/contacts`, `/${orgSlug}/deals`],
     },
     {
       title: t("hr"),

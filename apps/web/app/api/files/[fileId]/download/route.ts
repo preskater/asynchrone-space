@@ -14,7 +14,12 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ fileId: string }> }
 ) {
-  const ctx = await getRequestContext({ request })
+  let ctx
+  try {
+    ctx = await getRequestContext({ request })
+  } catch {
+    return new NextResponse("Not found", { status: 404 })
+  }
   const { fileId } = await params
 
   try {

@@ -8,6 +8,7 @@ import { DatePicker } from "@/components/task/date-picker"
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { MemberPicker } from "@/components/task/member-picker"
 import { PriorityBadge } from "@/components/task/task-badge"
+import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -274,15 +275,30 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
         {task.comments.length ? (
           <div className="flex flex-col gap-3">
             {task.comments.map((entry) => {
-              const author = getMember(entry.authorId)
+              const isClient = entry.authorKind === "client"
+              const member = isClient ? undefined : getMember(entry.authorId)
+              const author =
+                isClient && entry.authorName
+                  ? {
+                      id: entry.authorId,
+                      name: entry.authorName,
+                      email: "",
+                      role: "viewer" as const,
+                    }
+                  : member
               return (
                 <div key={entry.id} className="flex items-start gap-3">
                   <MemberAvatar member={author} size="sm" />
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">
-                        {author?.name ?? t("unknown")}
+                        {author?.name ?? entry.authorName ?? t("unknown")}
                       </span>
+                      {isClient ? (
+                        <Badge variant="secondary" className="text-[10px]">
+                          {t("clientBadge")}
+                        </Badge>
+                      ) : null}
                       <span className="text-xs text-muted-foreground">
                         {formatDate(entry.createdAt, locale)}
                       </span>

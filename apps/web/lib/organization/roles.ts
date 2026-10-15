@@ -1,10 +1,11 @@
-export type OrgRole = "owner" | "admin" | "member" | "viewer"
+export type OrgRole = "owner" | "admin" | "member" | "viewer" | "client"
 
 export const ROLE_RANK: Record<OrgRole, number> = {
   owner: 4,
   admin: 3,
   member: 2,
   viewer: 1,
+  client: 0,
 }
 
 export interface RoleMeta {

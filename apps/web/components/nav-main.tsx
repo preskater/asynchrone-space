@@ -29,6 +29,8 @@ export interface NavApp {
   title: string
   url: string
   icon: React.ReactNode
+  /** Extra routes that should keep this item active (e.g. module tabs). */
+  match?: string[]
 }
 
 export function NavMain({ items }: { items: NavApp[] }) {
@@ -79,7 +81,12 @@ export function NavMain({ items }: { items: NavApp[] }) {
           {items.map((item) => {
             const entries = item.key ? recents[item.key].slice(0, 3) : []
             const active =
-              pathname === item.url || pathname.startsWith(`${item.url}/`)
+              pathname === item.url ||
+              pathname.startsWith(`${item.url}/`) ||
+              (item.match ?? []).some(
+                (route) =>
+                  pathname === route || pathname.startsWith(`${route}/`)
+              )
             return (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton

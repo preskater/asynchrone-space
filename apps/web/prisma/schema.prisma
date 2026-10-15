@@ -90,16 +90,16 @@ model Verification {
 }
 
 model Organization {
-  id                 String       @id
-  name               String
-  slug               String
-  logo               String?
-  createdAt          DateTime
-  metadata           String?
-  storageQuotaBytes  BigInt?
-  teams              Team[]
-  members            Member[]
-  invitations        Invitation[]
+  id                String       @id
+  name              String
+  slug              String
+  logo              String?
+  createdAt         DateTime
+  metadata          String?
+  storageQuotaBytes BigInt?
+  teams             Team[]
+  members           Member[]
+  invitations       Invitation[]
 
   projects       Project[]
   labels         Label[]
@@ -121,6 +121,16 @@ model Organization {
   auditLogs          AuditLog[]
   hrSettings         HrSettings?
   salaryProfiles     SalaryProfile[]
+
+  contacts            Contact[]
+  pipelines           Pipeline[]
+  deals               Deal[]
+  crmActivities       CrmActivity[]
+  crmFieldDefinitions CrmFieldDefinition[]
+  crmDocuments        CrmDocument[]
+  notifications       Notification[]
+  portalInvites       PortalInvite[]
+  projectMessages     ProjectMessage[]
 
   @@unique([slug])
   @@map("organization")
@@ -156,16 +166,22 @@ model TeamMember {
 }
 
 model Member {
-  id             String       @id
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  role           String       @default("member")
-  createdAt      DateTime
+  id               String       @id
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             String       @default("member")
+  /// Set for client-portal members: the company whose projects they can see.
+  clientId         String?
+  client           Client?      @relation("PortalMembers", fields: [clientId], references: [id], onDelete: SetNull)
+  /// Last time the portal user opened their dashboard or a project (unread badges).
+  portalLastSeenAt DateTime?
+  createdAt        DateTime
 
   @@index([organizationId])
   @@index([userId])
+  @@index([clientId])
   @@map("member")
 }
 
@@ -192,21 +208,25 @@ model Invitation {
 // ---------------------------------------------------------------------------
 
 model Project {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  description    String?
-  status         String       @default("active")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  dueDate        DateTime?
-  clientId       String?
-  client         Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  plannedHours   Float?
-  isBillable     Boolean      @default(true)
-  startDate      DateTime?
-  endDate        DateTime?
+  id                 String       @id @default(cuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name               String
+  description        String?
+  status             String       @default("active")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  dueDate            DateTime?
+  clientId           String?
+  client             Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  /// Client-portal visibility and contribution policies (`none | read | read_write`).
+  clientVisible      Boolean      @default(true)
+  clientDiscussion   String       @default("read_write")
+  clientTaskComments String       @default("read_write")
+  plannedHours       Float?
+  isBillable         Boolean      @default(true)
+  startDate          DateTime?
+  endDate            DateTime?
 
   members           ProjectMember[]
   labels            ProjectLabel[]
@@ -214,6 +234,7 @@ model Project {
   activities        ProjectActivity[]
   templates         TaskTemplate[]
   attendanceEntries AttendanceEntry[]
+  messages          ProjectMessage[]
 
   @@index([organizationId])
   @@index([clientId])
@@ -328,12 +349,15 @@ model Subtask {
 }
 
 model TaskComment {
-  id        String   @id @default(cuid())
-  taskId    String
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  authorId  String
-  body      String
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId   String
+  /// internal | client — frozen at write time so the two sides render differently.
+  authorKind String   @default("internal")
+  authorName String?
+  body       String
+  createdAt  DateTime @default(now())
 
   @@index([taskId])
   @@map("taskComment")
@@ -350,6 +374,25 @@ model ProjectActivity {
 
   @@index([projectId])
   @@map("projectActivity")
+}
+
+/// A message of the shared project thread between the team and the client.
+/// `authorKind` is internal | client and is frozen at write time so the two
+/// sides render differently even if the author's membership changes.
+model ProjectMessage {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId       String
+  authorKind     String       @default("internal")
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([projectId, createdAt])
+  @@map("projectMessage")
 }
 
 // ---------------------------------------------------------------------------
@@ -449,9 +492,10 @@ model FileNode {
   sha256         String?
   createdAt      DateTime     @default(now())
 
-  shares     FileShare[]
-  versions   FileVersion[]
-  activities FileActivity[]
+  shares       FileShare[]
+  versions     FileVersion[]
+  activities   FileActivity[]
+  crmDocuments CrmDocument[]
 
   @@index([organizationId, parentId])
   @@index([ownerId])
@@ -500,16 +544,16 @@ model FileShare {
 }
 
 model FileVersion {
-  id         String   @id @default(cuid())
-  fileId     String
-  file       FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  userId     String
-  at         DateTime @default(now())
-  note       String
-  oid        BigInt?
-  mimeType   String?
-  sha256     String?
-  sizeBytes  Int?
+  id        String   @id @default(cuid())
+  fileId    String
+  file      FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  at        DateTime @default(now())
+  note      String
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
 
   @@index([fileId])
   @@map("fileVersion")
@@ -617,16 +661,16 @@ model MessageReaction {
 }
 
 model MessageAttachment {
-  id         String  @id @default(cuid())
-  messageId  String
-  message    Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  name       String
-  kind       String  @default("file")
-  meta       String?
-  oid        BigInt?
-  mimeType   String?
-  sha256     String?
-  sizeBytes  Int?
+  id        String  @id @default(cuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  name      String
+  kind      String  @default("file")
+  meta      String?
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
 
   @@index([messageId])
   @@map("messageAttachment")
@@ -755,7 +799,7 @@ model LeaveAdjustment {
   @@map("leaveAdjustment")
 }
 
-/// A client of the company (for project billing).
+/// A client company. Serves both the CRM (companies) and project billing.
 model Client {
   id             String       @id @default(cuid())
   organizationId String
@@ -763,13 +807,261 @@ model Client {
   name           String
   contactEmail   String?
   isActive       Boolean      @default(true)
+  /// CRM lifecycle: prospect | active | inactive
+  status         String       @default("prospect")
+  industry       String?
+  website        String?
+  phone          String?
+  address        String?
+  description    String?
+  source         String?
+  ownerId        String?
+  /// CRM custom field values keyed by CrmFieldDefinition.key.
+  customFields   Json?
+  deletedAt      DateTime?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  projects Project[]
+  projects      Project[]
+  contacts      ContactCompany[]
+  deals         Deal[]
+  activities    CrmActivity[]
+  portalMembers Member[]         @relation("PortalMembers")
+  portalInvites PortalInvite[]
 
   @@unique([organizationId, name])
+  @@index([organizationId, status])
   @@map("client")
+}
+
+/// A person working at one or more client companies.
+model Contact {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  jobTitle       String?
+  notes          String?
+  ownerId        String?
+  customFields   Json?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  companies  ContactCompany[]
+  deals      DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId])
+  @@index([organizationId, email])
+  @@map("contact")
+}
+
+/// Many-to-many association between contacts and companies.
+model ContactCompany {
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  jobTitle  String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@id([contactId, clientId])
+  @@index([clientId])
+  @@map("contactCompany")
+}
+
+/// A configurable sales pipeline.
+model Pipeline {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  stages PipelineStage[]
+  deals  Deal[]
+
+  @@unique([organizationId, name])
+  @@map("pipeline")
+}
+
+/// A stage of a pipeline. `type` is open | won | lost and drives forecasting.
+model PipelineStage {
+  id         String   @id @default(cuid())
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name       String
+  position   Int      @default(0)
+  type       String   @default("open")
+  color      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  deals Deal[]
+
+  @@unique([pipelineId, name])
+  @@index([pipelineId, position])
+  @@map("pipelineStage")
+}
+
+/// A sales opportunity linked to a company and one or more contacts.
+model Deal {
+  id                String         @id @default(cuid())
+  organizationId    String
+  organization      Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name              String
+  clientId          String?
+  client            Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  pipelineId        String?
+  pipeline          Pipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  stageId           String?
+  stage             PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  amount            Float          @default(0)
+  currency          String         @default("EUR")
+  probability       Int            @default(50)
+  /// open | won | lost
+  status            String         @default("open")
+  expectedCloseDate DateTime?      @db.Date
+  actualCloseDate   DateTime?      @db.Date
+  lossReason        String?
+  source            String?
+  description       String?
+  ownerId           String?
+  position          Int            @default(0)
+  customFields      Json?
+  deletedAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  contacts   DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId, status])
+  @@index([clientId])
+  @@index([stageId])
+  @@map("deal")
+}
+
+/// Many-to-many association between deals and contacts.
+model DealContact {
+  dealId    String
+  deal      Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  isPrimary Boolean @default(false)
+
+  @@id([dealId, contactId])
+  @@index([contactId])
+  @@map("dealContact")
+}
+
+/// CRM timeline entry: note, call, email or meeting.
+model CrmActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type           String       @default("note")
+  subject        String?
+  body           String
+  occurredAt     DateTime     @default(now())
+  authorId       String
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId         String?
+  deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, occurredAt])
+  @@index([clientId])
+  @@index([contactId])
+  @@index([dealId])
+  @@map("crmActivity")
+}
+
+/// Custom field definition for CRM records (client | contact | deal).
+model CrmFieldDefinition {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  entity         String
+  key            String
+  label          String
+  type           String
+  options        Json?
+  isRequired     Boolean      @default(false)
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, entity, key])
+  @@map("crmFieldDefinition")
+}
+
+/// A file attached to a CRM record (company, contact or deal). `visibility`
+/// is internal | client; client-visible documents are exposed in the portal.
+model CrmDocument {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  fileId         String
+  file           FileNode     @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  entity         String
+  entityId       String
+  visibility     String       @default("internal")
+  addedBy        String
+  createdAt      DateTime     @default(now())
+
+  @@unique([fileId, entity, entityId])
+  @@index([organizationId, entity, entityId])
+  @@map("crmDocument")
+}
+
+/// In-app notification for one user. `data` carries the interpolation values
+/// (names, identifiers, ids) for the type-specific message rendered by the UI.
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  actorId        String?
+  type           String
+  data           Json?
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notification")
+}
+
+/// Pending portal access for a company contact: tracks the matching better-auth
+/// invitation so that the member row can be linked to the company on acceptance.
+model PortalInvite {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  email          String
+  name           String?
+  invitationId   String?      @unique
+  invitedById    String?
+  createdAt      DateTime     @default(now())
+  acceptedAt     DateTime?
+
+  @@index([organizationId, clientId])
+  @@index([email])
+  @@map("portalInvite")
 }
 
 /// An internal (non-client) activity time can be allocated to, e.g. product
@@ -862,43 +1154,43 @@ model Jwks {
 }
 
 model OauthClient {
-  id                              String       @id
-  clientId                        String       @unique
-  clientSecret                    String?
-  clientDiscoveryId               String?
-  disabled                        Boolean?     @default(false)
-  skipConsent                     Boolean?
-  enableEndSession                Boolean?
-  subjectType                     String?
-  scopes                          String[] @default([])
-  clientCredentialsScopes         String[]     @default([])
-  userId                          String?
-  user                            User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt                       DateTime?
-  updatedAt                       DateTime?
-  name                            String?
-  uri                             String?
-  icon                            String?
-  contacts                        String[] @default([])
-  tos                             String?
-  policy                          String?
-  softwareId                      String?
-  softwareVersion                 String?
-  softwareStatement               String?
-  redirectUris                    String[] @default([])
-  postLogoutRedirectUris          String[] @default([])
-  backchannelLogoutUri            String?
+  id                               String    @id
+  clientId                         String    @unique
+  clientSecret                     String?
+  clientDiscoveryId                String?
+  disabled                         Boolean?  @default(false)
+  skipConsent                      Boolean?
+  enableEndSession                 Boolean?
+  subjectType                      String?
+  scopes                           String[]  @default([])
+  clientCredentialsScopes          String[]  @default([])
+  userId                           String?
+  user                             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?
+  updatedAt                        DateTime?
+  name                             String?
+  uri                              String?
+  icon                             String?
+  contacts                         String[]  @default([])
+  tos                              String?
+  policy                           String?
+  softwareId                       String?
+  softwareVersion                  String?
+  softwareStatement                String?
+  redirectUris                     String[]  @default([])
+  postLogoutRedirectUris           String[]  @default([])
+  backchannelLogoutUri             String?
   backchannelLogoutSessionRequired Boolean?
-  tokenEndpointAuthMethod         String?
-  applicationType                 String?
-  jwks                            String?
-  jwksUri                         String?
-  grantTypes                      String[] @default([])
-  responseTypes                   String[] @default([])
-  requirePKCE                     Boolean?
-  dpopBoundAccessTokens           Boolean?     @default(false)
-  referenceId                     String?
-  metadata                        Json?
+  tokenEndpointAuthMethod          String?
+  applicationType                  String?
+  jwks                             String?
+  jwksUri                          String?
+  grantTypes                       String[]  @default([])
+  responseTypes                    String[]  @default([])
+  requirePKCE                      Boolean?
+  dpopBoundAccessTokens            Boolean?  @default(false)
+  referenceId                      String?
+  metadata                         Json?
 
   refreshTokens   OauthRefreshToken[]
   accessTokens    OauthAccessToken[]
@@ -910,21 +1202,21 @@ model OauthClient {
 }
 
 model OauthResource {
-  id                           String    @id
-  identifier                   String    @unique
-  name                         String
-  accessTokenTtl               Int?
-  refreshTokenTtl              Int?
-  signingAlgorithm             String?
-  signingKeyId                 String?
-  allowedScopes                String[] @default([])
-  customClaims                 Json?
-  dpopBoundAccessTokensRequired Boolean? @default(false)
-  disabled                     Boolean?  @default(false)
-  createdAt                    DateTime?
-  updatedAt                    DateTime?
-  policyVersion                Int?      @default(1)
-  metadata                     Json?
+  id                            String    @id
+  identifier                    String    @unique
+  name                          String
+  accessTokenTtl                Int?
+  refreshTokenTtl               Int?
+  signingAlgorithm              String?
+  signingKeyId                  String?
+  allowedScopes                 String[]  @default([])
+  customClaims                  Json?
+  dpopBoundAccessTokensRequired Boolean?  @default(false)
+  disabled                      Boolean?  @default(false)
+  createdAt                     DateTime?
+  updatedAt                     DateTime?
+  policyVersion                 Int?      @default(1)
+  metadata                      Json?
 
   clientResources OauthClientResource[]
 
@@ -947,8 +1239,8 @@ model OauthClientResource {
 }
 
 model OauthRefreshToken {
-  id                      String     @id
-  token                   String     @unique
+  id                      String      @id
+  token                   String      @unique
   clientId                String
   client                  OauthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   sessionId               String?
@@ -957,8 +1249,8 @@ model OauthRefreshToken {
   user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
   authorizationCodeId     String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
   expiresAt               DateTime
   createdAt               DateTime
   revoked                 DateTime?
@@ -967,7 +1259,7 @@ model OauthRefreshToken {
   rotationReplayExpiresAt DateTime?
   authTime                DateTime?
   confirmation            Json?
-  scopes                  String[] @default([])
+  scopes                  String[]    @default([])
 
   accessTokens OauthAccessToken[]
 
@@ -979,25 +1271,25 @@ model OauthRefreshToken {
 }
 
 model OauthAccessToken {
-  id                      String            @id
-  token                   String            @unique
+  id                      String             @id
+  token                   String             @unique
   clientId                String
-  client                  OauthClient       @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  client                  OauthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
   sessionId               String?
-  session                 Session?          @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  session                 Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
   userId                  String?
-  user                    User?             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user                    User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
   authorizationCodeId     String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
+  resources               String[]           @default([])
+  requestedUserInfoClaims String[]           @default([])
   refreshId               String?
   refresh                 OauthRefreshToken? @relation(fields: [refreshId], references: [id], onDelete: Cascade)
   expiresAt               DateTime
   createdAt               DateTime
   revoked                 DateTime?
   confirmation            Json?
-  scopes                  String[] @default([])
+  scopes                  String[]           @default([])
 
   @@index([clientId])
   @@index([sessionId])
@@ -1014,9 +1306,9 @@ model OauthConsent {
   userId                  String?
   user                    User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
   referenceId             String?
-  resources               String[] @default([])
-  requestedUserInfoClaims String[] @default([])
-  scopes                  String[] @default([])
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
+  scopes                  String[]    @default([])
   createdAt               DateTime
   updatedAt               DateTime
 

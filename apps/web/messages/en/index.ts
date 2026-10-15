@@ -7,6 +7,7 @@ import auth from "./auth.json"
 import blog from "./blog.json"
 import calendars from "./calendars.json"
 import common from "./common.json"
+import crm from "./crm.json"
 import enums from "./enums.json"
 import error from "./error.json"
 import errors from "./errors.json"
@@ -22,8 +23,10 @@ import messaging from "./messaging.json"
 import metadata from "./metadata.json"
 import navbar from "./navbar.json"
 import notFound from "./notFound.json"
+import notifications from "./notifications.json"
 import oauth from "./oauth.json"
 import org from "./org.json"
+import portal from "./portal.json"
 import pricing from "./pricing.json"
 import projects from "./projects.json"
 import sidebar from "./sidebar.json"
@@ -40,6 +43,7 @@ export default {
   Blog: blog,
   Calendars: calendars,
   Common: common,
+  Crm: crm,
   Enums: enums,
   Error: error,
   Errors: errors,
@@ -55,8 +59,10 @@ export default {
   Metadata: metadata,
   Navbar: navbar,
   NotFound: notFound,
+  Notifications: notifications,
   Oauth: oauth,
   Org: org,
+  Portal: portal,
   Pricing: pricing,
   Projects: projects,
   Sidebar: sidebar,

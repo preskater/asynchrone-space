@@ -115,7 +115,7 @@ export class MessagingService {
       this.repo.listMessages(ctx.organizationId),
       this.repo.listTeams(ctx.organizationId),
       prisma.member.findMany({
-        where: { organizationId: ctx.organizationId },
+        where: { organizationId: ctx.organizationId, clientId: null },
         select: { userId: true, user: { select: { lastSeenAt: true } } },
       }),
     ])
