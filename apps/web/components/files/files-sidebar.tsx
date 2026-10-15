@@ -184,7 +184,11 @@ export function FilesSidebar() {
           <HardDriveIcon className="size-4 text-muted-foreground" />
           <span className="font-medium">{t("storage")}</span>
         </div>
-        <Progress value={quotaPercent} className="mt-2" />
+        <Progress
+          value={quotaPercent}
+          aria-label={t("storage")}
+          className="mt-2"
+        />
         <p className="mt-1.5 text-xs text-muted-foreground">
           {t("storageUsed", {
             used: formatBytes(usedBytes),

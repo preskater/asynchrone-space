@@ -6,6 +6,7 @@
   "trash": "Trash",
   "folders": "Folders",
   "storage": "Storage",
+  "filterFiles": "Filter files",
   "storageUsed": "{used} of {quota} used",
   "location": "Location",
   "selectedCount": "{count} selected",

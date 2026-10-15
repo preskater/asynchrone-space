@@ -6,6 +6,7 @@
   "trash": "Corbeille",
   "folders": "Dossiers",
   "storage": "Stockage",
+  "filterFiles": "Filtrer les fichiers",
   "storageUsed": "{used} sur {quota} utilisés",
   "location": "Emplacement",
   "selectedCount": "{count} sélectionnés",

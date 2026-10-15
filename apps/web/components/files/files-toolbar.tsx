@@ -165,7 +165,10 @@ export function FilesToolbar({
           value={filter}
           onValueChange={(value) => onFilterChange(value as string)}
         >
-          <SelectTrigger className="hidden w-40 md:flex">
+          <SelectTrigger
+            aria-label={t("filterFiles")}
+            className="hidden w-40 md:flex"
+          >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
