@@ -52,6 +52,7 @@
   "addToFavorites": "Add to favorites",
   "deleteForeverQuestion": "Delete forever?",
   "deleteForeverDescription": "\"{name}\" will be permanently deleted. This action cannot be undone.",
+  "typeNameToConfirm": "Type \"{name}\" to confirm.",
   "cancel": "Cancel",
   "uploadFiles": "Upload files",
   "uploadDescription": "Files are uploaded to the current folder.",

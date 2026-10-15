@@ -52,6 +52,7 @@
   "addToFavorites": "Ajouter aux favoris",
   "deleteForeverQuestion": "Supprimer définitivement ?",
   "deleteForeverDescription": "« {name} » sera définitivement supprimé. Cette action est irréversible.",
+  "typeNameToConfirm": "Saisissez « {name} » pour confirmer.",
   "cancel": "Annuler",
   "uploadFiles": "Téléverser des fichiers",
   "uploadDescription": "Les fichiers sont téléversés dans le dossier actuel.",

@@ -4,6 +4,7 @@ import * as React from "react"
 import {
   DndContext,
   DragOverlay,
+  KeyboardSensor,
   PointerSensor,
   closestCorners,
   useDroppable,
@@ -12,7 +13,11 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
 import { CirclePlusIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -118,7 +123,10 @@ export function TaskBoard({
   const { moveTask } = useProjectStore()
   const [activeId, setActiveId] = React.useState<string | null>(null)
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
   )
 
   const activeTask = activeId

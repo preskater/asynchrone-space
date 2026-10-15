@@ -11,5 +11,6 @@
   "minutesShort": "{count} min",
   "hoursShort": "{count} h",
   "daysShort": "{count} j",
-  "toggleTheme": "Changer de thème"
+  "toggleTheme": "Changer de thème",
+  "skipToContent": "Aller au contenu"
 }

@@ -1,5 +1,6 @@
 import { globalIgnores } from "eslint/config"
 import pluginNext from "@next/eslint-plugin-next"
+import pluginJsxA11y from "eslint-plugin-jsx-a11y"
 import pluginReactHooks from "eslint-plugin-react-hooks"
 import globals from "globals"
 
@@ -37,4 +38,5 @@ export const nextJsConfig = [
     },
   },
   pluginReactHooks.configs.flat.recommended,
+  pluginJsxA11y.flatConfigs.recommended,
 ]
