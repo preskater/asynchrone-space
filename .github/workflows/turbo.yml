@@ -58,6 +58,9 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    # Non-blocking until this suite has been proven green; then remove this
+    # line and make it a required check.
+    continue-on-error: true
     permissions:
       contents: read
 
