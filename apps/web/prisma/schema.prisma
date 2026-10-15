@@ -179,6 +179,7 @@ model Member {
   portalLastSeenAt DateTime?
   createdAt        DateTime
 
+  @@unique([organizationId, userId])
   @@index([organizationId])
   @@index([userId])
   @@index([clientId])
