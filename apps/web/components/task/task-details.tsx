@@ -18,11 +18,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@workspace/ui/components/drawer"
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@workspace/ui/components/field"
+import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Separator } from "@workspace/ui/components/separator"
 import {
   Select,
@@ -40,13 +36,17 @@ import {
   SheetTitle,
 } from "@workspace/ui/components/sheet"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 
 import { useProjectStore } from "@/lib/projects/store"
 import { useEnumLabel } from "@/lib/i18n/labels"
 import {
   formatDate,
+  isEmptyTaskCustomFieldValue,
   TASK_PRIORITY_VALUES,
   TASK_STATUS_VALUES,
   type TaskPriority,
@@ -66,6 +66,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
   const store = useProjectStore()
   const {
     labels,
+    templates,
     getLabel,
     getMember,
     updateTask,
@@ -81,6 +82,10 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
     .map((id) => getLabel(id))
     .filter((label) => label !== undefined)
   const doneSubtasks = task.subtasks.filter((subtask) => subtask.done).length
+  const template = task.templateId
+    ? templates.find((item) => item.id === task.templateId)
+    : undefined
+  const customFields = template?.fields ?? []
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
@@ -143,14 +148,18 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
           <FieldLabel htmlFor="detail-due">{t("dueDate")}</FieldLabel>
           <DatePicker
             value={task.dueDate}
-            onChange={(value) => updateTask(task.id, { dueDate: value }, SILENT)}
+            onChange={(value) =>
+              updateTask(task.id, { dueDate: value }, SILENT)
+            }
           />
         </Field>
         <Field>
           <FieldLabel htmlFor="detail-end">{t("endDate")}</FieldLabel>
           <DatePicker
             value={task.endDate}
-            onChange={(value) => updateTask(task.id, { endDate: value }, SILENT)}
+            onChange={(value) =>
+              updateTask(task.id, { endDate: value }, SILENT)
+            }
           />
         </Field>
         <Field>
@@ -227,6 +236,41 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
           }
         />
       </Field>
+
+      {customFields.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">
+            {t("customFields")}
+          </p>
+          <dl className="flex flex-col gap-2">
+            {customFields.map((field) => {
+              const value = task.customFields[field.id]
+              const empty = isEmptyTaskCustomFieldValue(value)
+              const display = empty
+                ? t("dash")
+                : field.type === "date" && typeof value === "string"
+                  ? (formatDate(value, locale) ?? t("dash"))
+                  : Array.isArray(value)
+                    ? value.join(", ")
+                    : value
+              return (
+                <div key={field.id} className="flex flex-col gap-0.5">
+                  <dt className="text-xs text-muted-foreground">
+                    {field.label}
+                  </dt>
+                  <dd
+                    className={
+                      empty ? "text-sm text-muted-foreground" : "text-sm"
+                    }
+                  >
+                    {display}
+                  </dd>
+                </div>
+              )
+            })}
+          </dl>
+        </div>
+      ) : null}
 
       <Separator />
 
@@ -349,7 +393,9 @@ export function TaskDetails({
 }) {
   const isMobile = useIsMobile()
   const store = useProjectStore()
-  const task = taskId ? store.tasks.find((item) => item.id === taskId) : undefined
+  const task = taskId
+    ? store.tasks.find((item) => item.id === taskId)
+    : undefined
 
   if (!task) return null
 

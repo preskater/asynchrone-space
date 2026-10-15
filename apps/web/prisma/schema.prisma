@@ -279,22 +279,26 @@ model ProjectLabel {
 }
 
 model Task {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   projectId      String
-  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   identifier     String
   title          String
   description    String?
-  status         String       @default("todo")
-  priority       String       @default("medium")
+  status         String        @default("todo")
+  priority       String        @default("medium")
   assigneeId     String?
   dueDate        DateTime?
   endDate        DateTime?
-  order          Int          @default(0)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  templateId     String?
+  template       TaskTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  /// Values for the custom fields of `template`, keyed by field id.
+  customFields   Json          @default("{}")
+  order          Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   subtasks Subtask[]
   comments TaskComment[]
@@ -304,6 +308,7 @@ model Task {
   @@index([organizationId])
   @@index([projectId])
   @@index([assigneeId])
+  @@index([templateId])
   @@map("task")
 }
 
@@ -318,8 +323,12 @@ model TaskTemplate {
   status         String       @default("todo")
   priority       String       @default("medium")
   labelIds       String[]
+  /// Custom form fields (`TaskTemplateField[]`) shown when this template is used.
+  fields         Json         @default("[]")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
+
+  tasks Task[]
 
   @@index([organizationId])
   @@index([projectId])

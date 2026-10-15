@@ -1,4 +1,9 @@
-import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/core/errors"
+import {
+  ConflictError,
+  ForbiddenError,
+  NotFoundError,
+  ValidationError,
+} from "@/lib/core/errors"
 import { toMemberView } from "@/lib/core/members"
 import type { RequestContext } from "@/lib/core/context"
 import { notificationService } from "@/lib/notifications"
@@ -30,9 +35,13 @@ import type {
   ProjectData,
   Subtask,
   Task,
+  TaskCustomFieldValue,
+  TaskCustomFieldValues,
   TaskTemplate,
+  TaskTemplateField,
+  TaskTemplateFieldType,
 } from "./types"
-import { ACTIVITY_STATUS_SENTINEL } from "./types"
+import { ACTIVITY_STATUS_SENTINEL, TASK_TEMPLATE_FIELD_TYPES } from "./types"
 
 const ROLE_RANK: Record<string, number> = {
   owner: 4,
@@ -68,7 +77,9 @@ function taskKey(name: string, tasks: Task[]) {
   return `${base || "TSK"}-${count + 1}`
 }
 
-type ProjectRow = NonNullable<Awaited<ReturnType<ProjectRepository["findById"]>>>
+type ProjectRow = NonNullable<
+  Awaited<ReturnType<ProjectRepository["findById"]>>
+>
 type TaskRow = Awaited<ReturnType<ProjectRepository["listTasks"]>>[number]
 type MemberRow = Awaited<ReturnType<ProjectRepository["listMembers"]>>[number]
 type TemplateRow = Awaited<
@@ -99,6 +110,119 @@ export class ProjectService {
     return toMemberView(row)
   }
 
+  private mapTemplateFields(raw: unknown): TaskTemplateField[] {
+    if (!Array.isArray(raw)) return []
+    const fields: TaskTemplateField[] = []
+    for (const item of raw) {
+      if (!item || typeof item !== "object" || Array.isArray(item)) continue
+      const record = item as Record<string, unknown>
+      if (
+        typeof record.id !== "string" ||
+        typeof record.label !== "string" ||
+        typeof record.type !== "string" ||
+        !(TASK_TEMPLATE_FIELD_TYPES as readonly string[]).includes(record.type)
+      ) {
+        continue
+      }
+      fields.push({
+        id: record.id,
+        label: record.label,
+        type: record.type as TaskTemplateFieldType,
+        required: record.required === true,
+        options: Array.isArray(record.options)
+          ? record.options.filter(
+              (option): option is string => typeof option === "string"
+            )
+          : [],
+      })
+    }
+    return fields
+  }
+
+  private mapTaskCustomFields(raw: unknown): TaskCustomFieldValues {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {}
+    const values: TaskCustomFieldValues = {}
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (typeof value === "string" && value !== "") {
+        values[key] = value
+      } else if (Array.isArray(value)) {
+        const list = value.filter(
+          (item): item is string => typeof item === "string"
+        )
+        if (list.length) values[key] = list
+      }
+    }
+    return values
+  }
+
+  private coerceTaskFieldValue(
+    field: TaskTemplateField,
+    raw: unknown
+  ): TaskCustomFieldValue | undefined {
+    switch (field.type) {
+      case "text":
+      case "textarea": {
+        if (raw === null || raw === undefined) return undefined
+        const value = String(raw).trim()
+        return value === "" ? undefined : value
+      }
+      case "select":
+      case "radio": {
+        if (raw === null || raw === undefined) return undefined
+        const value = String(raw)
+        return field.options.includes(value) ? value : undefined
+      }
+      case "checkbox": {
+        const list = Array.isArray(raw)
+          ? raw.filter((item): item is string => typeof item === "string")
+          : []
+        const filtered = list.filter((item) => field.options.includes(item))
+        return filtered.length ? filtered : undefined
+      }
+      case "date": {
+        if (raw === null || raw === undefined || raw === "") return undefined
+        if (typeof raw !== "string" || Number.isNaN(Date.parse(raw))) {
+          throw new ValidationError(`“${field.label}” must be a date.`)
+        }
+        return new Date(raw).toISOString()
+      }
+    }
+  }
+
+  /**
+   * Keep only values for the template's fields and enforce required ones.
+   * Empty values are dropped so `customFields` never carries blanks.
+   */
+  private normalizeTaskCustomFields(
+    fields: TaskTemplateField[],
+    raw: unknown
+  ): TaskCustomFieldValues {
+    const source =
+      raw && typeof raw === "object" && !Array.isArray(raw)
+        ? (raw as Record<string, unknown>)
+        : {}
+    const values: TaskCustomFieldValues = {}
+    for (const field of fields) {
+      const value = this.coerceTaskFieldValue(field, source[field.id])
+      const empty =
+        value === undefined ||
+        value === "" ||
+        (Array.isArray(value) && value.length === 0)
+      if (empty) {
+        if (field.required) {
+          throw new ValidationError(
+            `“${field.label}” is required.`,
+            undefined,
+            { code: "custom_field_required", params: { field: field.label } }
+          )
+        }
+        continue
+      }
+      values[field.id] = value
+    }
+    return values
+  }
+
   private mapTemplate(row: TemplateRow): TaskTemplate {
     return {
       id: row.id,
@@ -108,6 +232,7 @@ export class ProjectService {
       status: row.status as TaskTemplate["status"],
       priority: row.priority as TaskTemplate["priority"],
       labelIds: row.labelIds,
+      fields: this.mapTemplateFields(row.fields),
     }
   }
 
@@ -143,25 +268,22 @@ export class ProjectService {
       labelIds: row.labels.map((label) => label.labelId),
       dueDate: iso(row.dueDate),
       endDate: iso(row.endDate),
+      templateId: row.templateId ?? undefined,
+      customFields: this.mapTaskCustomFields(row.customFields),
       createdAt: requiredIso(row.createdAt),
-      subtasks: row.subtasks.map(
-        (subtask): Subtask => ({
-          id: subtask.id,
-          title: subtask.title,
-          done: subtask.done,
-        })
-      ),
-      comments: row.comments.map(
-        (comment): Comment => ({
-          id: comment.id,
-          authorId: comment.authorId,
-          authorKind:
-            comment.authorKind === "client" ? "client" : "internal",
-          authorName: comment.authorName ?? undefined,
-          body: comment.body,
-          createdAt: requiredIso(comment.createdAt),
-        })
-      ),
+      subtasks: row.subtasks.map((subtask): Subtask => ({
+        id: subtask.id,
+        title: subtask.title,
+        done: subtask.done,
+      })),
+      comments: row.comments.map((comment): Comment => ({
+        id: comment.id,
+        authorId: comment.authorId,
+        authorKind: comment.authorKind === "client" ? "client" : "internal",
+        authorName: comment.authorName ?? undefined,
+        body: comment.body,
+        createdAt: requiredIso(comment.createdAt),
+      })),
     }
   }
 
@@ -202,22 +324,12 @@ export class ProjectService {
       projects: projects.map((project) => this.mapProject(project)),
       tasks,
       members,
-      labels: labels.map(
-        (label): Label => ({
-          id: label.id,
-          name: label.name,
-          color: label.color,
-        })
-      ),
-      templates: templates.map((template): TaskTemplate => ({
-        id: template.id,
-        projectId: template.projectId,
-        name: template.name,
-        description: template.description ?? undefined,
-        status: template.status as TaskTemplate["status"],
-        priority: template.priority as TaskTemplate["priority"],
-        labelIds: template.labelIds,
+      labels: labels.map((label): Label => ({
+        id: label.id,
+        name: label.name,
+        color: label.color,
       })),
+      templates: templates.map((template) => this.mapTemplate(template)),
       activities,
     }
   }
@@ -228,7 +340,10 @@ export class ProjectService {
     return this.mapProject(row)
   }
 
-  async create(ctx: RequestContext, input: CreateProjectInput): Promise<Project> {
+  async create(
+    ctx: RequestContext,
+    input: CreateProjectInput
+  ): Promise<Project> {
     this.canWrite(ctx)
     const row = await this.repo.create(ctx.organizationId, {
       name: input.name,
@@ -304,11 +419,29 @@ export class ProjectService {
   async createTask(ctx: RequestContext, input: CreateTaskInput): Promise<Task> {
     this.canWrite(ctx)
     const project = await this.get(ctx, input.projectId)
-    const existing = await this.repo.listTasks(ctx.organizationId, input.projectId)
+    const existing = await this.repo.listTasks(
+      ctx.organizationId,
+      input.projectId
+    )
     const identifier = taskKey(
       project.name,
       existing.map((task) => this.mapTask(task))
     )
+
+    let customFields: TaskCustomFieldValues = {}
+    if (input.templateId) {
+      const template = await this.repo.findTemplate(
+        ctx.organizationId,
+        input.templateId
+      )
+      if (!template || template.projectId !== input.projectId) {
+        throw new NotFoundError("Task template")
+      }
+      customFields = this.normalizeTaskCustomFields(
+        this.mapTemplateFields(template.fields),
+        input.customFields
+      )
+    }
 
     const row = await this.repo.createTask({
       organizationId: ctx.organizationId,
@@ -321,6 +454,8 @@ export class ProjectService {
       assigneeId: input.assigneeId,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
       endDate: input.endDate ? new Date(input.endDate) : null,
+      templateId: input.templateId ?? null,
+      customFields,
       order: existing.length,
       labelIds: input.labelIds ?? [],
     })
@@ -355,6 +490,19 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    let customFields: TaskCustomFieldValues | undefined
+    if (input.customFields !== undefined && existing.templateId) {
+      const template = await this.repo.findTemplate(
+        ctx.organizationId,
+        existing.templateId
+      )
+      if (template) {
+        customFields = this.normalizeTaskCustomFields(
+          this.mapTemplateFields(template.fields),
+          input.customFields
+        )
+      }
+    }
     await this.repo.updateTask(id, {
       title: input.title,
       description: input.description,
@@ -373,6 +521,7 @@ export class ProjectService {
           : input.endDate === null
             ? null
             : new Date(input.endDate),
+      customFields,
     })
     if (input.labelIds) await this.repo.setTaskLabels(id, input.labelIds)
     if (
@@ -556,7 +705,10 @@ export class ProjectService {
 
   async addLabel(ctx: RequestContext, input: AddLabelInput): Promise<Label> {
     this.canWrite(ctx)
-    const existing = await this.repo.findByColor(ctx.organizationId, input.color)
+    const existing = await this.repo.findByColor(
+      ctx.organizationId,
+      input.color
+    )
     if (existing) {
       throw new ConflictError("That color is already used by another label.", {
         code: "label_color_already_used",
@@ -595,6 +747,7 @@ export class ProjectService {
       status: input.status,
       priority: input.priority,
       labelIds: input.labelIds ?? [],
+      fields: input.fields ?? [],
     })
     return this.mapTemplate(row)
   }
@@ -613,11 +766,15 @@ export class ProjectService {
       status: input.status,
       priority: input.priority,
       labelIds: input.labelIds,
+      fields: input.fields,
     })
     return this.mapTemplate(row)
   }
 
-  async removeTemplate(ctx: RequestContext, id: string): Promise<{ id: string }> {
+  async removeTemplate(
+    ctx: RequestContext,
+    id: string
+  ): Promise<{ id: string }> {
     this.canManage(ctx)
     const existing = await this.repo.findTemplate(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task template")

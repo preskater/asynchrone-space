@@ -12,6 +12,14 @@
     "high": "Haute",
     "urgent": "Urgente"
   },
+  "taskTemplateFieldType": {
+    "text": "Texte court",
+    "textarea": "Texte long",
+    "select": "Liste déroulante",
+    "radio": "Choix unique",
+    "checkbox": "Choix multiple",
+    "date": "Date"
+  },
   "projectStatus": {
     "active": "Actif",
     "paused": "En pause",
