@@ -40,6 +40,7 @@
   "portalInviteExists": "This email already has a pending portal invitation.",
   "portalReadOnly": "This area is read-only for the client portal.",
   "fileTooLarge": "This file is too large (maximum {max} MB).",
+  "messageNotAuthor": "You can only modify your own messages.",
   "validationMessages": {
     "required": "This field is required.",
     "email": "Please enter a valid email address.",

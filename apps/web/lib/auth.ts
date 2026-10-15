@@ -5,7 +5,7 @@ import { betterAuth } from "better-auth"
 import { createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { admin, jwt, organization } from "better-auth/plugins"
+import { jwt, organization } from "better-auth/plugins"
 
 import { ac, orgRoles } from "./organization/access"
 import { parseRoles } from "./organization/utils"
@@ -57,7 +57,6 @@ export const auth = betterAuth({
         },
       },
     }),
-    admin(),
     jwt(),
     mcp({
       loginPage: "/sign-in",

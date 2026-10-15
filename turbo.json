@@ -20,7 +20,8 @@
         "OPENAI_API_KEY",
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
-        "MCP_RESOURCE_URL"
+        "MCP_RESOURCE_URL",
+        "CRON_SECRET"
       ]
     },
     "lint": {
@@ -44,7 +45,8 @@
         "OPENAI_API_KEY",
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
-        "MCP_RESOURCE_URL"
+        "MCP_RESOURCE_URL",
+        "CRON_SECRET"
       ]
     }
   }

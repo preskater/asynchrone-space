@@ -124,7 +124,10 @@ export function AgendaView({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+    <div
+      tabIndex={0}
+      className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4"
+    >
       {groups.map((group) => (
         <Card key={group.day.toISOString()}>
           <CardHeader className="pb-0">

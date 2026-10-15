@@ -25,6 +25,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
+import { safeRedirect } from "@/lib/core/redirect"
 
 export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   const t = useTranslations("Auth.signUp")
@@ -67,7 +68,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       return
     }
 
-    const redirectTo = searchParams.get("redirect") ?? "/onboarding"
+    const redirectTo = safeRedirect(searchParams.get("redirect"))
     router.push(redirectTo)
     router.refresh()
   }

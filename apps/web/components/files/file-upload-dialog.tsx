@@ -193,6 +193,7 @@ export function UploadQueue() {
               </div>
               <Progress
                 value={item.progress}
+                aria-label={item.name}
                 className={cn(item.status === "done" && "opacity-60")}
               />
             </div>

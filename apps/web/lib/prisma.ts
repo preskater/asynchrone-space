@@ -1,6 +1,9 @@
 import { PrismaPg } from "@prisma/adapter-pg"
 import { Pool } from "pg"
 
+// Validates required runtime configuration on first import (fail fast).
+import "./env"
+
 import { PrismaClient } from "./generated/prisma/client"
 
 /**

@@ -1,5 +1,6 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -53,6 +54,7 @@ export default async function AppLayout({
   }
 
   const ctx = await getRequestContextForOrganization(organization.id)
+  const t = await getTranslations("Common")
 
   const [
     projectData,
@@ -105,8 +107,14 @@ export default async function AppLayout({
                         } as React.CSSProperties
                       }
                     >
+                      <a
+                        href="#main-content"
+                        className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
+                      >
+                        {t("skipToContent")}
+                      </a>
                       <AppSidebar variant="inset" orgSlug={organization.slug} />
-                      <SidebarInset>
+                      <SidebarInset id="main-content">
                         <SiteHeader
                           orgSlug={organization.slug}
                           user={session.user}

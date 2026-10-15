@@ -1,14 +1,22 @@
 import { run, type AgentInputItem, type RunStreamEvent } from "@openai/agents"
+import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
+import { rateLimit } from "@/lib/core/rate-limit"
 import { assistantAgent } from "@/lib/assistant/agent"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
 
 const MAX_TURNS = 8
+const MAX_HISTORY_ITEMS = 40
+const MAX_HISTORY_BYTES = 100_000
 const STREAM_ERROR_MESSAGE =
   "The assistant could not complete your request. Please try again."
+
+const bodySchema = z.object({
+  messages: z.array(z.unknown()).min(1).max(MAX_HISTORY_ITEMS),
+})
 
 type AssistantEvent =
   | { type: "text"; delta: string }
@@ -76,13 +84,29 @@ function toClientEvent(event: RunStreamEvent): AssistantEvent | undefined {
 
 export async function POST(request: Request) {
   const ctx = await getRequestContext({ request })
-  const { messages }: { messages: AgentInputItem[] } = await request.json()
 
-  const stream = await run(assistantAgent, messages, {
-    stream: true,
-    context: ctx,
-    maxTurns: MAX_TURNS,
-  })
+  if (!rateLimit(`assistant:${ctx.userId}`, 20, 5 * 60_000)) {
+    return new Response("Too many requests", { status: 429 })
+  }
+
+  const raw = await request.json().catch(() => null)
+  const parsed = bodySchema.safeParse(raw)
+  if (!parsed.success) {
+    return new Response("Invalid request", { status: 422 })
+  }
+  if (JSON.stringify(parsed.data.messages).length > MAX_HISTORY_BYTES) {
+    return new Response("Request too large", { status: 413 })
+  }
+
+  const stream = await run(
+    assistantAgent,
+    parsed.data.messages as AgentInputItem[],
+    {
+      stream: true,
+      context: ctx,
+      maxTurns: MAX_TURNS,
+    }
+  )
 
   const encoder = new TextEncoder()
   const body = new ReadableStream<Uint8Array>({

@@ -106,6 +106,11 @@ export class ProjectService {
     })
   }
 
+  /** Number of owner-role members in an organization. */
+  private ownerCount(organizationId: string) {
+    return this.db.member.count({ where: { organizationId, role: "owner" } })
+  }
+
   private mapMember(row: MemberRow): Member {
     return toMemberView(row)
   }
@@ -628,6 +633,11 @@ export class ProjectService {
 
   async addMember(ctx: RequestContext, input: AddMemberInput): Promise<Member> {
     this.canManage(ctx)
+    if (input.role === "owner" && ctx.role !== "owner") {
+      throw new ForbiddenError("Only an owner can add another owner.", {
+        code: "role_cannot_manage_members",
+      })
+    }
     const existingMember = await this.repo.findMemberByEmail(
       ctx.organizationId,
       input.email
@@ -674,6 +684,29 @@ export class ProjectService {
       include: { user: true },
     })
     if (!member) throw new NotFoundError("Member")
+
+    const isTargetOwner = member.role === "owner"
+    // Only an owner may touch an owner, and only an owner may grant ownership.
+    if ((isTargetOwner || input.role === "owner") && ctx.role !== "owner") {
+      throw new ForbiddenError("Only an owner can change an owner's role.", {
+        code: "role_cannot_manage_members",
+      })
+    }
+    if (member.userId === ctx.userId) {
+      throw new ForbiddenError("You cannot change your own role.", {
+        code: "role_cannot_manage_members",
+      })
+    }
+    // Never leave the organization without an owner.
+    if (isTargetOwner && input.role !== "owner") {
+      const owners = await this.ownerCount(ctx.organizationId)
+      if (owners <= 1) {
+        throw new ForbiddenError("The last owner cannot be demoted.", {
+          code: "role_cannot_manage_members",
+        })
+      }
+    }
+
     await this.db.member.update({
       where: { id: member.id },
       data: { role: input.role },
@@ -690,6 +723,26 @@ export class ProjectService {
       where: { organizationId: ctx.organizationId, userId: memberId },
     })
     if (!member) throw new NotFoundError("Member")
+
+    if (member.userId === ctx.userId) {
+      throw new ForbiddenError("You cannot remove yourself.", {
+        code: "role_cannot_manage_members",
+      })
+    }
+    if (member.role === "owner") {
+      if (ctx.role !== "owner") {
+        throw new ForbiddenError("Only an owner can remove an owner.", {
+          code: "role_cannot_manage_members",
+        })
+      }
+      const owners = await this.ownerCount(ctx.organizationId)
+      if (owners <= 1) {
+        throw new ForbiddenError("The last owner cannot be removed.", {
+          code: "role_cannot_manage_members",
+        })
+      }
+    }
+
     await this.db.member.delete({ where: { id: member.id } })
     return { id: memberId }
   }

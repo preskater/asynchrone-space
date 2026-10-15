@@ -105,6 +105,7 @@ All variables live in `apps/web/.env` (see [`apps/web/.env.example`](./apps/web/
 | `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
 | `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
 | `MCP_RESOURCE_URL` | No | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`). |
+| `CRON_SECRET` | No | Bearer token guarding `GET /api/files/uploads/sweep`; set on Vercel so the Cron job is authenticated. |
 
 ## Available scripts
 

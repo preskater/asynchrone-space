@@ -36,6 +36,14 @@ function canWrite(ctx: RequestContext) {
   })
 }
 
+/** Only the author (or an admin/owner) may edit or delete a message. */
+function assertAuthor(ctx: RequestContext, authorId: string) {
+  if (authorId === ctx.userId || ctx.role === "owner" || ctx.role === "admin") return
+  throw new ForbiddenError("You can only modify your own messages.", {
+    code: "message_not_author",
+  })
+}
+
 type ConversationRow = Awaited<
   ReturnType<MessagingRepository["listConversations"]>
 >[number]
@@ -210,6 +218,7 @@ export class MessagingService {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
+    assertAuthor(ctx, existing.authorId)
     const row = await this.repo.updateMessage(id, {
       body: input.body,
       edited: true,
@@ -222,6 +231,7 @@ export class MessagingService {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
+    assertAuthor(ctx, existing.authorId)
     const oids = existing.attachments
       .map((attachment) => attachment.oid)
       .filter((oid): oid is bigint => oid !== null)

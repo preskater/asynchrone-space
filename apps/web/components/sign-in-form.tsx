@@ -25,6 +25,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
+import { safeRedirect } from "@/lib/core/redirect"
 import { cn } from "@workspace/ui/lib/utils"
 
 export function SignInForm({
@@ -58,7 +59,7 @@ export function SignInForm({
       return
     }
 
-    const redirectTo = searchParams.get("redirect") ?? "/onboarding"
+    const redirectTo = safeRedirect(searchParams.get("redirect"))
     router.push(redirectTo)
     router.refresh()
   }
