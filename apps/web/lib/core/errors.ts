@@ -48,6 +48,7 @@ export type ServiceErrorCode =
   | "portal_invite_exists"
   | "portal_read_only"
   | "file_too_large"
+  | "message_not_author"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

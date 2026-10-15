@@ -44,6 +44,7 @@ const CODE_KEYS: Record<string, string> = {
   portal_invite_exists: "portalInviteExists",
   portal_read_only: "portalReadOnly",
   file_too_large: "fileTooLarge",
+  message_not_author: "messageNotAuthor",
 }
 
 export function useErrorTranslator() {

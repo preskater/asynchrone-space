@@ -40,6 +40,7 @@
   "portalInviteExists": "Cette adresse e-mail a déjà une invitation au portail en attente.",
   "portalReadOnly": "Cette zone est en lecture seule pour le portail client.",
   "fileTooLarge": "Ce fichier est trop volumineux (maximum {max} Mo).",
+  "messageNotAuthor": "Vous ne pouvez modifier que vos propres messages.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",
