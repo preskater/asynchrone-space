@@ -1,6 +1,10 @@
 import { z } from "zod"
 
-import { PORTAL_POLICIES } from "./types"
+import {
+  CHOICE_FIELD_TYPES,
+  PORTAL_POLICIES,
+  TASK_TEMPLATE_FIELD_TYPES,
+} from "./types"
 
 export const portalPolicySchema = z.enum(PORTAL_POLICIES)
 
@@ -42,6 +46,31 @@ export const updateProjectSchema = z.object({
   dueDate: z.string().nullable().optional(),
 })
 
+export const taskTemplateFieldSchema = z
+  .object({
+    id: z.string().min(1).max(64),
+    label: z.string().trim().min(1).max(120),
+    type: z.enum(TASK_TEMPLATE_FIELD_TYPES),
+    required: z.boolean().default(false),
+    options: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
+  })
+  .superRefine((field, ctx) => {
+    if (CHOICE_FIELD_TYPES.includes(field.type) && field.options.length === 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["options"],
+        message: "Choice fields need at least one option.",
+      })
+    }
+  })
+
+export const taskTemplateFieldsSchema = z.array(taskTemplateFieldSchema).max(20)
+
+export const taskCustomFieldsSchema = z.record(
+  z.string().min(1).max(64),
+  z.union([z.string().max(2000), z.array(z.string().max(200)).max(30)])
+)
+
 export const createTaskSchema = z.object({
   projectId: z.string().min(1),
   title: z.string().min(1).max(240),
@@ -52,6 +81,8 @@ export const createTaskSchema = z.object({
   labelIds: z.array(z.string()).optional(),
   dueDate: z.string().nullable().optional(),
   endDate: z.string().nullable().optional(),
+  templateId: z.string().min(1).nullable().optional(),
+  customFields: taskCustomFieldsSchema.optional(),
 })
 
 export const updateTaskSchema = z.object({
@@ -63,6 +94,7 @@ export const updateTaskSchema = z.object({
   labelIds: z.array(z.string()).optional(),
   dueDate: z.string().nullable().optional(),
   endDate: z.string().nullable().optional(),
+  customFields: taskCustomFieldsSchema.optional(),
 })
 
 export const createTaskTemplateSchema = z.object({
@@ -72,6 +104,7 @@ export const createTaskTemplateSchema = z.object({
   status: taskStatusSchema.optional(),
   priority: taskPrioritySchema.optional(),
   labelIds: z.array(z.string()).optional(),
+  fields: taskTemplateFieldsSchema.optional(),
 })
 
 export const updateTaskTemplateSchema = z.object({
@@ -80,6 +113,7 @@ export const updateTaskTemplateSchema = z.object({
   status: taskStatusSchema.optional(),
   priority: taskPrioritySchema.optional(),
   labelIds: z.array(z.string()).optional(),
+  fields: taskTemplateFieldsSchema.optional(),
 })
 
 export const moveTaskSchema = z.object({
@@ -123,3 +157,4 @@ export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>
 export type AddLabelInput = z.infer<typeof addLabelSchema>
 export type CreateTaskTemplateInput = z.infer<typeof createTaskTemplateSchema>
 export type UpdateTaskTemplateInput = z.infer<typeof updateTaskTemplateSchema>
+export type TaskTemplateFieldInput = z.infer<typeof taskTemplateFieldSchema>

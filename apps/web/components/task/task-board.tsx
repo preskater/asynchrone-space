@@ -12,10 +12,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable"
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { CirclePlusIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -70,6 +67,7 @@ function TaskColumn({
         </div>
         <TaskFormDialog
           projectId={projectId}
+          quickTask
           trigger={
             <Button
               variant="ghost"
@@ -170,7 +168,7 @@ export function TaskBoard({
       </div>
       <DragOverlay>
         {activeTask ? (
-          <div className="w-72 rounded-xl bg-card p-3 ring-1 ring-foreground/10 shadow-lg">
+          <div className="w-72 rounded-xl bg-card p-3 shadow-lg ring-1 ring-foreground/10">
             <TaskCardContent task={activeTask} dragging />
           </div>
         ) : null}

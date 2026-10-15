@@ -1,9 +1,4 @@
-export type TaskStatus =
-  | "backlog"
-  | "todo"
-  | "in_progress"
-  | "review"
-  | "done"
+export type TaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done"
 
 export type TaskPriority = "low" | "medium" | "high" | "urgent"
 
@@ -25,6 +20,50 @@ export interface Label {
   color: string
 }
 
+export const TASK_TEMPLATE_FIELD_TYPES = [
+  "text",
+  "textarea",
+  "select",
+  "radio",
+  "checkbox",
+  "date",
+] as const
+
+export type TaskTemplateFieldType = (typeof TASK_TEMPLATE_FIELD_TYPES)[number]
+
+/** Input types with a fixed list of options. */
+export const CHOICE_FIELD_TYPES: TaskTemplateFieldType[] = [
+  "select",
+  "radio",
+  "checkbox",
+]
+
+/**
+ * One custom input of a task template. The default task fields (title,
+ * description, status, …) are always shown; these extend the form.
+ */
+export interface TaskTemplateField {
+  /** Stable key used to store the value on the task. */
+  id: string
+  label: string
+  type: TaskTemplateFieldType
+  required: boolean
+  options: string[]
+}
+
+/** Custom field values of a task, keyed by `TaskTemplateField.id`. */
+export type TaskCustomFieldValue = string | string[]
+export type TaskCustomFieldValues = Record<string, TaskCustomFieldValue>
+
+/** True when a custom field value holds nothing (blank text, empty list). */
+export function isEmptyTaskCustomFieldValue(
+  value: TaskCustomFieldValue | undefined
+): boolean {
+  if (value === undefined) return true
+  if (typeof value === "string") return value.trim() === ""
+  return value.length === 0
+}
+
 export interface TaskTemplate {
   id: string
   projectId: string
@@ -33,6 +72,7 @@ export interface TaskTemplate {
   status: TaskStatus
   priority: TaskPriority
   labelIds: string[]
+  fields: TaskTemplateField[]
 }
 
 export interface Subtask {
@@ -62,6 +102,10 @@ export interface Task {
   labelIds: string[]
   dueDate?: string
   endDate?: string
+  /** Template this task was created from, if any. */
+  templateId?: string
+  /** Values for the template's custom fields. */
+  customFields: TaskCustomFieldValues
   createdAt: string
   subtasks: Subtask[]
   comments: Comment[]

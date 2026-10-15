@@ -140,7 +140,9 @@ export function ProjectStoreProvider({
 }) {
   const t = useTranslations("Toasts")
   const te = useErrorTranslator()
-  const [projects, setProjects] = React.useState<Project[]>(initialData.projects)
+  const [projects, setProjects] = React.useState<Project[]>(
+    initialData.projects
+  )
   const [tasks, setTasks] = React.useState<Task[]>(initialData.tasks)
   const [members, setMembers] = React.useState<Member[]>(initialData.members)
   const [labels, setLabels] = React.useState<Label[]>(initialData.labels)
@@ -247,7 +249,9 @@ export function ProjectStoreProvider({
       deleteProject: (id) => {
         setProjects((prev) => prev.filter((project) => project.id !== id))
         setTasks((prev) => prev.filter((task) => task.projectId !== id))
-        setTemplates((prev) => prev.filter((template) => template.projectId !== id))
+        setTemplates((prev) =>
+          prev.filter((template) => template.projectId !== id)
+        )
         setActivities((prev) =>
           prev.filter((activity) => activity.projectId !== id)
         )
@@ -272,6 +276,8 @@ export function ProjectStoreProvider({
           labelIds: input.labelIds ?? [],
           dueDate: input.dueDate ?? undefined,
           endDate: input.endDate ?? undefined,
+          templateId: input.templateId ?? undefined,
+          customFields: input.customFields ?? {},
           createdAt: new Date().toISOString(),
           subtasks: [],
           comments: [],
@@ -476,6 +482,7 @@ export function ProjectStoreProvider({
           status: input.status ?? "todo",
           priority: input.priority ?? "medium",
           labelIds: input.labelIds ?? [],
+          fields: input.fields ?? [],
         }
         setTemplates((prev) => [...prev, optimistic])
         void createTaskTemplateAction(input)
@@ -501,6 +508,7 @@ export function ProjectStoreProvider({
                   ...template,
                   ...input,
                   description: input.description ?? undefined,
+                  fields: input.fields ?? template.fields,
                 }
               : template
           )
@@ -525,7 +533,16 @@ export function ProjectStoreProvider({
           .catch((error) => toast.error(te(error, "deleteFailed")))
       },
     }
-  }, [projects, tasks, members, labels, templates, activities, currentUserId, pushActivity])
+  }, [
+    projects,
+    tasks,
+    members,
+    labels,
+    templates,
+    activities,
+    currentUserId,
+    pushActivity,
+  ])
 
   return (
     <ProjectStoreContext.Provider value={store}>
@@ -537,7 +554,9 @@ export function ProjectStoreProvider({
 export function useProjectStore() {
   const context = React.useContext(ProjectStoreContext)
   if (!context) {
-    throw new Error("useProjectStore must be used within a ProjectStoreProvider")
+    throw new Error(
+      "useProjectStore must be used within a ProjectStoreProvider"
+    )
   }
   return context
 }

@@ -154,6 +154,8 @@ export class ProjectRepository {
     assigneeId?: string | null
     dueDate?: Date | null
     endDate?: Date | null
+    templateId?: string | null
+    customFields?: unknown
     order: number
     labelIds: string[]
   }) {
@@ -169,6 +171,8 @@ export class ProjectRepository {
         assigneeId: data.assigneeId ?? null,
         dueDate: data.dueDate ?? null,
         endDate: data.endDate ?? null,
+        templateId: data.templateId ?? null,
+        customFields: (data.customFields ?? {}) as never,
         order: data.order,
         labels: {
           create: data.labelIds.map((labelId) => ({ labelId })),
@@ -192,11 +196,18 @@ export class ProjectRepository {
       assigneeId?: string | null
       dueDate?: Date | null
       endDate?: Date | null
+      customFields?: unknown
     }
   ) {
     return this.db.task.update({
       where: { id },
-      data,
+      data: {
+        ...data,
+        customFields:
+          data.customFields === undefined
+            ? undefined
+            : (data.customFields as never),
+      },
       include: {
         subtasks: { orderBy: { order: "asc" } },
         comments: { orderBy: { createdAt: "asc" } },
@@ -304,8 +315,11 @@ export class ProjectRepository {
     status?: string
     priority?: string
     labelIds: string[]
+    fields?: unknown
   }) {
-    return this.db.taskTemplate.create({ data })
+    return this.db.taskTemplate.create({
+      data: { ...data, fields: data.fields as never },
+    })
   }
 
   updateTemplate(
@@ -316,9 +330,16 @@ export class ProjectRepository {
       status?: string
       priority?: string
       labelIds?: string[]
+      fields?: unknown
     }
   ) {
-    return this.db.taskTemplate.update({ where: { id }, data })
+    return this.db.taskTemplate.update({
+      where: { id },
+      data: {
+        ...data,
+        fields: data.fields === undefined ? undefined : (data.fields as never),
+      },
+    })
   }
 
   deleteTemplate(id: string) {

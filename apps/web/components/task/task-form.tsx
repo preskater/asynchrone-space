@@ -21,21 +21,48 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select"
+import { Separator } from "@workspace/ui/components/separator"
 import { Textarea } from "@workspace/ui/components/textarea"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 
 import { useProjectStore, type CreateTaskInput } from "@/lib/projects/store"
 import { useEnumLabel } from "@/lib/i18n/labels"
 import {
+  isEmptyTaskCustomFieldValue,
   TASK_PRIORITY_VALUES,
   TASK_STATUS_VALUES,
   type Task,
+  type TaskCustomFieldValue,
+  type TaskCustomFieldValues,
   type TaskPriority,
   type TaskStatus,
   type TaskTemplate,
+  type TaskTemplateField,
 } from "@/lib/projects/types"
 
 export interface TaskFormValue extends CreateTaskInput {}
+
+/** Keep only the answered custom fields, trimmed. */
+function customFieldPayload(
+  fields: TaskTemplateField[],
+  values: TaskCustomFieldValues
+): TaskCustomFieldValues {
+  const payload: TaskCustomFieldValues = {}
+  for (const field of fields) {
+    const value = values[field.id]
+    if (value === undefined) continue
+    if (typeof value === "string") {
+      const trimmed = value.trim()
+      if (trimmed !== "") payload[field.id] = trimmed
+    } else if (value.length > 0) {
+      payload[field.id] = value
+    }
+  }
+  return payload
+}
 
 export function TaskForm({
   projectId,
@@ -57,6 +84,7 @@ export function TaskForm({
     value,
   }))
   const { labels } = useProjectStore()
+  const fields = template?.fields ?? []
   const [title, setTitle] = React.useState(task?.title ?? "")
   const [description, setDescription] = React.useState(
     task?.description ?? template?.description ?? ""
@@ -73,10 +101,36 @@ export function TaskForm({
   const [labelIds, setLabelIds] = React.useState<string[]>(
     task?.labelIds ?? template?.labelIds ?? []
   )
-  const [dueDate, setDueDate] = React.useState<string | undefined>(task?.dueDate)
-  const [endDate, setEndDate] = React.useState<string | undefined>(task?.endDate)
+  const [dueDate, setDueDate] = React.useState<string | undefined>(
+    task?.dueDate
+  )
+  const [endDate, setEndDate] = React.useState<string | undefined>(
+    task?.endDate
+  )
+  const [customValues, setCustomValues] = React.useState<TaskCustomFieldValues>(
+    () => ({ ...(task?.customFields ?? {}) })
+  )
   const [submitted, setSubmitted] = React.useState(false)
   const titleInvalid = submitted && !title.trim()
+
+  function setCustomValue(
+    fieldId: string,
+    value: TaskCustomFieldValue | undefined
+  ) {
+    setCustomValues((prev) => {
+      const next = { ...prev }
+      const empty =
+        value === undefined ||
+        (typeof value === "string" && value.trim() === "") ||
+        (Array.isArray(value) && value.length === 0)
+      if (empty) {
+        delete next[fieldId]
+      } else {
+        next[fieldId] = value
+      }
+      return next
+    })
+  }
 
   return (
     <form
@@ -86,6 +140,18 @@ export function TaskForm({
         event.preventDefault()
         setSubmitted(true)
         if (!title.trim()) return
+        if (
+          fields.some(
+            (field) =>
+              field.required &&
+              isEmptyTaskCustomFieldValue(customValues[field.id])
+          )
+        ) {
+          return
+        }
+        const answered = fields.filter(
+          (field) => !isEmptyTaskCustomFieldValue(customValues[field.id])
+        )
         onSubmit({
           projectId,
           title: title.trim(),
@@ -96,6 +162,10 @@ export function TaskForm({
           labelIds,
           dueDate,
           endDate,
+          customFields:
+            fields.length > 0
+              ? customFieldPayload(answered, customValues)
+              : undefined,
         })
       }}
     >
@@ -110,9 +180,7 @@ export function TaskForm({
             aria-invalid={titleInvalid}
             autoFocus
           />
-          {titleInvalid ? (
-            <FieldError>{t("titleRequired")}</FieldError>
-          ) : null}
+          {titleInvalid ? <FieldError>{t("titleRequired")}</FieldError> : null}
         </Field>
         <Field>
           <FieldLabel htmlFor={`${formId}-description`}>
@@ -148,7 +216,9 @@ export function TaskForm({
             </Select>
           </Field>
           <Field>
-            <FieldLabel htmlFor={`${formId}-assignee`}>{t("assignee")}</FieldLabel>
+            <FieldLabel htmlFor={`${formId}-assignee`}>
+              {t("assignee")}
+            </FieldLabel>
             <MemberPicker
               value={assigneeId}
               onChange={setAssigneeId}
@@ -157,7 +227,9 @@ export function TaskForm({
           </Field>
         </div>
         <Field>
-          <FieldLabel htmlFor={`${formId}-priority`}>{t("priority")}</FieldLabel>
+          <FieldLabel htmlFor={`${formId}-priority`}>
+            {t("priority")}
+          </FieldLabel>
           <ToggleGroup
             value={[priority]}
             onValueChange={(value) =>
@@ -215,7 +287,137 @@ export function TaskForm({
             <DatePicker value={endDate} onChange={setEndDate} />
           </Field>
         </div>
+        {fields.length > 0 ? (
+          <>
+            <Separator />
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              {t("customFields")}
+            </p>
+            {fields.map((field) => (
+              <TaskCustomFieldInput
+                key={field.id}
+                formId={formId}
+                field={field}
+                value={customValues[field.id]}
+                invalid={
+                  submitted &&
+                  field.required &&
+                  isEmptyTaskCustomFieldValue(customValues[field.id])
+                }
+                onChange={(value) => setCustomValue(field.id, value)}
+              />
+            ))}
+          </>
+        ) : null}
       </FieldGroup>
     </form>
+  )
+}
+
+/** One custom template field, rendered by its configured input type. */
+function TaskCustomFieldInput({
+  formId,
+  field,
+  value,
+  invalid,
+  onChange,
+}: {
+  formId: string
+  field: TaskTemplateField
+  value?: TaskCustomFieldValue
+  invalid: boolean
+  onChange: (value: TaskCustomFieldValue | undefined) => void
+}) {
+  const t = useTranslations("Projects")
+  const id = `${formId}-${field.id}`
+  const textValue = typeof value === "string" ? value : ""
+
+  return (
+    <Field data-invalid={invalid}>
+      <FieldLabel htmlFor={id}>
+        {field.label}
+        {field.required ? <span aria-hidden> *</span> : null}
+      </FieldLabel>
+      {field.type === "text" ? (
+        <Input
+          id={id}
+          value={textValue}
+          aria-invalid={invalid}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : field.type === "textarea" ? (
+        <Textarea
+          id={id}
+          value={textValue}
+          aria-invalid={invalid}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      ) : field.type === "select" ? (
+        <Select
+          items={field.options.map((option) => ({
+            value: option,
+            label: option,
+          }))}
+          value={textValue || null}
+          onValueChange={(next) => onChange((next as string) ?? undefined)}
+        >
+          <SelectTrigger id={id} className="w-full" aria-invalid={invalid}>
+            <SelectValue placeholder={t("selectPlaceholder")} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {field.options.map((option) => (
+                <SelectItem key={option} value={option}>
+                  {option}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+      ) : field.type === "radio" ? (
+        <ToggleGroup
+          value={textValue ? [textValue] : []}
+          onValueChange={(next) => onChange(next[0])}
+          spacing={2}
+          className="flex-wrap"
+        >
+          {field.options.map((option) => (
+            <ToggleGroupItem
+              key={option}
+              value={option}
+              variant="outline"
+              size="sm"
+            >
+              {option}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : field.type === "checkbox" ? (
+        <ToggleGroup
+          multiple
+          value={Array.isArray(value) ? value : []}
+          onValueChange={(next) => onChange(next as string[])}
+          spacing={2}
+          className="flex-wrap"
+        >
+          {field.options.map((option) => (
+            <ToggleGroupItem
+              key={option}
+              value={option}
+              variant="outline"
+              size="sm"
+            >
+              {option}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      ) : (
+        <DatePicker
+          value={textValue || undefined}
+          onChange={(next) => onChange(next)}
+        />
+      )}
+      {invalid ? <FieldError>{t("fieldRequiredError")}</FieldError> : null}
+    </Field>
   )
 }
