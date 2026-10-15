@@ -52,3 +52,58 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Unit tests
+        run: npm run test:unit --workspace=web
+
+  e2e:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: preskater
+          POSTGRES_PASSWORD: preskater
+          POSTGRES_DB: preskater
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U preskater"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://preskater:preskater@localhost:5432/preskater?schema=public
+      BETTER_AUTH_SECRET: ci-e2e-secret-placeholder-value
+      BETTER_AUTH_URL: http://localhost:3000
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Node
+        uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 26.10.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run generate --workspace=web
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+        working-directory: apps/web
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      - name: E2E + accessibility
+        run: npm run test:e2e --workspace=web
