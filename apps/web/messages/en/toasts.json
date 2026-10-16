@@ -96,5 +96,7 @@
   "repositoryConnected": "Repository connected.",
   "repositorySyncDone": "Repository synced.",
   "repositoryDisconnected": "Repository disconnected.",
-  "repositoryValueCopied": "Copied to clipboard."
+  "repositoryValueCopied": "Copied to clipboard.",
+  "repositoryTokenSaved": "Token saved.",
+  "repositoryTokenRemoved": "Token removed."
 }

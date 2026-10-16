@@ -34,5 +34,14 @@
   "unlink": "Délier",
   "linkFailed": "Impossible de lier le compte.",
   "unlinkFailed": "Impossible de délier le compte.",
-  "accountUnlinked": "Compte délié."
+  "accountUnlinked": "Compte délié.",
+  "repositoryAccess": "Accès aux dépôts",
+  "repositoryAccessDescription": "Jetons personnels utilisés pour créer et modifier des issues et pull requests en votre nom.",
+  "tokenConfigured": "Configuré",
+  "tokenNotConfigured": "Non configuré",
+  "tokenPlaceholder": "ghp_… / glpat-…",
+  "saveToken": "Enregistrer",
+  "replaceToken": "Remplacer",
+  "removeToken": "Retirer",
+  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés."
 }

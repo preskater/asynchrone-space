@@ -21,12 +21,14 @@ export {
   RepositoryWebhookHandler,
 }
 export * from "./schemas"
-export { REPOSITORY_PROVIDERS } from "./types"
+export { REPOSITORY_PROVIDERS, repositoryProviderLabel } from "./types"
 export type {
   ConnectRepositoryInput,
   ConnectRepositoryResult,
   RepositoryConnectionView,
   RepositoryProvider,
   RepositorySyncSummary,
+  SetUserRepositoryTokenInput,
+  TaskExternalLink,
+  UserRepositoryTokenStatus,
 } from "./types"
-export type { TaskSyncUpdate } from "./service"

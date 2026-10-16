@@ -36,6 +36,27 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/** Runs a promise expecting a coded rejection and asserts the error code. */
+async function assertRejects(
+  promise: Promise<unknown>,
+  expectedCode: string,
+  message: string
+) {
+  try {
+    await promise
+  } catch (error) {
+    const code = (error as { code?: string } | null)?.code
+    if (code !== expectedCode) {
+      throw new Error(
+        `✗ ${message} (expected ${expectedCode}, got ${code ?? "no code"}: ${String(error)})`
+      )
+    }
+    console.log(`✓ ${message}`)
+    return
+  }
+  throw new Error(`✗ ${message} (no error was thrown)`)
+}
+
 // ---------------------------------------------------------------------------
 // Mock GitHub + GitLab API
 // ---------------------------------------------------------------------------
@@ -104,6 +125,20 @@ class MockRepositoryServer {
     const body = await this.readBody(req)
     this.requests.push(`${req.method} ${url.pathname}${url.search}`)
     const path = decodeURIComponent(url.pathname)
+
+    // Token simulation: `denied-token` has no repository access at all and
+    // `flaky-token` can read but not create issues (server error).
+    const presented = `${req.headers.authorization ?? ""} ${req.headers["private-token"] ?? ""}`
+    if (presented.includes("denied-token")) {
+      return this.json(res, 403, { message: "Forbidden" })
+    }
+    if (
+      presented.includes("flaky-token") &&
+      req.method === "POST" &&
+      path.endsWith("/issues")
+    ) {
+      return this.json(res, 500, { message: "Server Error" })
+    }
 
     // --- GitHub (baseUrl http://host:port -> /api/v3) -------------------
     const gh = "/api/v3"
@@ -315,15 +350,44 @@ async function main() {
     const webhookHandler = new RepositoryWebhookHandler(connectionRepo, prisma)
     const projectService = new ProjectService(new ProjectRepository(prisma), prisma)
 
-    // 1. Connect: imports existing issues, reports existing tasks.
+    // 1. Token gating: connecting requires the admin's own token, and the
+    // token must actually grant access to the repository.
+    await assertRejects(
+      service.connect(ctx, {
+        projectId: project.id,
+        provider: "github",
+        owner: "acme",
+        repo: "widget",
+        baseUrl,
+      }),
+      "repository_user_token_missing",
+      "connect without a profile token is rejected"
+    )
+    await service.setUserToken(ctx, { provider: "github", token: "denied-token" })
+    await assertRejects(
+      service.connect(ctx, {
+        projectId: project.id,
+        provider: "github",
+        owner: "acme",
+        repo: "widget",
+        baseUrl,
+      }),
+      "repository_access_denied",
+      "connect with a token that cannot access the repo is rejected"
+    )
+
+    // 2. Connect with a working token: imports issues, reports local tasks.
     const remoteA = mock.seedIssue("Imported issue A", "A body")
     const remoteB = mock.seedIssue("Imported issue B", "")
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "ghp_verify_token",
+    })
     const connectResult = await service.connect(ctx, {
       projectId: project.id,
       provider: "github",
       owner: "acme",
       repo: "widget",
-      accessToken: "ghp_verify_token",
       baseUrl,
     })
     assert(connectResult.summary.issuesImported === 2, "connect imports 2 issues")
@@ -348,13 +412,52 @@ async function main() {
       "local task was reported as a new issue"
     )
 
-    const stored = await connectionRepo.findById(connectResult.connection.id)
+    const storedToken = await prisma.userRepositoryToken.findUnique({
+      where: {
+        userId_provider: { userId: user.id, provider: "github" },
+      },
+    })
     assert(
-      !!stored && stored.accessToken !== "ghp_verify_token",
-      "access token is encrypted at rest"
+      !!storedToken && storedToken.accessToken !== "ghp_verify_token",
+      "user token is encrypted at rest"
     )
 
-    // 2. Editing a task pushes the change to its issue (debounced).
+    // 3. Creation gating: no token / no repo access / provider failure all
+    // block the task and leave nothing behind.
+    const taskCountBefore = await prisma.task.count({
+      where: { projectId: project.id },
+    })
+    await service.removeUserToken(ctx, "github")
+    await assertRejects(
+      projectService.createTask(ctx, { projectId: project.id, title: "No token" }),
+      "repository_user_token_missing",
+      "creating a task without a profile token is rejected"
+    )
+    await service.setUserToken(ctx, { provider: "github", token: "denied-token" })
+    await assertRejects(
+      projectService.createTask(ctx, { projectId: project.id, title: "Denied" }),
+      "repository_access_denied",
+      "creating a task without repo access is rejected"
+    )
+    await service.setUserToken(ctx, { provider: "github", token: "flaky-token" })
+    await assertRejects(
+      projectService.createTask(ctx, { projectId: project.id, title: "Flaky" }),
+      "repository_issue_create_failed",
+      "a provider failure blocks the task creation"
+    )
+    const taskCountAfter = await prisma.task.count({
+      where: { projectId: project.id },
+    })
+    assert(
+      taskCountBefore === taskCountAfter,
+      "blocked creations do not leave a task behind"
+    )
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "ghp_verify_token",
+    })
+
+    // 4. Editing a task pushes the change to its issue (debounced).
     await projectService.updateTask(ctx, importedA.id, {
       title: "Renamed locally",
       description: "Updated description",
@@ -369,7 +472,7 @@ async function main() {
       "task edit reached the issue body"
     )
 
-    // 3. Moving to review creates a draft PR from a presk/ branch.
+    // 5. Moving to review creates a draft PR from a presk/ branch.
     await projectService.moveTask(ctx, importedA.id, { status: "review" })
     await sleep(100)
     const reviewed = await prisma.task.findUniqueOrThrow({
@@ -390,7 +493,7 @@ async function main() {
       "pull request was opened"
     )
 
-    // 4. A closed issue marks the task done (verified webhook).
+    // 6. A closed issue marks the task done (verified webhook).
     const closedPayload = JSON.stringify({
       action: "closed",
       repository: { full_name: "acme/widget" },
@@ -420,7 +523,7 @@ async function main() {
     })
     assert(afterClose.status === "done", "closed issue marked the task done")
 
-    // 5. An invalid signature is rejected.
+    // 7. An invalid signature is rejected.
     const rejected = await webhookHandler.handle({
       connectionId: connectResult.connection.id,
       headers: new Headers({
@@ -431,7 +534,7 @@ async function main() {
     })
     assert(rejected.status === 401, "invalid signature rejected")
 
-    // 6. A PR opened against an issue moves the task to review.
+    // 8. A PR opened against an issue moves the task to review.
     const prPayload = JSON.stringify({
       action: "opened",
       repository: { full_name: "acme/widget" },
@@ -469,7 +572,7 @@ async function main() {
       "opened PR moved the task to review and linked it"
     )
 
-    // 7. Merging the PR completes the task; reopening the issue reopens it.
+    // 9. Merging the PR completes the task; reopening the issue reopens it.
     const mergedPayload = JSON.stringify({
       action: "closed",
       repository: { full_name: "acme/widget" },
@@ -537,7 +640,7 @@ async function main() {
       "reopened issue moved the task back to todo"
     )
 
-    // 8. New tasks are reported immediately (no debounce).
+    // 10. New tasks are reported immediately (no debounce).
     const created = await projectService.createTask(ctx, {
       projectId: project.id,
       title: "Created locally",
@@ -550,18 +653,21 @@ async function main() {
       "new task was reported as an issue"
     )
 
-    // 9. GitLab: connect, MR webhook with token verification
+    // 11. GitLab: connect, MR webhook with token verification
     // (covers the second provider adapter end to end).
     const gitlabProject = await prisma.project.create({
       data: { organizationId: orgId, name: "Gitlab Verify" },
     })
     const gitlabIssue = mock.seedIssue("GitLab native issue", "body")
+    await service.setUserToken(ctx, {
+      provider: "gitlab",
+      token: "glpat-verify-token",
+    })
     const gitlabConnect = await service.connect(ctx, {
       projectId: gitlabProject.id,
       provider: "gitlab",
       owner: "acme",
       repo: "gitlab-widget",
-      accessToken: "glpat-verify-token",
       baseUrl,
     })
     assert(
@@ -617,7 +723,7 @@ async function main() {
       "GitLab MR moved the task to review"
     )
 
-    // 11. Disconnect stops syncing but keeps historical links.
+    // 12. Disconnect stops syncing but keeps historical links.
     await service.disconnect(ctx, project.id)
     const disconnected = await service.getConnection(ctx, project.id)
     assert(disconnected === null, "disconnect removes the connection")

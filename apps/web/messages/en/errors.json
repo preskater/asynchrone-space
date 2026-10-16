@@ -45,6 +45,9 @@
   "repositoryAlreadyConnected": "This repository is already connected to another project.",
   "repositoryConnectFailed": "Could not reach the repository. Check the owner, name and access token.",
   "repositoryNotConnected": "This project has no repository connected.",
+  "repositoryUserTokenMissing": "Add your {provider} access token in your profile before doing this.",
+  "repositoryAccessDenied": "Your token does not give you access to this repository.",
+  "repositoryIssueCreateFailed": "Could not create the issue in the repository. Please try again.",
   "validationMessages": {
     "required": "This field is required.",
     "email": "Please enter a valid email address.",

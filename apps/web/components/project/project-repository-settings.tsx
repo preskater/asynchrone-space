@@ -15,14 +15,17 @@ import {
   connectRepositoryAction,
   disconnectRepositoryAction,
   getRepositoryConnectionAction,
+  listUserRepositoryTokensAction,
   syncRepositoryAction,
 } from "@/actions/integrations"
+import { Link } from "@/i18n/navigation"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
 import type {
   RepositoryConnectionView,
   RepositoryProvider,
   RepositorySyncSummary,
+  UserRepositoryTokenStatus,
 } from "@/lib/integrations/types"
 import { REPOSITORY_PROVIDERS } from "@/lib/integrations/types"
 import { formatDate, type Project } from "@/lib/projects/types"
@@ -105,18 +108,38 @@ function ConnectRepositoryForm({
   const [provider, setProvider] = React.useState<RepositoryProvider>("github")
   const [owner, setOwner] = React.useState("")
   const [repo, setRepo] = React.useState("")
-  const [accessToken, setAccessToken] = React.useState("")
   const [baseUrl, setBaseUrl] = React.useState("")
   const [busy, setBusy] = React.useState(false)
+  const [tokens, setTokens] = React.useState<UserRepositoryTokenStatus | null>(
+    null
+  )
+
+  React.useEffect(() => {
+    let active = true
+    async function load() {
+      try {
+        const status = unwrapActionResult(
+          await listUserRepositoryTokensAction()
+        )
+        if (active) setTokens(status)
+      } catch {
+        if (active) setTokens(null)
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const providerItems = REPOSITORY_PROVIDERS.map((value) => ({
     value,
     label: PROVIDER_NAMES[value],
   }))
-  const canSubmit =
-    owner.trim().length > 0 &&
-    repo.trim().length > 0 &&
-    accessToken.trim().length > 0
+  const canSubmit = owner.trim().length > 0 && repo.trim().length > 0
+  const providerLabel = PROVIDER_NAMES[provider]
+  const hasToken = tokens?.[provider] ?? true
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
@@ -129,11 +152,9 @@ function ConnectRepositoryForm({
           provider,
           owner: owner.trim(),
           repo: repo.trim(),
-          accessToken: accessToken.trim(),
           baseUrl: baseUrl.trim() || undefined,
         })
       )
-      setAccessToken("")
       onConnected(result.connection, result.summary)
       toast.success(tT("repositoryConnected"))
     } catch (error) {
@@ -200,19 +221,6 @@ function ConnectRepositoryForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="repository-token">
-                {t("repositoryToken")}
-              </FieldLabel>
-              <Input
-                id="repository-token"
-                type="password"
-                autoComplete="off"
-                value={accessToken}
-                onChange={(event) => setAccessToken(event.target.value)}
-                placeholder={t("repositoryTokenPlaceholder")}
-              />
-            </Field>
-            <Field>
               <FieldLabel htmlFor="repository-base-url">
                 {t("repositoryBaseUrl")}
               </FieldLabel>
@@ -226,7 +234,20 @@ function ConnectRepositoryForm({
                 {t("repositoryBaseUrlHint")}
               </FieldDescription>
             </Field>
-            <FieldDescription>{t("repositoryTokenHint")}</FieldDescription>
+            <FieldDescription>
+              {t("repositoryProfileTokenHint", { provider: providerLabel })}
+            </FieldDescription>
+            {!hasToken ? (
+              <p className="text-sm text-destructive">
+                {t("repositoryNoUserToken", { provider: providerLabel })}{" "}
+                <Link
+                  href="/settings/account"
+                  className="underline underline-offset-4"
+                >
+                  {t("repositoryGoToAccount")}
+                </Link>
+              </p>
+            ) : null}
             <Field orientation="horizontal">
               <Button type="submit" disabled={!canSubmit || busy}>
                 {busy ? <Spinner /> : null}

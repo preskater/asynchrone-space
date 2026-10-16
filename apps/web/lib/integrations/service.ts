@@ -1,4 +1,5 @@
 import {
+  AppError,
   ConflictError,
   ForbiddenError,
   NotFoundError,
@@ -9,34 +10,31 @@ import type { PrismaClient } from "@/lib/generated/prisma/client"
 import { ROLE_RANK } from "@/lib/organization/roles"
 
 import { decryptSecret, encryptSecret, generateWebhookSecret } from "./crypto"
-import { createProviderClient } from "./providers"
+import { createProviderClient, RepositoryApiError } from "./providers"
 import type {
   RepositoryConnectionRepository,
   RepositoryConnectionRow,
 } from "./repository"
 import {
+  buildProviderClient,
   closeIssueForTask,
   ensurePullRequestForTask,
-  issueStateForStatus,
-  pushNewTask,
+  parseRemoteDate,
   pushTaskContent,
   pushTaskState,
   syncConnection,
 } from "./sync"
-import type {
-  ConnectRepositoryInput,
-  ConnectRepositoryResult,
-  RepositoryConnectionView,
-  RepositoryProvider,
-  RepositorySyncSummary,
+import {
+  repositoryProviderLabel,
+  type ConnectRepositoryInput,
+  type ConnectRepositoryResult,
+  type RepositoryConnectionView,
+  type RepositoryProvider,
+  type RepositorySyncSummary,
+  type SetUserRepositoryTokenInput,
+  type TaskExternalLink,
+  type UserRepositoryTokenStatus,
 } from "./types"
-
-/** Fields of a task write that the repository sync cares about. */
-export interface TaskSyncUpdate {
-  title?: boolean
-  description?: boolean
-  status?: { from: string; to: string }
-}
 
 /**
  * The task panel persists title/description per keystroke; remote content
@@ -46,11 +44,31 @@ export interface TaskSyncUpdate {
 const CONTENT_PUSH_DEBOUNCE_MS = 2_000
 
 /**
+ * Maps a provider rejection to a user-facing access error. Returns null for
+ * transient failures (outages, rate limits, bugs), which callers treat as
+ * best-effort.
+ */
+function repositoryAccessError(error: unknown): AppError | null {
+  if (
+    error instanceof RepositoryApiError &&
+    (error.status === 401 || error.status === 403 || error.status === 404)
+  ) {
+    return new ForbiddenError(
+      "Your token does not give you access to this repository.",
+      { code: "repository_access_denied" }
+    )
+  }
+  return null
+}
+
+/**
  * Two-way sync between project tasks and GitHub/GitLab issues.
  *
- * Repository writes triggered by user actions are best effort: a GitHub
- * outage must never fail the local task edit. The hooks therefore log and
- * swallow provider errors; explicit "Sync now"/connect runs surface them.
+ * Provider calls run with the acting user's personal token (saved in their
+ * profile), so issues and pull requests are authored by and attributed to
+ * them, and users without repository access are rejected by the provider.
+ * Access failures surface on create/move/delete; transient failures are
+ * logged and reconciled by the next sync.
  */
 export class RepositoryIntegrationService {
   private readonly contentPushTimers = new Map<
@@ -97,28 +115,96 @@ export class RepositoryIntegrationService {
     }
   }
 
-  /**
-   * Token used for provider calls: the acting user's linked account wins so
-   * their avatar signs the issue/PR, otherwise the connection token (always
-   * used by webhooks and scheduled syncs, which have no user).
-   */
-  private async resolveToken(
-    connection: RepositoryConnectionRow,
-    actorUserId?: string
-  ): Promise<string> {
-    if (actorUserId) {
-      const account = await this.db.account.findFirst({
-        where: {
-          userId: actorUserId,
-          providerId: connection.provider,
-          accessToken: { not: null },
-        },
-        orderBy: { updatedAt: "desc" },
-        select: { accessToken: true },
-      })
-      if (account?.accessToken) return account.accessToken
+  // -------------------------------------------------------------------------
+  // Personal tokens (Account settings)
+  // -------------------------------------------------------------------------
+
+  /** Which providers the current user has a personal token for. */
+  async listUserTokens(
+    ctx: RequestContext
+  ): Promise<UserRepositoryTokenStatus> {
+    const rows = await this.db.userRepositoryToken.findMany({
+      where: { userId: ctx.userId },
+      select: { provider: true },
+    })
+    return {
+      github: rows.some((row) => row.provider === "github"),
+      gitlab: rows.some((row) => row.provider === "gitlab"),
     }
-    return decryptSecret(connection.accessToken)
+  }
+
+  /** Stores (or replaces) the user's personal access token for a provider. */
+  async setUserToken(
+    ctx: RequestContext,
+    input: SetUserRepositoryTokenInput
+  ): Promise<{ provider: RepositoryProvider; configured: true }> {
+    const accessToken = encryptSecret(input.token)
+    await this.db.userRepositoryToken.upsert({
+      where: {
+        userId_provider: { userId: ctx.userId, provider: input.provider },
+      },
+      update: { accessToken },
+      create: {
+        userId: ctx.userId,
+        provider: input.provider,
+        accessToken,
+      },
+    })
+    return { provider: input.provider, configured: true }
+  }
+
+  async removeUserToken(
+    ctx: RequestContext,
+    provider: RepositoryProvider
+  ): Promise<{ provider: RepositoryProvider; configured: false }> {
+    await this.db.userRepositoryToken.deleteMany({
+      where: { userId: ctx.userId, provider },
+    })
+    return { provider, configured: false }
+  }
+
+  /**
+   * The credential behind everything a user does on a repository: their
+   * saved personal token, falling back to a linked OAuth account token.
+   */
+  private async resolveUserToken(
+    userId: string,
+    provider: RepositoryProvider
+  ): Promise<string | null> {
+    const credential = await this.db.userRepositoryToken.findUnique({
+      where: { userId_provider: { userId, provider } },
+    })
+    if (credential?.accessToken) {
+      try {
+        return decryptSecret(credential.accessToken)
+      } catch (error) {
+        console.error("[repository-sync] cannot decrypt user token", error)
+        return null
+      }
+    }
+    const account = await this.db.account.findFirst({
+      where: { userId, providerId: provider, accessToken: { not: null } },
+      orderBy: { updatedAt: "desc" },
+      select: { accessToken: true },
+    })
+    return account?.accessToken ?? null
+  }
+
+  /** Like `resolveUserToken`, but throws a clear error when none is saved. */
+  private async requireUserToken(
+    userId: string,
+    provider: RepositoryProvider
+  ): Promise<string> {
+    const token = await this.resolveUserToken(userId, provider)
+    if (!token) {
+      const label = repositoryProviderLabel(provider)
+      throw new ValidationError(
+        `Add your ${label} access token in your profile before doing this.`,
+        undefined,
+        { code: "repository_user_token_missing", params: { provider: label } }
+      )
+    }
+    return token
   }
 
   /** Runs a repository write without letting provider errors break the caller. */
@@ -131,7 +217,7 @@ export class RepositoryIntegrationService {
   }
 
   /** Coalesces per-keystroke content edits into a single remote push. */
-  private scheduleContentPush(taskId: string, actorUserId: string) {
+  scheduleContentPush(actorUserId: string, taskId: string) {
     const previous = this.contentPushTimers.get(taskId)
     if (previous) clearTimeout(previous)
     const timer = setTimeout(() => {
@@ -144,7 +230,11 @@ export class RepositoryIntegrationService {
           task.projectId
         )
         if (!connection) return
-        const token = await this.resolveToken(connection, actorUserId)
+        const token = await this.resolveUserToken(
+          actorUserId,
+          connection.provider as RepositoryProvider
+        )
+        if (!token) return
         await pushTaskContent(this.db, connection, task, token)
       })
     }, CONTENT_PUSH_DEBOUNCE_MS)
@@ -193,19 +283,22 @@ export class RepositoryIntegrationService {
       )
     }
 
-    // Validate the credentials and the repository before storing anything.
+    // The connecting user's own token proves access and powers the backfill.
+    const token = await this.requireUserToken(ctx.userId, input.provider)
     const probe = createProviderClient({
       provider: input.provider,
       baseUrl,
       owner,
       repo,
-      accessToken: input.accessToken,
+      accessToken: token,
       webhookSecret: "",
     })
     let remote
     try {
       remote = await probe.api.getRepository()
     } catch (error) {
+      const access = repositoryAccessError(error)
+      if (access) throw access
       console.error("[repository-sync] connect probe failed", error)
       throw new ValidationError(
         "Could not reach the repository. Check the owner, name and access token.",
@@ -222,20 +315,19 @@ export class RepositoryIntegrationService {
       owner: remote.owner,
       repo: remote.repo,
       repoUrl: remote.url,
-      accessToken: encryptSecret(input.accessToken),
       webhookSecret: generateWebhookSecret(),
       createdById: ctx.userId,
     })
 
     // Backfill in both directions; keep the connection when it fails so the
-    // admin can retry with "Sync now" instead of re-entering the token.
+    // admin can retry with "Sync now" instead of reconnecting.
     let summary: RepositorySyncSummary = {
       issuesImported: 0,
       issuesUpdated: 0,
       tasksPushed: 0,
     }
     try {
-      summary = await syncConnection(this.db, connection, input.accessToken)
+      summary = await syncConnection(this.db, connection, token)
     } catch (error) {
       console.error("[repository-sync] initial sync failed", error)
     }
@@ -271,17 +363,35 @@ export class RepositoryIntegrationService {
         code: "repository_not_connected",
       })
     }
-    const token = await this.resolveToken(connection, ctx.userId)
+    const token = await this.requireUserToken(
+      ctx.userId,
+      connection.provider as RepositoryProvider
+    )
     return syncConnection(this.db, connection, token)
   }
 
-  /** Cron entry point: reconciles every connection, isolating failures. */
+  /**
+   * Cron entry point: reconciles every connection with the token of whoever
+   * connected it (there is no shared credential anymore), isolating
+   * failures. Webhooks keep working for connections whose creator removed
+   * their token.
+   */
   async syncAllConnections(): Promise<{ synced: number; failed: number }> {
     const connections = await this.repo.listAll()
     const result = { synced: 0, failed: 0 }
     for (const connection of connections) {
+      const token = await this.resolveUserToken(
+        connection.createdById,
+        connection.provider as RepositoryProvider
+      )
+      if (!token) {
+        result.failed += 1
+        console.warn(
+          `[repository-sync] skipping ${connection.id}: creator has no token`
+        )
+        continue
+      }
       try {
-        const token = await this.resolveToken(connection)
         await syncConnection(this.db, connection, token)
         result.synced += 1
       } catch (error) {
@@ -296,104 +406,126 @@ export class RepositoryIntegrationService {
   }
 
   // -------------------------------------------------------------------------
-  // Project-service hooks (fire-and-forget from the caller's perspective)
+  // Task operations (called by ProjectService before committing local writes)
   // -------------------------------------------------------------------------
 
   private connectionForProject(organizationId: string, projectId: string) {
     return this.repo.findByProject(organizationId, projectId)
   }
 
-  /** A task was created: report it to the connected repository as an issue. */
-  async onTaskCreated(taskId: string, actorUserId: string): Promise<void> {
-    await this.bestEffort("task create", async () => {
-      const task = await this.db.task.findUnique({ where: { id: taskId } })
-      if (!task) return
-      const connection = await this.connectionForProject(
-        task.organizationId,
-        task.projectId
+  /**
+   * Reports a new task to the connected repository as an issue, created with
+   * the user's token so the issue is authored by and linked to them. Throws
+   * when the user has no token or cannot access the repository — callers must
+   * not create the task in that case. Transient failures throw as well: in a
+   * connected project, a task is expected to exist as an issue.
+   */
+  async createTaskInRepository(
+    ctx: RequestContext,
+    input: {
+      projectId: string
+      title: string
+      description?: string
+      status?: string
+    }
+  ): Promise<TaskExternalLink | null> {
+    const connection = await this.connectionForProject(
+      ctx.organizationId,
+      input.projectId
+    )
+    if (!connection) return null
+    const token = await this.requireUserToken(
+      ctx.userId,
+      connection.provider as RepositoryProvider
+    )
+    const client = buildProviderClient(connection, token)
+    try {
+      const issue = await client.api.createIssue({
+        title: input.title,
+        body: input.description ?? "",
+      })
+      if (input.status === "done") {
+        // Best effort: a failure here leaves the task linked to an open
+        // issue, which the next sync reconciles by closing it.
+        try {
+          await client.api.updateIssue(issue.number, { state: "closed" })
+        } catch (error) {
+          console.error("[repository-sync] close on create failed", error)
+        }
+      }
+      return {
+        externalIssueNumber: issue.number,
+        externalIssueUrl: issue.url,
+        externalUpdatedAt: parseRemoteDate(issue.updatedAt),
+      }
+    } catch (error) {
+      const access = repositoryAccessError(error)
+      if (access) throw access
+      console.error("[repository-sync] issue creation failed", error)
+      throw new AppError(
+        "repository_issue_create_failed",
+        "Could not create the issue in the repository. Please try again.",
+        { status: 502 }
       )
-      if (!connection) return
-      const token = await this.resolveToken(connection, actorUserId)
-      await pushNewTask(this.db, connection, task, token)
-    })
+    }
   }
 
   /**
-   * A task was edited: push changed title/description, mirror status changes
-   * that cross the done boundary, and open a pull request on "review".
+   * Mirrors a status change on the linked issue (close on done, reopen, and a
+   * draft PR on review) with the acting user's token. Access problems throw
+   * before the caller commits the local change; transient failures are
+   * logged and reconciled by the next sync.
    */
-  async onTaskUpdated(
+  async pushTaskStatus(
+    ctx: RequestContext,
     taskId: string,
-    update: TaskSyncUpdate,
-    actorUserId: string
+    status: string
   ): Promise<void> {
-    await this.bestEffort("task update", async () => {
-      const task = await this.db.task.findUnique({ where: { id: taskId } })
-      if (!task) return
-      const connection = await this.connectionForProject(
-        task.organizationId,
-        task.projectId
-      )
-      if (!connection) return
-      if (update.title || update.description) {
-        this.scheduleContentPush(taskId, actorUserId)
-      }
-      const crossesDoneBoundary =
-        update.status &&
-        issueStateForStatus(update.status.from) !==
-          issueStateForStatus(update.status.to)
-      if (crossesDoneBoundary) {
-        const token = await this.resolveToken(connection, actorUserId)
-        await pushTaskState(this.db, connection, task, token)
-      }
-      if (update.status?.to === "review") {
-        const token = await this.resolveToken(connection, actorUserId)
-        const fresh = await this.db.task.findUnique({ where: { id: taskId } })
-        if (fresh) await ensurePullRequestForTask(this.db, connection, fresh, token)
-      }
-    })
-  }
-
-  /** A task was moved between columns (board drag & drop). */
-  async onTaskMoved(
-    taskId: string,
-    status: string,
-    actorUserId: string
-  ): Promise<void> {
-    await this.bestEffort("task move", async () => {
-      const task = await this.db.task.findUnique({ where: { id: taskId } })
-      if (!task) return
-      const connection = await this.connectionForProject(
-        task.organizationId,
-        task.projectId
-      )
-      if (!connection) return
-      const token = await this.resolveToken(connection, actorUserId)
-      await pushTaskState(this.db, connection, task, token)
+    const task = await this.db.task.findUnique({ where: { id: taskId } })
+    if (!task) return
+    const connection = await this.connectionForProject(
+      task.organizationId,
+      task.projectId
+    )
+    if (!connection) return
+    const token = await this.requireUserToken(
+      ctx.userId,
+      connection.provider as RepositoryProvider
+    )
+    try {
+      await pushTaskState(this.db, connection, task, token, { status })
       if (status === "review") {
         await ensurePullRequestForTask(this.db, connection, task, token)
       }
-    })
+    } catch (error) {
+      const access = repositoryAccessError(error)
+      if (access) throw access
+      console.error("[repository-sync] task status push failed", error)
+    }
   }
 
-  /** A task was deleted: close its issue so the next sync won't resurrect it. */
-  async onTaskDeleted(
-    task: {
-      organizationId: string
-      projectId: string
-      externalIssueNumber: number | null
-    },
-    actorUserId: string
-  ): Promise<void> {
-    await this.bestEffort("task delete", async () => {
-      if (!task.externalIssueNumber) return
-      const connection = await this.connectionForProject(
-        task.organizationId,
-        task.projectId
-      )
-      if (!connection) return
-      const token = await this.resolveToken(connection, actorUserId)
+  /**
+   * Closes the linked issue before its task is deleted — otherwise the next
+   * sync would re-import it. Access problems abort the delete.
+   */
+  async closeTaskIssue(ctx: RequestContext, taskId: string): Promise<void> {
+    const task = await this.db.task.findUnique({ where: { id: taskId } })
+    if (!task?.externalIssueNumber) return
+    const connection = await this.connectionForProject(
+      task.organizationId,
+      task.projectId
+    )
+    if (!connection) return
+    const token = await this.requireUserToken(
+      ctx.userId,
+      connection.provider as RepositoryProvider
+    )
+    try {
       await closeIssueForTask(connection, task.externalIssueNumber, token)
-    })
+    } catch (error) {
+      const access = repositoryAccessError(error)
+      if (access) throw access
+      console.error("[repository-sync] close on delete failed", error)
+    }
   }
 }

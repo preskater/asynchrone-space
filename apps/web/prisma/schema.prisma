@@ -30,6 +30,7 @@ model User {
   oauthRefreshTokens OauthRefreshToken[]
   oauthAccessTokens  OauthAccessToken[]
   oauthConsents      OauthConsent[]
+  repositoryTokens   UserRepositoryToken[]
 
   @@unique([email])
   @@map("user")
@@ -434,10 +435,6 @@ model RepositoryConnection {
   owner          String
   repo           String
   repoUrl        String
-  /// API token, encrypted with a key derived from `BETTER_AUTH_SECRET`.
-  /// UI actions prefer the acting user's linked provider account and fall
-  /// back to this token; webhooks and cron syncs always use it.
-  accessToken    String
   /// Secret used to verify incoming webhooks (GitHub HMAC / GitLab token).
   webhookSecret  String
   createdById    String
@@ -448,6 +445,26 @@ model RepositoryConnection {
   @@unique([organizationId, provider, owner, repo])
   @@index([organizationId])
   @@map("repositoryConnection")
+}
+
+/// A personal access token a user saved for repository integrations. Tokens
+/// are encrypted with `BETTER_AUTH_SECRET` and are the credential behind every
+/// issue/pull request that user creates or edits, so remote items are
+/// authored by and attributed to them. Users without a usable token cannot
+/// push to a connected repository.
+model UserRepositoryToken {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Enum-like: `github` | `gitlab`.
+  provider    String
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("userRepositoryToken")
 }
 
 // ---------------------------------------------------------------------------

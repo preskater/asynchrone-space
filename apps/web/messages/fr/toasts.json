@@ -96,5 +96,7 @@
   "repositoryConnected": "Dépôt connecté.",
   "repositorySyncDone": "Dépôt synchronisé.",
   "repositoryDisconnected": "Dépôt déconnecté.",
-  "repositoryValueCopied": "Copié dans le presse-papiers."
+  "repositoryValueCopied": "Copié dans le presse-papiers.",
+  "repositoryTokenSaved": "Jeton enregistré.",
+  "repositoryTokenRemoved": "Jeton retiré."
 }

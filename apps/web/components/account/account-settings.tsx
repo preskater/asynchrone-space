@@ -23,7 +23,14 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 
+import {
+  listUserRepositoryTokensAction,
+  removeUserRepositoryTokenAction,
+  setUserRepositoryTokenAction,
+} from "@/actions/integrations"
 import { authClient } from "@/lib/auth-client"
+import { unwrapActionResult } from "@/lib/core/action"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 
 function ProfileCard() {
   const t = useTranslations("Account")
@@ -230,6 +237,149 @@ function SecurityCard() {
   )
 }
 
+function RepositoryTokensCard() {
+  const t = useTranslations("Account")
+  const tT = useTranslations("Toasts")
+  const te = useErrorTranslator()
+  const labels: Record<"github" | "gitlab", string> = {
+    github: "GitHub",
+    gitlab: "GitLab",
+  }
+  const [configured, setConfigured] = React.useState<
+    Record<"github" | "gitlab", boolean> | null
+  >(null)
+  const [drafts, setDrafts] = React.useState({ github: "", gitlab: "" })
+  const [busy, setBusy] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    async function load() {
+      try {
+        const status = unwrapActionResult(
+          await listUserRepositoryTokensAction()
+        )
+        if (active) setConfigured(status)
+      } catch {
+        if (active) setConfigured({ github: false, gitlab: false })
+      }
+    }
+    void load()
+    return () => {
+      active = false
+    }
+  }, [])
+
+  async function save(provider: "github" | "gitlab") {
+    const token = drafts[provider].trim()
+    if (!token) return
+    setBusy(provider)
+    try {
+      unwrapActionResult(
+        await setUserRepositoryTokenAction({ provider, token })
+      )
+      setConfigured((previous) => ({
+        ...(previous ?? { github: false, gitlab: false }),
+        [provider]: true,
+      }))
+      setDrafts((previous) => ({ ...previous, [provider]: "" }))
+      toast.success(tT("repositoryTokenSaved"))
+    } catch (error) {
+      toast.error(te(error))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function remove(provider: "github" | "gitlab") {
+    setBusy(provider)
+    try {
+      unwrapActionResult(await removeUserRepositoryTokenAction(provider))
+      setConfigured((previous) => ({
+        ...(previous ?? { github: false, gitlab: false }),
+        [provider]: false,
+      }))
+      toast.success(tT("repositoryTokenRemoved"))
+    } catch (error) {
+      toast.error(te(error))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{t("repositoryAccess")}</CardTitle>
+        <CardDescription>
+          {t("repositoryAccessDescription")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-5">
+        {(["github", "gitlab"] as const).map((provider) => {
+          const isConfigured = configured?.[provider] ?? false
+          return (
+            <div key={provider} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">
+                    {labels[provider]}
+                  </span>
+                  <Badge variant={isConfigured ? "secondary" : "outline"}>
+                    {isConfigured
+                      ? t("tokenConfigured")
+                      : t("tokenNotConfigured")}
+                  </Badge>
+                </div>
+                {isConfigured ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={busy !== null}
+                    onClick={() => void remove(provider)}
+                  >
+                    {busy === provider ? <Spinner /> : null}
+                    {t("removeToken")}
+                  </Button>
+                ) : null}
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id={`account-${provider}-token`}
+                  type="password"
+                  autoComplete="off"
+                  value={drafts[provider]}
+                  placeholder={t("tokenPlaceholder")}
+                  onChange={(event) =>
+                    setDrafts((previous) => ({
+                      ...previous,
+                      [provider]: event.target.value,
+                    }))
+                  }
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={
+                    busy !== null || drafts[provider].trim().length === 0
+                  }
+                  onClick={() => void save(provider)}
+                >
+                  {busy === provider ? <Spinner /> : null}
+                  {isConfigured ? t("replaceToken") : t("saveToken")}
+                </Button>
+              </div>
+            </div>
+          )
+        })}
+        <p className="text-xs text-muted-foreground">
+          {t("repositoryTokensHint")}
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
 function ConnectedAccountsCard({
   providers,
 }: {
@@ -374,6 +524,7 @@ export function AccountSettings({
       <div className="mt-3 flex flex-col gap-4">
         <ProfileCard />
         <SecurityCard />
+        <RepositoryTokensCard />
         {socialProviders.length > 0 ? (
           <ConnectedAccountsCard providers={socialProviders} />
         ) : null}

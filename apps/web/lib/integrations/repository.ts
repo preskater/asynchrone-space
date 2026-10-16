@@ -39,7 +39,6 @@ export class RepositoryConnectionRepository {
     owner: string
     repo: string
     repoUrl: string
-    accessToken: string
     webhookSecret: string
     createdById: string
   }) {
@@ -53,7 +52,6 @@ export class RepositoryConnectionRepository {
       owner: string
       repo: string
       repoUrl: string
-      accessToken: string
       lastSyncedAt: Date
     }>
   ) {

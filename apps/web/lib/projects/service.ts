@@ -439,6 +439,19 @@ export class ProjectService {
       )
     }
 
+    // In a connected project a task is expected to exist as a repository
+    // issue: the issue is created first (authored by the acting user's own
+    // token) and users without repository access cannot create the task.
+    const remote = await repositoryIntegrationService.createTaskInRepository(
+      ctx,
+      {
+        projectId: input.projectId,
+        title: input.title,
+        description: input.description,
+        status: input.status,
+      }
+    )
+
     const row = await this.repo.createTask({
       organizationId: ctx.organizationId,
       projectId: input.projectId,
@@ -454,6 +467,9 @@ export class ProjectService {
       customFields,
       order: existing.length,
       labelIds: input.labelIds ?? [],
+      externalIssueNumber: remote?.externalIssueNumber ?? null,
+      externalIssueUrl: remote?.externalIssueUrl ?? null,
+      externalUpdatedAt: remote?.externalUpdatedAt ?? null,
     })
     await this.repo.addActivity({
       projectId: input.projectId,
@@ -475,8 +491,6 @@ export class ProjectService {
         actorName: ctx.userName,
       },
     })
-    // Report the task to the repository issue tracker when one is connected.
-    await repositoryIntegrationService.onTaskCreated(row.id, ctx.userId)
     return this.mapTask(row)
   }
 
@@ -507,6 +521,11 @@ export class ProjectService {
           input.customFields
         )
       }
+    }
+    // Status changes go to the repository first: a user without access to the
+    // connected repository cannot move the task (throws before the write).
+    if (statusChanged && input.status) {
+      await repositoryIntegrationService.pushTaskStatus(ctx, id, input.status)
     }
     await this.repo.updateTask(id, {
       title: input.title,
@@ -549,19 +568,11 @@ export class ProjectService {
         },
       })
     }
-    // Mirror the edits on the linked repository issue, when there is one.
-    await repositoryIntegrationService.onTaskUpdated(
-      id,
-      {
-        title: titleChanged,
-        description: descriptionChanged,
-        status:
-          statusChanged && input.status
-            ? { from: existing.status, to: input.status }
-            : undefined,
-      },
-      ctx.userId
-    )
+    // Content edits are pushed to the linked issue after a short debounce
+    // (the details panel persists per keystroke); these are best-effort.
+    if (titleChanged || descriptionChanged) {
+      repositoryIntegrationService.scheduleContentPush(ctx.userId, id)
+    }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
     return this.mapTask(fresh ?? existing)
   }
@@ -575,6 +586,9 @@ export class ProjectService {
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
     if (existing.status !== input.status) {
+      // Mirror the move on the repository issue (close on done, PR on review)
+      // before the local write, so access errors abort the move.
+      await repositoryIntegrationService.pushTaskStatus(ctx, id, input.status)
       await this.repo.updateTask(id, { status: input.status })
       await this.repo.addActivity({
         projectId: existing.projectId,
@@ -582,12 +596,6 @@ export class ProjectService {
         action: "moved",
         target: `${existing.identifier}${ACTIVITY_STATUS_SENTINEL}${input.status}`,
       })
-      // Mirror the move on the repository issue (close on done, PR on review).
-      await repositoryIntegrationService.onTaskMoved(
-        id,
-        input.status,
-        ctx.userId
-      )
     }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
     return this.mapTask(fresh ?? existing)
@@ -597,6 +605,9 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    // Close the issue first, otherwise the next sync would resurrect the
+    // task; access errors abort the delete.
+    await repositoryIntegrationService.closeTaskIssue(ctx, id)
     await this.repo.deleteTask(id)
     await this.repo.addActivity({
       projectId: existing.projectId,
@@ -604,15 +615,6 @@ export class ProjectService {
       action: "deleted",
       target: existing.identifier,
     })
-    // Close the issue too, otherwise the next sync would re-import it.
-    await repositoryIntegrationService.onTaskDeleted(
-      {
-        organizationId: existing.organizationId,
-        projectId: existing.projectId,
-        externalIssueNumber: existing.externalIssueNumber,
-      },
-      ctx.userId
-    )
     return { id }
   }
 

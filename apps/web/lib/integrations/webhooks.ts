@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
-import { decryptSecret } from "./crypto"
 import type { RepositoryConnectionRepository } from "./repository"
 import {
   applyIssueEvent,
@@ -18,8 +17,9 @@ export interface WebhookResult {
  *
  * The connection is resolved from the URL (so GitHub and GitLab webhooks can
  * share one route), the signature/token is verified against the connection's
- * secret, then the payload is applied to tasks. Processing errors return 500
- * so the provider retries; ignored events return 200 so it doesn't.
+ * secret, then the payload is applied to tasks. No API token is needed here:
+ * webhook handling only writes to the local database. Processing errors
+ * return 500 so the provider retries; ignored events return 200 so it doesn't.
  */
 export class RepositoryWebhookHandler {
   constructor(
@@ -37,15 +37,7 @@ export class RepositoryWebhookHandler {
       return { status: 404, body: { error: "Unknown repository connection." } }
     }
 
-    let token: string
-    try {
-      token = decryptSecret(connection.accessToken)
-    } catch (error) {
-      console.error("[repository-sync] cannot decrypt connection token", error)
-      return { status: 500, body: { error: "Connection credentials unavailable." } }
-    }
-
-    const client = buildProviderClient(connection, token)
+    const client = buildProviderClient(connection, "")
     if (!client.verifyWebhook(params.headers, params.rawBody)) {
       return { status: 401, body: { error: "Invalid webhook signature." } }
     }

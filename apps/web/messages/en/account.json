@@ -34,5 +34,14 @@
   "unlink": "Unlink",
   "linkFailed": "Could not link the account.",
   "unlinkFailed": "Could not unlink the account.",
-  "accountUnlinked": "Account unlinked."
+  "accountUnlinked": "Account unlinked.",
+  "repositoryAccess": "Repository access",
+  "repositoryAccessDescription": "Personal tokens used to create and edit issues and pull requests as you.",
+  "tokenConfigured": "Configured",
+  "tokenNotConfigured": "Not configured",
+  "tokenPlaceholder": "ghp_… / glpat-…",
+  "saveToken": "Save",
+  "replaceToken": "Replace",
+  "removeToken": "Remove",
+  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects."
 }

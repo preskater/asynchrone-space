@@ -20,7 +20,7 @@ function logSyncError(context: string, error: unknown) {
   console.error(`[repository-sync] ${context}`, error)
 }
 
-function parseRemoteDate(value: string): Date | null {
+export function parseRemoteDate(value: string): Date | null {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
 }
@@ -300,18 +300,22 @@ export async function pushTaskContent(
   })
 }
 
-/** Opens or closes the linked issue to mirror the task status. */
+/**
+ * Opens or closes the linked issue to mirror the task status. The target can
+ * be overridden so callers can push a status before committing it locally.
+ */
 export async function pushTaskState(
   db: PrismaClient,
   connection: RepositoryConnectionRow,
   task: SyncTaskRow,
-  token: string
+  token: string,
+  options: { status?: string } = {}
 ): Promise<void> {
   const linked = await ensureIssueForTask(db, connection, task, token)
   if (!linked.externalIssueNumber) return
   const client = buildProviderClient(connection, token)
   const issue = await client.api.updateIssue(linked.externalIssueNumber, {
-    state: issueStateForStatus(linked.status),
+    state: issueStateForStatus(options.status ?? linked.status),
   })
   await db.task.update({
     where: { id: linked.id },

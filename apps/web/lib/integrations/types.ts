@@ -2,6 +2,16 @@ export const REPOSITORY_PROVIDERS = ["github", "gitlab"] as const
 
 export type RepositoryProvider = (typeof REPOSITORY_PROVIDERS)[number]
 
+const PROVIDER_LABELS: Record<RepositoryProvider, string> = {
+  github: "GitHub",
+  gitlab: "GitLab",
+}
+
+/** Display name used in error messages and hints. */
+export function repositoryProviderLabel(provider: RepositoryProvider) {
+  return PROVIDER_LABELS[provider]
+}
+
 /**
  * A repository connection as exposed to the UI. The access token and the
  * webhook secret are never part of this view; the webhook URL is derived from
@@ -28,8 +38,26 @@ export interface ConnectRepositoryInput {
   provider: RepositoryProvider
   owner: string
   repo: string
-  accessToken: string
   baseUrl?: string
+}
+
+/** A personal access token a user saves in their profile. */
+export interface SetUserRepositoryTokenInput {
+  provider: RepositoryProvider
+  token: string
+}
+
+/** Which providers the current user has a personal token for. */
+export type UserRepositoryTokenStatus = Record<RepositoryProvider, boolean>
+
+/**
+ * Remote references captured when a task is reported to a connected
+ * repository; merged into the task row on creation.
+ */
+export interface TaskExternalLink {
+  externalIssueNumber: number
+  externalIssueUrl: string
+  externalUpdatedAt: Date | null
 }
 
 /** Result of a connect/sync run, surfaced to the user as a toast. */

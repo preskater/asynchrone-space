@@ -105,3 +105,12 @@ strategy.
 - GitHub Enterprise and GitLab subgroups are supported via adapter mappings,
   but unusual setups (custom issue templates, multi-project issue boards)
   stay out of scope.
+
+## Update 2026-10-15
+
+The credential strategy in this decision — one access token per connection —
+was replaced the same day by per-user tokens saved in each user's profile, so
+issues and PRs are authored by the acting user and users without repository
+access cannot create issues. See
+[ADR-0015](0015-per-user-repository-tokens.md). The connection model, sync
+engine, webhooks and cron entry points are unchanged.

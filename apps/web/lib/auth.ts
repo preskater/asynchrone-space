@@ -16,9 +16,9 @@ const mcpResource =
 
 /**
  * GitHub/GitLab OAuth apps power optional account linking: a linked account
- * lets repository writes (issues, pull requests) be made as the user instead
- * of the project's bot token. Scopes cover issue and PR access; the token is
- * stored on the `account` row by Better Auth.
+ * is an alternative repository credential to the personal access token a
+ * user saves in their profile (see lib/integrations). The token is stored on
+ * the `account` row by Better Auth.
  */
 function oauthApp(
   clientId: string | undefined,
