@@ -21,7 +21,11 @@
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
         "MCP_RESOURCE_URL",
-        "CRON_SECRET"
+        "CRON_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GITLAB_CLIENT_ID",
+        "GITLAB_CLIENT_SECRET"
       ]
     },
     "lint": {
@@ -46,7 +50,11 @@
         "OPENAI_API_URL",
         "ASSISTANT_MODEL",
         "MCP_RESOURCE_URL",
-        "CRON_SECRET"
+        "CRON_SECRET",
+        "GITHUB_CLIENT_ID",
+        "GITHUB_CLIENT_SECRET",
+        "GITLAB_CLIENT_ID",
+        "GITLAB_CLIENT_SECRET"
       ]
     }
   }

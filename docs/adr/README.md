@@ -34,3 +34,5 @@ collection.
 | [0011](0011-authenticate-mcp-with-oauth2.md)              | accepted | Authenticate the MCP endpoint with OAuth2                                |
 | [0012](0012-extend-clients-into-crm-core.md)              | accepted | Extend clients into the CRM core (contacts, pipelines, deals, activities) |
 | [0013](0013-task-templates-as-form-configurations.md)     | accepted | Model task templates as form configurations with JSON custom fields      |
+| [0014](0014-sync-project-tasks-with-repositories.md)      | accepted | Sync project tasks with GitHub/GitLab repositories two-way               |
+| [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                |

@@ -158,6 +158,9 @@ export class ProjectRepository {
     customFields?: unknown
     order: number
     labelIds: string[]
+    externalIssueNumber?: number | null
+    externalIssueUrl?: string | null
+    externalUpdatedAt?: Date | null
   }) {
     return this.db.task.create({
       data: {
@@ -174,6 +177,9 @@ export class ProjectRepository {
         templateId: data.templateId ?? null,
         customFields: (data.customFields ?? {}) as never,
         order: data.order,
+        externalIssueNumber: data.externalIssueNumber ?? null,
+        externalIssueUrl: data.externalIssueUrl ?? null,
+        externalUpdatedAt: data.externalUpdatedAt ?? null,
         labels: {
           create: data.labelIds.map((labelId) => ({ labelId })),
         },

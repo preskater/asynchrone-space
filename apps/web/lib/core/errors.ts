@@ -49,6 +49,13 @@ export type ServiceErrorCode =
   | "portal_read_only"
   | "file_too_large"
   | "message_not_author"
+  | "role_cannot_manage_integrations"
+  | "repository_already_connected"
+  | "repository_connect_failed"
+  | "repository_not_connected"
+  | "repository_user_token_missing"
+  | "repository_access_denied"
+  | "repository_issue_create_failed"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

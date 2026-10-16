@@ -1,7 +1,12 @@
 "use client"
 
 import * as React from "react"
-import { SendIcon } from "lucide-react"
+import {
+  CircleDotIcon,
+  ExternalLinkIcon,
+  GitPullRequestIcon,
+  SendIcon,
+} from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { DatePicker } from "@/components/task/date-picker"
@@ -269,6 +274,40 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
               )
             })}
           </dl>
+        </div>
+      ) : null}
+
+      {task.externalIssueUrl || task.externalPrUrl ? (
+        <div className="flex flex-col gap-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase">
+            {t("repositoryLinks")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {task.externalIssueUrl && task.externalIssueNumber ? (
+              <a
+                href={task.externalIssueUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <CircleDotIcon className="size-3.5" />
+                {t("repositoryIssue", { number: task.externalIssueNumber })}
+                <ExternalLinkIcon className="size-3" />
+              </a>
+            ) : null}
+            {task.externalPrUrl && task.externalPrNumber ? (
+              <a
+                href={task.externalPrUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <GitPullRequestIcon className="size-3.5" />
+                {t("repositoryPullRequest", { number: task.externalPrNumber })}
+                <ExternalLinkIcon className="size-3" />
+              </a>
+            ) : null}
+          </div>
         </div>
       ) : null}
 

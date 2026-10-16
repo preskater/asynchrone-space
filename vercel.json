@@ -3,6 +3,10 @@
     {
       "path": "/api/files/uploads/sweep",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/repository-sync",
+      "schedule": "0 * * * *"
     }
   ]
 }

@@ -41,6 +41,13 @@
   "portalReadOnly": "Cette zone est en lecture seule pour le portail client.",
   "fileTooLarge": "Ce fichier est trop volumineux (maximum {max} Mo).",
   "messageNotAuthor": "Vous ne pouvez modifier que vos propres messages.",
+  "roleCannotManageIntegrations": "Votre rôle ne permet pas de gérer les connexions aux dépôts.",
+  "repositoryAlreadyConnected": "Ce dépôt est déjà connecté à un autre projet.",
+  "repositoryConnectFailed": "Impossible de joindre le dépôt. Vérifiez le propriétaire, le nom et le jeton d'accès.",
+  "repositoryNotConnected": "Aucun dépôt n'est connecté à ce projet.",
+  "repositoryUserTokenMissing": "Ajoutez votre jeton d'accès {provider} dans votre profil avant d'effectuer cette action.",
+  "repositoryAccessDenied": "Votre jeton ne donne pas accès à ce dépôt.",
+  "repositoryIssueCreateFailed": "Impossible de créer l'issue dans le dépôt. Veuillez réessayer.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

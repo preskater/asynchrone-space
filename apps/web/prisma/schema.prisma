@@ -30,6 +30,7 @@ model User {
   oauthRefreshTokens OauthRefreshToken[]
   oauthAccessTokens  OauthAccessToken[]
   oauthConsents      OauthConsent[]
+  repositoryTokens   UserRepositoryToken[]
 
   @@unique([email])
   @@map("user")
@@ -131,6 +132,8 @@ model Organization {
   notifications       Notification[]
   portalInvites       PortalInvite[]
   projectMessages     ProjectMessage[]
+
+  repositoryConnections RepositoryConnection[]
 
   @@unique([slug])
   @@map("organization")
@@ -236,6 +239,7 @@ model Project {
   templates         TaskTemplate[]
   attendanceEntries AttendanceEntry[]
   messages          ProjectMessage[]
+  repository        RepositoryConnection?
 
   @@index([organizationId])
   @@index([clientId])
@@ -298,6 +302,15 @@ model Task {
   /// Values for the custom fields of `template`, keyed by field id.
   customFields   Json          @default("{}")
   order          Int           @default(0)
+  /// Repository issue this task is synced with, if the project has a
+  /// repository connection. Set on backfill, task creation and remote events.
+  externalIssueNumber Int?
+  externalIssueUrl    String?
+  externalPrNumber    Int?
+  externalPrUrl       String?
+  /// `updatedAt` of the remote issue when it was last applied locally, used
+  /// to detect stale webhook payloads and avoid feedback loops.
+  externalUpdatedAt   DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
@@ -403,6 +416,55 @@ model ProjectMessage {
   @@index([organizationId])
   @@index([projectId, createdAt])
   @@map("projectMessage")
+}
+
+/// A GitHub / GitLab repository connected to a project. Tasks and issues are
+/// kept in sync both ways; a project owns at most one repository connection.
+model RepositoryConnection {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String       @unique
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// Enum-like: `github` | `gitlab`.
+  provider       String
+  /// Web/instance URL for self-managed GitLab or GitHub Enterprise; null
+  /// means github.com / gitlab.com.
+  baseUrl        String?
+  /// Repository owner (user, org or GitLab group path, subgroups included).
+  owner          String
+  repo           String
+  repoUrl        String
+  /// Secret used to verify incoming webhooks (GitHub HMAC / GitLab token).
+  webhookSecret  String
+  createdById    String
+  lastSyncedAt   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, provider, owner, repo])
+  @@index([organizationId])
+  @@map("repositoryConnection")
+}
+
+/// A personal access token a user saved for repository integrations. Tokens
+/// are encrypted with `BETTER_AUTH_SECRET` and are the credential behind every
+/// issue/pull request that user creates or edits, so remote items are
+/// authored by and attributed to them. Users without a usable token cannot
+/// push to a connected repository.
+model UserRepositoryToken {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Enum-like: `github` | `gitlab`.
+  provider    String
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("userRepositoryToken")
 }
 
 // ---------------------------------------------------------------------------

@@ -6,12 +6,14 @@ import {
 } from "@/lib/core/errors"
 import { toMemberView } from "@/lib/core/members"
 import type { RequestContext } from "@/lib/core/context"
+import { repositoryIntegrationService } from "@/lib/integrations"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 import { ProjectRepository } from "./repository"
 import { createTaskComment } from "./task-comments"
+import { nextTaskIdentifier } from "./task-key"
 import type {
   AddCommentInput,
   AddLabelInput,
@@ -60,21 +62,6 @@ function iso(date: Date | null | undefined) {
 
 function requiredIso(date: Date) {
   return date.toISOString()
-}
-
-function taskKey(name: string, tasks: Task[]) {
-  const existingPrefix = tasks[0]?.identifier.replace(/-\d+$/, "")
-  const base =
-    existingPrefix ||
-    name
-      .replace(/[^a-zA-Z ]/g, "")
-      .split(" ")
-      .map((word) => word && word[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 3)
-  const count = tasks.filter((task) => task.identifier.startsWith(base)).length
-  return `${base || "TSK"}-${count + 1}`
 }
 
 type ProjectRow = NonNullable<
@@ -275,6 +262,10 @@ export class ProjectService {
       endDate: iso(row.endDate),
       templateId: row.templateId ?? undefined,
       customFields: this.mapTaskCustomFields(row.customFields),
+      externalIssueNumber: row.externalIssueNumber ?? undefined,
+      externalIssueUrl: row.externalIssueUrl ?? undefined,
+      externalPrNumber: row.externalPrNumber ?? undefined,
+      externalPrUrl: row.externalPrUrl ?? undefined,
       createdAt: requiredIso(row.createdAt),
       subtasks: row.subtasks.map((subtask): Subtask => ({
         id: subtask.id,
@@ -428,9 +419,9 @@ export class ProjectService {
       ctx.organizationId,
       input.projectId
     )
-    const identifier = taskKey(
+    const identifier = nextTaskIdentifier(
       project.name,
-      existing.map((task) => this.mapTask(task))
+      existing.map((task) => task.identifier)
     )
 
     let customFields: TaskCustomFieldValues = {}
@@ -448,6 +439,19 @@ export class ProjectService {
       )
     }
 
+    // In a connected project a task is expected to exist as a repository
+    // issue: the issue is created first (authored by the acting user's own
+    // token) and users without repository access cannot create the task.
+    const remote = await repositoryIntegrationService.createTaskInRepository(
+      ctx,
+      {
+        projectId: input.projectId,
+        title: input.title,
+        description: input.description,
+        status: input.status,
+      }
+    )
+
     const row = await this.repo.createTask({
       organizationId: ctx.organizationId,
       projectId: input.projectId,
@@ -463,6 +467,9 @@ export class ProjectService {
       customFields,
       order: existing.length,
       labelIds: input.labelIds ?? [],
+      externalIssueNumber: remote?.externalIssueNumber ?? null,
+      externalIssueUrl: remote?.externalIssueUrl ?? null,
+      externalUpdatedAt: remote?.externalUpdatedAt ?? null,
     })
     await this.repo.addActivity({
       projectId: input.projectId,
@@ -495,6 +502,13 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    const titleChanged =
+      input.title !== undefined && input.title !== existing.title
+    const descriptionChanged =
+      input.description !== undefined &&
+      (input.description ?? null) !== (existing.description ?? null)
+    const statusChanged =
+      input.status !== undefined && input.status !== existing.status
     let customFields: TaskCustomFieldValues | undefined
     if (input.customFields !== undefined && existing.templateId) {
       const template = await this.repo.findTemplate(
@@ -507,6 +521,11 @@ export class ProjectService {
           input.customFields
         )
       }
+    }
+    // Status changes go to the repository first: a user without access to the
+    // connected repository cannot move the task (throws before the write).
+    if (statusChanged && input.status) {
+      await repositoryIntegrationService.pushTaskStatus(ctx, id, input.status)
     }
     await this.repo.updateTask(id, {
       title: input.title,
@@ -549,6 +568,11 @@ export class ProjectService {
         },
       })
     }
+    // Content edits are pushed to the linked issue after a short debounce
+    // (the details panel persists per keystroke); these are best-effort.
+    if (titleChanged || descriptionChanged) {
+      repositoryIntegrationService.scheduleContentPush(ctx.userId, id)
+    }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
     return this.mapTask(fresh ?? existing)
   }
@@ -562,6 +586,9 @@ export class ProjectService {
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
     if (existing.status !== input.status) {
+      // Mirror the move on the repository issue (close on done, PR on review)
+      // before the local write, so access errors abort the move.
+      await repositoryIntegrationService.pushTaskStatus(ctx, id, input.status)
       await this.repo.updateTask(id, { status: input.status })
       await this.repo.addActivity({
         projectId: existing.projectId,
@@ -578,6 +605,9 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    // Close the issue first, otherwise the next sync would resurrect the
+    // task; access errors abort the delete.
+    await repositoryIntegrationService.closeTaskIssue(ctx, id)
     await this.repo.deleteTask(id)
     await this.repo.addActivity({
       projectId: existing.projectId,
