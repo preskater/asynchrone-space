@@ -45,17 +45,6 @@ import type {
 } from "./types"
 import { ACTIVITY_STATUS_SENTINEL, TASK_TEMPLATE_FIELD_TYPES } from "./types"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
-function roleAtLeast(role: string, min: number) {
-  return (ROLE_RANK[role] ?? 0) >= min
-}
-
 function iso(date: Date | null | undefined) {
   return date ? date.toISOString() : undefined
 }
@@ -80,14 +69,14 @@ export class ProjectService {
   ) {}
 
   private canWrite(ctx: RequestContext) {
-    if (roleAtLeast(ctx.role, 2)) return
+    if (roleRank(ctx.role) >= 2) return
     throw new ForbiddenError("Your role cannot modify projects.", {
       code: "role_cannot_modify_projects",
     })
   }
 
   private canManage(ctx: RequestContext) {
-    if (roleAtLeast(ctx.role, 3)) return
+    if (roleRank(ctx.role) >= 3) return
     throw new ForbiddenError("Your role cannot manage workspace members.", {
       code: "role_cannot_manage_members",
     })

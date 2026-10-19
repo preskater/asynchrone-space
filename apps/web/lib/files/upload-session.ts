@@ -6,6 +6,7 @@ import {
   hashLargeObject,
   unlinkLargeObject,
 } from "@/lib/large-object"
+import { roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"
 
 import { kindFromName } from "./file-utils"
@@ -18,15 +19,8 @@ const OPEN = "open"
 const COMPLETE = "complete"
 const ABORTED = "aborted"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
 function canWrite(ctx: RequestContext) {
-  if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
+  if (roleRank(ctx.role) >= 2) return
   throw new ForbiddenError("Your role cannot modify files.", {
     code: "role_cannot_modify_files",
   })
