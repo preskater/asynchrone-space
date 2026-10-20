@@ -190,16 +190,6 @@ export const PROJECT_STATUS_VALUES: ProjectStatus[] = [
   "completed",
 ]
 
-export const PRIORITY_BADGE_VARIANT: Record<
-  TaskPriority,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  low: "outline",
-  medium: "secondary",
-  high: "default",
-  urgent: "destructive",
-}
-
 export function formatDate(value?: string, locale = "en") {
   if (!value) return null
   return new Date(value).toLocaleDateString(locale, {

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
+import { OrganizationAppearanceForm } from "@/components/appearance/organization-appearance-form"
 import { OrganizationDangerZone } from "@/components/organization/danger-zone"
 import { InvitationsTable } from "@/components/organization/invitations-table"
 import { InviteMemberDialog } from "@/components/organization/invite-member-dialog"
@@ -18,7 +19,12 @@ import {
   CardTitle,
 } from "@workspace/ui/components/card"
 import { Spinner } from "@workspace/ui/components/spinner"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@workspace/ui/components/tabs"
 
 import { authClient } from "@/lib/auth-client"
 import { parseRoles } from "@/lib/organization/utils"
@@ -26,6 +32,7 @@ import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
 export function OrganizationSettings() {
   const t = useTranslations("Org")
+  const tAppearance = useTranslations("Appearance")
   const permissions = useOrgPermissions()
   const {
     data: organization,
@@ -68,6 +75,7 @@ export function OrganizationSettings() {
     <Tabs defaultValue="general" className="flex flex-col gap-4">
       <TabsList variant="line" className="w-full justify-start border-b pb-0">
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
+        <TabsTrigger value="appearance">{tAppearance("title")}</TabsTrigger>
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
         <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
@@ -79,6 +87,10 @@ export function OrganizationSettings() {
           canEdit={permissions.canUpdateOrganization}
           onSaved={refetch}
         />
+      </TabsContent>
+
+      <TabsContent value="appearance">
+        <OrganizationAppearanceForm />
       </TabsContent>
 
       <TabsContent value="members">
@@ -121,9 +133,7 @@ export function OrganizationSettings() {
                   <MailIcon className="size-4" />
                   {t("invitations")}
                 </CardTitle>
-                <CardDescription>
-                  {t("invitationsDescription")}
-                </CardDescription>
+                <CardDescription>{t("invitationsDescription")}</CardDescription>
               </div>
               {permissions.canInviteMember ? (
                 <InviteMemberDialog onInvited={refetch} />

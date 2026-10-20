@@ -36,3 +36,4 @@ collection.
 | [0013](0013-task-templates-as-form-configurations.md)     | accepted | Model task templates as form configurations with JSON custom fields      |
 | [0014](0014-sync-project-tasks-with-repositories.md)      | accepted | Sync project tasks with GitHub/GitLab repositories two-way               |
 | [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                |
+| [0016](0016-customizable-appearance-and-animations.md)    | accepted | Customizable organization themes and CSS animation effects               |
