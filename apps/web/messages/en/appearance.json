@@ -1,0 +1,109 @@
+{
+  "title": "Appearance",
+  "theme": "Theme",
+  "themeDescription": "Choose the colors of the workspace. Priority labels keep their own fixed colors.",
+  "presetThemes": "Preset themes",
+  "customTheme": "Custom theme",
+  "useCustomTheme": "Use custom theme",
+  "customThemeActive": "Custom theme active",
+  "themes": {
+    "default": "Neutral",
+    "ocean": "Ocean",
+    "forest": "Forest",
+    "sunset": "Sunset",
+    "berry": "Berry",
+    "nord": "Nord",
+    "coffee": "Coffee",
+    "cyberpunk": "Cyberpunk",
+    "candy": "Candy",
+    "mono": "Monochrome",
+    "custom": "Custom"
+  },
+  "customThemeDescription": "Build your own brand direction. The secondary surfaces are derived from these two colors.",
+  "primaryColor": "Primary color",
+  "accentColor": "Accent color",
+  "cornerRadius": "Corner radius",
+  "animations": "Animations",
+  "animationsDescription": "Pick how lively buttons, inputs, cards and labels feel.",
+  "levels": {
+    "basic": "Basic",
+    "fluid": "Fluid",
+    "fantastic": "Fantastic"
+  },
+  "levelDescriptions": {
+    "basic": "Subtle color changes only.",
+    "fluid": "Smooth lifts, springs and focus halos.",
+    "fantastic": "Maximal motion: fire, shimmer, floating badges and an aurora background."
+  },
+  "effects": "Animation effects",
+  "effectsDescription": "Toggle the individual effects the whole company gets.",
+  "resetEffects": "Reset defaults",
+  "requiresFantastic": "Fantastic",
+  "effectsList": {
+    "hoverLift": {
+      "name": "Hover lift",
+      "description": "Buttons and fields rise slightly under the pointer."
+    },
+    "hoverGlow": {
+      "name": "Hover glow",
+      "description": "A colored halo follows the cursor on buttons and focus."
+    },
+    "pressRipple": {
+      "name": "Press ripple",
+      "description": "A soft circle expands from the click point."
+    },
+    "pressBounce": {
+      "name": "Press bounce",
+      "description": "Buttons squash and spring back when clicked."
+    },
+    "shineSweep": {
+      "name": "Shine sweep",
+      "description": "A diagonal highlight crosses buttons on hover."
+    },
+    "floatBadges": {
+      "name": "Floating badges",
+      "description": "Priority labels gently bob up and down."
+    },
+    "priorityFire": {
+      "name": "Urgent fire",
+      "description": "Urgent labels burn with animated flames at the Fantastic level."
+    },
+    "ambientGlow": {
+      "name": "Aurora background",
+      "description": "Slow moving brand-colored glows behind the whole app at the Fantastic level."
+    }
+  },
+  "presets": {
+    "minimal": "Minimal",
+    "classic": "Classic",
+    "playful": "Playful",
+    "neon": "Neon",
+    "arcade": "Arcade",
+    "chaos": "Chaos"
+  },
+  "preview": "Live preview",
+  "previewDescription": "Hover, click and type in the sample below before saving.",
+  "previewPrimary": "Save changes",
+  "previewSecondary": "Secondary",
+  "previewDestructive": "Delete",
+  "previewInput": "Try typing here…",
+  "save": "Save appearance",
+  "saving": "Saving…",
+  "saved": "Appearance updated.",
+  "readOnly": "Only owners and admins can change the workspace appearance.",
+  "userTitle": "Appearance & accessibility",
+  "userDescription": "These preferences only apply to your account, not to the whole company.",
+  "colorMode": "Color mode",
+  "colorModeDescription": "Light, dark, or follow your operating system.",
+  "modes": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "highContrast": "High contrast",
+  "highContrastDescription": "Stronger borders, text and solid priority chips for better readability.",
+  "reduceMotion": "Disable animations",
+  "reduceMotionDescription": "Turns off every animation and transition on your account, including company effects.",
+  "currentWorkspaceLook": "Your company uses the {theme} theme with {level} animations.",
+  "resetPreferences": "Reset my preferences"
+}
