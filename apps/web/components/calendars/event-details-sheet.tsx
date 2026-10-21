@@ -6,6 +6,7 @@ import {
   BellIcon,
   CalendarIcon,
   ClockIcon,
+  KeyRoundIcon,
   MapPinIcon,
   PencilIcon,
   Trash2Icon,
@@ -127,6 +128,13 @@ export function EventDetailsSheet({
                 >
                   {t("joinOnline")}
                 </a>
+              </DetailRow>
+            ) : null}
+            {event.meetingPassword ? (
+              <DetailRow icon={KeyRoundIcon}>
+                {t("meetingPasswordLabel", {
+                  password: event.meetingPassword,
+                })}
               </DetailRow>
             ) : null}
             {event.reminderMinutes !== undefined ? (

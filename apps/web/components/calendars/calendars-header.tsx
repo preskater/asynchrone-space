@@ -4,6 +4,7 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 
 import { EventDialog } from "@/components/calendars/event-dialog"
+import { MeetingRequestsDialog } from "@/components/meetings/meeting-requests-dialog"
 import {
   ButtonGroup,
   ButtonGroupSeparator,
@@ -118,6 +119,8 @@ export function CalendarsHeader({
           <CheckSquareIcon data-icon="inline-start" />
           {t("showTasks")}
         </Toggle>
+
+        <MeetingRequestsDialog />
 
         <EventDialog
           trigger={

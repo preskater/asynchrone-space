@@ -135,6 +135,9 @@ model Organization {
 
   repositoryConnections RepositoryConnection[]
 
+  meetingSettings MeetingSettings?
+  meetingRequests MeetingRequest[]
+
   @@unique([slug])
   @@map("organization")
 }
@@ -512,13 +515,16 @@ model CalendarEvent {
   allDay          Boolean      @default(false)
   location        String?
   meetingUrl      String?
+  /// Optional password/access code shared with online meeting attendees.
+  meetingPassword String?
   color           String       @default("blue")
   reminderMinutes Int?
   createdBy       String
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  attendees EventAttendee[]
+  attendees      EventAttendee[]
+  meetingRequest MeetingRequest?
 
   @@index([organizationId])
   @@index([calendarId])
@@ -536,6 +542,108 @@ model EventAttendee {
   @@unique([eventId, userId])
   @@index([userId])
   @@map("eventAttendee")
+}
+
+// ---------------------------------------------------------------------------
+// Meetings requested by client-portal users
+// ---------------------------------------------------------------------------
+
+/// Organization-level rules for client meeting requests. A missing row means
+/// the defaults below (requests enabled, overlaps refused).
+model MeetingSettings {
+  id     String @id @default(cuid())
+  /// One settings row per organization.
+  organizationId String       @unique
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  /// Whether client-portal users may request meetings at all.
+  clientRequestsEnabled Boolean @default(true)
+  /// Refuse a request that overlaps another meeting instead of flagging it.
+  autoDeclineOverlaps Boolean @default(true)
+  /// How far ahead (days from today) a meeting may be requested.
+  bookingWindowDays Int @default(30)
+  /// Minimum notice before the requested slot (hours).
+  minNoticeHours Int @default(24)
+  /// Duration pre-selected in the portal form (minutes).
+  defaultDurationMinutes Int @default(30)
+  /// Longest meeting a client may request (minutes).
+  maxDurationMinutes Int @default(120)
+  /// Meeting app used when a request is accepted: manual | google_meet |
+  /// microsoft_teams | zoom. Credentials for an app are added with its
+  /// provider adapter in `lib/meetings/providers.ts`.
+  provider String @default("manual")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("meetingSettings")
+}
+
+/// A meeting proposal from a client company. The client proposes several
+/// candidate slots; accepting one creates a `CalendarEvent` on a team
+/// calendar.
+model MeetingRequest {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  title           String
+  description     String?
+  /// Candidate slots proposed by the client, in display order.
+  slots           MeetingSlot[]
+  /// online | in_person
+  mode            String  @default("online")
+  /// Online meetings: join link provided by the client.
+  meetingUrl      String?
+  /// Online meetings: optional access code/password.
+  meetingPassword String?
+  /// In-person meetings: address provided by the client.
+  address         String?
+  /// pending | accepted | declined | cancelled
+  status          String  @default("pending")
+
+  requestedById   String
+  requestedByName String
+  decidedById     String?
+  decidedByName   String?
+  decidedAt       DateTime?
+  /// Reason given on decline, or a message shown to the client on accept.
+  decisionNote    String?
+
+  /// Calendar event created when the request is accepted.
+  calendarEventId String?        @unique
+  calendarEvent   CalendarEvent? @relation(fields: [calendarEventId], references: [id], onDelete: SetNull)
+  /// Meeting app adapter that produced the join link (manual until connected).
+  provider          String  @default("manual")
+  externalMeetingId String?
+  externalJoinUrl   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId, status])
+  @@index([clientId])
+  @@map("meetingRequest")
+}
+
+/// One proposed time of a meeting request. Exactly one slot is marked
+/// `selected` when the team accepts the request.
+model MeetingSlot {
+  id        String         @id @default(cuid())
+  requestId String
+  request   MeetingRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  startAt   DateTime
+  endAt     DateTime
+  /// Display order of the proposal (0-based).
+  position  Int            @default(0)
+  /// Set on the slot the team picked when accepting.
+  selected  Boolean        @default(false)
+
+  @@unique([requestId, startAt])
+  @@index([requestId])
+  @@index([startAt])
+  @@map("meetingSlot")
 }
 
 // ---------------------------------------------------------------------------
@@ -894,12 +1002,13 @@ model Client {
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  projects      Project[]
-  contacts      ContactCompany[]
-  deals         Deal[]
-  activities    CrmActivity[]
-  portalMembers Member[]         @relation("PortalMembers")
-  portalInvites PortalInvite[]
+  projects        Project[]
+  contacts        ContactCompany[]
+  deals           Deal[]
+  activities      CrmActivity[]
+  portalMembers   Member[]         @relation("PortalMembers")
+  portalInvites   PortalInvite[]
+  meetingRequests MeetingRequest[]
 
   @@unique([organizationId, name])
   @@index([organizationId, status])

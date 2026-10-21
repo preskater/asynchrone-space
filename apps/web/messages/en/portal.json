@@ -3,6 +3,7 @@
   "signOut": "Sign out",
   "navProjects": "Projects",
   "navDocuments": "Documents",
+  "navMeetings": "Meetings",
   "welcome": "Welcome, {name}",
   "dashboardDescription": "Follow the progress of your projects and find the documents shared with you.",
   "projectsTitle": "Your projects",

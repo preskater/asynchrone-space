@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 
 const CODE_KEYS: Record<string, string> = {
@@ -52,32 +53,47 @@ const CODE_KEYS: Record<string, string> = {
   repository_user_token_missing: "repositoryUserTokenMissing",
   repository_access_denied: "repositoryAccessDenied",
   repository_issue_create_failed: "repositoryIssueCreateFailed",
+  role_cannot_manage_meetings: "roleCannotManageMeetings",
+  meeting_requests_disabled: "meetingRequestsDisabled",
+  meeting_overlap: "meetingOverlap",
+  meeting_slot_too_soon: "meetingSlotTooSoon",
+  meeting_slot_outside_window: "meetingSlotOutsideWindow",
+  meeting_notice_beyond_window: "meetingNoticeBeyondWindow",
+  meeting_duration_invalid: "meetingDurationInvalid",
+  meeting_invalid_window: "meetingInvalidWindow",
+  meeting_slots_invalid: "meetingSlotsInvalid",
+  meeting_slots_duplicate: "meetingSlotsDuplicate",
+  meeting_not_pending: "meetingNotPending",
+  meeting_url_required: "meetingUrlRequired",
+  meeting_address_required: "meetingAddressRequired",
+  meeting_provider_not_connected: "meetingProviderNotConnected",
 }
 
 export function useErrorTranslator() {
   const t = useTranslations("Errors")
   const tEnums = useTranslations("Enums")
 
-  return function translateError(
-    error: unknown,
-    fallbackKey?: string
-  ): string {
-    const err = error as {
-      code?: string
-      message?: string
-      params?: Record<string, string | number> & { resource?: string }
-    }
-    const code = err?.code
-    if (code && CODE_KEYS[code]) {
-      if (code === "not_found") {
-        const resource = err?.params?.resource
-        return t("notFound", {
-          resource: resource ? tEnums(`resource.${resource}` as never) : "",
-        })
+  // Memoised so the translator can safely be used in effect dependencies.
+  return React.useCallback(
+    (error: unknown, fallbackKey?: string): string => {
+      const err = error as {
+        code?: string
+        message?: string
+        params?: Record<string, string | number> & { resource?: string }
       }
-      return t(CODE_KEYS[code] as never, (err?.params ?? {}) as never)
-    }
-    if (fallbackKey) return t(fallbackKey as never)
-    return err?.message ?? t("internal")
-  }
+      const code = err?.code
+      if (code && CODE_KEYS[code]) {
+        if (code === "not_found") {
+          const resource = err?.params?.resource
+          return t("notFound", {
+            resource: resource ? tEnums(`resource.${resource}` as never) : "",
+          })
+        }
+        return t(CODE_KEYS[code] as never, (err?.params ?? {}) as never)
+      }
+      if (fallbackKey) return t(fallbackKey as never)
+      return err?.message ?? t("internal")
+    },
+    [t, tEnums]
+  )
 }

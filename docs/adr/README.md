@@ -37,3 +37,4 @@ collection.
 | [0014](0014-sync-project-tasks-with-repositories.md)      | accepted | Sync project tasks with GitHub/GitLab repositories two-way               |
 | [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                |
 | [0016](0016-customizable-appearance-and-animations.md)    | accepted | Customizable organization themes and CSS animation effects               |
+| [0017](0017-client-meeting-requests.md)                   | accepted | Let clients request meetings that the team books on the calendar         |

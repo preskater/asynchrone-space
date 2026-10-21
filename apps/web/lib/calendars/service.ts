@@ -55,6 +55,7 @@ export class CalendarService {
       calendarId: row.calendarId,
       location: row.location ?? undefined,
       meetingUrl: row.meetingUrl ?? undefined,
+      meetingPassword: row.meetingPassword ?? undefined,
       attendees: row.attendees.map((attendee) => ({
         memberId: attendee.userId,
         response: attendee.response as CalendarEvent["attendees"][number]["response"],

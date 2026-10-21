@@ -6,6 +6,7 @@ import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { OrganizationAppearanceForm } from "@/components/appearance/organization-appearance-form"
+import { MeetingSettingsForm } from "@/components/meetings/meeting-settings-form"
 import { OrganizationDangerZone } from "@/components/organization/danger-zone"
 import { InvitationsTable } from "@/components/organization/invitations-table"
 import { InviteMemberDialog } from "@/components/organization/invite-member-dialog"
@@ -33,6 +34,7 @@ import { useOrgPermissions } from "@/lib/organization/use-permissions"
 export function OrganizationSettings() {
   const t = useTranslations("Org")
   const tAppearance = useTranslations("Appearance")
+  const tMeetings = useTranslations("MeetingRequests")
   const permissions = useOrgPermissions()
   const {
     data: organization,
@@ -76,6 +78,7 @@ export function OrganizationSettings() {
       <TabsList variant="line" className="w-full justify-start border-b pb-0">
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
         <TabsTrigger value="appearance">{tAppearance("title")}</TabsTrigger>
+        <TabsTrigger value="meetings">{tMeetings("settingsTitle")}</TabsTrigger>
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
         <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
@@ -91,6 +94,10 @@ export function OrganizationSettings() {
 
       <TabsContent value="appearance">
         <OrganizationAppearanceForm />
+      </TabsContent>
+
+      <TabsContent value="meetings">
+        <MeetingSettingsForm />
       </TabsContent>
 
       <TabsContent value="members">

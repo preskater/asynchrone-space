@@ -10,5 +10,7 @@
   "dealLost": "{actor} marked “{deal}” as lost",
   "portalMessage": "{actor} sent a client message in {project}",
   "portalDocument": "{actor} shared a document on {client}",
-  "portalComment": "{actor} commented on {identifier} · {title}"
+  "portalComment": "{actor} commented on {identifier} · {title}",
+  "meetingRequested": "{actor} requested a meeting for {client} · {title}",
+  "meetingDecided": "{actor} answered the meeting request “{title}”"
 }

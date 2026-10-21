@@ -73,6 +73,7 @@
   "dateRequired": "Veuillez choisir une date.",
   "calendarRequired": "Veuillez sélectionner un calendrier.",
   "nameRequired": "Veuillez saisir un nom.",
+  "meetingPasswordLabel": "Mot de passe : {password}",
   "weekdays": {
     "mon": "Lun",
     "tue": "Mar",
