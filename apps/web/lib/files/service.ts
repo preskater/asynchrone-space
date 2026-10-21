@@ -1,6 +1,7 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
 import { unlinkLargeObject } from "@/lib/large-object"
+import { roleRank } from "@/lib/organization/roles"
 
 import { kindFromName } from "./file-utils"
 import { FileRepository } from "./repository"
@@ -23,13 +24,6 @@ import type {
   ShareEntry,
 } from "./types"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
 const PERMISSION_RANK: Record<string, number> = {
   view: 1,
   comment: 2,
@@ -40,7 +34,7 @@ const VIEW_RANK = 1
 const EDIT_RANK = 3
 
 function canWrite(ctx: RequestContext) {
-  if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
+  if (roleRank(ctx.role) >= 2) return
   throw new ForbiddenError("Your role cannot modify files.", {
     code: "role_cannot_modify_files",
   })
@@ -67,10 +61,7 @@ interface FileAccess {
  * - Non-restricted files are readable org-wide; writing still requires the
  *   member role (viewers are read-only).
  */
-function resolveAccess(
-  ctx: RequestContext,
-  chain: AncestorNode[]
-): FileAccess {
+function resolveAccess(ctx: RequestContext, chain: AncestorNode[]): FileAccess {
   if (ctx.role === "owner") return { canRead: true, canWrite: true }
   if (chain.some((node) => node.ownerId === ctx.userId)) {
     return { canRead: true, canWrite: true }
@@ -88,8 +79,7 @@ function resolveAccess(
   const restricted = chain.some((node) => node.restricted)
   const canRead = granted >= VIEW_RANK || !restricted
   const canWrite =
-    (ROLE_RANK[ctx.role] ?? 0) >= 2 &&
-    (granted >= EDIT_RANK || !restricted)
+    roleRank(ctx.role) >= 2 && (granted >= EDIT_RANK || !restricted)
 
   return { canRead, canWrite }
 }
@@ -201,7 +191,9 @@ export class FileService {
     const rows = await this.repo.list(ctx.organizationId)
     const byId = new Map(rows.map((row) => [row.id, row]))
     const cache = new Map<string, FileAccess>()
-    const visible = rows.filter((row) => this.accessFromMap(ctx, row.id, byId, cache).canRead)
+    const visible = rows.filter(
+      (row) => this.accessFromMap(ctx, row.id, byId, cache).canRead
+    )
     const shares: Record<string, ShareEntry[]> = {}
     const versions: Record<string, FileVersion[]> = {}
     const activities: Record<string, FileActivity[]> = {}
@@ -262,12 +254,10 @@ export class FileService {
         : { canRead: true, canWrite: true }
 
     const canRead =
-      granted >= VIEW_RANK ||
-      (!row.restricted && parentAccess.canRead)
+      granted >= VIEW_RANK || (!row.restricted && parentAccess.canRead)
     const canWrite =
-      (ROLE_RANK[ctx.role] ?? 0) >= 2 &&
-      (granted >= EDIT_RANK ||
-        (!row.restricted && parentAccess.canWrite))
+      roleRank(ctx.role) >= 2 &&
+      (granted >= EDIT_RANK || (!row.restricted && parentAccess.canWrite))
 
     const access = { canRead, canWrite }
     cache.set(id, access)
@@ -432,7 +422,10 @@ export class FileService {
     return this.mapFile(row)
   }
 
-  async deleteForever(ctx: RequestContext, id: string): Promise<{ id: string }> {
+  async deleteForever(
+    ctx: RequestContext,
+    id: string
+  ): Promise<{ id: string }> {
     const row = await this.requireWrite(ctx, id)
     await this.repo.delete(id)
     await this.unlinkRows([row])

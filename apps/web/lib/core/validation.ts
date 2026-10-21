@@ -13,13 +13,7 @@ export function parse<T>(
   input: unknown,
   errorMap?: $ZodErrorMap
 ): T {
-  return errorMap ? schema.parse(input, { error: errorMap }) : schema.parse(input)
-}
-
-export async function readJson(request: Request): Promise<unknown> {
-  try {
-    return await request.json()
-  } catch {
-    return {}
-  }
+  return errorMap
+    ? schema.parse(input, { error: errorMap })
+    : schema.parse(input)
 }

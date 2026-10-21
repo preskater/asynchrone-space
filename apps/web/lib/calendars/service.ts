@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { roleRank } from "@/lib/organization/roles"
 
 import { CalendarRepository } from "./repository"
 import type {
@@ -11,15 +12,8 @@ import type {
 } from "./schemas"
 import type { CalendarData, CalendarEvent, CalendarSource } from "./types"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
 function canWrite(ctx: RequestContext) {
-  if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
+  if (roleRank(ctx.role) >= 2) return
   throw new ForbiddenError("Your role cannot modify calendars.", {
     code: "role_cannot_modify_calendars",
   })
@@ -57,7 +51,8 @@ export class CalendarService {
       meetingUrl: row.meetingUrl ?? undefined,
       attendees: row.attendees.map((attendee) => ({
         memberId: attendee.userId,
-        response: attendee.response as CalendarEvent["attendees"][number]["response"],
+        response:
+          attendee.response as CalendarEvent["attendees"][number]["response"],
       })),
       color: row.color as CalendarEvent["color"],
       reminderMinutes: row.reminderMinutes ?? undefined,

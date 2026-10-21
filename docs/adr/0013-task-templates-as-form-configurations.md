@@ -78,3 +78,9 @@ Chosen option: **B**, matching the established `CrmFieldDefinition` precedent.
   a task (same trade-off as CRM custom fields).
 - `customFields` is `Json`, so ad-hoc SQL reporting on a field needs JSON
   operators; strongly-typed reporting would need a normalized model later.
+
+### Note (2026-10-16)
+
+The "REST API" mentioned above was removed in
+[ADR 0016](0016-server-actions-as-the-crud-transport.md); task creation via the
+UI and MCP still shares the same validation and normalization.

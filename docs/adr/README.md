@@ -19,21 +19,21 @@ collection.
 
 ## Index
 
-| ADR                                                       | Status   | Decision                                                                 |
-| --------------------------------------------------------- | -------- | ------------------------------------------------------------------------ |
-| [0001](0001-use-monorepo-with-turborepo.md)               | accepted | Use a monorepo with Turborepo and npm workspaces                         |
-| [0002](0002-use-nextjs-app-router.md)                     | accepted | Use Next.js App Router with React 19                                     |
-| [0003](0003-use-postgresql-with-prisma-driver-adapter.md) | accepted | Use PostgreSQL with Prisma 7 and the `@prisma/adapter-pg` driver adapter |
-| [0004](0004-use-better-auth-with-organization-plugin.md)  | accepted | Use Better Auth with the organization plugin for multi-tenant RBAC       |
-| [0005](0005-store-files-as-postgresql-large-objects.md)   | accepted | Store files as PostgreSQL large objects                                  |
-| [0006](0006-expose-ai-assistant-over-mcp.md)              | accepted | Expose the AI assistant over MCP                                         |
-| [0007](0007-use-shadcn-ui-with-base-ui.md)                | accepted | Use shadcn/ui with Base UI and Tailwind CSS                              |
-| [0008](0008-use-next-intl-for-i18n.md)                    | accepted | Use next-intl for internationalization                                   |
-| [0009](0009-ship-standalone-docker-image.md)              | accepted | Ship a standalone Docker image with a separate migration service         |
-| [0010](0010-chunked-upload-protocol.md)                   | accepted | Use a chunked upload protocol with `UploadSession`                       |
-| [0011](0011-authenticate-mcp-with-oauth2.md)              | accepted | Authenticate the MCP endpoint with OAuth2                                |
+| ADR                                                       | Status   | Decision                                                                  |
+| --------------------------------------------------------- | -------- | ------------------------------------------------------------------------- |
+| [0001](0001-use-monorepo-with-turborepo.md)               | accepted | Use a monorepo with Turborepo and npm workspaces                          |
+| [0002](0002-use-nextjs-app-router.md)                     | accepted | Use Next.js App Router with React 19                                      |
+| [0003](0003-use-postgresql-with-prisma-driver-adapter.md) | accepted | Use PostgreSQL with Prisma 7 and the `@prisma/adapter-pg` driver adapter  |
+| [0004](0004-use-better-auth-with-organization-plugin.md)  | accepted | Use Better Auth with the organization plugin for multi-tenant RBAC        |
+| [0005](0005-store-files-as-postgresql-large-objects.md)   | accepted | Store files as PostgreSQL large objects                                   |
+| [0006](0006-expose-ai-assistant-over-mcp.md)              | accepted | Expose the AI assistant over MCP                                          |
+| [0007](0007-use-shadcn-ui-with-base-ui.md)                | accepted | Use shadcn/ui with Base UI and Tailwind CSS                               |
+| [0008](0008-use-next-intl-for-i18n.md)                    | accepted | Use next-intl for internationalization                                    |
+| [0009](0009-ship-standalone-docker-image.md)              | accepted | Ship a standalone Docker image with a separate migration service          |
+| [0010](0010-chunked-upload-protocol.md)                   | accepted | Use a chunked upload protocol with `UploadSession`                        |
+| [0011](0011-authenticate-mcp-with-oauth2.md)              | accepted | Authenticate the MCP endpoint with OAuth2                                 |
 | [0012](0012-extend-clients-into-crm-core.md)              | accepted | Extend clients into the CRM core (contacts, pipelines, deals, activities) |
-| [0013](0013-task-templates-as-form-configurations.md)     | accepted | Model task templates as form configurations with JSON custom fields      |
-| [0014](0014-sync-project-tasks-with-repositories.md)      | accepted | Sync project tasks with GitHub/GitLab repositories two-way               |
-| [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                |
-| [0016](0016-customizable-appearance-and-animations.md)    | accepted | Customizable organization themes and CSS animation effects               |
+| [0013](0013-task-templates-as-form-configurations.md)     | accepted | Model task templates as form configurations with JSON custom fields       |
+| [0014](0014-sync-project-tasks-with-repositories.md)      | accepted | Sync project tasks with GitHub/GitLab repositories two-way                |
+| [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                 |
+| [0016](0016-server-actions-as-the-crud-transport.md)      | accepted | Use server actions as the only CRUD transport                             |
