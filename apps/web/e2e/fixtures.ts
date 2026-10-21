@@ -1,13 +1,16 @@
 import { expect, type Page } from "@playwright/test"
 
+import { E2E_BASE_URL } from "./env"
+
 export function uniqueEmail() {
   return `e2e_${Date.now()}_${Math.random().toString(36).slice(2, 8)}@example.com`
 }
 
 // Better Auth enforces a CSRF origin check on its endpoints; Playwright's API
 // request context does not send an Origin header, so add it explicitly. It
-// must match BETTER_AUTH_URL.
-const ORIGIN = process.env.E2E_BASE_URL ?? "http://localhost:3000"
+// must match BETTER_AUTH_URL, which `playwright.config.ts` derives from the
+// same value.
+const ORIGIN = E2E_BASE_URL
 
 /**
  * Create a fresh account through the Better Auth API (registration is open)

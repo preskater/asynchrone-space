@@ -1,16 +1,11 @@
 "use client"
 
 import * as React from "react"
-import {
-  ArrowDownIcon,
-  ArrowUpIcon,
-  ChevronsUpDownIcon,
-} from "lucide-react"
+import { ArrowDownIcon, ArrowUpIcon, ChevronsUpDownIcon } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
-import { StatusBadge } from "@/components/task/task-badge"
-import { Badge } from "@workspace/ui/components/badge"
+import { PriorityBadge, StatusBadge } from "@/components/task/task-badge"
 import { Button } from "@workspace/ui/components/button"
 import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
@@ -41,12 +36,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useProjectStore } from "@/lib/projects/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
-import {
-  formatDate,
-  PRIORITY_BADGE_VARIANT,
-  type Task,
-} from "@/lib/projects/types"
+import { formatDate, type Task } from "@/lib/projects/types"
 
 type SortKey = "title" | "status" | "priority" | "dueDate"
 type SortDir = "asc" | "desc"
@@ -69,7 +59,11 @@ function SortHeader({
   className?: string
 }) {
   const active = activeKey === sortKey
-  const Icon = !active ? ChevronsUpDownIcon : dir === "asc" ? ArrowUpIcon : ArrowDownIcon
+  const Icon = !active
+    ? ChevronsUpDownIcon
+    : dir === "asc"
+      ? ArrowUpIcon
+      : ArrowDownIcon
   return (
     <TableHead className={cn(className)}>
       <Button
@@ -94,7 +88,6 @@ export function TaskList({
 }) {
   const t = useTranslations("Projects")
   const locale = useLocale()
-  const L = useEnumLabel()
   const { getMember } = useProjectStore()
   const [sortKey, setSortKey] = React.useState<SortKey>("dueDate")
   const [dir, setDir] = React.useState<SortDir>("asc")
@@ -234,9 +227,7 @@ export function TaskList({
                     <StatusBadge status={task.status} />
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
-                    <Badge variant={PRIORITY_BADGE_VARIANT[task.priority]}>
-                      {L.taskPriority(task.priority)}
-                    </Badge>
+                    <PriorityBadge priority={task.priority} />
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
                     {assignee ? (
@@ -335,9 +326,7 @@ export function TaskList({
             <PaginationItem>
               <PaginationNext
                 aria-disabled={currentPage === pageCount}
-                onClick={() =>
-                  setPage((prev) => Math.min(pageCount, prev + 1))
-                }
+                onClick={() => setPage((prev) => Math.min(pageCount, prev + 1))}
               />
             </PaginationItem>
           </PaginationContent>

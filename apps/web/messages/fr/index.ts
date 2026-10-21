@@ -2,6 +2,7 @@ import account from "./account.json"
 import activity from "./activity.json"
 import announcement from "./announcement.json"
 import appPages from "./appPages.json"
+import appearance from "./appearance.json"
 import assistant from "./assistant.json"
 import auth from "./auth.json"
 import blog from "./blog.json"
@@ -38,6 +39,7 @@ export default {
   Activity: activity,
   Announcement: announcement,
   AppPages: appPages,
+  Appearance: appearance,
   Assistant: assistant,
   Auth: auth,
   Blog: blog,

@@ -63,10 +63,7 @@ export function TaskCardContent({
             {task.identifier}
           </span>
           <span
-            className={cn(
-              "text-sm font-medium",
-              dragging && "line-clamp-2"
-            )}
+            className={cn("text-sm font-medium", dragging && "line-clamp-2")}
           >
             {task.title}
           </span>
@@ -132,6 +129,7 @@ export function TaskCard({
   return (
     <div
       ref={setNodeRef}
+      data-fx-card
       style={{
         transform: CSS.Translate.toString(transform),
         transition,
@@ -145,12 +143,13 @@ export function TaskCard({
     >
       <button
         type="button"
+        data-no-fx
         className="cursor-grab text-start outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
         onClick={() => onOpen(task.id)}
       >
         <TaskCardContent task={task} />
       </button>
-      <div className="absolute top-2 end-2 opacity-0 transition-opacity group-hover/task:opacity-100 focus-within:opacity-100">
+      <div className="absolute end-2 top-2 opacity-0 transition-opacity group-hover/task:opacity-100 focus-within:opacity-100">
         <DropdownMenu>
           <DropdownMenuTrigger
             render={

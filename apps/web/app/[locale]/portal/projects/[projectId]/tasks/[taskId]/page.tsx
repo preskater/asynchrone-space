@@ -13,6 +13,7 @@ import {
 import { Link } from "@/i18n/navigation"
 import { PortalSeenTracker } from "@/components/portal/portal-seen-tracker"
 import { PortalTaskComments } from "@/components/portal/portal-task-comments"
+import { PriorityBadge } from "@/components/task/task-badge"
 import { getPortalContext } from "@/lib/portal/context"
 import { portalService } from "@/lib/portal"
 import { isAppError } from "@/lib/core/errors"
@@ -64,17 +65,13 @@ export default async function PortalTaskPage({
       </Link>
 
       <div className="flex flex-col gap-2">
-        <span className="text-xs text-muted-foreground">
-          {task.identifier}
-        </span>
+        <span className="text-xs text-muted-foreground">{task.identifier}</span>
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-2xl font-semibold">{task.title}</h1>
           <Badge variant="secondary">
             {tEnums(`taskStatus.${task.status}` as never)}
           </Badge>
-          <Badge variant="outline">
-            {tEnums(`taskPriority.${task.priority}` as never)}
-          </Badge>
+          <PriorityBadge priority={task.priority} />
         </div>
         {task.labels.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2 pt-1">
@@ -114,7 +111,10 @@ export default async function PortalTaskPage({
           <CardContent>
             <ul className="flex flex-col gap-2.5">
               {task.subtasks.map((subtask) => (
-                <li key={subtask.id} className="flex items-center gap-2 text-sm">
+                <li
+                  key={subtask.id}
+                  className="flex items-center gap-2 text-sm"
+                >
                   <span
                     className={
                       subtask.done
