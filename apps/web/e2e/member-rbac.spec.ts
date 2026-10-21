@@ -17,7 +17,7 @@ async function createProject(page: Page, name: string): Promise<string> {
     await expect(dialog).toBeVisible({ timeout: 2_000 })
   }).toPass({ timeout: 15_000 })
   await dialog.getByLabel("Name", { exact: true }).fill(name)
-  await dialog.getByRole("button", { name: "Create project" }).click()
+  await dialog.getByRole("button", { name: "Create", exact: true }).click()
 
   const link = page.getByRole("link", { name })
   await expect(link).toBeVisible({ timeout: 15_000 })
