@@ -19,6 +19,7 @@ const RULES: Rule[] = [
   { key: "BETTER_AUTH_URL", required: true, url: true },
   { key: "OPENAI_API_URL", url: true },
   { key: "MCP_RESOURCE_URL", url: true },
+  { key: "NEXT_PUBLIC_APP_URL", url: true },
 ]
 
 const problems: string[] = []
@@ -38,6 +39,16 @@ for (const rule of RULES) {
       new URL(value)
     } catch {
       problems.push(`${rule.key} must be a valid URL`)
+    }
+  }
+}
+
+if (process.env.REQUIRE_EMAIL_VERIFICATION === "true") {
+  for (const key of ["RESEND_API_KEY", "EMAIL_FROM"]) {
+    if (!process.env[key]) {
+      problems.push(
+        `${key} is required when REQUIRE_EMAIL_VERIFICATION is enabled`
+      )
     }
   }
 }

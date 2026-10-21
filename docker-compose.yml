@@ -42,7 +42,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "3002:3000"
+      - "3000:3000"
     # Load the app's .env so local `next dev` and this container share the same
     # BETTER_AUTH_SECRET: the JWKS signing keys stored in the database are
     # encrypted with it, and a different secret breaks MCP/OAuth token
@@ -54,7 +54,7 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://preskater:preskater@postgres:5432/preskater?schema=public
-      - BETTER_AUTH_URL=http://localhost:3002
+      - BETTER_AUTH_URL=http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy

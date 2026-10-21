@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
@@ -31,6 +32,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   const t = useTranslations("Auth.signUp")
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [awaitingVerification, setAwaitingVerification] = useState(false)
 
   const formSchema = z
     .object({
@@ -55,7 +57,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   })
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
-    const { error } = await authClient.signUp.email({
+    const { data: result, error } = await authClient.signUp.email({
       name: data.name,
       email: data.email,
       password: data.password,
@@ -68,9 +70,27 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       return
     }
 
+    // No session token means `requireEmailVerification` is on: the account
+    // exists but the user must click the link sent to their inbox first.
+    if (result?.token === null) {
+      setAwaitingVerification(true)
+      return
+    }
+
     const redirectTo = safeRedirect(searchParams.get("redirect"))
     router.push(redirectTo)
     router.refresh()
+  }
+
+  if (awaitingVerification) {
+    return (
+      <Card {...props}>
+        <CardHeader>
+          <CardTitle>{t("checkEmailTitle")}</CardTitle>
+          <CardDescription>{t("checkEmailDescription")}</CardDescription>
+        </CardHeader>
+      </Card>
+    )
   }
 
   return (
