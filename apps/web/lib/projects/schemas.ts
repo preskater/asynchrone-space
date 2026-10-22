@@ -29,6 +29,12 @@ export const projectStatusSchema = z.enum(["active", "paused", "completed"])
 
 export const memberRoleSchema = z.enum(["owner", "admin", "member", "viewer"])
 
+// The date picker sends ISO datetimes; API/assistant callers may send a day.
+const dateInputSchema = z
+  .union([z.iso.datetime({ offset: true }), z.iso.date()])
+  .nullable()
+  .optional()
+
 export const createProjectSchema = z.object({
   name: z.string().min(1).max(120),
   description: z.string().max(2000).optional(),
@@ -43,7 +49,7 @@ export const updateProjectSchema = z.object({
   status: projectStatusSchema.optional(),
   memberIds: z.array(z.string()).optional(),
   labelIds: z.array(z.string()).optional(),
-  dueDate: z.string().nullable().optional(),
+  dueDate: dateInputSchema,
 })
 
 export const taskTemplateFieldSchema = z
@@ -79,8 +85,8 @@ export const createTaskSchema = z.object({
   priority: taskPrioritySchema.optional(),
   assigneeId: z.string().nullable().optional(),
   labelIds: z.array(z.string()).optional(),
-  dueDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
+  dueDate: dateInputSchema,
+  endDate: dateInputSchema,
   templateId: z.string().min(1).nullable().optional(),
   customFields: taskCustomFieldsSchema.optional(),
 })
@@ -92,8 +98,8 @@ export const updateTaskSchema = z.object({
   priority: taskPrioritySchema.optional(),
   assigneeId: z.string().nullable().optional(),
   labelIds: z.array(z.string()).optional(),
-  dueDate: z.string().nullable().optional(),
-  endDate: z.string().nullable().optional(),
+  dueDate: dateInputSchema,
+  endDate: dateInputSchema,
   customFields: taskCustomFieldsSchema.optional(),
 })
 

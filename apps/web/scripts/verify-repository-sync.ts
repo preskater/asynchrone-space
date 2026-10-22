@@ -337,6 +337,10 @@ async function main() {
         order: 0,
       },
     })
+    // Seeded outside the service, so seed its identifier counter too.
+    await prisma.taskIdentifierCounter.create({
+      data: { organizationId: orgId, prefix: "VRF", value: 1 },
+    })
 
     const ctx: RequestContext = {
       userId: user.id,

@@ -13,7 +13,7 @@ import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 import { ProjectRepository } from "./repository"
 import { createTaskComment } from "./task-comments"
-import { nextTaskIdentifier } from "./task-key"
+import { allocateTaskIdentifier, taskPrefix } from "./task-key"
 import type {
   AddCommentInput,
   AddLabelInput,
@@ -408,7 +408,7 @@ export class ProjectService {
       ctx.organizationId,
       input.projectId
     )
-    const identifier = nextTaskIdentifier(
+    const prefix = taskPrefix(
       project.name,
       existing.map((task) => task.identifier)
     )
@@ -441,6 +441,11 @@ export class ProjectService {
       }
     )
 
+    const identifier = await allocateTaskIdentifier(
+      this.db,
+      ctx.organizationId,
+      prefix
+    )
     const row = await this.repo.createTask({
       organizationId: ctx.organizationId,
       projectId: input.projectId,
