@@ -63,11 +63,6 @@ interface MessagingStore extends MessagingData {
   editMessage: (id: string, body: string) => void
   deleteMessage: (id: string) => void
   toggleReaction: (messageId: string, emoji: string) => void
-  toggleReactionMember: (
-    messageId: string,
-    emoji: string,
-    memberId: string
-  ) => void
   addThreadReply: (parentId: string, body: string) => void
   markRead: (conversationId: string) => void
   startDirectMessage: (memberId: string) => string
@@ -303,25 +298,6 @@ export function MessagingProvider({
           })
         )
         void toggleReactionAction(messageId, { emoji })
-          .then((result) => unwrap(result))
-          .catch((error) => toast.error(te(error, "reactionFailed")))
-      },
-      toggleReactionMember: (messageId, emoji, memberId) => {
-        setMessages((prev) =>
-          prev.map((message) =>
-            message.id === messageId
-              ? {
-                  ...message,
-                  reactions: toggleReactionFor(
-                    message.reactions,
-                    emoji,
-                    memberId
-                  ),
-                }
-              : message
-          )
-        )
-        void toggleReactionAction(messageId, { emoji, memberId })
           .then((result) => unwrap(result))
           .catch((error) => toast.error(te(error, "reactionFailed")))
       },

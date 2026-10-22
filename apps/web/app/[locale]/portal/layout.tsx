@@ -1,9 +1,11 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
+import { AppearanceProvider } from "@/components/appearance/appearance-provider"
 import { PortalHeader } from "@/components/portal/portal-header"
 
 import { auth } from "@/lib/auth"
+import { getOrganizationAppearance } from "@/lib/appearance/service"
 import { getPortalContext } from "@/lib/portal/context"
 
 export default async function PortalLayout({
@@ -24,16 +26,20 @@ export default async function PortalLayout({
     redirect("/onboarding")
   }
 
+  const appearance = await getOrganizationAppearance(ctx.organizationId)
+
   return (
-    <div className="flex min-h-svh flex-col bg-muted/30">
-      <PortalHeader
-        organizationName={ctx.organizationName}
-        clientName={ctx.clientName}
-        userName={ctx.userName}
-      />
-      <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 md:px-6">
-        {children}
-      </main>
-    </div>
+    <AppearanceProvider initialAppearance={appearance} userId={ctx.userId}>
+      <div className="flex min-h-svh flex-col bg-muted/30">
+        <PortalHeader
+          organizationName={ctx.organizationName}
+          clientName={ctx.clientName}
+          userName={ctx.userName}
+        />
+        <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-6 md:px-6">
+          {children}
+        </main>
+      </div>
+    </AppearanceProvider>
   )
 }

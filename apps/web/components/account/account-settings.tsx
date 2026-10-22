@@ -28,6 +28,7 @@ import {
   removeUserRepositoryTokenAction,
   setUserRepositoryTokenAction,
 } from "@/actions/integrations"
+import { UserAppearanceCard } from "@/components/appearance/user-appearance-card"
 import { authClient } from "@/lib/auth-client"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
@@ -95,9 +96,7 @@ function ProfileCard() {
               <FieldDescription>{t("emailDescription")}</FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor="account-image">
-                {t("imageUrl")}
-              </FieldLabel>
+              <FieldLabel htmlFor="account-image">{t("imageUrl")}</FieldLabel>
               <Input
                 id="account-image"
                 value={image}
@@ -105,9 +104,7 @@ function ProfileCard() {
                 onChange={(event) => setImage(event.target.value)}
               />
             </Field>
-            {error ? (
-              <p className="text-sm text-destructive">{error}</p>
-            ) : null}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Field orientation="horizontal">
               <Button type="submit" disabled={!dirty || saving}>
                 {saving ? <Spinner /> : null}
@@ -221,9 +218,7 @@ function SecurityCard() {
                 {t("revokeOtherSessions")}
               </FieldLabel>
             </Field>
-            {error ? (
-              <p className="text-sm text-destructive">{error}</p>
-            ) : null}
+            {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Field orientation="horizontal">
               <Button type="submit" disabled={!canSubmit || saving}>
                 {saving ? <Spinner /> : null}
@@ -245,9 +240,10 @@ function RepositoryTokensCard() {
     github: "GitHub",
     gitlab: "GitLab",
   }
-  const [configured, setConfigured] = React.useState<
-    Record<"github" | "gitlab", boolean> | null
-  >(null)
+  const [configured, setConfigured] = React.useState<Record<
+    "github" | "gitlab",
+    boolean
+  > | null>(null)
   const [drafts, setDrafts] = React.useState({ github: "", gitlab: "" })
   const [busy, setBusy] = React.useState<string | null>(null)
 
@@ -310,9 +306,7 @@ function RepositoryTokensCard() {
     <Card>
       <CardHeader>
         <CardTitle>{t("repositoryAccess")}</CardTitle>
-        <CardDescription>
-          {t("repositoryAccessDescription")}
-        </CardDescription>
+        <CardDescription>{t("repositoryAccessDescription")}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-5">
         {(["github", "gitlab"] as const).map((provider) => {
@@ -386,9 +380,10 @@ function ConnectedAccountsCard({
   providers: Array<"github" | "gitlab">
 }) {
   const t = useTranslations("Account")
-  const [accounts, setAccounts] = React.useState<
-    Array<{ providerId: string; accountId: string }> | null
-  >(null)
+  const [accounts, setAccounts] = React.useState<Array<{
+    providerId: string
+    accountId: string
+  }> | null>(null)
   const [busy, setBusy] = React.useState<string | null>(null)
 
   const labels: Record<"github" | "gitlab", string> = {
@@ -523,6 +518,7 @@ export function AccountSettings({
       <p className="text-sm text-muted-foreground">{t("description")}</p>
       <div className="mt-3 flex flex-col gap-4">
         <ProfileCard />
+        <UserAppearanceCard />
         <SecurityCard />
         <RepositoryTokensCard />
         {socialProviders.length > 0 ? (

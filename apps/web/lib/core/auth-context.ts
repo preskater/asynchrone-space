@@ -15,6 +15,31 @@ function resolveRole(role: string | null | undefined): OrgRole {
   return roles[0] ?? DEFAULT_ROLE
 }
 
+/** Builds the context for `user` acting in `organizationId`. */
+export async function contextForMember(
+  user: { id: string; name: string; email: string },
+  organizationId: string
+): Promise<RequestContext> {
+  const member = await prisma.member.findFirst({
+    where: { organizationId, userId: user.id },
+    select: { role: true, clientId: true },
+  })
+
+  if (!member) throw new ForbiddenError()
+  // Client-portal members only ever act through the portal endpoints.
+  if (member.clientId) {
+    throw new ForbiddenError("Portal accounts cannot access the workspace.")
+  }
+
+  return {
+    userId: user.id,
+    userName: user.name,
+    userEmail: user.email,
+    organizationId,
+    role: resolveRole(member.role),
+  }
+}
+
 async function contextFromSession(): Promise<RequestContext | null> {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) return null
@@ -22,23 +47,7 @@ async function contextFromSession(): Promise<RequestContext | null> {
   const organizationId = session.session.activeOrganizationId
   if (!organizationId) return null
 
-  const member = await prisma.member.findFirst({
-    where: { organizationId, userId: session.user.id },
-    select: { role: true, clientId: true },
-  })
-
-  // Client-portal members only ever act through the portal endpoints.
-  if (member?.clientId) {
-    throw new ForbiddenError("Portal accounts cannot access the workspace.")
-  }
-
-  return {
-    userId: session.user.id,
-    userName: session.user.name,
-    userEmail: session.user.email,
-    organizationId,
-    role: resolveRole(member?.role),
-  }
+  return contextForMember(session.user, organizationId)
 }
 
 export interface GetRequestContextOptions {
@@ -72,23 +81,7 @@ export async function getRequestContextForOrganization(
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) throw new UnauthorizedError()
 
-  const member = await prisma.member.findFirst({
-    where: { organizationId, userId: session.user.id },
-    select: { role: true, clientId: true },
-  })
-
-  // Client-portal members only ever act through the portal endpoints.
-  if (member?.clientId) {
-    throw new ForbiddenError("Portal accounts cannot access the workspace.")
-  }
-
-  return {
-    userId: session.user.id,
-    userName: session.user.name,
-    userEmail: session.user.email,
-    organizationId,
-    role: resolveRole(member?.role),
-  }
+  return contextForMember(session.user, organizationId)
 }
 
 export function requirePermission(ctx: RequestContext, allowed: OrgRole[]) {

@@ -11,9 +11,8 @@ import {
   WORK_LOCATION_KINDS,
 } from "./types"
 
-export const dateKeySchema = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected a YYYY-MM-DD date.")
+// Rejects impossible days (2026-02-30) a bare pattern lets through.
+export const dateKeySchema = z.iso.date("Expected a YYYY-MM-DD date.")
 
 export const monthKeySchema = z
   .string()

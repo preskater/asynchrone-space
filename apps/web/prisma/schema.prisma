@@ -106,6 +106,7 @@ model Organization {
   labels         Label[]
   tasks          Task[]
   taskTemplates  TaskTemplate[]
+  taskIdentifierCounters TaskIdentifierCounter[]
   calendars      Calendar[]
   calendarEvents CalendarEvent[]
   files          FileNode[]
@@ -324,6 +325,18 @@ model Task {
   @@index([assigneeId])
   @@index([templateId])
   @@map("task")
+}
+
+/// Last number handed out for a task identifier prefix (`AB` → `AB-<value>`).
+/// Incremented atomically so concurrent creates never get the same number.
+model TaskIdentifierCounter {
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  prefix         String
+  value          Int
+
+  @@id([organizationId, prefix])
+  @@map("task_identifier_counter")
 }
 
 model TaskTemplate {

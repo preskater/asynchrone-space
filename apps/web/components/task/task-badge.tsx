@@ -4,12 +4,7 @@ import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useEnumLabel } from "@/lib/i18n/labels"
-import {
-  PRIORITY_BADGE_VARIANT,
-  type Label,
-  type TaskPriority,
-  type TaskStatus,
-} from "@/lib/projects/types"
+import type { Label, TaskPriority, TaskStatus } from "@/lib/projects/types"
 
 const STATUS_BADGE_VARIANT: Record<
   TaskStatus,
@@ -37,6 +32,11 @@ export function StatusBadge({
   )
 }
 
+/**
+ * Priority labels keep fixed colors (one hue per priority) regardless of the
+ * organization theme. The animations (fire, shimmer, float) are layered on
+ * top by the appearance CSS through the `priority-badge` class.
+ */
 export function PriorityBadge({
   priority,
   className,
@@ -47,8 +47,9 @@ export function PriorityBadge({
   const L = useEnumLabel()
   return (
     <Badge
-      variant={PRIORITY_BADGE_VARIANT[priority]}
-      className={cn(className)}
+      variant="outline"
+      data-priority={priority}
+      className={cn("priority-badge", className)}
     >
       {L.taskPriority(priority)}
     </Badge>

@@ -60,8 +60,11 @@ export function FilesGrid({
               render={
                 <button
                   type="button"
+                  data-fx-card
                   onClick={() =>
-                    file.kind === "folder" ? onOpenFolder(file) : onPreview(file)
+                    file.kind === "folder"
+                      ? onOpenFolder(file)
+                      : onPreview(file)
                   }
                   className="group/card flex flex-col gap-3 rounded-xl bg-card p-3 text-start ring-1 ring-foreground/10 transition-colors hover:ring-foreground/25"
                 />
@@ -79,7 +82,12 @@ export function FilesGrid({
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
-                        <Button variant="ghost" size="icon-sm" aria-label={t("fileActions")} className="bg-background/80" />
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label={t("fileActions")}
+                          className="bg-background/80"
+                        />
                       }
                     >
                       <EllipsisIcon />
@@ -104,7 +112,9 @@ export function FilesGrid({
                 </div>
               </div>
               <div className="flex flex-col gap-1">
-                <span className="truncate text-sm font-medium">{file.name}</span>
+                <span className="truncate text-sm font-medium">
+                  {file.name}
+                </span>
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
                   <span>{formatRelativeDate(file.modifiedAt, locale, tc)}</span>
                   {file.kind !== "folder" ? (

@@ -1,0 +1,109 @@
+{
+  "title": "Apparence",
+  "theme": "Thème",
+  "themeDescription": "Choisissez les couleurs de l'espace de travail. Les étiquettes de priorité gardent leurs couleurs fixes.",
+  "presetThemes": "Thèmes prédéfinis",
+  "customTheme": "Thème personnalisé",
+  "useCustomTheme": "Utiliser le thème personnalisé",
+  "customThemeActive": "Thème personnalisé actif",
+  "themes": {
+    "default": "Neutre",
+    "ocean": "Océan",
+    "forest": "Forêt",
+    "sunset": "Coucher de soleil",
+    "berry": "Baie",
+    "nord": "Nord",
+    "coffee": "Café",
+    "cyberpunk": "Cyberpunk",
+    "candy": "Bonbon",
+    "mono": "Monochrome",
+    "custom": "Personnalisé"
+  },
+  "customThemeDescription": "Créez votre propre direction artistique. Les surfaces secondaires sont dérivées de ces deux couleurs.",
+  "primaryColor": "Couleur principale",
+  "accentColor": "Couleur d'accent",
+  "cornerRadius": "Arrondi des coins",
+  "animations": "Animations",
+  "animationsDescription": "Choisissez le dynamisme des boutons, champs, cartes et étiquettes.",
+  "levels": {
+    "basic": "Basique",
+    "fluid": "Fluide",
+    "fantastic": "Fantastique"
+  },
+  "levelDescriptions": {
+    "basic": "Changements de couleur discrets uniquement.",
+    "fluid": "Légers soulèvements, rebonds et halos de focus.",
+    "fantastic": "Mouvement maximal : flammes, reflets, étiquettes flottantes et fond aurora."
+  },
+  "effects": "Effets d'animation",
+  "effectsDescription": "Activez ou désactivez chaque effet pour toute l'entreprise.",
+  "resetEffects": "Réinitialiser",
+  "requiresFantastic": "Fantastique",
+  "effectsList": {
+    "hoverLift": {
+      "name": "Soulèvement au survol",
+      "description": "Les boutons et champs se soulèvent légèrement sous le pointeur."
+    },
+    "hoverGlow": {
+      "name": "Halo au survol",
+      "description": "Un halo coloré suit le curseur sur les boutons et au focus."
+    },
+    "pressRipple": {
+      "name": "Onde au clic",
+      "description": "Un cercle doux s'étend depuis le point de clic."
+    },
+    "pressBounce": {
+      "name": "Rebond au clic",
+      "description": "Les boutons s'écrasent puis reviennent en ressort."
+    },
+    "shineSweep": {
+      "name": "Reflet balayant",
+      "description": "Un reflet diagonal traverse les boutons au survol."
+    },
+    "floatBadges": {
+      "name": "Étiquettes flottantes",
+      "description": "Les étiquettes de priorité flottent doucement de haut en bas."
+    },
+    "priorityFire": {
+      "name": "Feu urgent",
+      "description": "Les étiquettes urgentes brûlent avec des flammes animées au niveau Fantastique."
+    },
+    "ambientGlow": {
+      "name": "Fond aurora",
+      "description": "Des lueurs lentes aux couleurs de la marque bougent derrière l'application au niveau Fantastique."
+    }
+  },
+  "presets": {
+    "minimal": "Minimal",
+    "classic": "Classique",
+    "playful": "Ludique",
+    "neon": "Néon",
+    "arcade": "Arcade",
+    "chaos": "Chaos"
+  },
+  "preview": "Aperçu en direct",
+  "previewDescription": "Survolez, cliquez et saisissez du texte dans l'échantillon avant d'enregistrer.",
+  "previewPrimary": "Enregistrer",
+  "previewSecondary": "Secondaire",
+  "previewDestructive": "Supprimer",
+  "previewInput": "Essayez de taper ici…",
+  "save": "Enregistrer l'apparence",
+  "saving": "Enregistrement…",
+  "saved": "Apparence mise à jour.",
+  "readOnly": "Seuls les propriétaires et les administrateurs peuvent modifier l'apparence de l'espace de travail.",
+  "userTitle": "Apparence et accessibilité",
+  "userDescription": "Ces préférences ne s'appliquent qu'à votre compte, pas à toute l'entreprise.",
+  "colorMode": "Mode de couleur",
+  "colorModeDescription": "Clair, sombre ou suivez votre système d'exploitation.",
+  "modes": {
+    "light": "Clair",
+    "dark": "Sombre",
+    "system": "Système"
+  },
+  "highContrast": "Contraste élevé",
+  "highContrastDescription": "Des bordures, du texte et des étiquettes de priorité plus contrastés pour une meilleure lisibilité.",
+  "reduceMotion": "Désactiver les animations",
+  "reduceMotionDescription": "Désactive toutes les animations et transitions de votre compte, y compris les effets de l'entreprise.",
+  "currentWorkspaceLook": "Votre entreprise utilise le thème {theme} avec des animations {level}.",
+  "resetPreferences": "Réinitialiser mes préférences"
+}
