@@ -1,0 +1,5 @@
+{
+  "title": "Impersonating {name}",
+  "description": "This session was opened from the control tower and actions are audited.",
+  "stop": "Stop impersonating"
+}

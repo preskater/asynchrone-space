@@ -16,6 +16,7 @@ import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
 import hr from "./hr.json"
+import impersonation from "./impersonation.json"
 import landing from "./landing.json"
 import legal from "./legal.json"
 import marketing from "./marketing.json"
@@ -54,6 +55,7 @@ export default {
   Footer: footer,
   Forms: forms,
   Hr: hr,
+  Impersonation: impersonation,
   Landing: landing,
   Legal: legal,
   Marketing: marketing,

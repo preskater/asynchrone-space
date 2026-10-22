@@ -14,6 +14,7 @@ import {
 
 import { PageHeader } from "@/components/page-header"
 import { StatCard } from "@/components/stat-card"
+import { UserActions } from "@/components/user-actions"
 import {
   formatDate,
   formatDateTime,
@@ -30,7 +31,7 @@ export default async function UserDetailPage({
 }: {
   params: Promise<{ userId: string }>
 }) {
-  await requirePlatformContext()
+  const context = await requirePlatformContext()
 
   const { userId } = await params
 
@@ -117,6 +118,13 @@ export default async function UserDetailPage({
             ))}
             <span className="font-mono text-xs">· {user.id}</span>
           </span>
+        }
+        actions={
+          <UserActions
+            userId={user.id}
+            banned={Boolean(user.banned)}
+            canImpersonate={context.role === "platform_admin"}
+          />
         }
       />
 
