@@ -4,11 +4,14 @@ import { getTranslations } from "next-intl/server"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { AppearanceProvider } from "@/components/appearance/appearance-provider"
+import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { auth } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
+import { IMPERSONATION_TTL_MS } from "@/lib/platform/impersonation"
 import { getOrganizationAppearance } from "@/lib/appearance/service"
 import { AssistantProvider } from "@/lib/assistant/use-assistant"
 import { calendarService } from "@/lib/calendars"
@@ -35,6 +38,18 @@ export default async function AppLayout({
 
   if (!session) {
     redirect("/sign-in")
+  }
+
+  // Impersonation is time-boxed even if Better Auth refreshes the session.
+  if (
+    session.session.impersonatedBy &&
+    Date.now() - new Date(session.session.createdAt).getTime() >
+      IMPERSONATION_TTL_MS
+  ) {
+    await prisma.session
+      .delete({ where: { id: session.session.id } })
+      .catch(() => {})
+    redirect("/sign-in?error=impersonation-expired")
   }
 
   const organizations = await auth.api.listOrganizations({
@@ -123,6 +138,9 @@ export default async function AppLayout({
                           orgSlug={organization.slug}
                         />
                         <SidebarInset id="main-content">
+                          {session.session.impersonatedBy ? (
+                            <ImpersonationBanner name={session.user.name} />
+                          ) : null}
                           <SiteHeader
                             orgSlug={organization.slug}
                             user={session.user}

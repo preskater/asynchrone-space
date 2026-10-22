@@ -18,7 +18,7 @@
 
 ## Environment & data
 
-- Env lives in `apps/web/.env` (Next loads it from the app cwd; `packages/db/prisma.config.ts` loads it explicitly, falling back to a package-local `.env`). Start from `apps/web/.env.example`.
+- Env lives in `apps/web/.env` (Next loads it from the app cwd; `packages/db/prisma.config.ts` loads it explicitly, falling back to a package-local `.env`). Start from `apps/web/.env.example`. `CONTROL_TOWER_URL` (the control tower origin) is used by the "Stop impersonating" flow.
 - The control tower has its own `apps/control-tower/.env` (`apps/control-tower/.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL` (its own origin), `CONTROL_TOWER_BETTER_AUTH_SECRET` (≥32 chars, different from `BETTER_AUTH_SECRET`), `PLATFORM_APP_URL` (the customer app's origin).
 - `docker compose` loads `apps/web/.env` into the `web` container (its `environment` block still overrides `DATABASE_URL`/`BETTER_AUTH_URL`), so local dev and Docker share `BETTER_AUTH_SECRET`; rotating that secret breaks the encrypted JWKS rows in the DB — clear the `jwks` table to regenerate them.
 - `generate` and `build` require `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` to be set; CI and Docker use non-connecting placeholders.
@@ -59,6 +59,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Its Better Auth instance is deliberately separate: own secret, own host-only cookie (`presk-control-tower.session_token`), sign-up disabled, no `jwt`/`mcp`/`organization` plugins. **Never enable `advanced.crossSubDomainCookies`** — see ADR 0018 and `verify:auth-config`.
 - Pages guard with `requirePlatformContext()`; anonymous users go to `/sign-in`, signed-in users without a platform role get `notFound()`. Server actions use `requirePlatformContext({ surface: "action" })` / `withPlatformAction`.
 - Platform mutations write `PlatformAuditEvent` rows (never the org-scoped `AuditLog`). Impersonation will use the single-use `PlatformHandoff` table, not a shared cookie.
+- Platform mutations are server actions under `apps/control-tower/actions/`. Each uses `withPlatformAction`, enforces `platform_admin` for destructive changes (`platform_support` may revoke sessions), appends a `PlatformAuditEvent`, and revalidates the affected path.
+- Impersonation is a single-use handoff, never a shared cookie: the control tower stores a hashed token in `PlatformHandoff` and redirects to `${PLATFORM_APP_URL}/api/platform/handoff?token=…`; the web route claims it, creates a 1-hour session with `impersonatedBy`, and signs its own cookie. `apps/web/app/[locale]/(app)/layout.tsx` shows the banner and deletes the session once it is an hour old; `/api/platform/stop-impersonating` deletes it and returns to `CONTROL_TOWER_URL`.
 - `apps/web/lib/auth.ts` registers the same `admin()` plugin (roles map + `adminRoles: ["platform_admin"]`) so bans apply to customer sign-in.
 
 ## Code layout & conventions

@@ -16,6 +16,8 @@ import {
 } from "@workspace/ui/components/table"
 
 import { PageHeader } from "@/components/page-header"
+import { OAuthClientToggle } from "@/components/oauth-client-toggle"
+import { PlanForm } from "@/components/plan-form"
 import { StatCard } from "@/components/stat-card"
 import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
@@ -28,7 +30,7 @@ export default async function OrganizationDetailPage({
 }: {
   params: Promise<{ orgId: string }>
 }) {
-  await requirePlatformContext()
+  const context = await requirePlatformContext()
 
   const { orgId } = await params
 
@@ -184,6 +186,21 @@ export default async function OrganizationDetailPage({
       </div>
 
       <section className="space-y-3">
+        <h2 className="text-sm font-semibold">Plan & quota</h2>
+        <div className="rounded-xl border bg-card p-4">
+          <PlanForm
+            organizationId={organization.id}
+            plan={plan}
+            quotaBytes={
+              organization.storageQuotaBytes === null
+                ? null
+                : Number(organization.storageQuotaBytes)
+            }
+          />
+        </div>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-sm font-semibold">Members</h2>
         <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
@@ -292,12 +309,13 @@ export default async function OrganizationDetailPage({
                   <TableHead>Client</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-end">Created</TableHead>
+                  <TableHead className="text-end">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {oauthClients.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-muted-foreground">
+                    <TableCell colSpan={4} className="text-muted-foreground">
                       No OAuth client registered for this organization.
                     </TableCell>
                   </TableRow>
@@ -319,6 +337,13 @@ export default async function OrganizationDetailPage({
                       </TableCell>
                       <TableCell className="text-end text-muted-foreground">
                         {formatDate(client.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-end">
+                        <OAuthClientToggle
+                          clientId={client.clientId}
+                          disabled={Boolean(client.disabled)}
+                          canManage={context.role === "platform_admin"}
+                        />
                       </TableCell>
                     </TableRow>
                   ))

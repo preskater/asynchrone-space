@@ -24,6 +24,7 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
       PLATFORM_APP_URL: http://localhost:3000
+      CONTROL_TOWER_URL: http://localhost:3001
 
     steps:
       - name: Checkout
@@ -84,6 +85,7 @@ jobs:
       BETTER_AUTH_URL: http://localhost:3000
       CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
       PLATFORM_APP_URL: http://localhost:3000
+      CONTROL_TOWER_URL: http://localhost:3001
 
     steps:
       - name: Checkout
