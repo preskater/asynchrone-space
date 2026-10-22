@@ -138,11 +138,6 @@ export function NotificationBell({
           client: String(data.clientName ?? ""),
           title: String(data.title ?? ""),
         })
-      case "meeting.decided":
-        return t("meetingDecided", {
-          actor,
-          title: String(data.title ?? ""),
-        })
       default:
         return item.type
     }

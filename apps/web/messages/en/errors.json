@@ -62,6 +62,7 @@
   "meetingUrlRequired": "Add the link the team should use to join.",
   "meetingAddressRequired": "Add the address where the team should meet you.",
   "meetingProviderNotConnected": "{provider} is not connected. Connect the meeting app in settings first.",
+  "meetingAttendeeInvalid": "One of the selected attendees is not a member of this organization.",
   "validationMessages": {
     "required": "This field is required.",
     "email": "Please enter a valid email address.",

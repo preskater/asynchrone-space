@@ -218,60 +218,83 @@ export class MeetingRepository {
     return created
   }
 
-  createEvent(data: {
-    organizationId: string
-    calendarId: string
-    title: string
-    description?: string
-    startAt: Date
-    endAt: Date
-    location?: string
-    meetingUrl?: string
-    meetingPassword?: string
-    createdBy: string
-    attendees: { userId: string; response: string }[]
+  /**
+   * Books an accepted request: creates the calendar event, marks the chosen
+   * slot and moves the request to `accepted` in one transaction, so a failure
+   * never leaves an orphaned event or a half-decided request.
+   */
+  bookRequest(input: {
+    requestId: string
+    slotId: string
+    event: {
+      organizationId: string
+      calendarId: string
+      title: string
+      description?: string
+      startAt: Date
+      endAt: Date
+      location?: string
+      meetingUrl?: string
+      meetingPassword?: string
+      createdBy: string
+      attendees: { userId: string; response: string }[]
+    }
+    decision: {
+      decidedById: string
+      decidedByName: string
+      decisionNote: string | null
+      provider: string
+      externalMeetingId: string | null
+      externalJoinUrl: string | null
+      meetingUrl: string | null
+      meetingPassword: string | null
+      address: string | null
+    }
   }) {
-    return this.db.calendarEvent.create({
-      data: {
-        organizationId: data.organizationId,
-        calendarId: data.calendarId,
-        title: data.title,
-        description: data.description,
-        startAt: data.startAt,
-        endAt: data.endAt,
-        allDay: false,
-        location: data.location,
-        meetingUrl: data.meetingUrl,
-        meetingPassword: data.meetingPassword,
-        color: "purple",
-        reminderMinutes: 15,
-        createdBy: data.createdBy,
-        attendees: {
-          create: data.attendees.map((attendee) => ({
-            userId: attendee.userId,
-            response: attendee.response,
-          })),
+    return this.db.$transaction(async (tx) => {
+      const event = await tx.calendarEvent.create({
+        data: {
+          organizationId: input.event.organizationId,
+          calendarId: input.event.calendarId,
+          title: input.event.title,
+          description: input.event.description,
+          startAt: input.event.startAt,
+          endAt: input.event.endAt,
+          allDay: false,
+          location: input.event.location,
+          meetingUrl: input.event.meetingUrl,
+          meetingPassword: input.event.meetingPassword,
+          color: "purple",
+          reminderMinutes: 15,
+          createdBy: input.event.createdBy,
+          attendees: { create: input.event.attendees },
         },
-      },
-      select: { id: true },
+        select: { id: true },
+      })
+
+      await tx.meetingSlot.updateMany({
+        where: { requestId: input.requestId },
+        data: { selected: false },
+      })
+      await tx.meetingSlot.updateMany({
+        where: { id: input.slotId, requestId: input.requestId },
+        data: { selected: true },
+      })
+
+      return tx.meetingRequest.update({
+        where: { id: input.requestId },
+        data: {
+          status: "accepted",
+          decidedAt: new Date(),
+          calendarEventId: event.id,
+          ...input.decision,
+        },
+        include: meetingRequestInclude,
+      })
     })
   }
 
-  /** Marks the chosen proposed slot as the confirmed one. */
-  async selectSlot(requestId: string, slotId: string) {
-    await this.db.$transaction([
-      this.db.meetingSlot.updateMany({
-        where: { requestId },
-        data: { selected: false },
-      }),
-      this.db.meetingSlot.updateMany({
-        where: { id: slotId, requestId },
-        data: { selected: true },
-      }),
-    ])
-  }
-
-  /** Internal members that receive new meeting requests (owner/admins). */
+  /** Internal members that receive new meeting requests. */
   async listManagers(organizationId: string) {
     return this.db.member.findMany({
       where: { organizationId, clientId: null },
@@ -279,10 +302,10 @@ export class MeetingRepository {
     })
   }
 
-  /** Portal users of a client company, notified when a request is decided. */
-  async listPortalUsers(organizationId: string, clientId: string) {
+  /** Internal members among `userIds`, used to validate meeting attendees. */
+  findInternalMembers(organizationId: string, userIds: string[]) {
     return this.db.member.findMany({
-      where: { organizationId, clientId },
+      where: { organizationId, clientId: null, userId: { in: userIds } },
       select: { userId: true },
     })
   }

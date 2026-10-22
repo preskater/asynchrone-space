@@ -11,7 +11,7 @@ workspace (the client portal):
 
 - the request must fall inside a defined timeline (how soon and how far ahead a
   meeting can be booked);
-the client proposes several candidate times, the team accepts one (or
+- the client proposes several candidate times, the team accepts one (or
   declines), and the confirmed meeting appears on the calendar;
 - online meetings carry a join link and an optional password, in-person
   meetings carry an address;

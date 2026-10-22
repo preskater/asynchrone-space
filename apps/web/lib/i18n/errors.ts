@@ -67,6 +67,7 @@ const CODE_KEYS: Record<string, string> = {
   meeting_url_required: "meetingUrlRequired",
   meeting_address_required: "meetingAddressRequired",
   meeting_provider_not_connected: "meetingProviderNotConnected",
+  meeting_attendee_invalid: "meetingAttendeeInvalid",
 }
 
 export function useErrorTranslator() {

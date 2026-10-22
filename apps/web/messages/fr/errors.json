@@ -62,6 +62,7 @@
   "meetingUrlRequired": "Ajoutez le lien que l'équipe utilisera pour rejoindre le rendez-vous.",
   "meetingAddressRequired": "Ajoutez l'adresse où l'équipe doit vous retrouver.",
   "meetingProviderNotConnected": "{provider} n'est pas connecté. Connectez l'application de réunion dans les paramètres.",
+  "meetingAttendeeInvalid": "Un des participants sélectionnés n'est pas membre de cette organisation.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",
     "email": "Veuillez saisir une adresse e-mail valide.",

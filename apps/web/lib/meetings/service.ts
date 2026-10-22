@@ -365,6 +365,15 @@ export class MeetingService {
       }
     }
 
+    // Validate everything the booking depends on before creating an external
+    // meeting: a failure after `createMeeting` would orphan it.
+    const calendar = input.calendarId
+      ? await this.repo.findCalendar(ctx.organizationId, input.calendarId)
+      : await this.repo.ensureTeamCalendar(ctx.organizationId, ctx.userId)
+    if (!calendar) throw new NotFoundError("calendar")
+
+    const attendeeIds = await this.resolveAttendees(ctx, input.attendeeIds)
+
     const provider = resolveMeetingProvider(settings.provider)
     const result = await provider.createMeeting({
       organizationId: ctx.organizationId,
@@ -376,14 +385,6 @@ export class MeetingService {
         input.meetingPassword?.trim() || row.meetingPassword || undefined,
     })
 
-    const calendar = input.calendarId
-      ? await this.repo.findCalendar(ctx.organizationId, input.calendarId)
-      : await this.repo.ensureTeamCalendar(ctx.organizationId, ctx.userId)
-    if (!calendar) throw new NotFoundError("calendar")
-
-    const attendeeIds = [
-      ...new Set([ctx.userId, ...(input.attendeeIds ?? [])]),
-    ]
     const meetingUrl =
       input.meetingUrl?.trim() ||
       result.joinUrl ||
@@ -396,41 +397,53 @@ export class MeetingService {
       undefined
     const address = input.address?.trim() || row.address || undefined
 
-    const event = await this.repo.createEvent({
-      organizationId: ctx.organizationId,
-      calendarId: calendar.id,
-      title: input.title?.trim() || row.title,
-      description: this.eventDescription(row),
-      startAt: slot.startAt,
-      endAt: slot.endAt,
-      location: row.mode === "in_person" ? address : undefined,
-      meetingUrl: row.mode === "online" ? meetingUrl : undefined,
-      meetingPassword: row.mode === "online" ? meetingPassword : undefined,
-      createdBy: ctx.userId,
-      attendees: attendeeIds.map((userId) => ({
-        userId,
-        response: userId === ctx.userId ? "accepted" : "pending",
-      })),
-    })
+    let updated
+    try {
+      updated = await this.repo.bookRequest({
+        requestId: row.id,
+        slotId: slot.id,
+        event: {
+          organizationId: ctx.organizationId,
+          calendarId: calendar.id,
+          title: input.title?.trim() || row.title,
+          description: this.eventDescription(row),
+          startAt: slot.startAt,
+          endAt: slot.endAt,
+          location: row.mode === "in_person" ? address : undefined,
+          meetingUrl: row.mode === "online" ? meetingUrl : undefined,
+          meetingPassword: row.mode === "online" ? meetingPassword : undefined,
+          createdBy: ctx.userId,
+          attendees: attendeeIds.map((userId) => ({
+            userId,
+            response: userId === ctx.userId ? "accepted" : "pending",
+          })),
+        },
+        decision: {
+          decidedById: ctx.userId,
+          decidedByName: ctx.userName,
+          decisionNote: input.note?.trim() || null,
+          provider: result.provider,
+          externalMeetingId: result.externalId ?? null,
+          externalJoinUrl: result.joinUrl ?? null,
+          meetingUrl: meetingUrl ?? null,
+          meetingPassword: meetingPassword ?? null,
+          address: address ?? null,
+        },
+      })
+    } catch (error) {
+      // The meeting app already created the event: drop it rather than leaving
+      // it behind when the local booking fails.
+      if (result.externalId && provider.cancelMeeting) {
+        await provider
+          .cancelMeeting({
+            organizationId: ctx.organizationId,
+            externalMeetingId: result.externalId,
+          })
+          .catch(() => undefined)
+      }
+      throw error
+    }
 
-    await this.repo.selectSlot(row.id, slot.id)
-
-    const updated = await this.repo.updateRequest(row.id, {
-      status: "accepted",
-      decidedById: ctx.userId,
-      decidedByName: ctx.userName,
-      decidedAt: new Date(),
-      decisionNote: input.note?.trim() || null,
-      calendarEventId: event.id,
-      provider: result.provider,
-      externalMeetingId: result.externalId ?? null,
-      externalJoinUrl: result.joinUrl ?? null,
-      meetingUrl: meetingUrl ?? null,
-      meetingPassword: meetingPassword ?? null,
-      address: address ?? null,
-    })
-
-    await this.notifyClientDecision(updated, ctx.userId, ctx.userName)
     return this.mapRequest(
       updated,
       updated.slots.map((entry) => this.mapSlot(entry, false))
@@ -457,7 +470,6 @@ export class MeetingService {
       decidedAt: new Date(),
       decisionNote: input.note?.trim() || null,
     })
-    await this.notifyClientDecision(updated, ctx.userId, ctx.userName)
     return this.mapRequest(
       updated,
       updated.slots.map((slot) => this.mapSlot(slot, false))
@@ -493,32 +505,26 @@ export class MeetingService {
     )
   }
 
-  private async notifyClientDecision(
-    row: MeetingRow,
-    actorId: string,
-    actorName: string
-  ) {
-    const users = await this.repo.listPortalUsers(
-      row.organizationId,
-      row.clientId
-    )
-    const selected = row.slots.find((slot) => slot.selected) ?? row.slots[0]
-    await Promise.all(
-      users.map((user) =>
-        notificationService.notify({
-          organizationId: row.organizationId,
-          userId: user.userId,
-          actorId,
-          type: "meeting.decided",
-          data: {
-            actorName,
-            title: row.title,
-            status: row.status,
-            selectedStartAt: selected?.startAt.toISOString(),
-          },
-        })
-      )
-    )
+  /**
+   * Attendees are internal members of the organization: an accepted request
+   * must not be able to invite a user from another tenant.
+   */
+  private async resolveAttendees(
+    ctx: RequestContext,
+    extraIds: string[] | undefined
+  ): Promise<string[]> {
+    const ids = [...new Set([ctx.userId, ...(extraIds ?? [])])]
+    if (ids.length === 0) return ids
+    const members = await this.repo.findInternalMembers(ctx.organizationId, ids)
+    const known = new Set(members.map((member) => member.userId))
+    const unknown = ids.filter((id) => !known.has(id))
+    if (unknown.length > 0) {
+      throw new ValidationError("Unknown meeting attendees.", undefined, {
+        code: "meeting_attendee_invalid",
+        params: { count: String(unknown.length) },
+      })
+    }
+    return ids
   }
 
   private eventDescription(row: MeetingRow): string {
@@ -577,8 +583,10 @@ export class MeetingService {
                   )
                 )
             ) ||
-              events.some((event) =>
-                overlaps(slot.startAt, slot.endAt, event.startAt, event.endAt)
+              events.some(
+                (event) =>
+                  event.id !== row.calendarEventId &&
+                  overlaps(slot.startAt, slot.endAt, event.startAt, event.endAt)
               ))
           return this.mapSlot(slot, conflict)
         })

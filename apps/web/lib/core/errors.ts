@@ -70,6 +70,7 @@ export type ServiceErrorCode =
   | "meeting_url_required"
   | "meeting_address_required"
   | "meeting_provider_not_connected"
+  | "meeting_attendee_invalid"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

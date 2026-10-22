@@ -5,6 +5,7 @@ import {
   MEETING_MODES,
   MEETING_PROVIDERS,
   MEETING_STATUSES,
+  MIN_MEETING_MINUTES,
   MIN_PROPOSED_SLOTS,
 } from "./types"
 
@@ -27,7 +28,7 @@ export const createMeetingRequestSchema = z
   .object({
     title: z.string().trim().min(1).max(200),
     description: z.string().trim().max(4000).optional(),
-    durationMinutes: z.number().int().min(15).max(480),
+    durationMinutes: z.number().int().min(MIN_MEETING_MINUTES).max(480),
     slots: z
       .array(proposedSlotSchema)
       .min(MIN_PROPOSED_SLOTS)
@@ -78,8 +79,8 @@ export const updateMeetingSettingsSchema = z.object({
   autoDeclineOverlaps: z.boolean(),
   bookingWindowDays: z.number().int().min(1).max(365),
   minNoticeHours: z.number().int().min(0).max(720),
-  defaultDurationMinutes: z.number().int().min(15).max(480),
-  maxDurationMinutes: z.number().int().min(15).max(480),
+  defaultDurationMinutes: z.number().int().min(MIN_MEETING_MINUTES).max(480),
+  maxDurationMinutes: z.number().int().min(MIN_MEETING_MINUTES).max(480),
   provider: meetingProviderSchema,
 })
 
