@@ -81,3 +81,9 @@ to completion, then `web`.
 - `docker-compose.yml`
 - `apps/web/next.config.ts` (`output: "standalone"`)
 - `README.md` — "Getting started"
+
+## Notes
+
+- 2026-10-22: These images are now deployed with the Helm charts in
+  `charts/presk`; see [ADR 0019](0019-deploy-on-kubernetes-with-helm.md). The
+  image structure described here is unchanged.

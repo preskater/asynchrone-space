@@ -10,9 +10,6 @@ import { Toaster } from "@workspace/ui/components/sonner"
 import { ThemeProvider } from "@workspace/ui/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
-
 import { routing } from "@/i18n/routing"
 
 export function generateStaticParams() {
@@ -77,8 +74,6 @@ export default async function RootLayout({
           <ThemeProvider>
             {children}
             <Toaster />
-            <Analytics />
-            <SpeedInsights />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

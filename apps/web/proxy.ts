@@ -5,5 +5,5 @@ import { routing } from "./i18n/routing"
 export default createMiddleware(routing)
 
 export const config = {
-  matcher: "/((?!api|mcp|_next|_vercel|.*\\..*).*)",
+  matcher: "/((?!api|mcp|_next|.*\\..*).*)",
 }

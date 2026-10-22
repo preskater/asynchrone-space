@@ -7,8 +7,9 @@ export const maxDuration = 60
 
 /**
  * Safety net for missed webhooks: reconciles every repository connection with
- * its project tasks. Safe to call from a Vercel Cron (guarded with
- * `CRON_SECRET` when configured); webhooks remain the primary sync path.
+ * its project tasks. Safe to call from the scheduled Kubernetes CronJob
+ * (guarded with `CRON_SECRET` when configured); webhooks remain the primary
+ * sync path.
  */
 export async function GET(request: Request): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET

@@ -17,8 +17,19 @@ jobs:
         include:
           - app: web
             suffix: ""
+            target: runner
+            cacheScope: web
           - app: control-tower
             suffix: "-control-tower"
+            target: runner
+            cacheScope: control-tower
+          # One-shot Prisma migration image (Dockerfile `migrate` stage). The
+          # pruned `web` workspace already contains packages/db, which holds
+          # the shared schema and migrations.
+          - app: web
+            suffix: "-migrate"
+            target: migrate
+            cacheScope: migrate
 
     steps:
       - name: Checkout
@@ -49,12 +60,13 @@ jobs:
         with:
           context: .
           push: true
+          target: ${{ matrix.target }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             APP=${{ matrix.app }}
-          cache-from: type=gha,scope=${{ matrix.app }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
+          cache-from: type=gha,scope=${{ matrix.cacheScope }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.cacheScope }}
           # Uncomment to enable Turborepo remote caching
           # build-args: |
           #   TURBO_TEAM=${{ vars.TURBO_TEAM }}

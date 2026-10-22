@@ -31,8 +31,6 @@
     "@next/mdx": "^16.4.0",
     "@openai/agents": "^0.20.0",
     "@shadcn/helpers": "^0.2.0",
-    "@vercel/analytics": "^2.0.1",
-    "@vercel/speed-insights": "^2.0.0",
     "@workspace/db": "*",
     "@workspace/ui": "*",
     "better-auth": "^1.7.7",

@@ -697,9 +697,9 @@ model FileNode {
   @@map("fileNode")
 }
 
-/// A resumable chunked upload in progress. Vercel caps a function request body
-/// at 4.5 MB, so a file is streamed into a PostgreSQL large object across
-/// several requests; this row tracks the large object and the bytes received.
+/// A resumable chunked upload in progress. Each file is streamed into a
+/// PostgreSQL large object across several requests; this row tracks the large
+/// object and the bytes received.
 /// `status` is `open`, `complete`, or `aborted`. Orphaned `open` rows (and their
 /// large objects) are swept once `expiresAt` passes.
 model UploadSession {

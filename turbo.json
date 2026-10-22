@@ -34,7 +34,9 @@
         "CONTROL_TOWER_BETTER_AUTH_SECRET",
         "PLATFORM_APP_URL",
         "CONTROL_TOWER_URL",
-        "PLATFORM_ALLOWED_IPS"
+        "PLATFORM_ALLOWED_IPS",
+        "DEPLOY_ENV",
+        "GIT_COMMIT_SHA"
       ]
     },
     "lint": {
@@ -72,7 +74,9 @@
         "CONTROL_TOWER_BETTER_AUTH_SECRET",
         "PLATFORM_APP_URL",
         "CONTROL_TOWER_URL",
-        "PLATFORM_ALLOWED_IPS"
+        "PLATFORM_ALLOWED_IPS",
+        "DEPLOY_ENV",
+        "GIT_COMMIT_SHA"
       ]
     }
   }

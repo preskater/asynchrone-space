@@ -4,7 +4,7 @@
 
 - Turborepo + npm workspaces monorepo. Apps: `apps/web` (package `web`, the customer SaaS, Next.js 16 App Router, React 19) and `apps/control-tower` (package `control-tower`, internal platform administration). Shared packages: `packages/db` (`@workspace/db`), `packages/ui` (`@workspace/ui`), `packages/eslint-config`, `packages/typescript-config`.
 - Run tasks from the repo root through Turbo: `npm run dev|build|lint|typecheck|format`. Target one workspace with `--workspace=web` / `--workspace=control-tower` (or `-w`).
-- `main` is protected: land changes via PR. The `ci` job (`.github/workflows/turbo.yml`) runs typecheck → lint → build.
+- `main` is protected: land changes via PR. The `ci` job (`.github/workflows/turbo.yml`) runs typecheck → lint → build; `.github/workflows/helm.yml` lints and renders the chart.
 
 ## Verify before finishing
 
@@ -26,6 +26,14 @@
 - `generate` and `build` require `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` to be set; CI and Docker use non-connecting placeholders.
 - When adding an env var, also add it to the `env` arrays in `turbo.json` (build + dev) so Turbo passes it through, update `.env.example`, and add a build-time placeholder in `Dockerfile` / `.github/workflows/turbo.yml` if it is read at build time.
 - `DATABASE_POOL_MAX` defaults to `3`. One shared `pg.Pool` in `packages/db/src/prisma.ts` serves both Prisma and the large-object code; `apps/web/lib/prisma.ts` only re-exports it.
+
+## Deployment
+
+- `.github/workflows/docker.yml` publishes three GHCR images: `presk` (web runner), `presk-control-tower` (control-tower runner) and `presk-migrate` (Dockerfile `migrate` stage).
+- Helm charts live in `charts/`: `presk` is the umbrella (migration hook and production values), `presk-web` and `presk-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/presk` then `helm upgrade --install presk charts/presk -n presk --set global.imageTag=sha-…`.
+- The chart requires the existing Secrets `presk-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `presk-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
+- The pre-install/pre-upgrade `presk-migrate` Job runs `prisma migrate deploy`; the web subchart owns the two CronJobs that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
+- Verify chart changes with `helm dependency build charts/presk && helm lint --strict charts/presk --set global.imageTag=test && helm template presk charts/presk --set global.imageTag=test`.
 
 <!-- BEGIN:turborepo-agent-rules -->
 
