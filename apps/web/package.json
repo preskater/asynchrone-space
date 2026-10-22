@@ -7,12 +7,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "prebuild": "npm run generate --workspace=@workspace/db",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "generate": "npm run generate --workspace=@workspace/db",
     "verify:large-object": "tsx scripts/verify-large-object.ts",
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts"
   },
