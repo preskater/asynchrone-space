@@ -1,9 +1,11 @@
+import type { PrismaClient } from "@/lib/generated/prisma/client"
+
 /**
  * Task identifiers look like `ABC-1`, `ABC-2`, …. The prefix is inherited
  * from the project's first task so renames don't change existing identifiers;
  * a fresh project derives it from the project name. Identifiers are unique per
- * organization, so the number is picked among every task of the organization
- * sharing the prefix (two projects can derive the same initials).
+ * organization, so numbering is shared by every project with the same prefix
+ * (two projects can derive the same initials).
  * Shared by the project service and the repository sync service so tasks
  * created from remote issues get the same identifiers as local ones.
  */
@@ -21,35 +23,21 @@ export function taskPrefix(name: string, projectIdentifiers: string[]) {
   return base || "TSK"
 }
 
-export function nextTaskIdentifier(prefix: string, identifiers: string[]) {
-  const used = new Set<number>()
-  for (const identifier of identifiers) {
-    const match = identifier.match(new RegExp(`^${prefix}-(\\d+)$`))
-    if (match) used.add(Number(match[1]))
-  }
-  let next = 1
-  while (used.has(next)) next += 1
-  return `${prefix}-${next}`
-}
-
-const MAX_IDENTIFIER_ATTEMPTS = 5
-
 /**
- * Runs `create` with a freshly allocated identifier, allocating again when a
- * concurrent insert took it first (`@@unique([organizationId, identifier])`
- * is the task table's only unique constraint, so any P2002 means that).
+ * Hands out the next `PREFIX-n` in one atomic upsert on the per-organization
+ * counter, so concurrent creates can never pick the same number. Numbers of
+ * deleted tasks are not reused.
  */
-export async function createWithTaskIdentifier<T>(
-  allocate: () => Promise<string>,
-  create: (identifier: string) => Promise<T>
-): Promise<T> {
-  for (let attempt = 1; ; attempt++) {
-    const identifier = await allocate()
-    try {
-      return await create(identifier)
-    } catch (error) {
-      const code = (error as { code?: unknown } | null)?.code
-      if (code !== "P2002" || attempt >= MAX_IDENTIFIER_ATTEMPTS) throw error
-    }
-  }
+export async function allocateTaskIdentifier(
+  db: PrismaClient,
+  organizationId: string,
+  prefix: string
+) {
+  const [row] = await db.$queryRaw<{ value: number }[]>`
+    INSERT INTO "task_identifier_counter" ("organizationId", "prefix", "value")
+    VALUES (${organizationId}, ${prefix}, 1)
+    ON CONFLICT ("organizationId", "prefix")
+    DO UPDATE SET "value" = "task_identifier_counter"."value" + 1
+    RETURNING "value"`
+  return `${prefix}-${row!.value}`
 }

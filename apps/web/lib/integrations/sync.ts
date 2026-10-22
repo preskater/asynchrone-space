@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 import {
-  createWithTaskIdentifier,
-  nextTaskIdentifier,
+  allocateTaskIdentifier,
   taskPrefix,
 } from "@/lib/projects/task-key"
 
@@ -93,36 +92,25 @@ export async function createTaskFromIssue(
   )
   const nextOrder =
     existing.reduce((max, task) => Math.max(max, task.order), -1) + 1
-  await createWithTaskIdentifier(
-    async () => {
-      const taken = await db.task.findMany({
-        where: {
-          organizationId: connection.organizationId,
-          identifier: { startsWith: `${prefix}-` },
-        },
-        select: { identifier: true },
-      })
-      return nextTaskIdentifier(
-        prefix,
-        taken.map((task) => task.identifier)
-      )
-    },
-    (identifier) =>
-      db.task.create({
-        data: {
-          organizationId: connection.organizationId,
-          projectId: connection.projectId,
-          identifier,
-          title: issue.title,
-          description: normalizeBody(issue.body),
-          status: issue.state === "closed" ? "done" : "todo",
-          order: nextOrder,
-          externalIssueNumber: issue.number,
-          externalIssueUrl: issue.url,
-          externalUpdatedAt: parseRemoteDate(issue.updatedAt),
-        },
-      })
+  const identifier = await allocateTaskIdentifier(
+    db,
+    connection.organizationId,
+    prefix
   )
+  await db.task.create({
+    data: {
+      organizationId: connection.organizationId,
+      projectId: connection.projectId,
+      identifier,
+      title: issue.title,
+      description: normalizeBody(issue.body),
+      status: issue.state === "closed" ? "done" : "todo",
+      order: nextOrder,
+      externalIssueNumber: issue.number,
+      externalIssueUrl: issue.url,
+      externalUpdatedAt: parseRemoteDate(issue.updatedAt),
+    },
+  })
 }
 
 /**
