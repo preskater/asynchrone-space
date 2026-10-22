@@ -136,6 +136,14 @@ export class ProjectRepository {
     return this.db.task.count({ where: { projectId } })
   }
 
+  async listTaskIdentifiers(organizationId: string, prefix: string) {
+    const rows = await this.db.task.findMany({
+      where: { organizationId, identifier: { startsWith: `${prefix}-` } },
+      select: { identifier: true },
+    })
+    return rows.map((row) => row.identifier)
+  }
+
   identifierExists(organizationId: string, identifier: string) {
     return this.db.task.findFirst({
       where: { organizationId, identifier },

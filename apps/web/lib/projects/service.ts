@@ -13,7 +13,11 @@ import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 import { ProjectRepository } from "./repository"
 import { createTaskComment } from "./task-comments"
-import { nextTaskIdentifier } from "./task-key"
+import {
+  createWithTaskIdentifier,
+  nextTaskIdentifier,
+  taskPrefix,
+} from "./task-key"
 import type {
   AddCommentInput,
   AddLabelInput,
@@ -408,7 +412,7 @@ export class ProjectService {
       ctx.organizationId,
       input.projectId
     )
-    const identifier = nextTaskIdentifier(
+    const prefix = taskPrefix(
       project.name,
       existing.map((task) => task.identifier)
     )
@@ -441,25 +445,34 @@ export class ProjectService {
       }
     )
 
-    const row = await this.repo.createTask({
-      organizationId: ctx.organizationId,
-      projectId: input.projectId,
-      identifier,
-      title: input.title,
-      description: input.description,
-      status: input.status,
-      priority: input.priority,
-      assigneeId: input.assigneeId,
-      dueDate: input.dueDate ? new Date(input.dueDate) : null,
-      endDate: input.endDate ? new Date(input.endDate) : null,
-      templateId: input.templateId ?? null,
-      customFields,
-      order: existing.length,
-      labelIds: input.labelIds ?? [],
-      externalIssueNumber: remote?.externalIssueNumber ?? null,
-      externalIssueUrl: remote?.externalIssueUrl ?? null,
-      externalUpdatedAt: remote?.externalUpdatedAt ?? null,
-    })
+    const row = await createWithTaskIdentifier(
+      async () =>
+        nextTaskIdentifier(
+          prefix,
+          await this.repo.listTaskIdentifiers(ctx.organizationId, prefix)
+        ),
+      (identifier) =>
+        this.repo.createTask({
+          organizationId: ctx.organizationId,
+          projectId: input.projectId,
+          identifier,
+          title: input.title,
+          description: input.description,
+          status: input.status,
+          priority: input.priority,
+          assigneeId: input.assigneeId,
+          dueDate: input.dueDate ? new Date(input.dueDate) : null,
+          endDate: input.endDate ? new Date(input.endDate) : null,
+          templateId: input.templateId ?? null,
+          customFields,
+          order: existing.length,
+          labelIds: input.labelIds ?? [],
+          externalIssueNumber: remote?.externalIssueNumber ?? null,
+          externalIssueUrl: remote?.externalIssueUrl ?? null,
+          externalUpdatedAt: remote?.externalUpdatedAt ?? null,
+        })
+    )
+    const { identifier } = row
     await this.repo.addActivity({
       projectId: input.projectId,
       actorId: ctx.userId,
