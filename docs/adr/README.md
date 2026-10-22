@@ -38,3 +38,4 @@ collection.
 | [0015](0015-per-user-repository-tokens.md)                | accepted | Use per-user repository tokens for issue and PR authoring                |
 | [0016](0016-server-actions-as-the-crud-transport.md)      | accepted | Use server actions as the only CRUD transport                             |
 | [0017](0017-client-meeting-requests.md)                   | accepted | Let clients request meetings that the team books on the calendar         |
+| [0018](0018-control-tower-on-shared-database-package.md)  | accepted | Add a separate control-tower app on a shared `packages/db`               |

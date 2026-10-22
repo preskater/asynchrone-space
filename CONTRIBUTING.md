@@ -54,8 +54,8 @@ By participating you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md)
 4. **Apply database migrations and generate the Prisma client:**
 
    ```bash
-   npm run generate --workspace=web
-   npx prisma migrate deploy --schema apps/web/prisma/schema.prisma
+   npm run generate --workspace=@workspace/db
+   cd packages/db && npx prisma migrate deploy
    ```
 
 5. **Run the app:**

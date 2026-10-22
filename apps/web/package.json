@@ -13,7 +13,6 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
-    "generate": "prisma generate",
     "verify:large-object": "tsx scripts/verify-large-object.ts",
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts"
   },
@@ -30,11 +29,10 @@
     "@modelcontextprotocol/server": "^2.3.1",
     "@next/mdx": "^16.4.0",
     "@openai/agents": "^0.20.0",
-    "@prisma/adapter-pg": "^7.10.0",
-    "@prisma/client": "^7.10.0",
     "@shadcn/helpers": "^0.2.0",
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
+    "@workspace/db": "*",
     "@workspace/ui": "*",
     "better-auth": "^1.7.7",
     "dotenv": "^18.0.7",
@@ -67,7 +65,6 @@
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
     "eslint": "^10",
-    "prisma": "^7.10.0",
     "tsx": "^4.23.15",
     "typescript": "^7",
     "vitest": "^5.0.4"

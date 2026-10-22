@@ -9,7 +9,7 @@ import type { RequestContext } from "@/lib/core/context"
 import { repositoryIntegrationService } from "@/lib/integrations"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 import { ProjectRepository } from "./repository"
 import { createTaskComment } from "./task-comments"

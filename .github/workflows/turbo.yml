@@ -95,11 +95,11 @@ jobs:
         run: npm ci
 
       - name: Generate Prisma client
-        run: npm run generate --workspace=web
+        run: npm run generate --workspace=@workspace/db
 
       - name: Apply migrations
         run: npx prisma migrate deploy
-        working-directory: apps/web
+        working-directory: packages/db
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium

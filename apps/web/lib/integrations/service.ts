@@ -6,7 +6,7 @@ import {
   ValidationError,
 } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 import { ROLE_RANK } from "@/lib/organization/roles"
 
 import { decryptSecret, encryptSecret, generateWebhookSecret } from "./crypto"

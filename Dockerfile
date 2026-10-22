@@ -42,13 +42,14 @@ RUN npx turbo build
 
 # ---
 # Applies pending Prisma migrations, then exits. Runs before `web` starts.
-# Reuses the pruned dependency install + source from `prepare`.
+# Reuses the pruned dependency install + source from `prepare`. The schema and
+# migrations live in `packages/db` (shared with the control tower).
 FROM base AS migrate
 ARG WORKDIR
 COPY --from=prepare ${WORKDIR}/out/json/ .
 RUN npm ci
 COPY --from=prepare ${WORKDIR}/out/full/ .
-CMD ["sh", "-c", "cd apps/web && npx prisma migrate deploy"]
+CMD ["sh", "-c", "cd packages/db && npx prisma migrate deploy"]
 
 # ---
 FROM node:${NODE_VERSION}-alpine AS runner
