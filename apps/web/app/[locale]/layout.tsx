@@ -7,7 +7,7 @@ import type { Metadata } from "next"
 
 import "@workspace/ui/globals.css"
 import { Toaster } from "@workspace/ui/components/sonner"
-import { ThemeProvider } from "@/components/theme-provider"
+import { ThemeProvider } from "@workspace/ui/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { Analytics } from "@vercel/analytics/next"

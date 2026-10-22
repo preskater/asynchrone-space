@@ -3,6 +3,8 @@
 import { useTransition } from "react"
 import { useRouter } from "next/navigation"
 
+import { toast } from "sonner"
+
 import { Button } from "@workspace/ui/components/button"
 
 import { setOAuthClientDisabled } from "@/actions/organizations"
@@ -30,7 +32,15 @@ export function OAuthClientToggle({
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          await setOAuthClientDisabled({ clientId, disabled: !disabled })
+          const result = await setOAuthClientDisabled({
+            clientId,
+            disabled: !disabled,
+          })
+          if (!result.ok) {
+            toast.error(result.error)
+            return
+          }
+          toast.success(disabled ? "Client enabled." : "Client disabled.")
           router.refresh()
         })
       }

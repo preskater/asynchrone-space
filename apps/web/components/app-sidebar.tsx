@@ -19,7 +19,7 @@ import { CalendarsSidebar } from "@/components/calendars/calendars-sidebar"
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar"
 import { FilesSidebar } from "@/components/files/files-sidebar"
 import { NavMain, type NavApp } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
+import { NavSecondary } from "@workspace/ui/components/nav-secondary"
 import { Link, usePathname } from "@/i18n/navigation"
 import {
   Sidebar,

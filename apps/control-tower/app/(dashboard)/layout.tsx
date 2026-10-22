@@ -7,5 +7,11 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }>) {
   const context = await requirePlatformContext()
-  return <DashboardShell context={context}>{children}</DashboardShell>
+  const platformAppUrl = (process.env.PLATFORM_APP_URL ?? "").replace(/\/$/, "")
+
+  return (
+    <DashboardShell context={context} platformAppUrl={platformAppUrl}>
+      {children}
+    </DashboardShell>
+  )
 }
