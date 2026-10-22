@@ -223,6 +223,22 @@ chunked create/append/hash paths; it then deletes/aborts and asserts
 npm run verify:large-object --workspace=web
 ```
 
+## Deployment
+
+The two apps are separate Vercel projects, both rooted at their app directory:
+
+| Project | Root Directory | Domain | Previews |
+| --- | --- | --- | --- |
+| `presk` | `apps/web` | `https://presk.re` | enabled |
+| `presk-control-tower` | `apps/control-tower` | `https://control-tower.presk.re` | production only |
+
+Each app carries its own `vercel.json` (Next.js, `npm ci`, generate Prisma then
+build). The control tower skips non-production deployments with an
+`ignoreCommand`.
+
+See [docs/deployment/vercel.md](./docs/deployment/vercel.md) for project
+settings, the environment matrix, DNS and first-deploy checks.
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for
