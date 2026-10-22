@@ -11,6 +11,14 @@ jobs:
     permissions:
       contents: read
       packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: web
+            suffix: ""
+          - app: control-tower
+            suffix: "-control-tower"
 
     steps:
       - name: Checkout
@@ -27,7 +35,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v6.2.0
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ghcr.io/${{ github.repository }}${{ matrix.suffix }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -43,8 +51,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          build-args: |
+            APP=${{ matrix.app }}
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
           # Uncomment to enable Turborepo remote caching
           # build-args: |
           #   TURBO_TEAM=${{ vars.TURBO_TEAM }}

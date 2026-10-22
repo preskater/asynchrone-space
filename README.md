@@ -89,9 +89,11 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
    The app is available at http://localhost:3000.
 
 > Prefer containers? `docker compose up --build` runs PostgreSQL, applies
-> migrations, and serves the production build on port 3000. The `web`
-> container loads `apps/web/.env` (then overrides the container-specific
-> values), so it uses the same `BETTER_AUTH_SECRET` as local development.
+> migrations, serves the customer app on port **3002** and the control tower on
+> port **3001**. Each container loads its app's `.env` (then overrides
+> `DATABASE_URL` and the public URLs), so local dev and Docker share the same
+> secrets. The image is parameterised with
+> `--build-arg APP=web|control-tower`.
 
 ### Control tower
 

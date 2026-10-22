@@ -58,6 +58,33 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://${POSTGRES_USER:-preskater}:${POSTGRES_PASSWORD:-preskater}@postgres:5432/${POSTGRES_DB:-preskater}?schema=public
       - BETTER_AUTH_URL=http://localhost:3002
+      - CONTROL_TOWER_URL=http://localhost:3001
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  control-tower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: control-tower
+    ports:
+      - "3001:3000"
+    # Same as `web`: reuse the control tower's own env file (secret, local
+    # origins), then override the container-specific values below.
+    env_file:
+      - path: apps/control-tower/.env
+        required: false
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-preskater}:${POSTGRES_PASSWORD:-preskater}@postgres:5432/${POSTGRES_DB:-preskater}?schema=public
+      - BETTER_AUTH_URL=http://localhost:3001
+      - PLATFORM_APP_URL=http://localhost:3002
     depends_on:
       postgres:
         condition: service_healthy
