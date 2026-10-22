@@ -4,7 +4,7 @@ import * as React from "react"
 import { MenuIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { LocaleSwitcher } from "@/components/landing/locale-switcher"
 import { Wordmark } from "@/components/landing/wordmark"
 import { Link } from "@/i18n/navigation"
@@ -71,6 +71,7 @@ export function Navbar({
 }) {
   const t = useTranslations("Navbar")
   const tLanding = useTranslations("Landing")
+  const tCommon = useTranslations("Common")
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
   const columnTitle = (key: string) =>
@@ -115,7 +116,7 @@ export function Navbar({
 
         <div className="flex items-center justify-end gap-2">
           <LocaleSwitcher />
-          <ThemeToggle />
+          <ThemeToggle ariaLabel={tCommon("toggleTheme")} />
           {isAuthenticated ? (
             <Button
               className="hidden sm:inline-flex"

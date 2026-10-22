@@ -9,7 +9,7 @@ import { CommandMenu } from "@/components/command-menu"
 import { NavUser } from "@/components/nav-user"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { OrgSwitcher } from "@/components/organization/org-switcher"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
@@ -69,6 +69,7 @@ export function SiteHeader({
   const pathname = usePathname()
   const title = usePageTitle(orgSlug, pathname)
   const t = useTranslations("Sidebar")
+  const common = useTranslations("Common")
   const [paletteOpen, setPaletteOpen] = React.useState(false)
 
   React.useEffect(() => {
@@ -113,7 +114,7 @@ export function SiteHeader({
           </Button>
           <NotificationBell orgSlug={orgSlug} initial={notifications} />
           <OrgSwitcher activeOrganizationId={activeOrganizationId} compact />
-          <ThemeToggle />
+          <ThemeToggle ariaLabel={common("toggleTheme")} />
           <NavUser user={user} compact />
         </div>
       </div>

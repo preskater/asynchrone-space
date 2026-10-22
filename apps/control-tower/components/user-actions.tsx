@@ -4,6 +4,7 @@ import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
 import { Ban, LogIn, ShieldOff } from "lucide-react"
+import { toast } from "sonner"
 
 import {
   AlertDialog,
@@ -38,20 +39,23 @@ export function UserActions({
 }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
-  const [error, setError] = useState<string | null>(null)
   const [reason, setReason] = useState("")
   const [banOpen, setBanOpen] = useState(false)
   const [revokeOpen, setRevokeOpen] = useState(false)
   const [impersonateOpen, setImpersonateOpen] = useState(false)
 
-  function run(action: () => Promise<ActionResult>, close: () => void) {
-    setError(null)
+  function run(
+    action: () => Promise<ActionResult>,
+    close: () => void,
+    successMessage: string
+  ) {
     startTransition(async () => {
       const result = await action()
       if (!result.ok) {
-        setError(result.error)
+        toast.error(result.error)
         return
       }
+      toast.success(successMessage)
       setReason("")
       close()
       router.refresh()
@@ -59,12 +63,11 @@ export function UserActions({
   }
 
   function impersonate() {
-    setError(null)
     startTransition(async () => {
       try {
         await startImpersonation({ userId })
       } catch {
-        setError("Could not start impersonation.")
+        toast.error("Could not start impersonation.")
       }
     })
   }
@@ -114,8 +117,10 @@ export function UserActions({
               <AlertDialogAction
                 disabled={pending}
                 onClick={() =>
-                  run(() => revokeUserSessions({ userId }), () =>
-                    setRevokeOpen(false)
+                  run(
+                    () => revokeUserSessions({ userId }),
+                    () => setRevokeOpen(false),
+                    "Sessions revoked."
                   )
                 }
               >
@@ -167,7 +172,8 @@ export function UserActions({
                 onClick={() =>
                   run(
                     () => setUserBanned({ userId, banned: !banned, reason }),
-                    () => setBanOpen(false)
+                    () => setBanOpen(false),
+                    banned ? "Account unbanned." : "Account banned."
                   )
                 }
               >
@@ -177,11 +183,6 @@ export function UserActions({
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      {error ? (
-        <p className="text-xs text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
     </div>
   )
 }

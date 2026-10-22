@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 
+import { toast } from "sonner"
+
 import { Button } from "@workspace/ui/components/button"
 import { Input } from "@workspace/ui/components/input"
 
@@ -29,12 +31,10 @@ export function PlanForm({
     quotaBytes ? String(Math.round(quotaBytes / MB)) : ""
   )
   const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError(null)
-    setSaved(false)
 
     const parsedMb = quotaMb.trim() === "" ? null : Number(quotaMb)
     if (parsedMb !== null && (!Number.isFinite(parsedMb) || parsedMb <= 0)) {
@@ -49,10 +49,10 @@ export function PlanForm({
         quotaBytes: parsedMb === null ? null : Math.round(parsedMb * MB),
       })
       if (!result.ok) {
-        setError(result.error)
+        toast.error(result.error)
         return
       }
-      setSaved(true)
+      toast.success("Plan updated.")
       router.refresh()
     })
   }
@@ -93,7 +93,6 @@ export function PlanForm({
           {error}
         </p>
       ) : null}
-      {saved ? <p className="text-xs text-muted-foreground">Saved.</p> : null}
     </form>
   )
 }
