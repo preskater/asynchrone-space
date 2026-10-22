@@ -8,6 +8,7 @@ import {
   FileIcon,
   FolderIcon,
   HandshakeIcon,
+  MessageSquareHeartIcon,
   MessageSquareIcon,
   SearchIcon,
   Settings2Icon,
@@ -89,6 +90,11 @@ export function useNavSecondary(orgSlug: string) {
       title: t("search"),
       url: `/${orgSlug}/search`,
       icon: <SearchIcon />,
+    },
+    {
+      title: t("feedback"),
+      url: `/${orgSlug}/feedback`,
+      icon: <MessageSquareHeartIcon />,
     },
     {
       title: t("getHelp"),
