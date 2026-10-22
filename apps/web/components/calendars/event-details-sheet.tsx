@@ -199,9 +199,7 @@ export function EventDetailsSheet({
                         key={response}
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setAttendeeResponse(event.id, "u_aria", response)
-                        }
+                        onClick={() => setAttendeeResponse(event.id, response)}
                       >
                         {response === "accepted"
                           ? t("accept")

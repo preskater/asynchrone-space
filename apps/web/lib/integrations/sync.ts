@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
-import { nextTaskIdentifier } from "@/lib/projects/task-key"
+import {
+  allocateTaskIdentifier,
+  taskPrefix,
+} from "@/lib/projects/task-key"
 
 import { createProviderClient } from "./providers"
 import type { RepositoryConnectionRow } from "./repository"
@@ -83,11 +86,17 @@ export async function createTaskFromIssue(
     select: { identifier: true, order: true },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   })
-  const identifier = nextTaskIdentifier(
+  const prefix = taskPrefix(
     project.name,
     existing.map((task) => task.identifier)
   )
-  const nextOrder = existing.reduce((max, task) => Math.max(max, task.order), -1) + 1
+  const nextOrder =
+    existing.reduce((max, task) => Math.max(max, task.order), -1) + 1
+  const identifier = await allocateTaskIdentifier(
+    db,
+    connection.organizationId,
+    prefix
+  )
   await db.task.create({
     data: {
       organizationId: connection.organizationId,
@@ -208,7 +217,11 @@ export async function applyPullRequestEvent(
 ): Promise<boolean> {
   const issueNumber = issueNumberFromPullRequest(pullRequest)
   if (!issueNumber) return false
-  const task = await findTaskByIssueNumber(db, connection.projectId, issueNumber)
+  const task = await findTaskByIssueNumber(
+    db,
+    connection.projectId,
+    issueNumber
+  )
   if (!task) return false
   const data: {
     status?: string
@@ -415,7 +428,10 @@ export async function syncConnection(
 
   const issues = await client.api.listIssues()
   const linked = await db.task.findMany({
-    where: { projectId: connection.projectId, externalIssueNumber: { not: null } },
+    where: {
+      projectId: connection.projectId,
+      externalIssueNumber: { not: null },
+    },
   })
   const byIssueNumber = new Map(
     linked.map((task) => [task.externalIssueNumber as number, task])
@@ -431,13 +447,15 @@ export async function syncConnection(
       continue
     }
     const remoteUpdatedAt = parseRemoteDate(issue.updatedAt)
-    if (remoteUpdatedAt && task.updatedAt.getTime() > remoteUpdatedAt.getTime()) {
+    if (
+      remoteUpdatedAt &&
+      task.updatedAt.getTime() > remoteUpdatedAt.getTime()
+    ) {
       // The local task was edited after this remote revision: heal a push
       // that never landed (provider outage, dropped debounce) instead of
       // letting the stale remote state overwrite it.
       const contentDiffers =
-        task.title !== issue.title ||
-        (task.description ?? "") !== issue.body
+        task.title !== issue.title || (task.description ?? "") !== issue.body
       const stateDiffers =
         (task.status === "done") !== (issue.state === "closed")
       if (contentDiffers) await pushTaskContent(db, connection, task, token)
