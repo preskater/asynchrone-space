@@ -29,6 +29,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 - **UI**: [shadcn/ui](https://ui.shadcn.com) + [Base UI](https://base-ui.com) + Tailwind CSS
 - **AI**: [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/), exposed to clients over MCP
 - **i18n**: [next-intl](https://next-intl.dev) (English and French)
+- **Deployment**: Helm on Kubernetes, images published to GHCR
 
 ## Repository structure
 
@@ -40,6 +41,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | `packages/ui` | Shared UI component library. |
 | `packages/eslint-config` | Shared ESLint configuration. |
 | `packages/typescript-config` | Shared TypeScript configuration. |
+| `charts/presk` | Helm umbrella chart for deploying both apps. |
 
 ## Getting started
 
@@ -142,7 +144,7 @@ Customer-app variables live in `apps/web/.env` (see
 | `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
 | `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
 | `MCP_RESOURCE_URL` | No | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`). |
-| `CRON_SECRET` | No | Bearer token guarding `GET /api/files/uploads/sweep`; set on Vercel so the Cron job is authenticated. |
+| `CRON_SECRET` | No | Bearer token guarding the scheduled routes (`/api/files/uploads/sweep` and `/api/cron/repository-sync`); put it in the Kubernetes Secret so the chart's CronJobs authenticate. |
 
 ## Available scripts
 
@@ -160,15 +162,15 @@ workspaces.
 ## File storage
 
 Uploaded files are stored as **PostgreSQL large objects** (`pg_largeobject`) in the
-same database as their metadata. There is no external object storage (Vercel
-Blob has been removed).
+same database as their metadata. There is no external object storage (the
+former Vercel Blob integration has been removed).
 
 - **Bytes → large objects.** `lib/large-object.ts` streams bytes into a large
   object and streams them back out. Responses use `Readable.toWeb(...)`; nothing
   is buffered in memory.
-- **Chunked uploads (Vercel-safe).** Vercel caps a Function request body at
-  **4.5 MB**, so a file is uploaded in 3 MiB chunks under an `UploadSession`
-  instead of one request:
+- **Chunked uploads.** A file is uploaded in 3 MiB chunks under an
+  `UploadSession` instead of one request, which keeps each request small and
+  makes retries cheap:
   - `POST /api/files/uploads` — authz + quota check, creates the large object and
     an `UploadSession` (`name`, `parentId`, `mimeType`, `expectedSize`, `transient`).
   - `PUT /api/files/uploads/[uploadId]` — appends one raw chunk; the
@@ -222,6 +224,41 @@ chunked create/append/hash paths; it then deletes/aborts and asserts
 ```bash
 npm run verify:large-object --workspace=web
 ```
+
+## Deployment
+
+The Docker workflow publishes three images to GHCR:
+
+| Image | Dockerfile stage | Runs |
+| --- | --- | --- |
+| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer app |
+| `ghcr.io/preskater/presk-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
+| `ghcr.io/preskater/presk-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
+
+Deploy them with the Helm umbrella chart in `charts/presk`, which composes the
+`presk-web` and `presk-control-tower` subcharts:
+
+```bash
+helm dependency build charts/presk
+kubectl create namespace presk
+
+kubectl -n presk create secret generic presk-web-secrets \
+  --from-literal=DATABASE_URL='postgresql://…' \
+  --from-literal=BETTER_AUTH_SECRET='…' \
+  --from-literal=CRON_SECRET='…'
+
+kubectl -n presk create secret generic presk-control-tower-secrets \
+  --from-literal=DATABASE_URL='postgresql://…' \
+  --from-literal=CONTROL_TOWER_BETTER_AUTH_SECRET='…'
+
+helm upgrade --install presk charts/presk -n presk \
+  --set global.imageTag=sha-abc1234
+```
+
+A pre-install/pre-upgrade Job runs `prisma migrate deploy` before the
+Deployments roll out, and Kubernetes CronJobs replace the former Vercel crons.
+See [docs/deployment/helm.md](./docs/deployment/helm.md) for chart values,
+ingress/TLS, DNS, rollback and troubleshooting.
 
 ## Contributing
 

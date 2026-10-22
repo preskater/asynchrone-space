@@ -7,14 +7,14 @@ import "./env"
 import { PrismaClient } from "../lib/generated/prisma/client"
 
 /**
- * Serverless-friendly Postgres pooling.
+ * Small, explicitly configured Postgres pool.
  *
- * On Vercel (and other serverless platforms) each function instance created its
- * own `pg.Pool`, and `@prisma/adapter-pg` defaults that pool to `max: 10`.
- * Under concurrency that exhausts the database role's connection limit
- * (`P2037 / TooManyConnections`). We instead build one small, explicitly
- * configured pool per instance and strongly recommend pointing `DATABASE_URL`
- * at a connection pooler (PgBouncer / Neon / Supabase / Accelerate).
+ * Every app instance (container, pod, or function) builds its own `pg.Pool`,
+ * and `@prisma/adapter-pg` defaults that pool to `max: 10`. Under concurrency
+ * that exhausts the database role's connection limit (`P2037 /
+ * TooManyConnections`). We instead build one small pool per instance and
+ * strongly recommend pointing `DATABASE_URL` at a connection pooler
+ * (PgBouncer / Neon / Supabase / Accelerate).
  */
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined

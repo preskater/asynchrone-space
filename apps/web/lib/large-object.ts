@@ -212,7 +212,7 @@ export async function createLargeObject(): Promise<number> {
 /**
  * Append `chunk` to the end of a large object and return the new total size.
  * Each call runs in its own transaction so a chunked upload can span multiple
- * requests (and stay under Vercel's 4.5 MB request-body limit).
+ * requests without buffering the whole file in memory.
  */
 export async function appendLargeObject(
   oid: number,

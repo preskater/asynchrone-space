@@ -152,8 +152,8 @@ async function uploadInChunks(
 
 /**
  * Chunked upload of a workspace file. Returns the created `FileNode`. Files are
- * split into sub-4.5 MB chunks (Vercel's request-body cap is 4.5 MB); each chunk
- * is retried in memory.
+ * split into small chunks so each request stays below typical body limits; each
+ * chunk is retried in memory.
  */
 export async function uploadFile(
   file: File,

@@ -295,9 +295,9 @@ export default async function OperationsPage() {
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Environment {process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? "unknown"}
-        {process.env.VERCEL_GIT_COMMIT_SHA
-          ? ` · commit ${process.env.VERCEL_GIT_COMMIT_SHA.slice(0, 7)}`
+        Environment {process.env.DEPLOY_ENV ?? process.env.NODE_ENV ?? "unknown"}
+        {process.env.GIT_COMMIT_SHA
+          ? ` · commit ${process.env.GIT_COMMIT_SHA.slice(0, 7)}`
           : ""}
       </p>
     </div>

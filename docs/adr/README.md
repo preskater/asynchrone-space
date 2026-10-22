@@ -39,3 +39,4 @@ collection.
 | [0016](0016-server-actions-as-the-crud-transport.md)      | accepted | Use server actions as the only CRUD transport                             |
 | [0017](0017-client-meeting-requests.md)                   | accepted | Let clients request meetings that the team books on the calendar         |
 | [0018](0018-control-tower-on-shared-database-package.md)  | accepted | Add a separate control-tower app on a shared `packages/db`               |
+| [0019](0019-deploy-on-kubernetes-with-helm.md)            | accepted | Deploy on Kubernetes with Helm                                            |

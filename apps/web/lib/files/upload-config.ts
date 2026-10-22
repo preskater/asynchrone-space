@@ -1,9 +1,9 @@
 /**
  * Chunked-upload tuning.
  *
- * Vercel caps a Function request body at 4.5 MB, so each chunk request must be
- * comfortably under that. The chunk size is also a multiple of `LOBLKSIZE`
- * (2048) so writes land on large-object page boundaries.
+ * Each chunk request stays comfortably under common proxy/ingress body limits.
+ * The chunk size is also a multiple of `LOBLKSIZE` (2048) so writes land on
+ * large-object page boundaries.
  */
 export const UPLOAD_CHUNK_SIZE = 3 * 1024 * 1024
 

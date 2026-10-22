@@ -46,8 +46,8 @@ yarn-error.log*
 # prisma generated client
 **/lib/generated/
 
-# vercel
-.vercel
+# helm dependency build output (run `helm dependency build charts/presk`)
+charts/presk/charts/
 
 # typescript
 *.tsbuildinfo
