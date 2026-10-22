@@ -12,7 +12,8 @@
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
     "grant:platform-role": "tsx scripts/grant-platform-role.ts",
-    "verify:auth-config": "tsx scripts/verify-auth-config.ts"
+    "verify:auth-config": "tsx scripts/verify-auth-config.ts",
+    "verify:platform-authorization": "tsx scripts/verify-platform-authorization.ts"
   },
   "dependencies": {
     "@workspace/db": "*",

@@ -112,10 +112,12 @@ npm run grant:platform-role --workspace=control-tower -- --email you@example.com
 ```
 
 Only `platform_admin` (full) and `platform_support` (read-only) can open the app;
-everyone else gets a 404. Admins can ban accounts, revoke sessions, change
-plans/quotas and disable MCP clients from the detail pages. Impersonation opens
-a one-hour, audited session in the customer app through a single-use handoff
-(no shared cookie) and shows a banner there.
+everyone else gets a 404. Every platform account must enroll a TOTP
+authenticator (`/setup-2fa`) before the dashboard is reachable, and
+`PLATFORM_ALLOWED_IPS` can restrict access to known networks. Admins can ban
+accounts, revoke sessions, change plans/quotas and disable MCP clients from the
+detail pages. Impersonation opens a one-hour, audited session in the customer
+app through a single-use handoff (no shared cookie) and shows a banner there.
 
 `npm run verify:auth-config --workspace=control-tower`
 asserts that cross-subdomain cookies stay disabled (see

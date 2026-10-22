@@ -10,8 +10,11 @@ export const metadata = { title: "Sign in" }
 export default async function SignInPage() {
   const session = await auth.api.getSession({ headers: await headers() })
 
-  if (session && primaryPlatformRole(session.user.role)) {
-    redirect("/overview")
+  if (session) {
+    const role = primaryPlatformRole(session.user.role)
+    if (role) {
+      redirect(session.user.twoFactorEnabled ? "/overview" : "/setup-2fa")
+    }
   }
 
   return (

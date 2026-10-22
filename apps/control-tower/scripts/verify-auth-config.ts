@@ -48,6 +48,12 @@ check(
   "only this app's origin is trusted"
 )
 check(
+  authConfig.plugins?.some(
+    (plugin) => (plugin as { id?: string }).id === "two-factor"
+  ),
+  "two-factor authentication is available"
+)
+check(
   authConfig.secret === process.env.CONTROL_TOWER_BETTER_AUTH_SECRET,
   "uses CONTROL_TOWER_BETTER_AUTH_SECRET"
 )

@@ -19,12 +19,14 @@ model User {
   banned        Boolean?     @default(false)
   banReason     String?
   banExpires    DateTime?
+  twoFactorEnabled Boolean?  @default(false)
   lastSeenAt    DateTime?
   sessions      Session[]
   accounts      Account[]
   teammembers   TeamMember[]
   members       Member[]
   invitations   Invitation[]
+  twoFactor     TwoFactor[]
 
   oauthClients       OauthClient[]
   oauthRefreshTokens OauthRefreshToken[]
@@ -1565,5 +1567,22 @@ model PlatformHandoff {
   @@index([expiresAt])
   @@index([targetUserId])
   @@map("platformHandoff")
+}
+
+/// TOTP secret and backup codes for platform staff. Required for every account
+/// holding a platform role; the web app does not register the plugin, so this
+/// table stays control-tower-only.
+model TwoFactor {
+  id                     String    @id @default(cuid())
+  secret                 String
+  backupCodes            String
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified               Boolean?  @default(true)
+  failedVerificationCount Int      @default(0)
+  lockedUntil            DateTime?
+
+  @@index([userId])
+  @@map("twoFactor")
 }
 
