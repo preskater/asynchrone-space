@@ -48,6 +48,7 @@ export function FilesWorkspace() {
     restoreMany,
     deleteMany,
     uploads,
+    ensureFilesLoaded,
   } = useFiles()
   const { record, active, hydrated } = useRecents()
   const {
@@ -77,6 +78,10 @@ export function FilesWorkspace() {
   const [moveTarget, setMoveTarget] = React.useState<FileNode | undefined>()
   const [moveOpen, setMoveOpen] = React.useState(false)
   const [deleteTarget, setDeleteTarget] = React.useState<FileNode | undefined>()
+
+  React.useEffect(() => {
+    ensureFilesLoaded()
+  }, [ensureFilesLoaded])
 
   const restored = React.useRef(false)
   React.useEffect(() => {

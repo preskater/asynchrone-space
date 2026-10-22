@@ -20,6 +20,11 @@ const CLIENT_SELECT = {
   updatedAt: true,
 } as const
 
+type ClientCursor = { name: string; id: string }
+type ContactCursor = { lastName: string; firstName: string; id: string }
+type DealCursor = { createdAt: Date; id: string }
+type ActivityCursor = { occurredAt: Date; id: string }
+
 export class CrmRepository {
   constructor(private readonly db: PrismaClient) {}
 
@@ -35,6 +40,13 @@ export class CrmRepository {
     })
   }
 
+  memberExists(organizationId: string, userId: string) {
+    return this.db.member.findFirst({
+      where: { organizationId, userId },
+      select: { id: true },
+    })
+  }
+
   // --- Companies (clients) -----------------------------------------------------
 
   listClients(organizationId: string) {
@@ -45,10 +57,162 @@ export class CrmRepository {
     })
   }
 
+  /** One keyset page ordered by `(name, id)` ascending. */
+  listClientsPage(
+    organizationId: string,
+    options: { after?: ClientCursor | null; take: number }
+  ) {
+    return this.db.client.findMany({
+      where: {
+        organizationId,
+        ...(options.after
+          ? {
+              OR: [
+                { name: { gt: options.after.name } },
+                { name: options.after.name, id: { gt: options.after.id } },
+              ],
+            }
+          : {}),
+      },
+      select: CLIENT_SELECT,
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+      take: options.take,
+    })
+  }
+
+  listClientOptions(organizationId: string) {
+    return this.db.client.findMany({
+      where: { organizationId, deletedAt: null },
+      select: { id: true, name: true },
+      orderBy: { name: "asc" },
+    })
+  }
+
+  clientStatusCounts(organizationId: string) {
+    return this.db.client.groupBy({
+      by: ["status"],
+      where: { organizationId, deletedAt: null },
+      _count: { _all: true },
+    })
+  }
+
+  /** Contact counters per company without loading the contact rows. */
+  contactCountsByClient(organizationId: string) {
+    return this.db.contactCompany.groupBy({
+      by: ["clientId"],
+      where: {
+        contact: { organizationId, deletedAt: null },
+        client: { deletedAt: null },
+      },
+      _count: { _all: true },
+    })
+  }
+
+  projectCountsByClient(organizationId: string) {
+    return this.db.project.groupBy({
+      by: ["clientId"],
+      where: {
+        organizationId,
+        clientId: { not: null },
+        client: { deletedAt: null },
+      },
+      _count: { _all: true },
+    })
+  }
+
+  clientContactCount(organizationId: string, clientId: string) {
+    return this.db.contactCompany.count({
+      where: { clientId, contact: { organizationId, deletedAt: null } },
+    })
+  }
+
+  clientProjectCount(organizationId: string, clientId: string) {
+    return this.db.project.count({ where: { organizationId, clientId } })
+  }
+
+  /** Open deal count/value per company (callers map by `clientId`). */
+  openDealCountsByClient(organizationId: string) {
+    return this.db.deal.groupBy({
+      by: ["clientId"],
+      where: {
+        organizationId,
+        deletedAt: null,
+        status: "open",
+        client: { deletedAt: null },
+      },
+      _count: { _all: true },
+      _sum: { amount: true },
+    })
+  }
+
+  clientOpenDealStats(organizationId: string, clientId: string) {
+    return this.db.deal.aggregate({
+      where: {
+        organizationId,
+        clientId,
+        deletedAt: null,
+        status: "open",
+      },
+      _count: { _all: true },
+      _sum: { amount: true },
+    })
+  }
+
+  /** Open deal count per contact. */
+  openDealCountsByContact(organizationId: string) {
+    return this.db.dealContact.groupBy({
+      by: ["contactId"],
+      where: {
+        deal: { organizationId, deletedAt: null, status: "open" },
+      },
+      _count: { _all: true },
+    })
+  }
+
+  /** Global deal KPIs for the deals page (pagination-safe). */
+  async dealStats(organizationId: string, wonSince: Date) {
+    const [open, won] = await Promise.all([
+      this.db.$queryRaw<
+        { count: number; value: number; weighted: number }[]
+      >`
+        SELECT COUNT(*)::int AS count,
+               COALESCE(SUM(amount), 0)::float AS value,
+               COALESCE(SUM(amount * probability / 100.0), 0)::float AS weighted
+        FROM "deal"
+        WHERE "organizationId" = ${organizationId}
+          AND status = 'open'
+          AND "deletedAt" IS NULL
+      `,
+      this.db.deal.aggregate({
+        where: {
+          organizationId,
+          status: "won",
+          deletedAt: null,
+          actualCloseDate: { gte: wonSince },
+        },
+        _sum: { amount: true },
+      }),
+    ])
+    const row = open[0]
+    return {
+      openCount: row?.count ?? 0,
+      openValue: row?.value ?? 0,
+      weighted: row?.weighted ?? 0,
+      wonValue: won._sum.amount ?? 0,
+    }
+  }
+
   findClient(organizationId: string, id: string) {
     return this.db.client.findFirst({
       where: { id, organizationId },
       select: CLIENT_SELECT,
+    })
+  }
+
+  clientExists(organizationId: string, id: string) {
+    return this.db.client.findFirst({
+      where: { id, organizationId },
+      select: { id: true },
     })
   }
 
@@ -169,6 +333,72 @@ export class CrmRepository {
     })
   }
 
+  /** One keyset page ordered by `(lastName, firstName, id)` ascending. */
+  listContactsPage(
+    organizationId: string,
+    options: { after?: ContactCursor | null; take: number }
+  ) {
+    return this.db.contact.findMany({
+      where: {
+        organizationId,
+        ...(options.after
+          ? {
+              OR: [
+                { lastName: { gt: options.after.lastName } },
+                {
+                  lastName: options.after.lastName,
+                  firstName: { gt: options.after.firstName },
+                },
+                {
+                  lastName: options.after.lastName,
+                  firstName: options.after.firstName,
+                  id: { gt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: {
+        companies: {
+          include: { client: { select: { id: true, name: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }, { id: "asc" }],
+      take: options.take,
+    })
+  }
+
+  listContactOptions(organizationId: string) {
+    return this.db.contact.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    })
+  }
+
+  /** Contacts attached to one company (detail page). */
+  listContactsForClient(organizationId: string, clientId: string) {
+    return this.db.contact.findMany({
+      where: {
+        organizationId,
+        companies: { some: { clientId } },
+      },
+      include: {
+        companies: {
+          include: { client: { select: { id: true, name: true } } },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    })
+  }
+
   findContact(organizationId: string, id: string) {
     return this.db.contact.findFirst({
       where: { id, organizationId },
@@ -178,6 +408,20 @@ export class CrmRepository {
           orderBy: { createdAt: "asc" },
         },
       },
+    })
+  }
+
+  countContactsByIds(organizationId: string, ids: string[]) {
+    if (ids.length === 0) return Promise.resolve(0)
+    return this.db.contact.count({
+      where: { organizationId, deletedAt: null, id: { in: ids } },
+    })
+  }
+
+  listContactEmails(organizationId: string) {
+    return this.db.contact.findMany({
+      where: { organizationId, email: { not: null } },
+      select: { email: true },
     })
   }
 
@@ -255,14 +499,42 @@ export class CrmRepository {
   listPipelines(organizationId: string) {
     return this.db.pipeline.findMany({
       where: { organizationId },
-      include: {
-        stages: { orderBy: { position: "asc" } },
-        deals: {
-          where: { deletedAt: null },
-          select: { id: true, stageId: true, amount: true, status: true },
-        },
-      },
+      include: { stages: { orderBy: { position: "asc" } } },
       orderBy: [{ isDefault: "desc" }, { createdAt: "asc" }],
+    })
+  }
+
+  /** Deal count/value per stage without loading every deal. */
+  stageDealStats(organizationId: string) {
+    return this.db.deal.groupBy({
+      by: ["stageId"],
+      where: { organizationId, deletedAt: null },
+      _count: { _all: true },
+      _sum: { amount: true },
+    })
+  }
+
+  countDealsInStage(stageId: string) {
+    return this.db.deal.count({ where: { stageId, deletedAt: null } })
+  }
+
+  countDealsInPipeline(pipelineId: string) {
+    return this.db.deal.count({ where: { pipelineId, deletedAt: null } })
+  }
+
+  listDealPositions(stageId: string) {
+    return this.db.deal.findMany({
+      where: { stageId, deletedAt: null },
+      select: { id: true, position: true },
+      orderBy: { position: "asc" },
+    })
+  }
+
+  listClientNames(organizationId: string) {
+    return this.db.client.findMany({
+      where: { organizationId },
+      select: { id: true, name: true, deletedAt: true },
+      orderBy: { name: "asc" },
     })
   }
 
@@ -375,6 +647,41 @@ export class CrmRepository {
       where: { organizationId },
       include: CrmRepository.DEAL_INCLUDE,
       orderBy: [{ position: "asc" }, { createdAt: "desc" }],
+    })
+  }
+
+  /** One keyset page ordered by `(createdAt, id)` descending. */
+  listDealsPage(
+    organizationId: string,
+    options: { after?: DealCursor | null; take: number }
+  ) {
+    return this.db.deal.findMany({
+      where: {
+        organizationId,
+        ...(options.after
+          ? {
+              OR: [
+                { createdAt: { lt: options.after.createdAt } },
+                {
+                  createdAt: options.after.createdAt,
+                  id: { lt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: CrmRepository.DEAL_INCLUDE,
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: options.take,
+    })
+  }
+
+  /** Projects linked to one company (detail page). */
+  listProjectsForClient(organizationId: string, clientId: string) {
+    return this.db.project.findMany({
+      where: { organizationId, clientId },
+      select: { id: true, name: true, status: true, clientId: true },
+      orderBy: { createdAt: "desc" },
     })
   }
 
@@ -504,23 +811,53 @@ export class CrmRepository {
 
   // --- Activities ---------------------------------------------------------------
 
-  listActivities(organizationId: string, limit = 100) {
+  listActivities(
+    organizationId: string,
+    options: { after?: ActivityCursor | null; take?: number } = {}
+  ) {
     return this.db.crmActivity.findMany({
-      where: { organizationId },
-      orderBy: { occurredAt: "desc" },
-      take: limit,
+      where: {
+        organizationId,
+        ...(options.after
+          ? {
+              OR: [
+                { occurredAt: { lt: options.after.occurredAt } },
+                {
+                  occurredAt: options.after.occurredAt,
+                  id: { lt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ occurredAt: "desc" }, { id: "desc" }],
+      take: options.take ?? 100,
     })
   }
 
   listActivitiesFor(
     organizationId: string,
     where: { clientId?: string; contactId?: string; dealId?: string },
-    limit = 50
+    options: { after?: ActivityCursor | null; take?: number } = {}
   ) {
     return this.db.crmActivity.findMany({
-      where: { organizationId, ...where },
-      orderBy: { occurredAt: "desc" },
-      take: limit,
+      where: {
+        organizationId,
+        ...where,
+        ...(options.after
+          ? {
+              OR: [
+                { occurredAt: { lt: options.after.occurredAt } },
+                {
+                  occurredAt: options.after.occurredAt,
+                  id: { lt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ occurredAt: "desc" }, { id: "desc" }],
+      take: options.take ?? 50,
     })
   }
 

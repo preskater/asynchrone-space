@@ -1,18 +1,23 @@
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
+/**
+ * Project relations needed by the app shell (sidebar, pickers, cards).
+ * Tasks and activities are loaded separately by the projects feature so the
+ * shell never pays for workspace-wide task history.
+ */
 export const projectInclude = {
   client: { select: { id: true, name: true } },
   members: { include: { project: false } },
   labels: { include: { label: true } },
-  tasks: {
-    orderBy: { order: "asc" as const },
-    include: {
-      subtasks: { orderBy: { order: "asc" as const } },
-      comments: { orderBy: { createdAt: "asc" as const } },
-      labels: { include: { label: true } },
-    },
-  },
-  activities: { orderBy: { createdAt: "desc" as const } },
+  _count: { select: { tasks: true } },
+}
+
+/** Task relations shared by every task query. */
+export const taskInclude = {
+  subtasks: { orderBy: { order: "asc" as const } },
+  // Latest 100 comments per task; the service reverses them for display.
+  comments: { orderBy: { createdAt: "desc" as const }, take: 100 },
+  labels: { include: { label: true } },
 }
 
 export type ProjectWithRelations = Awaited<
@@ -22,11 +27,60 @@ export type ProjectWithRelations = Awaited<
 export class ProjectRepository {
   constructor(private readonly db: PrismaClient) {}
 
-  list(organizationId: string) {
+  listShell(organizationId: string) {
     return this.db.project.findMany({
       where: { organizationId },
       include: projectInclude,
       orderBy: { createdAt: "desc" },
+    })
+  }
+
+  /** Per-status task counts for every project in the organization. */
+  taskStatusCounts(organizationId: string) {
+    return this.db.task.groupBy({
+      by: ["projectId", "status"],
+      where: { organizationId },
+      _count: { _all: true },
+    })
+  }
+
+  /** Tasks of the whole organization (project board hydration). */
+  listAllTasks(organizationId: string, limit = 1000) {
+    return this.db.task.findMany({
+      where: { organizationId },
+      orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+      include: taskInclude,
+      take: limit,
+    })
+  }
+
+  /** Latest project activity, optionally scoped to one project. */
+  listActivities(
+    organizationId: string,
+    options: {
+      projectId?: string
+      before?: { createdAt: Date; id: string }
+      take?: number
+    } = {}
+  ) {
+    return this.db.projectActivity.findMany({
+      where: {
+        project: { organizationId },
+        ...(options.projectId ? { projectId: options.projectId } : {}),
+        ...(options.before
+          ? {
+              OR: [
+                { createdAt: { lt: options.before.createdAt } },
+                {
+                  createdAt: options.before.createdAt,
+                  id: { lt: options.before.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: options.take ?? 100,
     })
   }
 
@@ -113,22 +167,14 @@ export class ProjectRepository {
     return this.db.task.findMany({
       where: { organizationId, projectId },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
-      include: {
-        subtasks: { orderBy: { order: "asc" } },
-        comments: { orderBy: { createdAt: "asc" } },
-        labels: { include: { label: true } },
-      },
+      include: taskInclude,
     })
   }
 
   findTask(organizationId: string, id: string) {
     return this.db.task.findFirst({
       where: { id, organizationId },
-      include: {
-        subtasks: { orderBy: { order: "asc" } },
-        comments: { orderBy: { createdAt: "asc" } },
-        labels: { include: { label: true } },
-      },
+      include: taskInclude,
     })
   }
 
@@ -184,11 +230,7 @@ export class ProjectRepository {
           create: data.labelIds.map((labelId) => ({ labelId })),
         },
       },
-      include: {
-        subtasks: { orderBy: { order: "asc" } },
-        comments: { orderBy: { createdAt: "asc" } },
-        labels: { include: { label: true } },
-      },
+      include: taskInclude,
     })
   }
 
@@ -214,11 +256,7 @@ export class ProjectRepository {
             ? undefined
             : (data.customFields as never),
       },
-      include: {
-        subtasks: { orderBy: { order: "asc" } },
-        comments: { orderBy: { createdAt: "asc" } },
-        labels: { include: { label: true } },
-      },
+      include: taskInclude,
     })
   }
 
@@ -359,6 +397,36 @@ export class ProjectRepository {
       where: { organizationId, clientId: null },
       include: { user: true },
       orderBy: { createdAt: "asc" },
+    })
+  }
+
+  /** Keyset page ordered by `(createdAt, id)`, oldest first. */
+  listMembersPage(
+    organizationId: string,
+    options: {
+      before?: { createdAt: Date; id: string } | null
+      take: number
+    }
+  ) {
+    return this.db.member.findMany({
+      where: {
+        organizationId,
+        clientId: null,
+        ...(options.before
+          ? {
+              OR: [
+                { createdAt: { gt: options.before.createdAt } },
+                {
+                  createdAt: options.before.createdAt,
+                  id: { gt: options.before.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      include: { user: true },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      take: options.take,
     })
   }
 

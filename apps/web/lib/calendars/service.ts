@@ -65,7 +65,7 @@ export class CalendarService {
     }
   }
 
-  async list(ctx: RequestContext): Promise<CalendarData> {
+  private async loadCalendars(ctx: RequestContext): Promise<CalendarRow[]> {
     let calendars = await this.repo.listCalendars(ctx.organizationId)
     if (calendars.length === 0) {
       await this.repo.createCalendar({
@@ -77,11 +77,48 @@ export class CalendarService {
       })
       calendars = await this.repo.listCalendars(ctx.organizationId)
     }
-    const events = await this.repo.listEvents(ctx.organizationId)
+    return calendars
+  }
+
+  /** Shell payload: calendar sources only (no events). */
+  async listShell(ctx: RequestContext): Promise<CalendarData> {
+    const calendars = await this.loadCalendars(ctx)
     return {
       calendars: calendars.map((calendar) => this.mapCalendar(calendar)),
-      events: events.map((event) => this.mapEvent(event)),
+      events: [],
     }
+  }
+
+  /**
+   * Events for a bounded window around today. The calendar UI can request a
+   * different range through `listCalendarEventsAction`.
+   */
+  async listEvents(
+    ctx: RequestContext,
+    options: { from?: string; to?: string } = {}
+  ): Promise<CalendarEvent[]> {
+    const now = new Date()
+    const from = options.from
+      ? new Date(options.from)
+      : new Date(now.getFullYear(), now.getMonth() - 6, 1)
+    const to = options.to
+      ? new Date(options.to)
+      : new Date(now.getFullYear(), now.getMonth() + 12, 0, 23, 59, 59, 999)
+    const events = await this.repo.listEvents(ctx.organizationId, {
+      from: Number.isNaN(from.getTime()) ? undefined : from,
+      to: Number.isNaN(to.getTime()) ? undefined : to,
+      take: 1000,
+    })
+    return events.map((event) => this.mapEvent(event))
+  }
+
+  /** Full payload kept for API/MCP compatibility (bounded event window). */
+  async list(ctx: RequestContext): Promise<CalendarData> {
+    const [shell, events] = await Promise.all([
+      this.listShell(ctx),
+      this.listEvents(ctx),
+    ])
+    return { calendars: shell.calendars, events }
   }
 
   async createEvent(

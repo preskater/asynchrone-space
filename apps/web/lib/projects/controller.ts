@@ -127,7 +127,12 @@ export async function addTaskComment(
 
 export async function listMembers(request: Request) {
   const ctx = await getRequestContext({ request })
-  return projectService.listMembers(ctx)
+  const url = new URL(request.url)
+  const limitParam = Number(url.searchParams.get("limit"))
+  return projectService.listMembersPage(ctx, {
+    cursor: url.searchParams.get("cursor"),
+    limit: Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined,
+  })
 }
 
 export async function addMember(request: Request) {

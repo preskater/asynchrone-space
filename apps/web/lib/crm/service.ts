@@ -6,6 +6,14 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/lib/core/errors"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import { notificationService } from "@/lib/notifications"
 
 import { parseDateKey, toDateKey } from "./dates"
@@ -76,29 +84,18 @@ type ContactRow = Awaited<ReturnType<CrmRepository["listContacts"]>>[number]
 type PipelineRow = Awaited<ReturnType<CrmRepository["listPipelines"]>>[number]
 type DealRow = Awaited<ReturnType<CrmRepository["listDeals"]>>[number]
 type ActivityRow = Awaited<ReturnType<CrmRepository["listActivities"]>>[number]
+type StageStatRow = Awaited<
+  ReturnType<CrmRepository["stageDealStats"]>
+>[number]
 type FieldRow = Awaited<
   ReturnType<CrmRepository["listFieldDefinitions"]>
 >[number]
 type AuditRow = Awaited<
   ReturnType<CrmRepository["listAuditForEntity"]>
 >[number]
-type ProjectOptionRow = Awaited<
-  ReturnType<CrmRepository["listProjectOptions"]>
->[number]
 type DocumentRow = Awaited<
   ReturnType<CrmRepository["listDocuments"]>
 >[number]
-
-interface WorkspaceRows {
-  memberRows: MemberRow[]
-  clientRows: ClientRow[]
-  contactRows: ContactRow[]
-  pipelineRows: PipelineRow[]
-  dealRows: DealRow[]
-  activityRows: ActivityRow[]
-  fieldRows: FieldRow[]
-  projectRows: ProjectOptionRow[]
-}
 
 function requireEdit(access: CrmAccess) {
   if (access.canEdit) return
@@ -397,26 +394,37 @@ export class CrmService {
     }
   }
 
-  private mapPipeline(row: PipelineRow): CrmPipelineData {
-    const deals = row.deals ?? []
+  private mapPipeline(
+    row: PipelineRow,
+    stageStats: Map<string, { count: number; value: number }>
+  ): CrmPipelineData {
     const stages = [...row.stages].sort((a, b) => a.position - b.position)
     return {
       id: row.id,
       name: row.name,
       isDefault: row.isDefault,
       stages: stages.map((stage) => {
-        const stageDeals = deals.filter((deal) => deal.stageId === stage.id)
+        const stats = stageStats.get(stage.id)
         return {
           id: stage.id,
           name: stage.name,
           position: stage.position,
           type: stage.type as CrmPipelineData["stages"][number]["type"],
           color: text(stage.color),
-          dealCount: stageDeals.length,
-          totalValue: stageDeals.reduce((sum, deal) => sum + deal.amount, 0),
+          dealCount: stats?.count ?? 0,
+          totalValue: stats?.value ?? 0,
         }
       }),
     }
+  }
+
+  private stageStatsMap(rows: StageStatRow[]) {
+    return new Map(
+      rows.map((row) => [
+        row.stageId ?? "",
+        { count: row._count._all, value: row._sum.amount ?? 0 },
+      ])
+    )
   }
 
   private mapActivity(
@@ -485,58 +493,45 @@ export class CrmService {
     })
   }
 
-  private async loadWorkspace(organizationId: string): Promise<WorkspaceRows> {
-    const [
-      memberRows,
-      clientRows,
-      contactRows,
-      pipelineRows,
-      dealRows,
-      activityRows,
-      fieldRows,
-      projectRows,
-    ] = await Promise.all([
-      this.repo.listMembers(organizationId),
-      this.repo.listClients(organizationId),
-      this.repo.listContacts(organizationId),
-      this.repo.listPipelines(organizationId),
-      this.repo.listDeals(organizationId),
-      this.repo.listActivities(organizationId, 100),
-      this.repo.listFieldDefinitions(organizationId),
-      this.repo.listProjectOptions(organizationId),
+  /** Counters shared by the list and detail pages, computed in the database. */
+  private async loadClientStatMaps(organizationId: string) {
+    const [contactCounts, dealCounts, projectCounts] = await Promise.all([
+      this.repo.contactCountsByClient(organizationId),
+      this.repo.openDealCountsByClient(organizationId),
+      this.repo.projectCountsByClient(organizationId),
     ])
     return {
-      memberRows,
-      clientRows,
-      contactRows,
-      pipelineRows,
-      dealRows,
-      activityRows,
-      fieldRows,
-      projectRows,
+      contacts: new Map(
+        contactCounts.map((row) => [row.clientId, row._count._all])
+      ),
+      deals: new Map(
+        dealCounts.map((row) => [
+          row.clientId ?? "",
+          { count: row._count._all, value: row._sum.amount ?? 0 },
+        ])
+      ),
+      projects: new Map(
+        projectCounts.map((row) => [row.clientId ?? "", row._count._all])
+      ),
     }
   }
 
-  private static buildClientStats(
-    clientId: string,
-    contactRows: ContactRow[],
-    dealRows: DealRow[],
-    projectRows: ProjectOptionRow[]
-  ) {
-    const openDeals = dealRows.filter(
-      (deal) =>
-        deal.clientId === clientId && deal.status === "open" && !deal.deletedAt
+  private async loadContactDealCounts(organizationId: string) {
+    const rows = await this.repo.openDealCountsByContact(organizationId)
+    return new Map(
+      rows.map((row) => [row.contactId, row._count._all] as const)
     )
+  }
+
+  private static clientStatsFrom(
+    clientId: string,
+    maps: Awaited<ReturnType<CrmService["loadClientStatMaps"]>>
+  ) {
     return {
-      contactCount: contactRows.filter(
-        (contact) =>
-          !contact.deletedAt &&
-          contact.companies.some((link) => link.clientId === clientId)
-      ).length,
-      openDealCount: openDeals.length,
-      openDealValue: openDeals.reduce((sum, deal) => sum + deal.amount, 0),
-      projectCount: projectRows.filter((project) => project.clientId === clientId)
-        .length,
+      contactCount: maps.contacts.get(clientId) ?? 0,
+      openDealCount: maps.deals.get(clientId)?.count ?? 0,
+      openDealValue: maps.deals.get(clientId)?.value ?? 0,
+      projectCount: maps.projects.get(clientId) ?? 0,
     }
   }
 
@@ -547,51 +542,130 @@ export class CrmService {
   async getOverview(ctx: RequestContext): Promise<CrmOverviewData> {
     const access = this.accessFor(ctx)
     await this.ensureDefaultPipeline(ctx.organizationId)
-    const rows = await this.loadWorkspace(ctx.organizationId)
-    const nameById = this.nameById(rows.memberRows)
+    const limit = pageSize(undefined, 50)
+    const activityLimit = pageSize(undefined, 30)
+    const wonSince = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
-    const clients = rows.clientRows.map((row) =>
+    const [
+      memberRows,
+      clientRows,
+      contactRows,
+      pipelineRows,
+      dealRows,
+      activityRows,
+      fieldRows,
+      clientStatMaps,
+      contactDealCounts,
+      stageStats,
+      statusCounts,
+      dealKpis,
+      clientOptions,
+      contactOptions,
+    ] = await Promise.all([
+      this.repo.listMembers(ctx.organizationId),
+      this.repo.listClientsPage(ctx.organizationId, { take: limit + 1 }),
+      this.repo.listContactsPage(ctx.organizationId, { take: limit + 1 }),
+      this.repo.listPipelines(ctx.organizationId),
+      this.repo.listDealsPage(ctx.organizationId, { take: limit + 1 }),
+      this.repo.listActivities(ctx.organizationId, { take: activityLimit + 1 }),
+      this.repo.listFieldDefinitions(ctx.organizationId),
+      this.loadClientStatMaps(ctx.organizationId),
+      this.loadContactDealCounts(ctx.organizationId),
+      this.repo.stageDealStats(ctx.organizationId),
+      this.repo.clientStatusCounts(ctx.organizationId),
+      this.repo.dealStats(ctx.organizationId, wonSince),
+      this.repo.listClientOptions(ctx.organizationId),
+      this.repo.listContactOptions(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+
+    const clientPage = toPage(clientRows, limit, (row) =>
+      encodeCursor([row.name, row.id])
+    )
+    const contactPage = toPage(contactRows, limit, (row) =>
+      encodeCursor([row.lastName, row.firstName, row.id])
+    )
+    const dealPage = toPage(dealRows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    const activityPage = toPage(activityRows, activityLimit, (row) =>
+      encodeCursor([row.occurredAt.toISOString(), row.id])
+    )
+
+    const clients = clientPage.items.map((row) =>
       this.mapClient(
         row,
-        CrmService.buildClientStats(
-          row.id,
-          rows.contactRows,
-          rows.dealRows,
-          rows.projectRows
-        ),
+        CrmService.clientStatsFrom(row.id, clientStatMaps),
         row.ownerId ? nameById.get(row.ownerId) : undefined
       )
     )
-
-    const contacts = rows.contactRows.map((row) =>
+    const contacts = contactPage.items.map((row) =>
       this.mapContact(
         row,
-        rows.dealRows.filter(
-          (deal) =>
-            !deal.deletedAt &&
-            deal.status === "open" &&
-            deal.contacts.some((link) => link.contactId === row.id)
-        ).length,
+        contactDealCounts.get(row.id) ?? 0,
         row.ownerId ? nameById.get(row.ownerId) : undefined
       )
     )
-
-    const deals = rows.dealRows.map((row) =>
+    const deals = dealPage.items.map((row) =>
       this.mapDeal(row, row.ownerId ? nameById.get(row.ownerId) : undefined)
     )
+
+    const statusMap = new Map(
+      statusCounts.map((row) => [row.status, row._count._all])
+    )
+    const clientsTotal = [...statusMap.values()].reduce(
+      (total, count) => total + count,
+      0
+    )
+    const stageStatsMap = this.stageStatsMap(stageStats)
+    let clientsOpenValue = 0
+    for (const [clientId, dealStats] of clientStatMaps.deals) {
+      if (clientId) clientsOpenValue += dealStats.value
+    }
 
     return {
       todayKey: toDateKey(new Date()),
       access: this.accessData(access, ctx),
-      members: this.mapMembers(rows.memberRows),
-      fieldDefinitions: rows.fieldRows.map((row) =>
+      members: this.mapMembers(memberRows),
+      fieldDefinitions: fieldRows.map((row) =>
         this.mapFieldDefinition(row)
       ),
       clients,
       contacts,
-      pipelines: rows.pipelineRows.map((row) => this.mapPipeline(row)),
+      clientOptions: clientOptions.map((row) => ({
+        id: row.id,
+        name: row.name,
+      })),
+      contactOptions: contactOptions.map((row) => ({
+        id: row.id,
+        name: `${row.firstName} ${row.lastName}`.trim(),
+        email: text(row.email),
+      })),
+      pagination: {
+        clients: clientPage.nextCursor,
+        contacts: contactPage.nextCursor,
+        deals: dealPage.nextCursor,
+        recentActivities: activityPage.nextCursor,
+      },
+      stats: {
+        clients: {
+          total: clientsTotal,
+          active: statusMap.get("active") ?? 0,
+          prospects: statusMap.get("prospect") ?? 0,
+          openValue: clientsOpenValue,
+        },
+        deals: {
+          openCount: dealKpis.openCount,
+          openValue: dealKpis.openValue,
+          weighted: dealKpis.weighted,
+          won30: dealKpis.wonValue,
+        },
+      },
+      pipelines: pipelineRows.map((row) =>
+        this.mapPipeline(row, stageStatsMap)
+      ),
       deals,
-      recentActivities: rows.activityRows.map((row) =>
+      recentActivities: activityPage.items.map((row) =>
         this.mapActivity(row, nameById)
       ),
     }
@@ -603,6 +677,147 @@ export class CrmService {
       canManage: access.canManage,
       canExport: access.canExport,
       currentUserId: ctx.userId,
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Keyset-paginated list endpoints
+  // ---------------------------------------------------------------------------
+
+  async listClientsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmClientData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { name: decoded[0], id: decoded[1] }
+        : null
+    const [rows, memberRows, statMaps] = await Promise.all([
+      this.repo.listClientsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+      this.loadClientStatMaps(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.name, row.id])
+    )
+    return {
+      items: page.items.map((row) =>
+        this.mapClient(
+          row,
+          CrmService.clientStatsFrom(row.id, statMaps),
+          row.ownerId ? nameById.get(row.ownerId) : undefined
+        )
+      ),
+      nextCursor: page.nextCursor,
+    }
+  }
+
+  async listContactsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmContactData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1] && decoded[2]
+        ? {
+            lastName: decoded[0],
+            firstName: decoded[1],
+            id: decoded[2],
+          }
+        : null
+    const [rows, memberRows, dealCounts] = await Promise.all([
+      this.repo.listContactsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+      this.loadContactDealCounts(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.lastName, row.firstName, row.id])
+    )
+    return {
+      items: page.items.map((row) =>
+        this.mapContact(
+          row,
+          dealCounts.get(row.id) ?? 0,
+          row.ownerId ? nameById.get(row.ownerId) : undefined
+        )
+      ),
+      nextCursor: page.nextCursor,
+    }
+  }
+
+  async listDealsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmDealData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const [rows, memberRows] = await Promise.all([
+      this.repo.listDealsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) =>
+        this.mapDeal(row, row.ownerId ? nameById.get(row.ownerId) : undefined)
+      ),
+      nextCursor: page.nextCursor,
+    }
+  }
+
+  async listActivitiesPage(
+    ctx: RequestContext,
+    input: PageInput & {
+      clientId?: string
+      contactId?: string
+      dealId?: string
+    } = {}
+  ): Promise<Page<CrmActivityData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { occurredAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const [rows, memberRows] = await Promise.all([
+      this.repo.listActivitiesFor(
+        ctx.organizationId,
+        {
+          clientId: input.clientId,
+          contactId: input.contactId,
+          dealId: input.dealId,
+        },
+        { after, take: limit + 1 }
+      ),
+      this.repo.listMembers(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.occurredAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) => this.mapActivity(row, nameById)),
+      nextCursor: page.nextCursor,
     }
   }
 
@@ -624,10 +839,10 @@ export class CrmService {
       this.repo.findClient(ctx.organizationId, clientId),
       this.repo.listMembers(ctx.organizationId),
       this.repo.listFieldDefinitions(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
-      this.repo.listContacts(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
+      this.repo.listContactsForClient(ctx.organizationId, clientId),
       this.repo.listDealsByClient(ctx.organizationId, clientId),
-      this.repo.listProjectOptions(ctx.organizationId),
+      this.repo.listProjectsForClient(ctx.organizationId, clientId),
       this.repo.listDocuments(ctx.organizationId, "client", clientId),
     ])
     if (!row) throw new NotFoundError("Client")
@@ -649,35 +864,47 @@ export class CrmService {
         )
       )
     const [activityRows, auditRows] = await Promise.all([
-      this.repo.listActivitiesFor(ctx.organizationId, { clientId }, 50),
+      this.repo.listActivitiesFor(
+        ctx.organizationId,
+        { clientId },
+        { take: 50 }
+      ),
       this.repo.listAuditForEntity(ctx.organizationId, "client", clientId, 30),
     ])
+    const openDeals = dealRows.filter(
+      (deal) => !deal.deletedAt && deal.status === "open"
+    )
     return {
       access: this.accessData(access, ctx),
       members: this.mapMembers(memberRows),
       fieldDefinitions: fieldRows.map((field) => this.mapFieldDefinition(field)),
-      clients: clientRows
-        .filter((client) => !client.deletedAt)
-        .map((client): CrmClientOptionData => ({
-          id: client.id,
-          name: client.name,
-        })),
+      clients: clientRows.map((client): CrmClientOptionData => ({
+        id: client.id,
+        name: client.name,
+      })),
       client: this.mapClient(
         row,
-        CrmService.buildClientStats(clientId, contactRows, dealRows, projectRows),
+        {
+          contactCount: contactRows.filter((contact) => !contact.deletedAt)
+            .length,
+          openDealCount: openDeals.length,
+          openDealValue: openDeals.reduce(
+            (sum, deal) => sum + deal.amount,
+            0
+          ),
+          projectCount: projectRows.length,
+        },
         row.ownerId ? nameById.get(row.ownerId) : undefined
       ),
       contacts: clientContacts,
       deals: dealRows.map((deal) =>
         this.mapDeal(deal, deal.ownerId ? nameById.get(deal.ownerId) : undefined)
       ),
-      projects: projectRows
-        .filter((project) => project.clientId === clientId)
-        .map((project): CrmProjectOptionData => ({
-          id: project.id,
-          name: project.name,
-          status: project.status,
-        })),
+      projects: projectRows.map((project): CrmProjectOptionData => ({
+        id: project.id,
+        name: project.name,
+        status: project.status,
+      })),
       documents: documentRows.map((doc) => this.mapDocument(doc, nameById)),
       timeline: this.mergeTimeline(activityRows, auditRows, nameById),
     }
@@ -693,14 +920,18 @@ export class CrmService {
         this.repo.findContact(ctx.organizationId, contactId),
         this.repo.listMembers(ctx.organizationId),
         this.repo.listFieldDefinitions(ctx.organizationId),
-        this.repo.listClients(ctx.organizationId),
+        this.repo.listClientOptions(ctx.organizationId),
         this.repo.listDealsByContact(ctx.organizationId, contactId),
         this.repo.listDocuments(ctx.organizationId, "contact", contactId),
       ])
     if (!row) throw new NotFoundError("Contact")
     const nameById = this.nameById(memberRows)
     const [activityRows, auditRows] = await Promise.all([
-      this.repo.listActivitiesFor(ctx.organizationId, { contactId }, 50),
+      this.repo.listActivitiesFor(
+        ctx.organizationId,
+        { contactId },
+        { take: 50 }
+      ),
       this.repo.listAuditForEntity(
         ctx.organizationId,
         "contact",
@@ -712,12 +943,10 @@ export class CrmService {
       access: this.accessData(access, ctx),
       members: this.mapMembers(memberRows),
       fieldDefinitions: fieldRows.map((field) => this.mapFieldDefinition(field)),
-      clients: clientRows
-        .filter((client) => !client.deletedAt)
-        .map((client): CrmClientOptionData => ({
-          id: client.id,
-          name: client.name,
-        })),
+      clients: clientRows.map((client): CrmClientOptionData => ({
+        id: client.id,
+        name: client.name,
+      })),
       contact: this.mapContact(
         row,
         dealRows.filter((deal) => !deal.deletedAt && deal.status === "open")
@@ -738,40 +967,52 @@ export class CrmService {
   ): Promise<CrmDealDetailData> {
     const access = this.accessFor(ctx)
     await this.ensureDefaultPipeline(ctx.organizationId)
-    const [row, memberRows, fieldRows, clientRows, contactRows, pipelineRows, documentRows] =
-      await Promise.all([
-        this.repo.findDeal(ctx.organizationId, dealId),
-        this.repo.listMembers(ctx.organizationId),
-        this.repo.listFieldDefinitions(ctx.organizationId),
-        this.repo.listClients(ctx.organizationId),
-        this.repo.listContacts(ctx.organizationId),
-        this.repo.listPipelines(ctx.organizationId),
-        this.repo.listDocuments(ctx.organizationId, "deal", dealId),
-      ])
+    const [
+      row,
+      memberRows,
+      fieldRows,
+      clientRows,
+      contactRows,
+      pipelineRows,
+      documentRows,
+      stageStatRows,
+    ] = await Promise.all([
+      this.repo.findDeal(ctx.organizationId, dealId),
+      this.repo.listMembers(ctx.organizationId),
+      this.repo.listFieldDefinitions(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
+      this.repo.listContactOptions(ctx.organizationId),
+      this.repo.listPipelines(ctx.organizationId),
+      this.repo.listDocuments(ctx.organizationId, "deal", dealId),
+      this.repo.stageDealStats(ctx.organizationId),
+    ])
     if (!row) throw new NotFoundError("Deal")
+    const stageStats = this.stageStatsMap(stageStatRows)
     const nameById = this.nameById(memberRows)
     const [activityRows, auditRows] = await Promise.all([
-      this.repo.listActivitiesFor(ctx.organizationId, { dealId }, 50),
+      this.repo.listActivitiesFor(
+        ctx.organizationId,
+        { dealId },
+        { take: 50 }
+      ),
       this.repo.listAuditForEntity(ctx.organizationId, "deal", dealId, 30),
     ])
     return {
       access: this.accessData(access, ctx),
       members: this.mapMembers(memberRows),
       fieldDefinitions: fieldRows.map((field) => this.mapFieldDefinition(field)),
-      clients: clientRows
-        .filter((client) => !client.deletedAt)
-        .map((client): CrmClientOptionData => ({
-          id: client.id,
-          name: client.name,
-        })),
-      contactOptions: contactRows
-        .filter((contact) => !contact.deletedAt)
-        .map((contact): CrmContactOptionData => ({
-          id: contact.id,
-          name: `${contact.firstName} ${contact.lastName}`.trim(),
-          email: text(contact.email),
-        })),
-      pipelines: pipelineRows.map((pipeline) => this.mapPipeline(pipeline)),
+      clients: clientRows.map((client): CrmClientOptionData => ({
+        id: client.id,
+        name: client.name,
+      })),
+      contactOptions: contactRows.map((contact): CrmContactOptionData => ({
+        id: contact.id,
+        name: `${contact.firstName} ${contact.lastName}`.trim(),
+        email: text(contact.email),
+      })),
+      pipelines: pipelineRows.map((pipeline) =>
+        this.mapPipeline(pipeline, stageStats)
+      ),
       deal: this.mapDeal(
         row,
         row.ownerId ? nameById.get(row.ownerId) : undefined
@@ -805,8 +1046,10 @@ export class CrmService {
     fieldRows: FieldRow[],
     input: ClientInput
   ) {
-    const memberRows = await this.repo.listMembers(ctx.organizationId)
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
+    if (
+      input.ownerId &&
+      !(await this.repo.memberExists(ctx.organizationId, input.ownerId))
+    ) {
       throw new NotFoundError("Member")
     }
     return {
@@ -830,19 +1073,24 @@ export class CrmService {
   }
 
   private async returnClient(ctx: RequestContext, id: string): Promise<CrmClientData> {
-    const [row, memberRows, contactRows, dealRows, projectRows] =
+    const [row, memberRows, contactCount, dealStats, projectCount] =
       await Promise.all([
         this.repo.findClient(ctx.organizationId, id),
         this.repo.listMembers(ctx.organizationId),
-        this.repo.listContacts(ctx.organizationId),
-        this.repo.listDeals(ctx.organizationId),
-        this.repo.listProjectOptions(ctx.organizationId),
+        this.repo.clientContactCount(ctx.organizationId, id),
+        this.repo.clientOpenDealStats(ctx.organizationId, id),
+        this.repo.clientProjectCount(ctx.organizationId, id),
       ])
     if (!row) throw new NotFoundError("Client")
     const nameById = this.nameById(memberRows)
     return this.mapClient(
       row,
-      CrmService.buildClientStats(id, contactRows, dealRows, projectRows),
+      {
+        contactCount,
+        openDealCount: dealStats._count._all,
+        openDealValue: dealStats._sum.amount ?? 0,
+        projectCount,
+      },
       row.ownerId ? nameById.get(row.ownerId) : undefined
     )
   }
@@ -968,11 +1216,13 @@ export class CrmService {
   private async contactPayload(
     ctx: RequestContext,
     fieldRows: FieldRow[],
-    clientRows: ClientRow[],
+    clientRows: { id: string }[],
     input: ContactInput
   ) {
-    const memberRows = await this.repo.listMembers(ctx.organizationId)
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
+    if (
+      input.ownerId &&
+      !(await this.repo.memberExists(ctx.organizationId, input.ownerId))
+    ) {
       throw new NotFoundError("Member")
     }
     const knownClients = new Set(clientRows.map((client) => client.id))
@@ -1041,7 +1291,7 @@ export class CrmService {
     requireEdit(access)
     const [fieldRows, clientRows] = await Promise.all([
       this.repo.listFieldDefinitions(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
     ])
     const payload = await this.contactPayload(
       ctx,
@@ -1176,19 +1426,22 @@ export class CrmService {
     input: DealInput,
     existing?: DealRow
   ) {
-    const [memberRows, clientRows, contactRows, pipelineRows] =
+    const [ownerExists, clientExists, knownContactCount, pipelineRows] =
       await Promise.all([
-        this.repo.listMembers(ctx.organizationId),
-        this.repo.listClients(ctx.organizationId),
-        this.repo.listContacts(ctx.organizationId),
+        input.ownerId
+          ? this.repo.memberExists(ctx.organizationId, input.ownerId)
+          : Promise.resolve(true),
+        input.clientId
+          ? this.repo.clientExists(ctx.organizationId, input.clientId)
+          : Promise.resolve(true),
+        this.repo.countContactsByIds(
+          ctx.organizationId,
+          [...new Set(input.contactIds)]
+        ),
         this.repo.listPipelines(ctx.organizationId),
       ])
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
-      throw new NotFoundError("Member")
-    }
-    if (input.clientId && !clientRows.some((c) => c.id === input.clientId)) {
-      throw new NotFoundError("Client")
-    }
+    if (!ownerExists) throw new NotFoundError("Member")
+    if (!clientExists) throw new NotFoundError("Client")
 
     let pipeline = input.pipelineId
       ? pipelineRows.find((row) => row.id === input.pipelineId)
@@ -1211,14 +1464,11 @@ export class CrmService {
     pipeline =
       pipelineRows.find((row) => row.id === stage.pipelineId) ?? pipeline
 
-    const knownContacts = new Set(
-      contactRows.filter((row) => !row.deletedAt).map((row) => row.id)
-    )
-    const contactIds: string[] = []
-    for (const contactId of input.contactIds) {
-      if (!knownContacts.has(contactId)) throw new NotFoundError("Contact")
-      if (!contactIds.includes(contactId)) contactIds.push(contactId)
+    const uniqueContactIds = [...new Set(input.contactIds)]
+    if (uniqueContactIds.length !== knownContactCount) {
+      throw new NotFoundError("Contact")
     }
+    const contactIds = uniqueContactIds
 
     const status = this.statusForStageType(stage.type)
     const today = new Date()
@@ -1311,10 +1561,7 @@ export class CrmService {
     }
 
     const payload = await this.dealPayload(ctx, fieldRows, input)
-    const stageDeals = await this.repo.listDeals(ctx.organizationId)
-    const position = stageDeals.filter(
-      (row) => row.stageId === payload.stage.id && !row.deletedAt
-    ).length
+    const position = await this.repo.countDealsInStage(payload.stage.id)
     const row = await this.repo.createDeal(
       {
         organizationId: ctx.organizationId,
@@ -1339,10 +1586,9 @@ export class CrmService {
   async moveDeal(ctx: RequestContext, input: MoveDealInput): Promise<CrmDealData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const [deal, stage, dealRows] = await Promise.all([
+    const [deal, stage] = await Promise.all([
       this.repo.findDeal(ctx.organizationId, input.dealId),
       this.repo.findStage(ctx.organizationId, input.stageId),
-      this.repo.listDeals(ctx.organizationId),
     ])
     if (!deal) throw new NotFoundError("Deal")
     if (!stage) throw new NotFoundError("Stage")
@@ -1350,12 +1596,8 @@ export class CrmService {
     const stageChanged = deal.stageId !== stage.id
     const status = this.statusForStageType(stage.type)
 
-    const siblings = dealRows
-      .filter(
-        (row) =>
-          row.id !== deal.id && row.stageId === stage.id && !row.deletedAt
-      )
-      .sort((a, b) => a.position - b.position)
+    const stageDeals = await this.repo.listDealPositions(stage.id)
+    const siblings = stageDeals.filter((row) => row.id !== deal.id)
     const index = Math.max(
       0,
       Math.min(input.position ?? siblings.length, siblings.length)
@@ -1520,10 +1762,13 @@ export class CrmService {
     ctx: RequestContext,
     pipelineId: string
   ): Promise<CrmPipelineData> {
-    const rows = await this.repo.listPipelines(ctx.organizationId)
+    const [rows, stageStats] = await Promise.all([
+      this.repo.listPipelines(ctx.organizationId),
+      this.repo.stageDealStats(ctx.organizationId),
+    ])
     const row = rows.find((pipeline) => pipeline.id === pipelineId)
     if (!row) throw new NotFoundError("Pipeline")
-    return this.mapPipeline(row)
+    return this.mapPipeline(row, this.stageStatsMap(stageStats))
   }
 
   async savePipeline(
@@ -1612,9 +1857,7 @@ export class CrmService {
         code: "pipeline_is_default",
       })
     }
-    const rows = await this.repo.listPipelines(ctx.organizationId)
-    const pipeline = rows.find((row) => row.id === pipelineId)
-    const dealCount = pipeline?.deals.length ?? 0
+    const dealCount = await this.repo.countDealsInPipeline(pipelineId)
     if (dealCount > 0) {
       throw new ConflictError(
         "Move the deals of this pipeline to another pipeline first.",
@@ -1707,7 +1950,10 @@ export class CrmService {
     const index = stages.findIndex((stage) => stage.id === input.stageId)
     if (index < 0) throw new NotFoundError("Stage")
     const target = input.direction === "up" ? index - 1 : index + 1
-    if (target < 0 || target >= stages.length) return this.mapPipeline(pipeline)
+    if (target < 0 || target >= stages.length) {
+      const stageStats = await this.repo.stageDealStats(ctx.organizationId)
+      return this.mapPipeline(pipeline, this.stageStatsMap(stageStats))
+    }
     const swapped = [...stages]
     const [moved] = swapped.splice(index, 1)
     swapped.splice(target, 0, moved!)
@@ -2277,8 +2523,10 @@ export class CrmService {
   ): Promise<CrmImportResultData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const existing = await this.repo.listClients(ctx.organizationId)
-    const byName = new Map(existing.map((row) => [row.name.toLowerCase(), row]))
+    const existing = await this.repo.listClientNames(ctx.organizationId)
+    const byName = new Map(
+      existing.map((row) => [row.name.toLowerCase(), row])
+    )
     const result: CrmImportResultData = {
       created: 0,
       restored: 0,
@@ -2299,7 +2547,7 @@ export class CrmService {
               website: row.website ?? null,
               phone: row.phone ?? null,
               address: row.address ?? null,
-              contactEmail: row.contactEmail ?? found.contactEmail ?? null,
+              contactEmail: row.contactEmail ?? null,
               description: row.description ?? null,
               source: row.source ?? null,
             })
@@ -2354,19 +2602,17 @@ export class CrmService {
   ): Promise<CrmImportResultData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const [existingContacts, clientRows] = await Promise.all([
-      this.repo.listContacts(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
+    const [existingEmails, clientRows] = await Promise.all([
+      this.repo.listContactEmails(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
     ])
     const emailSet = new Set(
-      existingContacts
+      existingEmails
         .map((row) => row.email?.toLowerCase())
         .filter((email): email is string => Boolean(email))
     )
     const clientByName = new Map(
-      clientRows
-        .filter((row) => !row.deletedAt)
-        .map((row) => [row.name.toLowerCase(), row])
+      clientRows.map((row) => [row.name.toLowerCase(), row])
     )
     const result: CrmImportResultData = {
       created: 0,

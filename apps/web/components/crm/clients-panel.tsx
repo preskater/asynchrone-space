@@ -54,6 +54,7 @@ import {
 import {
   archiveClientAction,
   exportCrmAction,
+  listCrmClientsAction,
   restoreClientAction,
 } from "@/actions/crm"
 import { Link, useRouter } from "@/i18n/navigation"
@@ -95,18 +96,32 @@ export function ClientsPanel({
   const [archiveTarget, setArchiveTarget] =
     React.useState<CrmClientData | null>(null)
   const [exporting, setExporting] = React.useState(false)
+  const [clients, setClients] = React.useState(data.clients)
+  const [cursor, setCursor] = React.useState(data.pagination.clients)
+  const [loadingMore, setLoadingMore] = React.useState(false)
 
-  const clientOptions = React.useMemo(
-    () =>
-      data.clients
-        .filter((client) => !client.archivedAt)
-        .map((client) => ({ id: client.id, name: client.name })),
-    [data.clients]
-  )
+  React.useEffect(() => {
+    setClients(data.clients)
+    setCursor(data.pagination.clients)
+  }, [data])
+
+  async function loadMore() {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = unwrapActionResult(await listCrmClientsAction(cursor))
+      setClients((prev) => [...prev, ...page.items])
+      setCursor(page.nextCursor)
+    } catch (error) {
+      toast.error(te(error, "internal"))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const filtered = React.useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return data.clients.filter((client) => {
+    return clients.filter((client) => {
       if (!showArchived && client.archivedAt) return false
       if (statusFilter !== "all" && client.status !== statusFilter) return false
       if (
@@ -121,24 +136,18 @@ export function ClientsPanel({
       }
       return true
     })
-  }, [data.clients, query, statusFilter, showArchived])
+  }, [clients, query, statusFilter, showArchived])
 
   const visible = filtered
 
-  const stats = React.useMemo(() => {
-    const active = data.clients.filter((client) => !client.archivedAt)
-    return {
-      total: active.length,
-      activeClients: active.filter((client) => client.status === "active").length,
-      prospects: active.filter((client) => client.status === "prospect").length,
-      openValue: active.reduce(
-        (sum, client) => sum + client.openDealValue,
-        0
-      ),
-    }
-  }, [data.clients])
+  const stats = {
+    total: data.stats.clients.total,
+    activeClients: data.stats.clients.active,
+    prospects: data.stats.clients.prospects,
+    openValue: data.stats.clients.openValue,
+  }
 
-  const hasActive = data.clients.some((client) => !client.archivedAt)
+  const hasActive = clients.some((client) => !client.archivedAt)
 
   async function handleExport() {
     setExporting(true)
@@ -413,6 +422,20 @@ export function ClientsPanel({
               </Table>
             </div>
           )}
+          {cursor ? (
+            <div className="flex justify-center pb-4">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={loadingMore}
+                onClick={() => void loadMore()}
+              >
+                {loadingMore ? <Spinner className="size-4" /> : null}
+                {t("common.loadMore")}
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

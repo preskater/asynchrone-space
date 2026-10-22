@@ -58,11 +58,29 @@ export class CalendarRepository {
     return this.db.calendar.delete({ where: { id } })
   }
 
-  listEvents(organizationId: string) {
+  /**
+   * Events inside a date window. Calendar screens never need the full
+   * history, so callers pass a bounded range.
+   */
+  listEvents(
+    organizationId: string,
+    options: { from?: Date; to?: Date; take?: number } = {}
+  ) {
     return this.db.calendarEvent.findMany({
-      where: { organizationId },
+      where: {
+        organizationId,
+        ...(options.from || options.to
+          ? {
+              startAt: {
+                ...(options.from ? { gte: options.from } : {}),
+                ...(options.to ? { lte: options.to } : {}),
+              },
+            }
+          : {}),
+      },
       include: { attendees: true },
       orderBy: { startAt: "asc" },
+      take: options.take ?? 1000,
     })
   }
 

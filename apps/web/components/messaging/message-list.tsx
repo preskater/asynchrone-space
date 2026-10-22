@@ -4,6 +4,7 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { MessageItem } from "@/components/messaging/message-item"
+import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { Skeleton } from "@workspace/ui/components/skeleton"
 
@@ -20,10 +21,23 @@ export function MessageList({
   const t = useTranslations("Messaging")
   const tc = useTranslations("Common")
   const locale = useLocale()
-  const { messagesFor, typing, getMember } = useMessaging()
+  const {
+    messagesFor,
+    typing,
+    getMember,
+    ensureMessages,
+    loadOlderMessages,
+    hasMoreMessages,
+    messagesLoading,
+  } = useMessaging()
   const messages = messagesFor(conversationId)
+  const loading = messagesLoading[conversationId]
   const bottomRef = React.useRef<HTMLDivElement>(null)
   const scrollRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    ensureMessages(conversationId)
+  }, [conversationId, ensureMessages])
 
   React.useEffect(() => {
     const node = scrollRef.current
@@ -38,6 +52,19 @@ export function MessageList({
 
   return (
     <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto py-2">
+      {hasMoreMessages(conversationId) ? (
+        <div className="flex justify-center py-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            disabled={loading}
+            onClick={() => loadOlderMessages(conversationId)}
+          >
+            {loading ? <Skeleton className="h-4 w-32" /> : t("loadEarlier")}
+          </Button>
+        </div>
+      ) : null}
       {messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
           <p className="text-sm font-medium">{t("noMessagesYet")}</p>

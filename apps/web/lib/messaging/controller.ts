@@ -60,8 +60,7 @@ export async function listThreadReplies(
 ) {
   const ctx = await getRequestContext({ request })
   const { messageId } = await params
-  const data = await messagingService.list(ctx)
-  return data.messages.filter((message) => message.parentId === messageId)
+  return messagingService.listThreadReplies(ctx, messageId)
 }
 
 export async function addThreadReply(

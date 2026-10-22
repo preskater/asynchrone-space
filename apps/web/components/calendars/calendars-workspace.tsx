@@ -20,6 +20,7 @@ import {
   addDays,
 } from "@/lib/calendars/date-utils"
 import { useCalendars } from "@/lib/calendars/store"
+import { useProjectStore } from "@/lib/projects/store"
 import { useRecents } from "@/lib/recents/store"
 import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 import type { CalendarEvent, CalendarView } from "@/lib/calendars/types"
@@ -29,8 +30,14 @@ const VIEWS: CalendarView[] = ["day", "week", "month", "agenda", "availability"]
 export function CalendarsWorkspace() {
   const locale = useLocale()
   const t = useTranslations("Calendars")
-  const { moveEvent, showTasks, toggleShowTasks } = useCalendars()
+  const { moveEvent, showTasks, toggleShowTasks, ensureEventsLoaded } =
+    useCalendars()
+  const { ensureProjectData } = useProjectStore()
   const { record, active, hydrated } = useRecents()
+
+  React.useEffect(() => {
+    ensureEventsLoaded()
+  }, [ensureEventsLoaded])
   const {
     calendarView: view,
     setCalendarView: setView,
@@ -130,7 +137,10 @@ export function CalendarsWorkspace() {
             onNext={() => shift(1)}
             onSearch={() => setSearchOpen(true)}
             showTasks={showTasks}
-            onToggleTasks={toggleShowTasks}
+            onToggleTasks={() => {
+              if (!showTasks) ensureProjectData()
+              toggleShowTasks()
+            }}
           />
           {view === "month" ? (
             <MonthView

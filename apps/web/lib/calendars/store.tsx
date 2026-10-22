@@ -8,6 +8,7 @@ import {
   addCalendarAction,
   createEventAction,
   deleteEventAction,
+  listCalendarEventsAction,
   moveEventAction,
   respondToEventAction,
   toggleCalendarAction,
@@ -40,6 +41,9 @@ export interface EventInput {
 interface CalendarStore extends CalendarData {
   members: Member[]
   currentUserId: string
+  eventsLoaded: boolean
+  /** Load the bounded event window the first time the calendar is opened. */
+  ensureEventsLoaded: () => void
   getMember: (id?: string) => Member | undefined
   getCalendar: (id: string) => CalendarSource | undefined
   visibleEvents: CalendarEvent[]
@@ -84,11 +88,29 @@ export function CalendarsProvider({
   )
   const [events, setEvents] = React.useState<CalendarEvent[]>(initialData.events)
   const [showTasks, setShowTasks] = React.useState(false)
+  const [eventsLoaded, setEventsLoaded] = React.useState(
+    initialData.events.length > 0
+  )
+  const eventsLoadedRef = React.useRef(eventsLoaded)
 
   React.useEffect(() => {
     setCalendars(initialData.calendars)
-    setEvents(initialData.events)
+    if (!eventsLoadedRef.current) setEvents(initialData.events)
   }, [initialData])
+
+  const ensureEventsLoaded = React.useCallback(() => {
+    if (eventsLoadedRef.current) return
+    eventsLoadedRef.current = true
+    setEventsLoaded(true)
+    void listCalendarEventsAction()
+      .then((result) => {
+        setEvents(unwrapActionResult(result))
+      })
+      .catch(() => {
+        eventsLoadedRef.current = false
+        setEventsLoaded(false)
+      })
+  }, [])
 
   const visibleIds = React.useMemo(
     () =>
@@ -115,6 +137,8 @@ export function CalendarsProvider({
       events,
       members,
       currentUserId,
+      eventsLoaded,
+      ensureEventsLoaded,
       getMember,
       getCalendar,
       visibleEvents,
@@ -243,7 +267,16 @@ export function CalendarsProvider({
           .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
-  }, [calendars, events, members, currentUserId, visibleEvents, showTasks])
+  }, [
+    calendars,
+    events,
+    members,
+    currentUserId,
+    visibleEvents,
+    showTasks,
+    eventsLoaded,
+    ensureEventsLoaded,
+  ])
 
   return (
     <CalendarContext.Provider value={store}>

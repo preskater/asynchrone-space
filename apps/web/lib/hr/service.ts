@@ -334,7 +334,12 @@ export class HrService {
       this.repo.listClients(ctx.organizationId),
       this.repo.listActivities(ctx.organizationId),
       this.repo.listProjects(ctx.organizationId),
-      this.repo.listAllocationEntries(ctx.organizationId),
+      // Project totals only need the current year; unbounded allocations made
+      // the overview grow with every tracked half-day ever recorded.
+      this.repo.listAllocationEntries(ctx.organizationId, {
+        from: parseDateKey(`${year}-01-01`),
+        to: parseDateKey(rangeEnd),
+      }),
       access.isAdmin ? this.repo.listSalaryProfiles(ctx.organizationId) : [],
       access.isAdmin ? this.repo.listAudit(ctx.organizationId, 100) : [],
     ])
@@ -583,6 +588,18 @@ export class HrService {
     input: SetAttendanceInput
   ): Promise<AttendanceEntryData> {
     const access = await this.accessFor(ctx)
+    return this.writeAttendance(ctx, input, access)
+  }
+
+  /**
+   * Write one half-day using an access decision the caller already resolved.
+   * `setDayStatus` uses this to update both periods with a single profile query.
+   */
+  private async writeAttendance(
+    ctx: RequestContext,
+    input: SetAttendanceInput,
+    access: HrAccess
+  ): Promise<AttendanceEntryData> {
     const targetUserId = input.userId ?? ctx.userId
     if (targetUserId === ctx.userId) {
       requireTrack(access)
@@ -590,10 +607,7 @@ export class HrService {
       requireAdmin(access)
     }
 
-    if (
-      input.projectId != null &&
-      input.internalActivityId != null
-    ) {
+    if (input.projectId != null && input.internalActivityId != null) {
       throw new ValidationError(
         "Choose either a project or an internal activity, not both."
       )
@@ -601,9 +615,11 @@ export class HrService {
 
     let projectId = input.projectId
     let activityId = input.internalActivityId
+    let projectIsBillable: boolean | undefined
     if (projectId) {
       const project = await this.repo.findProject(ctx.organizationId, projectId)
       if (!project) throw new NotFoundError("Project")
+      projectIsBillable = project.isBillable
     }
     if (activityId) {
       const activity = await this.repo.findActivity(
@@ -623,8 +639,7 @@ export class HrService {
     if (absence || projectId === null) {
       isBillable = false
     } else if (projectId) {
-      const project = await this.repo.findProject(ctx.organizationId, projectId)
-      isBillable = project?.isBillable ?? false
+      isBillable = projectIsBillable ?? false
     }
 
     const date = parseDateKey(input.date)
@@ -727,17 +742,25 @@ export class HrService {
     ctx: RequestContext,
     input: SetDayStatusInput
   ): Promise<{ updated: number }> {
+    const access = await this.accessFor(ctx)
     const periods = input.periods ?? [...DAY_PERIODS]
     const location = QUICK_LOCATION[input.status] ?? null
-    for (const period of periods) {
-      await this.setAttendance(ctx, {
-        userId: input.userId,
-        date: input.date,
-        period,
-        status: input.status,
-        location,
-      })
-    }
+    // One access lookup for both half-days, then parallel writes.
+    await Promise.all(
+      periods.map((period) =>
+        this.writeAttendance(
+          ctx,
+          {
+            userId: input.userId,
+            date: input.date,
+            period,
+            status: input.status,
+            location,
+          },
+          access
+        )
+      )
+    )
     return { updated: periods.length }
   }
 
@@ -1468,33 +1491,28 @@ export class HrService {
     toKey: string
   ): Promise<TrackingResult> {
     const access = await this.accessFor(ctx)
-    const [rows, memberInfo] = await Promise.all([
-      this.repo.listAllocationEntries(ctx.organizationId, {
-        from: parseDateKey(fromKey),
-        to: parseDateKey(toKey),
-      }),
-      this.loadMembers(ctx.organizationId),
-    ])
+    const [rows, memberInfo, clientRows, projectRows, activityRows] =
+      await Promise.all([
+        this.repo.listAllocationEntries(ctx.organizationId, {
+          from: parseDateKey(fromKey),
+          to: parseDateKey(toKey),
+        }),
+        this.loadMembers(ctx.organizationId),
+        this.repo.listClients(ctx.organizationId),
+        this.repo.listProjects(ctx.organizationId),
+        this.repo.listActivities(ctx.organizationId),
+      ])
 
     const { members, nameById } = memberInfo
     const memberById = new Map(members.map((member) => [member.id, member]))
     const clientById = new Map(
-      (await this.repo.listClients(ctx.organizationId)).map((client) => [
-        client.id,
-        client.name,
-      ])
+      clientRows.map((client) => [client.id, client.name])
     )
     const projectById = new Map(
-      (await this.repo.listProjects(ctx.organizationId)).map((project) => [
-        project.id,
-        project,
-      ])
+      projectRows.map((project) => [project.id, project])
     )
     const activityById = new Map(
-      (await this.repo.listActivities(ctx.organizationId)).map((activity) => [
-        activity.id,
-        activity,
-      ])
+      activityRows.map((activity) => [activity.id, activity])
     )
 
     const scoped = access.canViewAll

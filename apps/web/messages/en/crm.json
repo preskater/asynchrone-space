@@ -33,6 +33,7 @@
     "archiveFailed": "Could not archive the record.",
     "restoreFailed": "Could not restore the record.",
     "saving": "Saving…",
+    "loadMore": "Load more",
     "close": "Close"
   },
   "clients": {

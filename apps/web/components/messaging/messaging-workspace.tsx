@@ -24,8 +24,14 @@ import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 export function MessagingWorkspace() {
   const t = useTranslations("Messaging")
   const L = useEnumLabel()
-  const { conversations, getConversation, getMember, dmPartner, markRead } =
-    useMessaging()
+  const {
+    conversations,
+    getConversation,
+    getMember,
+    dmPartner,
+    markRead,
+    ensureMessages,
+  } = useMessaging()
   const { record, active, hydrated } = useRecents()
   const {
     messagesActiveId: activeId,
@@ -38,6 +44,10 @@ export function MessagingWorkspace() {
   const [detailsOpen, setDetailsOpen] = React.useState(false)
 
   const activeConversation = getConversation(activeId)
+
+  React.useEffect(() => {
+    if (activeId) ensureMessages(activeId)
+  }, [activeId, ensureMessages])
 
   const markedReadRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
