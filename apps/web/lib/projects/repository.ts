@@ -236,15 +236,15 @@ export class ProjectRepository {
     return this.db.task.delete({ where: { id } })
   }
 
-  toggleSubtask(subtaskId: string) {
-    return this.db.subtask
-      .findUniqueOrThrow({ where: { id: subtaskId } })
-      .then((subtask) =>
-        this.db.subtask.update({
-          where: { id: subtaskId },
-          data: { done: !subtask.done },
-        })
-      )
+  async toggleSubtask(taskId: string, subtaskId: string) {
+    const subtask = await this.db.subtask.findFirst({
+      where: { id: subtaskId, taskId },
+    })
+    if (!subtask) return null
+    return this.db.subtask.update({
+      where: { id: subtaskId },
+      data: { done: !subtask.done },
+    })
   }
 
   addComment(

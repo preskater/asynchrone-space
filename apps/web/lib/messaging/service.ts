@@ -259,11 +259,7 @@ export class MessagingService {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, messageId)
     if (!existing) throw new NotFoundError("Message")
-    await this.repo.toggleReaction(
-      messageId,
-      input.emoji,
-      input.memberId ?? ctx.userId
-    )
+    await this.repo.toggleReaction(messageId, input.emoji, ctx.userId)
     const row = await this.repo.findMessage(ctx.organizationId, messageId)
     return this.mapMessage(row ?? existing)
   }
