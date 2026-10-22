@@ -1517,3 +1517,53 @@ model OauthClientAssertion {
 
   @@map("oauthClientAssertion")
 }
+
+// ---------------------------------------------------------------------------
+// Control tower (platform administration)
+// ---------------------------------------------------------------------------
+
+/// Audit trail for actions taken from the control-tower app. Deliberately
+/// separate from `AuditLog` (which is organization-scoped and readable by org
+/// admins) and intentionally stores denormalized actor/target labels so the
+/// record survives user or organization deletion.
+model PlatformAuditEvent {
+  id             String   @id @default(cuid())
+  actorId        String
+  actorEmail     String
+  actorRole      String
+  action         String
+  targetType     String
+  targetId       String
+  organizationId String?
+  before         Json?
+  after          Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([targetType, targetId])
+  @@index([organizationId])
+  @@map("platformAuditEvent")
+}
+
+/// Single-use, short-lived grant that lets a platform admin open a session in
+/// the customer app (impersonation handoff). Only the SHA-256 of the token is
+/// stored; the plaintext is returned once to the caller.
+model PlatformHandoff {
+  id             String    @id @default(cuid())
+  tokenHash      String    @unique
+  kind           String    @default("impersonate")
+  actorId        String
+  targetUserId   String
+  organizationId String?
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([targetUserId])
+  @@map("platformHandoff")
+}
+

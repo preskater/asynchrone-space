@@ -2,8 +2,8 @@
 
 ## Repository
 
-- Turborepo + npm workspaces monorepo. The only app is `apps/web` (package name `web`, Next.js 16 App Router, React 19). Shared packages: `packages/db` (`@workspace/db`), `packages/ui` (`@workspace/ui`), `packages/eslint-config`, `packages/typescript-config`.
-- Run tasks from the repo root through Turbo: `npm run dev|build|lint|typecheck|format`. Target one workspace with `--workspace=web` (or `-w web`).
+- Turborepo + npm workspaces monorepo. Apps: `apps/web` (package `web`, the customer SaaS, Next.js 16 App Router, React 19) and `apps/control-tower` (package `control-tower`, internal platform administration). Shared packages: `packages/db` (`@workspace/db`), `packages/ui` (`@workspace/ui`), `packages/eslint-config`, `packages/typescript-config`.
+- Run tasks from the repo root through Turbo: `npm run dev|build|lint|typecheck|format`. Target one workspace with `--workspace=web` / `--workspace=control-tower` (or `-w`).
 - `main` is protected: land changes via PR. The `ci` job (`.github/workflows/turbo.yml`) runs typecheck → lint → build.
 
 ## Verify before finishing
@@ -14,10 +14,12 @@
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
+- Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, or the web secret is reused.
 
 ## Environment & data
 
 - Env lives in `apps/web/.env` (Next loads it from the app cwd; `packages/db/prisma.config.ts` loads it explicitly, falling back to a package-local `.env`). Start from `apps/web/.env.example`.
+- The control tower has its own `apps/control-tower/.env` (`apps/control-tower/.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL` (its own origin), `CONTROL_TOWER_BETTER_AUTH_SECRET` (≥32 chars, different from `BETTER_AUTH_SECRET`), `PLATFORM_APP_URL` (the customer app's origin).
 - `docker compose` loads `apps/web/.env` into the `web` container (its `environment` block still overrides `DATABASE_URL`/`BETTER_AUTH_URL`), so local dev and Docker share `BETTER_AUTH_SECRET`; rotating that secret breaks the encrypted JWKS rows in the DB — clear the `jwks` table to regenerate them.
 - `generate` and `build` require `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` to be set; CI and Docker use non-connecting placeholders.
 - When adding an env var, also add it to the `env` arrays in `turbo.json` (build + dev) so Turbo passes it through, update `.env.example`, and add a build-time placeholder in `Dockerfile` / `.github/workflows/turbo.yml` if it is read at build time.
@@ -50,6 +52,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Schema and migrations live in `packages/db/prisma`; apply with `cd packages/db && npx prisma migrate deploy`. Create migrations from `packages/db`.
 - `@workspace/db` validates only database env (`DATABASE_URL`, `DATABASE_POOL_MAX`). App-specific requirements stay in each app's own `lib/env.ts`.
 - File bytes are stored as PostgreSQL large objects in the same DB as metadata — no external object store (Vercel Blob was removed). See `apps/web/lib/large-object.ts`.
+
+## Control tower
+
+- Internal app at `apps/control-tower` (port 3001). Platform roles live in the comma-separated `user.role`: `platform_admin` (full) and `platform_support` (read-only for now). Grant one with `npm run grant:platform-role --workspace=control-tower -- --email you@example.com`.
+- Its Better Auth instance is deliberately separate: own secret, own host-only cookie (`presk-control-tower.session_token`), sign-up disabled, no `jwt`/`mcp`/`organization` plugins. **Never enable `advanced.crossSubDomainCookies`** — see ADR 0018 and `verify:auth-config`.
+- Pages guard with `requirePlatformContext()`; anonymous users go to `/sign-in`, signed-in users without a platform role get `notFound()`. Server actions use `requirePlatformContext({ surface: "action" })` / `withPlatformAction`.
+- Platform mutations write `PlatformAuditEvent` rows (never the org-scoped `AuditLog`). Impersonation will use the single-use `PlatformHandoff` table, not a shared cookie.
+- `apps/web/lib/auth.ts` registers the same `admin()` plugin (roles map + `adminRoles: ["platform_admin"]`) so bans apply to customer sign-in.
 
 ## Code layout & conventions
 

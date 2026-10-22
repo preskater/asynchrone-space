@@ -5,7 +5,12 @@ import { betterAuth } from "better-auth"
 import { createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { jwt, organization } from "better-auth/plugins"
+import { admin, jwt, organization } from "better-auth/plugins"
+import {
+  adminAc,
+  defaultAc,
+  userAc,
+} from "better-auth/plugins/admin/access"
 
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
@@ -104,6 +109,21 @@ export const auth = betterAuth({
             },
           })
         },
+      },
+    }),
+    // Platform administration lives in `apps/control-tower`, but the plugin
+    // must be registered here too so bans and role checks apply to customer
+    // sign-in and so the impersonation handoff can create a session.
+    admin({
+      adminRoles: ["platform_admin"],
+      defaultRole: "user",
+      roles: {
+        platform_admin: adminAc,
+        platform_support: defaultAc.newRole({
+          user: ["list", "get"],
+          session: ["list"],
+        }),
+        user: userAc,
       },
     }),
     jwt(),
