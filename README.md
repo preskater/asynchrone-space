@@ -35,6 +35,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | Path | Description |
 | --- | --- |
 | `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
+| `packages/db` | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
 | `packages/ui` | Shared UI component library. |
 | `packages/eslint-config` | Shared ESLint configuration. |
 | `packages/typescript-config` | Shared TypeScript configuration. |
@@ -74,8 +75,8 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 4. Generate the Prisma client and apply migrations:
 
    ```bash
-   npm run generate --workspace=web
-   npx prisma migrate deploy --schema apps/web/prisma/schema.prisma
+   npm run generate --workspace=@workspace/db
+   cd packages/db && npx prisma migrate deploy
    ```
 
 5. Start the dev server:
@@ -146,7 +147,7 @@ Blob has been removed).
 - **Metadata → Prisma.** `FileNode`, `FileVersion`, and `MessageAttachment` hold
   `oid BigInt? @unique`, `sizeBytes`, `mimeType`, and `sha256`. `UploadSession`
   tracks in-progress uploads.
-- **One shared pool.** `lib/prisma.ts` exports a single `pg.Pool` handed to
+- **One shared pool.** `packages/db/src/prisma.ts` exports a single `pg.Pool` handed to
   `new PrismaPg(pool, { disposeExternalPool: false })`; Prisma and the
   large-object code share it. Each large-object operation runs on one dedicated
   connection inside a single `BEGIN … COMMIT` transaction (never `pool.query()`).

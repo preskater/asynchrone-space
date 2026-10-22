@@ -1,0 +1,33 @@
+{
+  "name": "@workspace/db",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "generate": "prisma generate",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "dotenv": "^18.0.7",
+    "eslint": "^10",
+    "prisma": "^7.10.0",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./prisma": "./src/prisma.ts",
+    "./env": "./src/env.ts"
+  }
+}

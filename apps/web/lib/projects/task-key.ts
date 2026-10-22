@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 /**
  * Task identifiers look like `ABC-1`, `ABC-2`, …. The prefix is inherited
