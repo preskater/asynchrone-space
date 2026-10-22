@@ -1,3 +1,4 @@
+import { after } from "next/server"
 import { Resend } from "resend"
 
 /**
@@ -5,9 +6,13 @@ import { Resend } from "resend"
  *
  * Configuration is optional so local development and previews keep working
  * without a provider: without `RESEND_API_KEY` / `EMAIL_FROM` every send is
- * skipped (with one warning at startup) instead of failing the request.
+ * skipped (with one warning) instead of failing the request.
  */
-if (!process.env.RESEND_API_KEY || !process.env.EMAIL_FROM) {
+let warnedDisabled = false
+
+function warnDisabled() {
+  if (warnedDisabled) return
+  warnedDisabled = true
   console.warn(
     "[email] RESEND_API_KEY or EMAIL_FROM is not set — transactional emails are disabled"
   )
@@ -31,25 +36,35 @@ function publicUrl(url: string) {
 }
 
 /**
- * Fire-and-forget: waiting on Resend would make a password-reset request
- * measurably slower for existing accounts than for unknown ones, which leaks
- * account existence. Better Auth itself simulates the same work server-side.
- *
- * ponytail: a serverless invocation may freeze before the send completes; use
- * `after()` from next/server if delivery proves unreliable on Vercel.
+ * Delivery is deferred so a password-reset request takes the same time for an
+ * existing account and an unknown one, which would otherwise leak account
+ * existence. `after()` keeps a serverless invocation alive until Resend has
+ * answered, so the message is not dropped when the response returns first.
+ * Outside a request scope (scripts, unit tests) it simply runs unawaited.
  */
 export function sendEmail({ to, subject, html }: Email) {
   const apiKey = process.env.RESEND_API_KEY
   const from = process.env.EMAIL_FROM
-  if (!apiKey || !from) return
-  void new Resend(apiKey).emails
-    .send({ from, to, subject, html })
-    // Resend reports API failures in the resolved value, not by rejecting.
-    .then(({ data, error }) => {
-      if (error) console.error(`[email] "${subject}" failed:`, error.message)
-      else console.info(`[email] "${subject}" sent:`, data?.id)
-    })
-    .catch((error) => console.error(`[email] "${subject}" failed:`, error))
+  if (!apiKey || !from) {
+    warnDisabled()
+    return
+  }
+
+  const send = () =>
+    new Resend(apiKey).emails
+      .send({ from, to, subject, html })
+      // Resend reports API failures in the resolved value, not by rejecting.
+      .then(({ data, error }) => {
+        if (error) console.error(`[email] "${subject}" failed:`, error.message)
+        else console.info(`[email] "${subject}" sent:`, data?.id)
+      })
+      .catch((error) => console.error(`[email] "${subject}" failed:`, error))
+
+  try {
+    after(send)
+  } catch {
+    void send()
+  }
 }
 
 function layout({
