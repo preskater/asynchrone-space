@@ -1,10 +1,15 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
-import { unlinkLargeObject } from "@/lib/large-object"
+import {
+  openLargeObjectStream,
+  unlinkLargeObject,
+  uploadLargeObject,
+} from "@/lib/large-object"
 import { roleRank } from "@/lib/organization/roles"
 
 import { kindFromName } from "./file-utils"
 import { FileRepository } from "./repository"
+import { orgQuotaBytes, orgUsedBytes } from "./storage"
 import type {
   CreateFilesInput,
   CreateFolderInput,
@@ -386,15 +391,56 @@ export class FileService {
       dotIndex > 0
         ? `${source.name.slice(0, dotIndex)} (copy)${source.name.slice(dotIndex)}`
         : `${source.name} (copy)`
-    const row = await this.repo.create({
-      organizationId: ctx.organizationId,
-      name: copyName,
-      kind: source.kind,
-      parentId: source.parentId,
-      ownerId: ctx.userId,
-      sizeBytes: source.sizeBytes ?? undefined,
-    })
-    return this.mapFile(row)
+
+    // A copy duplicates the bytes, so it has to respect the same storage quota
+    // as an upload (`createUploadSession`).
+    const opened =
+      source.oid !== null
+        ? await openLargeObjectStream(Number(source.oid))
+        : null
+    let copy: Awaited<ReturnType<typeof uploadLargeObject>> | null = null
+    try {
+      if (opened) {
+        const [quota, used] = await Promise.all([
+          orgQuotaBytes(ctx.organizationId),
+          orgUsedBytes(ctx.organizationId),
+        ])
+        const copySize = source.sizeBytes ?? opened.size
+        if (used + copySize > quota) {
+          throw new ForbiddenError("Storage quota exceeded.", {
+            code: "storage_quota_exceeded",
+          })
+        }
+        // The copy needs its own large object: sharing the oid would let
+        // deleting one file unlink the other's bytes.
+        copy = await uploadLargeObject(opened.stream)
+      }
+
+      const row = await this.repo.create({
+        organizationId: ctx.organizationId,
+        name: copyName,
+        kind: source.kind,
+        parentId: source.parentId,
+        ownerId: ctx.userId,
+        sizeBytes: copy?.size,
+        mimeType: source.mimeType ?? undefined,
+        oid: copy?.oid,
+        sha256: copy?.sha256,
+        // The copy keeps the source's visibility: duplicating a restricted
+        // file must not publish its bytes to the whole organization.
+        restricted: source.restricted,
+        shared: source.shared,
+        shares: source.shares.map((share) => ({
+          userId: share.userId,
+          permission: share.permission,
+        })),
+      })
+      return this.mapFile(row)
+    } catch (error) {
+      opened?.stream.destroy()
+      if (copy) await unlinkLargeObject(copy.oid).catch(() => undefined)
+      throw error
+    }
   }
 
   async toggleStar(ctx: RequestContext, id: string): Promise<FileNode> {
