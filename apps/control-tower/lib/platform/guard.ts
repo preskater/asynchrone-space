@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation"
 
 import { auth } from "@/lib/auth"
 
+import { isIpAllowed } from "./ip"
 import { primaryPlatformRole, type PlatformRole } from "./roles"
 
 export interface PlatformContext {
@@ -11,6 +12,16 @@ export interface PlatformContext {
   userEmail: string
   role: PlatformRole
   sessionId: string
+  twoFactorEnabled: boolean
+}
+
+interface SessionSnapshot {
+  userId: string
+  userName: string
+  userEmail: string
+  role: PlatformRole | null
+  sessionId: string
+  twoFactorEnabled: boolean
 }
 
 export class PlatformUnauthorizedError extends Error {
@@ -21,18 +32,10 @@ export class PlatformUnauthorizedError extends Error {
 }
 
 export class PlatformForbiddenError extends Error {
-  constructor() {
-    super("This account does not have a platform role.")
+  constructor(message = "This account does not have a platform role.") {
+    super(message)
     this.name = "PlatformForbiddenError"
   }
-}
-
-interface SessionSnapshot {
-  userId: string
-  userName: string
-  userEmail: string
-  role: PlatformRole | null
-  sessionId: string
 }
 
 async function readSession(): Promise<SessionSnapshot | null> {
@@ -45,7 +48,27 @@ async function readSession(): Promise<SessionSnapshot | null> {
     userEmail: session.user.email,
     role: primaryPlatformRole(session.user.role),
     sessionId: session.session.id,
+    twoFactorEnabled: Boolean(session.user.twoFactorEnabled),
   }
+}
+
+function requestIp(headerList: Headers): string | null {
+  const forwarded = headerList.get("x-forwarded-for")
+  if (forwarded) return forwarded.split(",")[0]?.trim() ?? null
+  return headerList.get("x-real-ip")
+}
+
+async function assertAllowedIp(surface: "page" | "action") {
+  const allowlist = process.env.PLATFORM_ALLOWED_IPS
+  if (!allowlist) return
+
+  const ip = requestIp(await headers())
+  if (isIpAllowed(ip, allowlist)) return
+
+  if (surface === "action") {
+    throw new PlatformForbiddenError("This network is not allowed.")
+  }
+  notFound()
 }
 
 /** Returns the platform context, or null for anonymous/non-platform users. */
@@ -58,18 +81,19 @@ export async function getPlatformContext(): Promise<PlatformContext | null> {
 interface RequireOptions {
   /** `page` redirects/404s; `action` throws so server actions fail cleanly. */
   surface?: "page" | "action"
+  /** Used by the two-factor setup page while the account is unenrolled. */
+  allowUnverifiedTwoFactor?: boolean
 }
 
 /**
- * Guard for pages and server actions.
- *
- * Pages: anonymous visitors are redirected to `/sign-in`; authenticated users
- * without a platform role get `notFound()` so the surface is not confirmed.
+ * Role + network guard. Does not require two-factor authentication, so the
+ * setup page can be reached by a freshly promoted operator.
  */
-export async function requirePlatformContext(
+export async function requirePlatformSession(
   options: RequireOptions = {}
 ): Promise<PlatformContext> {
   const surface = options.surface ?? "page"
+  await assertAllowedIp(surface)
   const snapshot = await readSession()
 
   if (!snapshot) {
@@ -83,4 +107,26 @@ export async function requirePlatformContext(
   }
 
   return { ...snapshot, role: snapshot.role }
+}
+
+/**
+ * Guard for pages and server actions. On top of the role/network checks, every
+ * platform account must have enrolled a TOTP device; otherwise it is sent to
+ * `/setup-2fa`.
+ */
+export async function requirePlatformContext(
+  options: RequireOptions = {}
+): Promise<PlatformContext> {
+  const context = await requirePlatformSession(options)
+
+  if (context.twoFactorEnabled || options.allowUnverifiedTwoFactor) {
+    return context
+  }
+
+  if ((options.surface ?? "page") === "action") {
+    throw new PlatformForbiddenError(
+      "Enable two-factor authentication before performing this action."
+    )
+  }
+  redirect("/setup-2fa")
 }

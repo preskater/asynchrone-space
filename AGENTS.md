@@ -14,7 +14,8 @@
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
-- Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, or the web secret is reused.
+- Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
+- Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
 
 ## Environment & data
 
@@ -55,10 +56,12 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Control tower
 
-- Internal app at `apps/control-tower` (port 3001). Platform roles live in the comma-separated `user.role`: `platform_admin` (full) and `platform_support` (read-only for now). Grant one with `npm run grant:platform-role --workspace=control-tower -- --email you@example.com`.
+- Internal app at `apps/control-tower` (port 3001). Platform roles live in the comma-separated `user.role`: `platform_admin` (full) and `platform_support` (read-only for now). Grant one with `npm run grant:platform-role --workspace=control-tower -- --email you@example.com`; the account must then enroll a TOTP device at `/setup-2fa`.
+- Every platform role requires TOTP (`twoFactor` plugin; `TwoFactor` table and `user.twoFactorEnabled`). `requirePlatformContext()` redirects unenrolled operators to `/setup-2fa` and rejects server actions; `requirePlatformSession()` is the 2FA-free variant used only by that page.
+- Optional `PLATFORM_ALLOWED_IPS` (comma-separated IPv4/CIDR or `*`) restricts the control tower to known networks as defense in depth. Unset allows every address; in-app auth still applies.
 - Its Better Auth instance is deliberately separate: own secret, own host-only cookie (`presk-control-tower.session_token`), sign-up disabled, no `jwt`/`mcp`/`organization` plugins. **Never enable `advanced.crossSubDomainCookies`** — see ADR 0018 and `verify:auth-config`.
 - Pages guard with `requirePlatformContext()`; anonymous users go to `/sign-in`, signed-in users without a platform role get `notFound()`. Server actions use `requirePlatformContext({ surface: "action" })` / `withPlatformAction`.
-- Platform mutations write `PlatformAuditEvent` rows (never the org-scoped `AuditLog`). Impersonation will use the single-use `PlatformHandoff` table, not a shared cookie.
+- Platform mutations write `PlatformAuditEvent` rows (never the org-scoped `AuditLog`). Impersonation uses the single-use `PlatformHandoff` table, not a shared cookie.
 - Platform mutations are server actions under `apps/control-tower/actions/`. Each uses `withPlatformAction`, enforces `platform_admin` for destructive changes (`platform_support` may revoke sessions), appends a `PlatformAuditEvent`, and revalidates the affected path.
 - Impersonation is a single-use handoff, never a shared cookie: the control tower stores a hashed token in `PlatformHandoff` and redirects to `${PLATFORM_APP_URL}/api/platform/handoff?token=…`; the web route claims it, creates a 1-hour session with `impersonatedBy`, and signs its own cookie. `apps/web/app/[locale]/(app)/layout.tsx` shows the banner and deletes the session once it is an hour old; `/api/platform/stop-impersonating` deletes it and returns to `CONTROL_TOWER_URL`.
 - `apps/web/lib/auth.ts` registers the same `admin()` plugin (roles map + `adminRoles: ["platform_admin"]`) so bans apply to customer sign-in.

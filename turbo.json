@@ -32,7 +32,8 @@
         "REQUIRE_EMAIL_VERIFICATION",
         "CONTROL_TOWER_BETTER_AUTH_SECRET",
         "PLATFORM_APP_URL",
-        "CONTROL_TOWER_URL"
+        "CONTROL_TOWER_URL",
+        "PLATFORM_ALLOWED_IPS"
       ]
     },
     "lint": {
@@ -68,7 +69,8 @@
         "REQUIRE_EMAIL_VERIFICATION",
         "CONTROL_TOWER_BETTER_AUTH_SECRET",
         "PLATFORM_APP_URL",
-        "CONTROL_TOWER_URL"
+        "CONTROL_TOWER_URL",
+        "PLATFORM_ALLOWED_IPS"
       ]
     }
   }

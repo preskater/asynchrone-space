@@ -2,7 +2,7 @@ import type { BetterAuthOptions } from "better-auth"
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { admin } from "better-auth/plugins"
+import { admin, twoFactor } from "better-auth/plugins"
 import {
   adminAc,
   defaultAc,
@@ -51,6 +51,7 @@ export const authConfig = {
         user: userAc,
       },
     }),
+    twoFactor({ issuer: "Presk Control Tower" }),
     nextCookies(),
   ],
   advanced: {
