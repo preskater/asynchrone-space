@@ -1,6 +1,10 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
-import { unlinkLargeObject } from "@/lib/large-object"
+import {
+  openLargeObjectStream,
+  unlinkLargeObject,
+  uploadLargeObject,
+} from "@/lib/large-object"
 import { roleRank } from "@/lib/organization/roles"
 
 import { kindFromName } from "./file-utils"
@@ -386,15 +390,31 @@ export class FileService {
       dotIndex > 0
         ? `${source.name.slice(0, dotIndex)} (copy)${source.name.slice(dotIndex)}`
         : `${source.name} (copy)`
-    const row = await this.repo.create({
-      organizationId: ctx.organizationId,
-      name: copyName,
-      kind: source.kind,
-      parentId: source.parentId,
-      ownerId: ctx.userId,
-      sizeBytes: source.sizeBytes ?? undefined,
-    })
-    return this.mapFile(row)
+    // The copy needs its own large object: sharing the oid would let deleting
+    // one file unlink the other's bytes.
+    const copy =
+      source.oid !== null
+        ? await uploadLargeObject(
+            (await openLargeObjectStream(Number(source.oid))).stream
+          )
+        : null
+    try {
+      const row = await this.repo.create({
+        organizationId: ctx.organizationId,
+        name: copyName,
+        kind: source.kind,
+        parentId: source.parentId,
+        ownerId: ctx.userId,
+        sizeBytes: copy?.size,
+        mimeType: source.mimeType ?? undefined,
+        oid: copy?.oid,
+        sha256: copy?.sha256,
+      })
+      return this.mapFile(row)
+    } catch (error) {
+      if (copy) await unlinkLargeObject(copy.oid).catch(() => undefined)
+      throw error
+    }
   }
 
   async toggleStar(ctx: RequestContext, id: string): Promise<FileNode> {
