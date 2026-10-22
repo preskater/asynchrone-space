@@ -39,12 +39,21 @@ export function formatDateTime(value: Date | null | undefined): string {
 export function formatRelative(value: Date | null | undefined): string {
   if (!value) return "—"
   const delta = Date.now() - value.getTime()
-  const minutes = Math.round(delta / 60_000)
-  if (minutes < 1) return "just now"
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.round(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.round(hours / 24)
-  if (days < 30) return `${days}d ago`
-  return formatDate(value)
+  const future = delta < 0
+  const abs = Math.abs(delta)
+  const minutes = Math.round(abs / 60_000)
+
+  const relative = (() => {
+    if (minutes < 1) return "just now"
+    if (minutes < 60) return `${minutes}m`
+    const hours = Math.round(minutes / 60)
+    if (hours < 24) return `${hours}h`
+    const days = Math.round(hours / 24)
+    if (days < 30) return `${days}d`
+    return null
+  })()
+
+  if (relative === null) return formatDate(value)
+  if (relative === "just now") return future ? "in <1m" : relative
+  return future ? `in ${relative}` : `${relative} ago`
 }
