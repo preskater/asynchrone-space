@@ -19,6 +19,7 @@ import hr from "./hr.json"
 import landing from "./landing.json"
 import legal from "./legal.json"
 import marketing from "./marketing.json"
+import meetingRequests from "./meetingRequests.json"
 import meetings from "./meetings.json"
 import messaging from "./messaging.json"
 import metadata from "./metadata.json"
@@ -56,6 +57,7 @@ export default {
   Landing: landing,
   Legal: legal,
   Marketing: marketing,
+  MeetingRequests: meetingRequests,
   Meetings: meetings,
   Messaging: messaging,
   Metadata: metadata,

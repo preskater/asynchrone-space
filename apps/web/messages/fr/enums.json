@@ -201,6 +201,22 @@
     "busy": "Occupé",
     "offline": "Hors ligne"
   },
+  "meetingStatus": {
+    "pending": "En attente",
+    "accepted": "Accepté",
+    "declined": "Refusé",
+    "cancelled": "Annulé"
+  },
+  "meetingMode": {
+    "online": "En ligne",
+    "in_person": "En présentiel"
+  },
+  "meetingProvider": {
+    "manual": "Aucune application (lien fourni par le client)",
+    "google_meet": "Google Meet",
+    "microsoft_teams": "Microsoft Teams",
+    "zoom": "Zoom"
+  },
   "resource": {
     "project": "Projet",
     "task": "Tâche",
@@ -215,6 +231,8 @@
     "invitation": "Invitation",
     "label": "Étiquette",
     "taskTemplate": "Modèle de tâche",
+    "meetingRequest": "Demande de rendez-vous",
+    "meetingSlot": "Créneau de rendez-vous",
     "resource": "Ressource"
   }
 }
