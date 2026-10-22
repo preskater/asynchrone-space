@@ -4,6 +4,7 @@ export const projectInclude = {
   client: { select: { id: true, name: true } },
   members: { include: { project: false } },
   labels: { include: { label: true } },
+  repository: { select: { provider: true } },
   tasks: {
     orderBy: { order: "asc" as const },
     include: {
@@ -158,6 +159,7 @@ export class ProjectRepository {
     customFields?: unknown
     order: number
     labelIds: string[]
+    createIssue?: boolean
     externalIssueNumber?: number | null
     externalIssueUrl?: string | null
     externalUpdatedAt?: Date | null
@@ -177,6 +179,7 @@ export class ProjectRepository {
         templateId: data.templateId ?? null,
         customFields: (data.customFields ?? {}) as never,
         order: data.order,
+        createIssue: data.createIssue ?? true,
         externalIssueNumber: data.externalIssueNumber ?? null,
         externalIssueUrl: data.externalIssueUrl ?? null,
         externalUpdatedAt: data.externalUpdatedAt ?? null,

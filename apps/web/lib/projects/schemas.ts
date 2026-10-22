@@ -89,6 +89,11 @@ export const createTaskSchema = z.object({
   endDate: dateInputSchema,
   templateId: z.string().min(1).nullable().optional(),
   customFields: taskCustomFieldsSchema.optional(),
+  /**
+   * Whether to create an issue in the project's connected repository.
+   * Defaults to `true`; only meaningful for projects with a repository.
+   */
+  createIssue: z.boolean().optional(),
 })
 
 export const updateTaskSchema = z.object({

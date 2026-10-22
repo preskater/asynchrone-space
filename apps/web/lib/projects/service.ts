@@ -231,6 +231,9 @@ export class ProjectService {
         row.clientTaskComments as Project["clientTaskComments"],
       memberIds: row.members.map((member) => member.userId),
       labelIds: row.labels.map((label) => label.labelId),
+      repositoryProvider:
+        (row.repository?.provider as Project["repositoryProvider"]) ??
+        undefined,
       createdAt: requiredIso(row.createdAt),
       dueDate: iso(row.dueDate),
     }
@@ -428,18 +431,20 @@ export class ProjectService {
       )
     }
 
-    // In a connected project a task is expected to exist as a repository
-    // issue: the issue is created first (authored by the acting user's own
-    // token) and users without repository access cannot create the task.
-    const remote = await repositoryIntegrationService.createTaskInRepository(
-      ctx,
-      {
-        projectId: input.projectId,
-        title: input.title,
-        description: input.description,
-        status: input.status,
-      }
-    )
+    // In a connected project a task is normally expected to exist as a
+    // repository issue: the issue is created first (authored by the acting
+    // user's own token) and users without repository access cannot create the
+    // task. Tasks explicitly opted out (`createIssue: false`) skip the remote
+    // side entirely — no issue, no token, and later no pull request.
+    const createIssue = input.createIssue !== false
+    const remote = createIssue
+      ? await repositoryIntegrationService.createTaskInRepository(ctx, {
+          projectId: input.projectId,
+          title: input.title,
+          description: input.description,
+          status: input.status,
+        })
+      : null
 
     const identifier = await allocateTaskIdentifier(
       this.db,
@@ -461,6 +466,7 @@ export class ProjectService {
       customFields,
       order: existing.length,
       labelIds: input.labelIds ?? [],
+      createIssue,
       externalIssueNumber: remote?.externalIssueNumber ?? null,
       externalIssueUrl: remote?.externalIssueUrl ?? null,
       externalUpdatedAt: remote?.externalUpdatedAt ?? null,
