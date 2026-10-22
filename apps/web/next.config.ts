@@ -19,6 +19,10 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
     agentUpgrade: "security",
+    serverActions: {
+      // The feedback form attaches one screenshot (base64, up to 5 MB).
+      bodySizeLimit: "8mb",
+    },
   },
   async headers() {
     return [

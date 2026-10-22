@@ -12,6 +12,7 @@ import crm from "./crm.json"
 import enums from "./enums.json"
 import error from "./error.json"
 import errors from "./errors.json"
+import feedback from "./feedback.json"
 import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
@@ -51,6 +52,7 @@ export default {
   Enums: enums,
   Error: error,
   Errors: errors,
+  Feedback: feedback,
   Files: files,
   Footer: footer,
   Forms: forms,

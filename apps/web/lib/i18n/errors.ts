@@ -68,6 +68,8 @@ const CODE_KEYS: Record<string, string> = {
   meeting_address_required: "meetingAddressRequired",
   meeting_provider_not_connected: "meetingProviderNotConnected",
   meeting_attendee_invalid: "meetingAttendeeInvalid",
+  feedback_rate_limited: "feedbackRateLimited",
+  feedback_delivery_failed: "feedbackDeliveryFailed",
 }
 
 export function useErrorTranslator() {

@@ -217,6 +217,26 @@
     "microsoft_teams": "Microsoft Teams",
     "zoom": "Zoom"
   },
+  "feedbackCategory": {
+    "bug": "Bug",
+    "idea": "Idea",
+    "design": "Design / UX",
+    "performance": "Performance",
+    "other": "Other"
+  },
+  "feedbackImpact": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "feedbackFrequency": {
+    "always": "Always",
+    "often": "Often",
+    "sometimes": "Sometimes",
+    "once": "Once",
+    "unknown": "Not sure"
+  },
   "resource": {
     "project": "Project",
     "task": "Task",
