@@ -35,6 +35,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | Path | Description |
 | --- | --- |
 | `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
+| `apps/control-tower` | Internal platform administration app (organizations, users, audit, ops). |
 | `packages/db` | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
 | `packages/ui` | Shared UI component library. |
 | `packages/eslint-config` | Shared ESLint configuration. |
@@ -92,9 +93,35 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 > container loads `apps/web/.env` (then overrides the container-specific
 > values), so it uses the same `BETTER_AUTH_SECRET` as local development.
 
+### Control tower
+
+The internal administration app is a separate Next.js app on
+http://localhost:3001. It shares the database through `packages/db` but has its
+own Better Auth secret, host-only session cookie and sign-in.
+
+```bash
+cp apps/control-tower/.env.example apps/control-tower/.env
+npm run dev --workspace=control-tower
+```
+
+Accounts are created by the customer app. Grant a platform role to an existing
+account:
+
+```bash
+npm run grant:platform-role --workspace=control-tower -- --email you@example.com
+```
+
+Only `platform_admin` (full) and `platform_support` (read-only) can open the app;
+everyone else gets a 404. `npm run verify:auth-config --workspace=control-tower`
+asserts that cross-subdomain cookies stay disabled (see
+[ADR 0018](./docs/adr/0018-control-tower-on-shared-database-package.md)).
+
 ## Environment variables
 
-All variables live in `apps/web/.env` (see [`apps/web/.env.example`](./apps/web/.env.example)).
+Customer-app variables live in `apps/web/.env` (see
+[`apps/web/.env.example`](./apps/web/.env.example)); the control tower reads
+`apps/control-tower/.env` (see
+[`apps/control-tower/.env.example`](./apps/control-tower/.env.example)).
 
 | Variable | Required | Description |
 | --- | --- | --- |

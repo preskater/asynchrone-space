@@ -7,7 +7,6 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "prebuild": "npm run generate --workspace=@workspace/db",
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",

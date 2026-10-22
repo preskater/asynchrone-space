@@ -22,6 +22,8 @@ jobs:
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
       BETTER_AUTH_SECRET: ci-build-placeholder-secret-not-used-at-runtime
       BETTER_AUTH_URL: http://localhost:3000
+      CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
+      PLATFORM_APP_URL: http://localhost:3000
 
     steps:
       - name: Checkout
@@ -80,6 +82,8 @@ jobs:
       DATABASE_URL: postgresql://preskater:preskater@localhost:5432/preskater?schema=public
       BETTER_AUTH_SECRET: ci-e2e-secret-placeholder-value
       BETTER_AUTH_URL: http://localhost:3000
+      CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
+      PLATFORM_APP_URL: http://localhost:3000
 
     steps:
       - name: Checkout
