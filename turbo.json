@@ -25,7 +25,11 @@
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "GITLAB_CLIENT_ID",
-        "GITLAB_CLIENT_SECRET"
+        "GITLAB_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "EMAIL_FROM",
+        "NEXT_PUBLIC_APP_URL",
+        "REQUIRE_EMAIL_VERIFICATION"
       ]
     },
     "lint": {
@@ -54,7 +58,11 @@
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "GITLAB_CLIENT_ID",
-        "GITLAB_CLIENT_SECRET"
+        "GITLAB_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "EMAIL_FROM",
+        "NEXT_PUBLIC_APP_URL",
+        "REQUIRE_EMAIL_VERIFICATION"
       ]
     }
   }

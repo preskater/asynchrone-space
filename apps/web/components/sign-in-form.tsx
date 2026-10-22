@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
+import { toast } from "sonner"
 import * as z from "zod"
 
 import { Link } from "@/i18n/navigation"
@@ -35,6 +37,8 @@ export function SignInForm({
   const t = useTranslations("Auth.signIn")
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
+  const [resending, setResending] = useState(false)
 
   const formSchema = z.object({
     email: z.email(t("invalidEmail")),
@@ -50,9 +54,15 @@ export function SignInForm({
   })
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
+    setUnverifiedEmail(null)
     const { error } = await authClient.signIn.email(data)
 
     if (error) {
+      if (error.status === 403) {
+        setUnverifiedEmail(data.email)
+        form.setError("root", { message: t("emailNotVerified") })
+        return
+      }
       form.setError("root", {
         message: error.message ?? t("genericError"),
       })
@@ -62,6 +72,21 @@ export function SignInForm({
     const redirectTo = safeRedirect(searchParams.get("redirect"))
     router.push(redirectTo)
     router.refresh()
+  }
+
+  async function resendVerification() {
+    if (!unverifiedEmail) return
+    setResending(true)
+    const { error } = await authClient.sendVerificationEmail({
+      email: unverifiedEmail,
+      callbackURL: "/",
+    })
+    setResending(false)
+    if (error) {
+      toast.error(error.message ?? t("resendError"))
+      return
+    }
+    toast.success(t("verificationSent"))
   }
 
   return (
@@ -110,6 +135,9 @@ export function SignInForm({
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
                     )}
+                    <FieldDescription className="text-end">
+                      <Link href="/forgot-password">{t("forgotPassword")}</Link>
+                    </FieldDescription>
                   </Field>
                 )}
               />
@@ -119,6 +147,16 @@ export function SignInForm({
                 </Button>
                 {form.formState.errors.root && (
                   <FieldError errors={[form.formState.errors.root]} />
+                )}
+                {unverifiedEmail && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={resending}
+                    onClick={resendVerification}
+                  >
+                    {resending ? t("resending") : t("resendVerification")}
+                  </Button>
                 )}
                 <FieldDescription className="text-center">
                   {t("noAccount")}{" "}
