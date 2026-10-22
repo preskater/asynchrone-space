@@ -615,7 +615,8 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, taskId)
     if (!existing) throw new NotFoundError("Task")
-    await this.repo.toggleSubtask(subtaskId)
+    const toggled = await this.repo.toggleSubtask(taskId, subtaskId)
+    if (!toggled) throw new NotFoundError("Subtask")
     const fresh = await this.repo.findTask(ctx.organizationId, taskId)
     return this.mapTask(fresh ?? existing)
   }

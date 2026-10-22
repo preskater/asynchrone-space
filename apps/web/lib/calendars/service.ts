@@ -195,7 +195,7 @@ export class CalendarService {
   ): Promise<CalendarEvent> {
     const existing = await this.repo.findEvent(ctx.organizationId, eventId)
     if (!existing) throw new NotFoundError("Event")
-    await this.repo.setAttendeeResponse(eventId, input.memberId, input.response)
+    await this.repo.setAttendeeResponse(eventId, ctx.userId, input.response)
     const row = await this.repo.findEvent(ctx.organizationId, eventId)
     return this.mapEvent(row ?? existing)
   }
