@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   experimental: {
     globalNotFound: true,
+    agentUpgrade: "security",
   },
   async headers() {
     return [

@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   // `pg` is a native CommonJS dependency of the shared database package.
   serverExternalPackages: ["pg"],
   poweredByHeader: false,
+  experimental: {
+    agentUpgrade: "security",
+  },
   async headers() {
     return [
       {
