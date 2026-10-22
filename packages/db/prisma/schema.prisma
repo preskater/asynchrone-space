@@ -308,6 +308,10 @@ model Task {
   /// Values for the custom fields of `template`, keyed by field id.
   customFields   Json          @default("{}")
   order          Int           @default(0)
+  /// Whether this task is reported to the project's connected repository as
+  /// an issue. Chosen on the task form when the project has a repository;
+  /// `false` tasks stay local (no issue, no pull request, no backfill).
+  createIssue    Boolean       @default(true)
   /// Repository issue this task is synced with, if the project has a
   /// repository connection. Set on backfill, task creation and remote events.
   externalIssueNumber Int?

@@ -250,7 +250,9 @@ export async function applyPullRequestEvent(
  * lazy so tasks that existed before a repository was connected are pushed on
  * the first write (and on connect via the backfill). Callers may pass a stale
  * row (e.g. before a previous push linked the issue); the database is
- * re-read before creating anything so no duplicate issue is produced.
+ * re-read before creating anything so no duplicate issue is produced. Tasks
+ * created with issue creation disabled are never reported: they stay local
+ * and get no issue or pull request.
  */
 export async function ensureIssueForTask(
   db: PrismaClient,
@@ -258,10 +260,10 @@ export async function ensureIssueForTask(
   task: SyncTaskRow,
   token: string
 ): Promise<SyncTaskRow> {
-  if (task.externalIssueNumber) return task
+  if (!task.createIssue || task.externalIssueNumber) return task
   const current = await db.task.findUnique({ where: { id: task.id } })
   if (!current) return task
-  if (current.externalIssueNumber) return current
+  if (!current.createIssue || current.externalIssueNumber) return current
   const client = buildProviderClient(connection, token)
   const issue = await client.api.createIssue({
     title: current.title,
@@ -468,7 +470,12 @@ export async function syncConnection(
   }
 
   const unlinked = await db.task.findMany({
-    where: { projectId: connection.projectId, externalIssueNumber: null },
+    where: {
+      projectId: connection.projectId,
+      externalIssueNumber: null,
+      // Tasks created without issue creation are deliberately local-only.
+      createIssue: true,
+    },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   })
   for (const task of unlinked) {

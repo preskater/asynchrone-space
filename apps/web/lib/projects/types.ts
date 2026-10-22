@@ -1,3 +1,5 @@
+import type { RepositoryProvider } from "@/lib/integrations/types"
+
 export type TaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done"
 
 export type TaskPriority = "low" | "medium" | "high" | "urgent"
@@ -128,6 +130,8 @@ export interface Project {
   clientVisible: boolean
   clientDiscussion: PortalPolicy
   clientTaskComments: PortalPolicy
+  /** GitHub/GitLab repository connected to this project, when there is one. */
+  repositoryProvider?: RepositoryProvider
   memberIds: string[]
   labelIds: string[]
   createdAt: string

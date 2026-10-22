@@ -59,7 +59,8 @@ export const projectTools: McpTool[] = [
   {
     name: "create_task",
     title: "Create task",
-    description: "Create a task within a project.",
+    description:
+      "Create a task within a project. Set `createIssue` to false to keep the task out of the project's connected repository (no issue, no pull request).",
     inputSchema: createTaskSchema.shape,
     readOnly: false,
     run: (ctx, input) =>
