@@ -22,6 +22,15 @@ jobs:
       DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
       BETTER_AUTH_SECRET: ci-build-placeholder-secret-not-used-at-runtime
       BETTER_AUTH_URL: http://localhost:3000
+      AUTH_COOKIE_DOMAIN: ""
+      PROJECTS_APP_URL: http://localhost:3003
+      CALENDARS_APP_URL: http://localhost:3004
+      FILES_APP_URL: http://localhost:3005
+      MESSAGES_APP_URL: http://localhost:3006
+      CRM_APP_URL: http://localhost:3007
+      HR_APP_URL: http://localhost:3008
+      PORTAL_APP_URL: http://localhost:3009
+      COPILOT_APP_URL: http://localhost:3010
       CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
       PLATFORM_APP_URL: http://localhost:3000
       CONTROL_TOWER_URL: http://localhost:3001
@@ -83,6 +92,15 @@ jobs:
       DATABASE_URL: postgresql://preskater:preskater@localhost:5432/preskater?schema=public
       BETTER_AUTH_SECRET: ci-e2e-secret-placeholder-value
       BETTER_AUTH_URL: http://localhost:3000
+      AUTH_COOKIE_DOMAIN: ""
+      PROJECTS_APP_URL: http://localhost:3003
+      CALENDARS_APP_URL: http://localhost:3004
+      FILES_APP_URL: http://localhost:3005
+      MESSAGES_APP_URL: http://localhost:3006
+      CRM_APP_URL: http://localhost:3007
+      HR_APP_URL: http://localhost:3008
+      PORTAL_APP_URL: http://localhost:3009
+      COPILOT_APP_URL: http://localhost:3010
       CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used
       PLATFORM_APP_URL: http://localhost:3000
       CONTROL_TOWER_URL: http://localhost:3001

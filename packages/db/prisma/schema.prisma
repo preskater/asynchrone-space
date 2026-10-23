@@ -33,6 +33,7 @@ model User {
   oauthAccessTokens  OauthAccessToken[]
   oauthConsents      OauthConsent[]
   repositoryTokens   UserRepositoryToken[]
+  assistantConversations AssistantConversation[]
 
   @@unique([email])
   @@map("user")
@@ -140,6 +141,7 @@ model Organization {
 
   meetingSettings MeetingSettings?
   meetingRequests MeetingRequest[]
+  assistantConversations AssistantConversation[]
 
   @@unique([slug])
   @@map("organization")
@@ -1590,3 +1592,36 @@ model TwoFactor {
   @@map("twoFactor")
 }
 
+
+/// One Copilot chat. Conversations are private to their user in an
+/// organization; the server owns the history sent to the model.
+model AssistantConversation {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  title          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages     AssistantMessage[]
+
+  @@index([organizationId, userId, updatedAt])
+  @@map("assistantConversation")
+}
+
+/// A persisted user or assistant turn. `parts` is the same JSON shape the
+/// client renders (text, reasoning, tool calls).
+model AssistantMessage {
+  id             String   @id @default(cuid())
+  conversationId String
+  role           String
+  parts          Json
+  createdAt      DateTime @default(now())
+
+  conversation AssistantConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("assistantMessage")
+}

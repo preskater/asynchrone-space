@@ -5,7 +5,22 @@ const { sendResetPasswordEmail, sendVerificationEmail } = vi.hoisted(() => ({
   sendVerificationEmail: vi.fn(),
 }))
 
-vi.mock("./email", () => ({ sendResetPasswordEmail, sendVerificationEmail }))
+vi.mock("@workspace/core/server", () => ({
+  sendResetPasswordEmail,
+  sendVerificationEmail,
+}))
+
+// The MCP plugin seeds OAuth resources at init; replace it with an inert plugin
+// so the unit test never connects to a database.
+vi.mock("@better-auth/mcp", () => ({
+  mcp: () => ({ id: "mcp-test" }),
+}))
+vi.mock("@better-auth/cimd", () => ({
+  cimd: () => ({ id: "cimd-test" }),
+}))
+vi.mock("@better-auth/cimd/node", () => ({
+  fetchClientMetadataResource: async () => null,
+}))
 
 beforeAll(() => {
   process.env.DATABASE_URL = "postgresql://user:pass@localhost:5432/test"

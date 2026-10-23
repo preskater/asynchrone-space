@@ -2,8 +2,9 @@
 
 ## Repository
 
-- Turborepo + npm workspaces monorepo. Apps: `apps/web` (package `web`, the customer SaaS, Next.js 16 App Router, React 19) and `apps/control-tower` (package `control-tower`, internal platform administration). Shared packages: `packages/db` (`@workspace/db`), `packages/ui` (`@workspace/ui`), `packages/eslint-config`, `packages/typescript-config`.
-- Run tasks from the repo root through Turbo: `npm run dev|build|lint|typecheck|format`. Target one workspace with `--workspace=web` / `--workspace=control-tower` (or `-w`).
+- Turborepo + npm workspaces monorepo. Apps: `apps/web` (package `web`, the customer shell: marketing, auth, onboarding, org selection, settings, MCP, Next.js 16 App Router), the domain apps `apps/projects`, `apps/calendars`, `apps/files`, `apps/messages`, `apps/crm`, `apps/hr`, `apps/portal`, `apps/copilot`, and `apps/control-tower` (internal platform administration). Shared packages: `packages/db` (`@workspace/db`), `packages/ui` (`@workspace/ui`), `packages/core`, `packages/auth`, `packages/organization`, `packages/i18n`, `packages/app-shell`, `packages/appearance`, `packages/notifications`, `packages/integrations`, `packages/storage`, `packages/ai`, the domain packages, `packages/next-config`, `packages/eslint-config`, `packages/typescript-config`. See ADR 0020.
+- Run tasks from the repo root through Turbo: `npm run dev|build|lint|typecheck|format`. Target one workspace with `--workspace=web`, `--workspace=projects`, `--workspace=copilot`, etc. (or `-w`).
+- Local dev ports: shell `3000`, control tower `3001`, projects `3003`, calendars `3004`, files `3005`, messages `3006`, crm `3007`, hr `3008`, portal `3009`, copilot `3010`. Cookies are shared across `localhost` ports, so no domain configuration is needed in dev.
 - `main` is protected: land changes via PR. The `ci` job (`.github/workflows/turbo.yml`) runs typecheck → lint → build; `.github/workflows/helm.yml` lints and renders the chart.
 
 ## Verify before finishing
@@ -19,20 +20,22 @@
 
 ## Environment & data
 
-- Env lives in `apps/web/.env` (Next loads it from the app cwd; `packages/db/prisma.config.ts` loads it explicitly, falling back to a package-local `.env`). Start from `apps/web/.env.example`. `CONTROL_TOWER_URL` (the control tower origin) is used by the "Stop impersonating" flow.
+- Env lives in `apps/web/.env` (Next loads it from the app cwd; `packages/db/prisma.config.ts` loads it explicitly, falling back to a package-local `.env`). Start from `apps/web/.env.example`. Turbo passes the same values to every app. `CONTROL_TOWER_URL` (the control tower origin) is used by the "Stop impersonating" flow.
+- Customer apps share `BETTER_AUTH_SECRET` and the session cookie. In production set `AUTH_COOKIE_DOMAIN=.presk.re`; leave it empty in dev. Each app origin is configured with `PROJECTS_APP_URL`, `CALENDARS_APP_URL`, `FILES_APP_URL`, `MESSAGES_APP_URL`, `CRM_APP_URL`, `HR_APP_URL`, `PORTAL_APP_URL`, `COPILOT_APP_URL`. `apps/web` remains the auth server (`BETTER_AUTH_URL`) and the only app that mounts `/api/auth`, `/mcp` and OAuth. See ADR 0021.
 - The control tower has its own `apps/control-tower/.env` (`apps/control-tower/.env.example`): `DATABASE_URL`, `BETTER_AUTH_URL` (its own origin), `CONTROL_TOWER_BETTER_AUTH_SECRET` (≥32 chars, different from `BETTER_AUTH_SECRET`), `PLATFORM_APP_URL` (the customer app's origin).
 - `docker compose` loads `apps/web/.env` into the `web` container (its `environment` block still overrides `DATABASE_URL`/`BETTER_AUTH_URL`), so local dev and Docker share `BETTER_AUTH_SECRET`; rotating that secret breaks the encrypted JWKS rows in the DB — clear the `jwks` table to regenerate them.
-- One `Dockerfile` builds either app with `--build-arg APP=web|control-tower`; `docker compose` serves the customer app on 3002 and the control tower on 3001. `.dockerignore` excludes `.env` files at any depth — never bake local secrets into an image.
+- One `Dockerfile` builds any app with `--build-arg APP=<workspace-name>`; the Docker workflow publishes `presk`, `presk-control-tower`, `presk-projects`, `presk-calendars`, `presk-files`, `presk-messages`, `presk-crm`, `presk-hr`, `presk-portal`, `presk-copilot` and `presk-migrate`. `docker compose` still serves the shell on 3002 and the control tower on 3001. `.dockerignore` excludes `.env` files at any depth — never bake local secrets into an image.
 - `generate` and `build` require `DATABASE_URL`, `BETTER_AUTH_SECRET`, and `BETTER_AUTH_URL` to be set; CI and Docker use non-connecting placeholders.
 - When adding an env var, also add it to the `env` arrays in `turbo.json` (build + dev) so Turbo passes it through, update `.env.example`, and add a build-time placeholder in `Dockerfile` / `.github/workflows/turbo.yml` if it is read at build time.
 - `DATABASE_POOL_MAX` defaults to `3`. One shared `pg.Pool` in `packages/db/src/prisma.ts` serves both Prisma and the large-object code; `apps/web/lib/prisma.ts` only re-exports it.
 
 ## Deployment
 
-- `.github/workflows/docker.yml` publishes three GHCR images: `presk` (web runner), `presk-control-tower` (control-tower runner) and `presk-migrate` (Dockerfile `migrate` stage).
-- Helm charts live in `charts/`: `presk` is the umbrella (migration hook and production values), `presk-web` and `presk-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/presk` then `helm upgrade --install presk charts/presk -n presk --set global.imageTag=sha-…`.
-- The chart requires the existing Secrets `presk-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `presk-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
-- The pre-install/pre-upgrade `presk-migrate` Job runs `prisma migrate deploy`; the web subchart owns the two CronJobs that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
+- `.github/workflows/docker.yml` publishes one GHCR image per app (`presk`, `presk-projects`, `presk-calendars`, `presk-files`, `presk-messages`, `presk-crm`, `presk-hr`, `presk-portal`, `presk-copilot`, `presk-control-tower`) plus `presk-migrate` (Dockerfile `migrate` stage).
+- Helm charts live in `charts/`: `presk` is the umbrella (migration hook and production values), `presk-web` is the shell, `presk-control-tower` is the admin app, and the generic `presk-app` chart is instantiated once per domain app via aliased dependencies. Install/upgrade from the root with `helm dependency build charts/presk` then `helm upgrade --install presk charts/presk -n presk --set global.imageTag=sha-…`.
+- The chart requires the existing Secrets `presk-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `presk-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Every customer app reuses `presk-web-secrets`; keep the same `BETTER_AUTH_SECRET` so the shared cookie can be verified. Never put secrets in values or templates.
+- `DATABASE_POOL_MAX` is per app instance. The default for domain apps is `5`; size replicas × pool across all apps (or use PgBouncer) before raising it.
+- The pre-install/pre-upgrade `presk-migrate` Job runs `prisma migrate deploy`; the generic `presk-app` chart renders the repository-sync CronJob on the projects app and the uploads-sweep CronJob on the files app. See `docs/deployment/helm.md` and ADR 0019.
 - Verify chart changes with `helm dependency build charts/presk && helm lint --strict charts/presk --set global.imageTag=test && helm template presk charts/presk --set global.imageTag=test`.
 
 <!-- BEGIN:turborepo-agent-rules -->

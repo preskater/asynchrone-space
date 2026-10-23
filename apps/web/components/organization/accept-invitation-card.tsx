@@ -91,12 +91,11 @@ export function AcceptInvitationCard({
     const claim = await claimPortalAccessAction({ invitationId })
     const isPortal = claim.ok && claim.data.portal
     toast.success(t("invitationAccepted"))
+    // The shell's workspace layout forwards client-portal members to the
+    // portal app when they open an organization.
+    void isPortal
     router.push(
-      isPortal
-        ? "/portal"
-        : invitation
-          ? `/${invitation.organizationSlug}`
-          : "/onboarding"
+      invitation ? `/${invitation.organizationSlug}` : "/onboarding"
     )
     router.refresh()
   }

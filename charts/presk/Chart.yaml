@@ -14,3 +14,43 @@ dependencies:
     version: 0.1.0
     repository: file://../presk-control-tower
     condition: presk-control-tower.enabled
+  - name: presk-app
+    alias: presk-projects
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-projects.enabled
+  - name: presk-app
+    alias: presk-calendars
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-calendars.enabled
+  - name: presk-app
+    alias: presk-files
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-files.enabled
+  - name: presk-app
+    alias: presk-messages
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-messages.enabled
+  - name: presk-app
+    alias: presk-crm
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-crm.enabled
+  - name: presk-app
+    alias: presk-hr
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-hr.enabled
+  - name: presk-app
+    alias: presk-portal
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-portal.enabled
+  - name: presk-app
+    alias: presk-copilot
+    version: 0.1.0
+    repository: file://../presk-app
+    condition: presk-copilot.enabled

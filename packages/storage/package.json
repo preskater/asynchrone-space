@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/storage",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": { "lint": "eslint", "typecheck": "tsc --noEmit", "format": "prettier --write \"**/*.{ts,tsx}\"" },
+  "dependencies": {
+    "@workspace/db": "*",
+    "pg": "^8.23.1",
+    "pg-large-object": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@types/pg-large-object": "^2.0.7",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": { ".": "./src/index.ts" }
+}

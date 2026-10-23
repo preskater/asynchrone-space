@@ -9,13 +9,10 @@ test("core routes have no serious accessibility violations", async ({
   const slug = await signUp(page)
 
   const routes = [
-    `/${slug}`,
-    `/${slug}/projects`,
-    `/${slug}/files`,
-    `/${slug}/messages`,
-    `/${slug}/calendars`,
     `/${slug}/search`,
     `/${slug}/settings`,
+    `/${slug}/help`,
+    `/${slug}/feedback`,
   ]
 
   for (const route of routes) {

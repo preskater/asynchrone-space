@@ -1,0 +1,41 @@
+{
+  "name": "@workspace/app-shell",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@workspace/appearance": "*",
+    "@workspace/auth": "*",
+    "@workspace/core": "*",
+    "@workspace/db": "*",
+    "@workspace/i18n": "*",
+    "@workspace/notifications": "*",
+    "@workspace/organization": "*",
+    "@workspace/ui": "*",
+    "lucide-react": "^1.56.0",
+    "next": "16.4.2",
+    "next-intl": "^4.14.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./server": "./src/server.ts",
+    "./recents": "./src/recents.ts"
+  }
+}

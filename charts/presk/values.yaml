@@ -52,6 +52,15 @@ presk-web:
 
   config:
     BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
     NEXT_PUBLIC_APP_URL: https://presk.re
     CONTROL_TOWER_URL: https://control-tower.presk.re
     # Keep replicas x DATABASE_POOL_MAX below the database connection limit.
@@ -72,11 +81,11 @@ presk-web:
     image: curlimages/curl:8.16.0
     secretName: ""
     uploadsSweep:
-      enabled: true
+      enabled: false
       schedule: "0 3 * * *"
       path: /api/files/uploads/sweep
     repositorySync:
-      enabled: true
+      enabled: false
       schedule: "0 * * * *"
       path: /api/cron/repository-sync
 
@@ -163,3 +172,439 @@ migrate:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+
+# ---------------------------------------------------------------------------
+# projects
+# ---------------------------------------------------------------------------
+presk-projects:
+  enabled: true
+  nameOverride: projects
+  image:
+    repository: ghcr.io/preskater/presk-projects
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: projects.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: true
+  cache:
+    mountPath: /usr/src/presk/apps/projects/.next/cache
+
+# ---------------------------------------------------------------------------
+# calendars
+# ---------------------------------------------------------------------------
+presk-calendars:
+  enabled: true
+  nameOverride: calendars
+  image:
+    repository: ghcr.io/preskater/presk-calendars
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: calendars.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+
+# ---------------------------------------------------------------------------
+# files
+# ---------------------------------------------------------------------------
+presk-files:
+  enabled: true
+  nameOverride: files
+  image:
+    repository: ghcr.io/preskater/presk-files
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: files.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: true
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/files/.next/cache
+
+# ---------------------------------------------------------------------------
+# messages
+# ---------------------------------------------------------------------------
+presk-messages:
+  enabled: true
+  nameOverride: messages
+  image:
+    repository: ghcr.io/preskater/presk-messages
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: messages.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+
+# ---------------------------------------------------------------------------
+# crm
+# ---------------------------------------------------------------------------
+presk-crm:
+  enabled: true
+  nameOverride: crm
+  image:
+    repository: ghcr.io/preskater/presk-crm
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: crm.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+
+# ---------------------------------------------------------------------------
+# hr
+# ---------------------------------------------------------------------------
+presk-hr:
+  enabled: true
+  nameOverride: hr
+  image:
+    repository: ghcr.io/preskater/presk-hr
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: hr.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+
+# ---------------------------------------------------------------------------
+# portal
+# ---------------------------------------------------------------------------
+presk-portal:
+  enabled: true
+  nameOverride: portal
+  image:
+    repository: ghcr.io/preskater/presk-portal
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: portal.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+
+# ---------------------------------------------------------------------------
+# copilot
+# ---------------------------------------------------------------------------
+presk-copilot:
+  enabled: true
+  nameOverride: copilot
+  image:
+    repository: ghcr.io/preskater/presk-copilot
+    tag: ""
+    pullPolicy: IfNotPresent
+  replicaCount: 2
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: copilot.presk.re
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+  config:
+    BETTER_AUTH_URL: https://presk.re
+    AUTH_COOKIE_DOMAIN: ".presk.re"
+    PROJECTS_APP_URL: https://projects.presk.re
+    CALENDARS_APP_URL: https://calendars.presk.re
+    FILES_APP_URL: https://files.presk.re
+    MESSAGES_APP_URL: https://messages.presk.re
+    CRM_APP_URL: https://crm.presk.re
+    HR_APP_URL: https://hr.presk.re
+    PORTAL_APP_URL: https://portal.presk.re
+    COPILOT_APP_URL: https://copilot.presk.re
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    secretName: ""
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache

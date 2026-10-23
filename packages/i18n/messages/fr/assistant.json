@@ -1,0 +1,20 @@
+{
+  "title": "Assistant Presk",
+  "subtitle": "Posez vos questions sur votre espace de travail — projets, tâches, fichiers, calendriers et messages.",
+  "thinking": "Réflexion",
+  "thinkingEllipsis": "Réflexion…",
+  "collapse": "Réduire l'assistant",
+  "placeholder": "Demandez à l'assistant Presk…",
+  "ask": "Demandez à l'assistant Presk",
+  "send": "Envoyer",
+  "error": "L'assistant a rencontré une erreur. Veuillez réessayer.",
+  "catchMeUp": "Rattrapez-moi",
+  "catchMeUpPrompt": "Rattrapez-moi sur mon espace de travail",
+  "planMyDay": "Planifier ma journée",
+  "planMyDayPrompt": "Aidez-moi à planifier ma journée",
+  "summarizeProject": "Résumer un projet",
+  "summarizeProjectPrompt": "Résumez le projet Refonte du site web",
+  "draftMessage": "Rédiger un message",
+  "draftMessagePrompt": "Rédigez un message pour le canal ingénierie",
+  "newChat": "Nouvelle conversation"
+}

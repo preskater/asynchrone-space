@@ -11,13 +11,13 @@ const { orgQuotaBytes, orgUsedBytes } = vi.hoisted(() => ({
   orgUsedBytes: vi.fn(),
 }))
 
-vi.mock("@/lib/large-object", () => ({
+vi.mock("@workspace/storage", () => ({
   openLargeObjectStream,
   uploadLargeObject,
   unlinkLargeObject,
 }))
 
-vi.mock("./storage", () => ({ orgQuotaBytes, orgUsedBytes }))
+vi.mock("@workspace/files/storage", () => ({ orgQuotaBytes, orgUsedBytes }))
 
 import type { RequestContext } from "@/lib/core/context"
 

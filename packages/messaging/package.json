@@ -1,0 +1,39 @@
+{
+  "name": "@workspace/messaging",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": { "lint": "eslint", "typecheck": "tsc --noEmit", "format": "prettier --write \"**/*.{ts,tsx}\"" },
+  "dependencies": {
+    "@workspace/auth": "*",
+    "@workspace/core": "*",
+    "@workspace/db": "*",
+    "@workspace/organization": "*",
+    "@workspace/projects": "*",
+    "@workspace/i18n": "*",
+    "@workspace/app-shell": "*",
+    "next-intl": "^4.14.9",
+    "react": "19.3.0",
+    "sonner": "^2.0.8",
+    "@workspace/storage": "*",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./schemas": "./src/schemas.ts",
+    "./repository": "./src/repository.ts",
+    "./service": "./src/service.ts",
+    "./format": "./src/format.ts",
+    "./store": "./src/store.tsx",
+    "./actions": "./src/actions.ts"
+  }
+}

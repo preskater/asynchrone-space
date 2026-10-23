@@ -1,0 +1,173 @@
+# Default values for a generic Presk domain app.
+#
+# The umbrella chart (charts/presk) overrides these values for a full
+# production release. Every value here is safe to override with `--set` or a
+# values file.
+
+# Propagated by the umbrella chart. `global.imageTag` lets one tag pin every
+# Presk image in the release.
+global:
+  imageTag: ""
+  imagePullSecrets: []
+
+replicaCount: 2
+
+image:
+  repository: ghcr.io/preskater/presk
+  # Falls back to global.imageTag. One of the two must be set.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 80
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+    # nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    # nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    # nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+  hosts:
+    - host: presk.re
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+    # - secretName: presk-tls
+    #   hosts:
+    #     - presk.re
+
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: ""
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Requests/limits deliberately empty: set them per cluster. The app holds one
+# database connection per in-flight file transfer, so memory scales with the
+# size of concurrent uploads/downloads.
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    # Checks the database as well as the server.
+    path: /api/health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+terminationGracePeriodSeconds: 30
+
+# Non-secret runtime configuration. Rendered into a ConfigMap and consumed
+# with envFrom. Empty values are omitted so the app's own defaults apply.
+config:
+  BETTER_AUTH_URL: http://localhost:3000
+  AUTH_COOKIE_DOMAIN: ""
+  PROJECTS_APP_URL: http://localhost:3003
+  CALENDARS_APP_URL: http://localhost:3004
+  FILES_APP_URL: http://localhost:3005
+  MESSAGES_APP_URL: http://localhost:3006
+  CRM_APP_URL: http://localhost:3007
+  HR_APP_URL: http://localhost:3008
+  PORTAL_APP_URL: http://localhost:3009
+  COPILOT_APP_URL: http://localhost:3010
+  DATABASE_POOL_MAX: "5"
+  MCP_RESOURCE_URL: ""
+  OPENAI_API_URL: ""
+  ASSISTANT_MODEL: gpt-4o-mini
+  EMAIL_FROM: ""
+  REQUIRE_EMAIL_VERIFICATION: "false"
+  GITHUB_CLIENT_ID: ""
+  GITLAB_CLIENT_ID: ""
+
+# Existing Secret containing DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET and
+# any optional API keys (OPENAI_API_KEY, RESEND_API_KEY, GITHUB_CLIENT_SECRET,
+# GITLAB_CLIENT_SECRET). The chart never creates or stores secrets.
+secret:
+  existingSecret: presk-app-secrets
+
+extraEnv: []
+extraEnvFrom: []
+extraVolumes: []
+extraVolumeMounts: []
+
+# The Next.js server writes its incremental/image cache here at runtime. Keep
+# it on an emptyDir because the container root filesystem is read-only.
+cache:
+  mountPath: /usr/src/presk/apps/web/.next/cache
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Optional scheduled jobs (used by the projects and files apps).
+cronjobs:
+  image: curlimages/curl:8.16.0
+  secretName: ""
+  timeoutSeconds: 60
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 300
+  uploadsSweep:
+    enabled: false
+    schedule: "0 3 * * *"
+    path: /api/files/uploads/sweep
+  repositorySync:
+    enabled: false
+    schedule: "0 * * * *"
+    path: /api/cron/repository-sync
+
+tests:
+  image: busybox:1.37.0

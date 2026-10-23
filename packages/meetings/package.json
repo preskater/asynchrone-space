@@ -1,0 +1,45 @@
+{
+  "name": "@workspace/meetings",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": { "lint": "eslint", "typecheck": "tsc --noEmit", "format": "prettier --write \"**/*.{ts,tsx}\"" },
+  "dependencies": {
+    "@workspace/app-shell": "*",
+    "@workspace/auth": "*",
+    "@workspace/core": "*",
+    "@workspace/db": "*",
+    "@workspace/notifications": "*",
+    "@workspace/i18n": "*",
+    "@workspace/messaging": "*",
+    "@workspace/organization": "*",
+    "@workspace/portal": "*",
+    "@workspace/projects": "*",
+    "@workspace/ui": "*",
+    "lucide-react": "^1.56.0",
+    "next": "16.4.2",
+    "next-intl": "^4.14.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./schemas": "./src/schemas.ts",
+    "./service": "./src/service.ts",
+    "./repository": "./src/repository.ts",
+    "./providers": "./src/providers.ts",
+    "./actions": "./src/actions.ts",
+    "./ui/*": "./src/ui/*.tsx"
+  }
+}

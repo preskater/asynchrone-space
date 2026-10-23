@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 
+import { PROJECTS_E2E_URL } from "./env"
 import { signUp } from "./fixtures"
 
 /**
@@ -33,12 +34,12 @@ test("a member cannot remove themselves from the workspace", async ({
 }) => {
   const slug = await signUp(page)
 
-  await page.goto(`/${slug}/projects`)
+  await page.goto(`${PROJECTS_E2E_URL}/${slug}/projects`)
   const projectId = await createProject(page, "Guarded project")
 
   // The project settings members tab is the surface that offers removing
   // your own membership; the service must reject it.
-  await page.goto(`/${slug}/projects/${projectId}`)
+  await page.goto(`${PROJECTS_E2E_URL}/${slug}/projects/${projectId}`)
   const removeSelf = page.getByRole("button", { name: "Remove E2E User" })
   await expect(async () => {
     await page.getByRole("tab", { name: "Settings" }).click()
@@ -69,7 +70,7 @@ test("a user cannot read another organization's project", async ({
   const pageA = await contextA.newPage()
   const slugA = await signUp(pageA)
 
-  await pageA.goto(`/${slugA}/projects`)
+  await pageA.goto(`${PROJECTS_E2E_URL}/${slugA}/projects`)
   const projectId = await createProject(pageA, "Owner A private project")
 
   const contextB = await browser.newContext()
@@ -78,7 +79,7 @@ test("a user cannot read another organization's project", async ({
 
   // B's own workspace URL plus A's project id: the project lookup is scoped
   // to B's organization and must answer "not found" — never render the name.
-  await pageB.goto(`/${slugB}/projects/${projectId}`)
+  await pageB.goto(`${PROJECTS_E2E_URL}/${slugB}/projects/${projectId}`)
   await expect(pageB.getByText("Project not found")).toBeVisible()
   await expect(pageB.getByText("Owner A private project")).not.toBeVisible()
 

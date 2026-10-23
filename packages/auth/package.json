@@ -1,0 +1,36 @@
+{
+  "name": "@workspace/auth",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@better-auth/cimd": "^1.7.7",
+    "@better-auth/mcp": "^1.7.7",
+    "@better-auth/oauth-provider": "^1.7.7",
+    "@workspace/core": "*",
+    "@workspace/db": "*",
+    "@workspace/organization": "*",
+    "better-auth": "^1.7.7",
+    "next": "16.4.2",
+    "react": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": {
+    "./server": "./src/server.ts",
+    "./client": "./src/client.ts",
+    "./actions": "./src/actions.ts"
+  }
+}

@@ -33,6 +33,15 @@ COPY --from=prepare ${WORKDIR}/out/full/ .
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV BETTER_AUTH_SECRET=build-placeholder-secret-not-used-at-runtime
 ENV BETTER_AUTH_URL=http://localhost:3000
+ENV AUTH_COOKIE_DOMAIN=
+ENV PROJECTS_APP_URL=http://localhost:3003
+ENV CALENDARS_APP_URL=http://localhost:3004
+ENV FILES_APP_URL=http://localhost:3005
+ENV MESSAGES_APP_URL=http://localhost:3006
+ENV CRM_APP_URL=http://localhost:3007
+ENV HR_APP_URL=http://localhost:3008
+ENV PORTAL_APP_URL=http://localhost:3009
+ENV COPILOT_APP_URL=http://localhost:3010
 # Required by the control-tower build (unused by the web build).
 ENV CONTROL_TOWER_BETTER_AUTH_SECRET=build-placeholder-control-tower-secret-not-used
 ENV PLATFORM_APP_URL=http://localhost:3000

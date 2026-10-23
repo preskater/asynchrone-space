@@ -5,14 +5,18 @@ import { AuthHomeButton } from "@/components/auth-home-button"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 
 import { auth } from "@/lib/auth"
+import { appOrigin } from "@/lib/app-urls"
 import { getPortalContext } from "@/lib/portal/context"
 import { prisma } from "@/lib/prisma"
 
 export default async function OnboardingPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ create?: string }>
 }) {
+  const { locale } = await params
   const { create } = await searchParams
 
   const session = await auth.api.getSession({ headers: await headers() })
@@ -23,7 +27,7 @@ export default async function OnboardingPage({
 
   // Client-portal users belong in their portal, not the onboarding flow.
   if (await getPortalContext()) {
-    redirect("/portal")
+    redirect(`${appOrigin("portal")}/${locale}`)
   }
 
   const organizations = await auth.api.listOrganizations({

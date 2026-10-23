@@ -1,15 +1,17 @@
 /**
  * Shared by `playwright.config.ts` and the specs.
  *
- * Both the app and the browser context must agree on one origin: Better Auth
- * rejects sign-up / organization requests whose `Origin` header does not match
- * `BETTER_AUTH_URL`, so the config exports this value to the dev server and
- * `fixtures.ts` sends it as the `Origin` header.
+ * The shell and the domain apps run on different local ports; cookies are
+ * shared across `localhost` ports, so one sign-up authenticates all of them.
  */
 
-/** Dedicated port so the suite never collides with another app on :3000. */
-export const E2E_PORT = Number(process.env.E2E_PORT ?? 3010)
+export const E2E_PORT = Number(process.env.E2E_PORT ?? 3020)
+export const PROJECTS_E2E_PORT = Number(process.env.PROJECTS_E2E_PORT ?? 3021)
+export const FILES_E2E_PORT = Number(process.env.FILES_E2E_PORT ?? 3022)
 
-/** Origin the suite drives. Override to reuse an already running server. */
 export const E2E_BASE_URL =
   process.env.E2E_BASE_URL ?? `http://localhost:${E2E_PORT}`
+export const PROJECTS_E2E_URL =
+  process.env.PROJECTS_E2E_URL ?? `http://localhost:${PROJECTS_E2E_PORT}`
+export const FILES_E2E_URL =
+  process.env.FILES_E2E_URL ?? `http://localhost:${FILES_E2E_PORT}`

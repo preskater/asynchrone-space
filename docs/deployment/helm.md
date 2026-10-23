@@ -6,8 +6,9 @@ installs both from the umbrella chart in `charts/presk`.
 ```
 charts/
   presk/                 # umbrella: dependencies, migration hook, values
-  presk-web/             # customer app, ingress, CronJobs
+  presk-web/             # customer shell: auth, marketing, settings, MCP
   presk-control-tower/   # internal platform app, ingress
+  presk-app/             # generic domain app, instantiated per alias
 ```
 
 ## Prerequisites
@@ -37,13 +38,14 @@ charts/
 
 ## Images
 
-`.github/workflows/docker.yml` publishes three images for every push to `main`
+`.github/workflows/docker.yml` publishes one image per app for every push to `main`
 and every `v*` tag:
 
 | Image | Built from | Purpose |
 | --- | --- | --- |
 | `ghcr.io/preskater/presk` | `runner` stage, `APP=web` | Customer app |
 | `ghcr.io/preskater/presk-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
+| `ghcr.io/preskater/presk-projects` … `presk-copilot` | `runner` stage, `APP=<domain>` | Domain apps |
 | `ghcr.io/preskater/presk-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
 
 The workflow tags images with the branch, the release tag and `sha-<shortsha>`.
@@ -121,13 +123,12 @@ lists. The defaults already target `presk.re` and
 
 | Resource | Name | Notes |
 | --- | --- | --- |
-| Deployment | `presk-web` | 2 replicas by default |
-| Deployment | `presk-control-tower` | 2 replicas by default |
-| Service | `presk-web`, `presk-control-tower` | ClusterIP, port 80 → container 3000 |
-| Ingress | `presk-web`, `presk-control-tower` | One host each |
-| ConfigMap | `presk-web`, `presk-control-tower` | Non-secret runtime config |
-| CronJob | `presk-web-uploads-sweep` | `0 3 * * *` |
-| CronJob | `presk-web-repository-sync` | `0 * * * *` |
+| Deployment | `presk-web`, `presk-control-tower`, `presk-<domain>` | 2 replicas by default |
+| Service | `presk-web`, `presk-control-tower`, `presk-<domain>` | ClusterIP, port 80 → container 3000 |
+| Ingress | one per app | Shell at `presk.re`; domains at `<domain>.presk.re` |
+| ConfigMap | one per app | Non-secret runtime config |
+| CronJob | `presk-files-uploads-sweep` | `0 3 * * *` |
+| CronJob | `presk-projects-repository-sync` | `0 * * * *` |
 | Job (hook) | `presk-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `presk-web`, `presk-control-tower`, `presk-migrate` | Token automount disabled |
 | PDB | `presk-web`, `presk-control-tower` | `minAvailable: 1` |
@@ -188,7 +189,7 @@ upload chunk.
 Each pod opens one pool (`DATABASE_POOL_MAX`, default 10 in the chart). Keep:
 
 ```
-(web replicas + control-tower replicas) × DATABASE_POOL_MAX
+(shell + control tower + all domain apps replicas) × DATABASE_POOL_MAX
   + migration/cron headroom
 ```
 
@@ -242,11 +243,11 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 
 ## Scheduled jobs
 
-The two CronJobs replace the former Vercel crons and call the in-cluster
+The two CronJobs replace the former Vercel crons and call the owning app
 Service. Both send `Authorization: Bearer $CRON_SECRET`, read from
 `presk-web-secrets`; the corresponding route rejects a missing/incorrect token
 when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
-runs. Change schedules through `presk-web.cronjobs.<job>.schedule`.
+runs. Change schedules through `presk-files.cronjobs.uploadsSweep.schedule` or `presk-projects.cronjobs.repositorySync.schedule`.
 
 ## Upgrades and rollback
 

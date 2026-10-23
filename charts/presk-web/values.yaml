@@ -111,6 +111,15 @@ terminationGracePeriodSeconds: 30
 # with envFrom. Empty values are omitted so the app's own defaults apply.
 config:
   BETTER_AUTH_URL: http://localhost:3000
+  AUTH_COOKIE_DOMAIN: ""
+  PROJECTS_APP_URL: http://localhost:3003
+  CALENDARS_APP_URL: http://localhost:3004
+  FILES_APP_URL: http://localhost:3005
+  MESSAGES_APP_URL: http://localhost:3006
+  CRM_APP_URL: http://localhost:3007
+  HR_APP_URL: http://localhost:3008
+  PORTAL_APP_URL: http://localhost:3009
+  COPILOT_APP_URL: http://localhost:3010
   NEXT_PUBLIC_APP_URL: http://localhost:3000
   CONTROL_TOWER_URL: http://localhost:3001
   DATABASE_POOL_MAX: "10"
@@ -156,11 +165,11 @@ cronjobs:
   activeDeadlineSeconds: 600
   ttlSecondsAfterFinished: 300
   uploadsSweep:
-    enabled: true
+    enabled: false
     schedule: "0 3 * * *"
     path: /api/files/uploads/sweep
   repositorySync:
-    enabled: true
+    enabled: false
     schedule: "0 * * * *"
     path: /api/cron/repository-sync
 

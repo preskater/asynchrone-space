@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { OrganizationSync } from "@/components/organization/organization-sync"
 
 import { auth } from "@/lib/auth"
+import { appOrigin } from "@/lib/app-urls"
 import { isPortalMember } from "@/lib/portal/context"
 
 export default async function OrganizationLayout({
@@ -11,9 +12,9 @@ export default async function OrganizationLayout({
   params,
 }: Readonly<{
   children: React.ReactNode
-  params: Promise<{ orgSlug: string }>
+  params: Promise<{ locale: string; orgSlug: string }>
 }>) {
-  const { orgSlug } = await params
+  const { locale, orgSlug } = await params
 
   const session = await auth.api.getSession({ headers: await headers() })
 
@@ -37,7 +38,7 @@ export default async function OrganizationLayout({
 
   // Client-portal members only ever see their portal.
   if (await isPortalMember(organization.id, session.user.id)) {
-    redirect("/portal")
+    redirect(`${appOrigin("portal")}/${locale}`)
   }
 
   const needsSync = session.session.activeOrganizationId !== organization.id

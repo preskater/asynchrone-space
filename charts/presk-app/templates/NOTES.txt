@@ -1,0 +1,18 @@
+Presk domain app installed.
+
+Environment:
+  BETTER_AUTH_URL: {{ .Values.config.BETTER_AUTH_URL | default "not set" }}
+  AUTH_COOKIE_DOMAIN: {{ .Values.config.AUTH_COOKIE_DOMAIN | default "not set" }}
+
+Required Secret: {{ .Values.secret.existingSecret }}
+  It must contain DATABASE_URL and BETTER_AUTH_SECRET (plus any optional
+  provider keys). Missing required keys make the pods fail at boot.
+
+{{- if .Values.ingress.enabled }}
+Ingress hosts:
+{{- range .Values.ingress.hosts }}
+  - http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+Service (cluster-internal): {{ include "presk-app.fullname" . }}:{{ .Values.service.port }}
+{{- end }}

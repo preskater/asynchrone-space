@@ -1,0 +1,55 @@
+{
+  "name": "@workspace/projects",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{ts,tsx}\""
+  },
+  "dependencies": {
+    "@workspace/app-shell": "*",
+    "@workspace/auth": "*",
+    "@workspace/core": "*",
+    "@workspace/db": "*",
+    "@workspace/i18n": "*",
+    "@workspace/integrations": "*",
+    "@workspace/notifications": "*",
+    "@workspace/organization": "*",
+    "@workspace/ui": "*",
+    "date-fns": "^4.4.0",
+    "lucide-react": "^1.56.0",
+    "next": "16.4.2",
+    "next-intl": "^4.14.9",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types.ts",
+    "./schemas": "./src/schemas.ts",
+    "./store": "./src/store.tsx",
+    "./activity": "./src/activity.ts",
+    "./thread": "./src/thread.ts",
+    "./repository": "./src/repository.ts",
+    "./service": "./src/service.ts",
+    "./task-comments": "./src/task-comments.ts",
+    "./message-schemas": "./src/message-schemas.ts",
+    "./actions": "./src/actions.ts",
+    "./message-actions": "./src/message-actions.ts",
+    "./ui/*": "./src/ui/*.tsx"
+  }
+}

@@ -8,6 +8,21 @@ volumes:
   postgres-data:
 
 services:
+x-domain-app-environment: &domain-app-environment
+  NODE_ENV: production
+  DATABASE_URL: postgresql://${POSTGRES_USER:-preskater}:${POSTGRES_PASSWORD:-preskater}@postgres:5432/${POSTGRES_DB:-preskater}?schema=public
+  BETTER_AUTH_URL: http://localhost:3002
+  AUTH_COOKIE_DOMAIN: ""
+  PROJECTS_APP_URL: http://localhost:3003
+  CALENDARS_APP_URL: http://localhost:3004
+  FILES_APP_URL: http://localhost:3005
+  MESSAGES_APP_URL: http://localhost:3006
+  CRM_APP_URL: http://localhost:3007
+  HR_APP_URL: http://localhost:3008
+  PORTAL_APP_URL: http://localhost:3009
+  COPILOT_APP_URL: http://localhost:3010
+  CONTROL_TOWER_URL: http://localhost:3001
+
   postgres:
     image: postgres:18.6-alpine3.24
     environment:
@@ -85,6 +100,166 @@ services:
       - DATABASE_URL=postgresql://${POSTGRES_USER:-preskater}:${POSTGRES_PASSWORD:-preskater}@postgres:5432/${POSTGRES_DB:-preskater}?schema=public
       - BETTER_AUTH_URL=http://localhost:3001
       - PLATFORM_APP_URL=http://localhost:3002
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  projects:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: projects
+    ports:
+      - "3003:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  calendars:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: calendars
+    ports:
+      - "3004:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  files:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: files
+    ports:
+      - "3005:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  messages:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: messages
+    ports:
+      - "3006:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  crm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: crm
+    ports:
+      - "3007:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  hr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: hr
+    ports:
+      - "3008:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: portal
+    ports:
+      - "3009:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
+    networks:
+      - postgres-network
+
+  copilot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        APP: copilot
+    ports:
+      - "3010:3000"
+    env_file:
+      - path: apps/web/.env
+        required: false
+    environment: *domain-app-environment
     depends_on:
       postgres:
         condition: service_healthy
