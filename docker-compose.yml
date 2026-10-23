@@ -7,7 +7,6 @@ networks:
 volumes:
   postgres-data:
 
-services:
 x-domain-app-environment: &domain-app-environment
   NODE_ENV: production
   DATABASE_URL: postgresql://${POSTGRES_USER:-preskater}:${POSTGRES_PASSWORD:-preskater}@postgres:5432/${POSTGRES_DB:-preskater}?schema=public
@@ -23,6 +22,7 @@ x-domain-app-environment: &domain-app-environment
   COPILOT_APP_URL: http://localhost:3010
   CONTROL_TOWER_URL: http://localhost:3001
 
+services:
   postgres:
     image: postgres:18.6-alpine3.24
     environment:
