@@ -18,13 +18,13 @@
   "dependencies": {
     "@workspace/db": "*",
     "@workspace/ui": "*",
-    "better-auth": "^1.7.7",
-    "dotenv": "^18.0.7",
-    "lucide-react": "^1.56.0",
+    "better-auth": "^1.7.12",
+    "dotenv": "^18.0.8",
+    "lucide-react": "^1.60.0",
     "next": "16.4.2",
     "next-themes": "^0.4.6",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "sonner": "^2.0.8",
     "zod": "^4.6.7"
   },
@@ -34,7 +34,7 @@
     "@types/react-dom": "^19",
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
-    "eslint": "^10",
+    "eslint": "^10.13.0",
     "tsx": "^4.23.15",
     "typescript": "^7"
   }
