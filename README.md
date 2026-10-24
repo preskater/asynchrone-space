@@ -40,8 +40,8 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | `apps/calendars` | Calendars, events, meeting requests and settings. |
 | `apps/files` | Files, uploads, versions and shares. |
 | `apps/messages` | Conversations, threads and attachments. |
-| `apps/crm` | Clients, contacts, pipelines and deals. |
-| `apps/hr` | HR profiles, attendance, leave and payroll views. |
+| `apps/clients` | Clients, contacts, pipelines and deals. |
+| `apps/employees` | Employee profiles, attendance, leave and payroll views. |
 | `apps/portal` | Client-facing portal (documents, meetings, projects). |
 | `apps/copilot` | AI chat with persisted conversations; call copilot groundwork. |
 | `apps/control-tower` | Internal platform administration app (organizations, users, audit, ops). |
@@ -50,7 +50,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | `packages/organization` | Member directory types, roles, plans and permissions. |
 | `packages/i18n` | next-intl routing and the en/fr message catalogs. |
 | `packages/app-shell` | Shared workspace shell, sidebar, header and appearance/recents providers. |
-| `packages/projects`, `calendars`, `files`, `messaging`, `crm`, `hr`, `meetings`, `portal`, `ai` | Domain services, schemas and UI. |
+| `packages/projects`, `calendars`, `files`, `messaging`, `clients`, `employees`, `meetings`, `portal`, `ai` | Domain services, schemas and UI. |
 | `packages/notifications`, `integrations`, `appearance`, `storage` | Cross-domain services. |
 | `packages/db` | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
 | `packages/ui` | Shared UI component library. |
@@ -103,7 +103,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 
    The shell is available at http://localhost:3000. `npm run dev` also starts
    projects (`:3003`), calendars (`:3004`), files (`:3005`), messages (`:3006`),
-   crm (`:3007`), hr (`:3008`), portal (`:3009`) and copilot (`:3010`).
+   clients (`:3007`), employees (`:3008`), portal (`:3009`) and copilot (`:3010`).
 
 > Prefer containers? `docker compose up --build` runs PostgreSQL, applies
 > migrations, serves the customer app on port **3002** and the control tower on
@@ -244,16 +244,17 @@ npm run verify:large-object --workspace=web
 
 ## Deployment
 
-The Docker workflow publishes three images to GHCR:
+The Docker workflow publishes one image per app to GHCR:
 
 | Image | Dockerfile stage | Runs |
 | --- | --- | --- |
-| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer app |
+| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer shell |
+| `ghcr.io/preskater/presk-projects` … `presk-copilot` | `runner` (`APP=<app>`) | Domain apps |
 | `ghcr.io/preskater/presk-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
 | `ghcr.io/preskater/presk-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
 
 Deploy them with the Helm umbrella chart in `charts/presk`, which composes the
-`presk-web` and `presk-control-tower` subcharts:
+`presk-web`, `presk-control-tower` and generic `presk-app` subcharts:
 
 ```bash
 helm dependency build charts/presk

@@ -53,14 +53,14 @@ export default async function WorkspaceLayout({
       href: appUrl("files", { locale, orgSlug }),
     },
     {
-      key: "crm",
-      title: t("crm"),
-      href: appUrl("crm", { locale, orgSlug }),
+      key: "clients",
+      title: t("clients"),
+      href: appUrl("clients", { locale, orgSlug }),
     },
     {
-      key: "hr",
-      title: t("hr"),
-      href: appUrl("hr", { locale, orgSlug }),
+      key: "employees",
+      title: t("employees"),
+      href: appUrl("employees", { locale, orgSlug }),
     },
     {
       key: "copilot",

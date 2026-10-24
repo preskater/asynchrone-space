@@ -29,5 +29,5 @@ dependencies:
 - name: presk-app
   repository: file://../presk-app
   version: 0.1.0
-digest: sha256:ba5dedf2c50c0b1e6d508ccd0b55c71d4154e9b1c667e36fff4fa4b23364579f
-generated: "2026-10-23T18:50:57.839705+02:00"
+digest: sha256:acc0b715f69218b8ca6556e071d401aa115017199ee6634af36fe65e1304fa12
+generated: "2026-10-24T10:57:44.070014+02:00"

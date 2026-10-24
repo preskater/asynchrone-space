@@ -87,7 +87,7 @@ export class PortalService {
         },
         orderBy: { createdAt: "desc" },
       }),
-      prisma.crmDocument.findMany({
+      prisma.clientDocument.findMany({
         where: {
           organizationId: ctx.organizationId,
           entity: "client",
@@ -374,7 +374,7 @@ export class PortalService {
 
   /** All documents shared with the client's company. */
   async getDocuments(ctx: PortalContext): Promise<PortalDocumentData[]> {
-    const links = await prisma.crmDocument.findMany({
+    const links = await prisma.clientDocument.findMany({
       where: {
         organizationId: ctx.organizationId,
         entity: "client",
@@ -477,7 +477,7 @@ export class PortalService {
       sha256: uploaded.sha256,
     })
 
-    const link = await prisma.crmDocument.create({
+    const link = await prisma.clientDocument.create({
       data: {
         organizationId: ctx.organizationId,
         fileId: file.id,
@@ -576,7 +576,7 @@ export class PortalService {
   }
 
   // ---------------------------------------------------------------------------
-  // Access management (internal CRM side)
+  // Access management (internal Clients side)
   // ---------------------------------------------------------------------------
 
   /** Portal users and pending invitations of a company. */

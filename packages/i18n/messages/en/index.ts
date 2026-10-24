@@ -8,7 +8,7 @@ import auth from "./auth.json"
 import blog from "./blog.json"
 import calendars from "./calendars.json"
 import common from "./common.json"
-import crm from "./crm.json"
+import clients from "./clients.json"
 import enums from "./enums.json"
 import error from "./error.json"
 import errors from "./errors.json"
@@ -16,7 +16,7 @@ import feedback from "./feedback.json"
 import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
-import hr from "./hr.json"
+import employees from "./employees.json"
 import impersonation from "./impersonation.json"
 import landing from "./landing.json"
 import legal from "./legal.json"
@@ -48,7 +48,7 @@ export default {
   Blog: blog,
   Calendars: calendars,
   Common: common,
-  Crm: crm,
+  Clients: clients,
   Enums: enums,
   Error: error,
   Errors: errors,
@@ -56,7 +56,7 @@ export default {
   Files: files,
   Footer: footer,
   Forms: forms,
-  Hr: hr,
+  Employees: employees,
   Impersonation: impersonation,
   Landing: landing,
   Legal: legal,

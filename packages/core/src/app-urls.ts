@@ -17,8 +17,8 @@ export const APP_KEYS = [
   "calendars",
   "files",
   "messages",
-  "crm",
-  "hr",
+  "clients",
+  "employees",
   "portal",
   "copilot",
 ] as const
@@ -66,16 +66,16 @@ export const APPS: Record<AppKey, AppDefinition> = {
     envVar: "MESSAGES_APP_URL",
     devUrl: "http://localhost:3006",
   },
-  crm: {
-    key: "crm",
-    titleKey: "crm",
-    envVar: "CRM_APP_URL",
+  clients: {
+    key: "clients",
+    titleKey: "clients",
+    envVar: "CLIENTS_APP_URL",
     devUrl: "http://localhost:3007",
   },
-  hr: {
-    key: "hr",
-    titleKey: "hr",
-    envVar: "HR_APP_URL",
+  employees: {
+    key: "employees",
+    titleKey: "employees",
+    envVar: "EMPLOYEES_APP_URL",
     devUrl: "http://localhost:3008",
   },
   portal: {

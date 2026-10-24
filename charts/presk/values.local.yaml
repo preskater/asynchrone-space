@@ -49,8 +49,8 @@ presk-web:
     CALENDARS_APP_URL: https://calendars.presk.lvh.me
     FILES_APP_URL: https://files.presk.lvh.me
     MESSAGES_APP_URL: https://messages.presk.lvh.me
-    CRM_APP_URL: https://crm.presk.lvh.me
-    HR_APP_URL: https://hr.presk.lvh.me
+    CLIENTS_APP_URL: https://clients.presk.lvh.me
+    EMPLOYEES_APP_URL: https://employees.presk.lvh.me
     PORTAL_APP_URL: https://portal.presk.lvh.me
     COPILOT_APP_URL: https://copilot.presk.lvh.me
     DATABASE_POOL_MAX: "5"
@@ -123,8 +123,8 @@ presk-projects:
     CALENDARS_APP_URL: https://calendars.presk.lvh.me
     FILES_APP_URL: https://files.presk.lvh.me
     MESSAGES_APP_URL: https://messages.presk.lvh.me
-    CRM_APP_URL: https://crm.presk.lvh.me
-    HR_APP_URL: https://hr.presk.lvh.me
+    CLIENTS_APP_URL: https://clients.presk.lvh.me
+    EMPLOYEES_APP_URL: https://employees.presk.lvh.me
     PORTAL_APP_URL: https://portal.presk.lvh.me
     COPILOT_APP_URL: https://copilot.presk.lvh.me
     DATABASE_POOL_MAX: "5"
@@ -164,8 +164,8 @@ presk-calendars:
     CALENDARS_APP_URL: https://calendars.presk.lvh.me
     FILES_APP_URL: https://files.presk.lvh.me
     MESSAGES_APP_URL: https://messages.presk.lvh.me
-    CRM_APP_URL: https://crm.presk.lvh.me
-    HR_APP_URL: https://hr.presk.lvh.me
+    CLIENTS_APP_URL: https://clients.presk.lvh.me
+    EMPLOYEES_APP_URL: https://employees.presk.lvh.me
     PORTAL_APP_URL: https://portal.presk.lvh.me
     COPILOT_APP_URL: https://copilot.presk.lvh.me
     DATABASE_POOL_MAX: "5"
@@ -227,54 +227,54 @@ presk-messages:
     existingSecret: presk-web-secrets
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
-presk-crm:
+presk-clients:
   enabled: true
-  nameOverride: crm
+  nameOverride: clients
   image:
-    repository: presk-crm
+    repository: presk-clients
     pullPolicy: IfNotPresent
   replicaCount: 1
   ingress:
     enabled: true
     className: nginx
     hosts:
-      - host: crm.presk.lvh.me
+      - host: clients.presk.lvh.me
         paths:
           - path: /
             pathType: Prefix
     tls:
       - secretName: presk-lvh-tls
         hosts:
-          - crm.presk.lvh.me
+          - clients.presk.lvh.me
   config: *a1
   secret:
     existingSecret: presk-web-secrets
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
-presk-hr:
+    mountPath: /usr/src/presk/apps/clients/.next/cache
+presk-employees:
   enabled: true
-  nameOverride: hr
+  nameOverride: employees
   image:
-    repository: presk-hr
+    repository: presk-employees
     pullPolicy: IfNotPresent
   replicaCount: 1
   ingress:
     enabled: true
     className: nginx
     hosts:
-      - host: hr.presk.lvh.me
+      - host: employees.presk.lvh.me
         paths:
           - path: /
             pathType: Prefix
     tls:
       - secretName: presk-lvh-tls
         hosts:
-          - hr.presk.lvh.me
+          - employees.presk.lvh.me
   config: *a1
   secret:
     existingSecret: presk-web-secrets
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
 presk-portal:
   enabled: true
   nameOverride: portal

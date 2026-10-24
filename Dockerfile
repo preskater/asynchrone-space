@@ -38,8 +38,8 @@ ENV PROJECTS_APP_URL=http://localhost:3003
 ENV CALENDARS_APP_URL=http://localhost:3004
 ENV FILES_APP_URL=http://localhost:3005
 ENV MESSAGES_APP_URL=http://localhost:3006
-ENV CRM_APP_URL=http://localhost:3007
-ENV HR_APP_URL=http://localhost:3008
+ENV CLIENTS_APP_URL=http://localhost:3007
+ENV EMPLOYEES_APP_URL=http://localhost:3008
 ENV PORTAL_APP_URL=http://localhost:3009
 ENV COPILOT_APP_URL=http://localhost:3010
 # Required by the control-tower build (unused by the web build).

@@ -25,8 +25,8 @@ const sharedEnv = {
   CALENDARS_APP_URL: process.env.CALENDARS_APP_URL ?? "http://localhost:3004",
   FILES_APP_URL: FILES_E2E_URL,
   MESSAGES_APP_URL: process.env.MESSAGES_APP_URL ?? "http://localhost:3006",
-  CRM_APP_URL: process.env.CRM_APP_URL ?? "http://localhost:3007",
-  HR_APP_URL: process.env.HR_APP_URL ?? "http://localhost:3008",
+  CLIENTS_APP_URL: process.env.CLIENTS_APP_URL ?? "http://localhost:3007",
+  EMPLOYEES_APP_URL: process.env.EMPLOYEES_APP_URL ?? "http://localhost:3008",
   PORTAL_APP_URL: process.env.PORTAL_APP_URL ?? "http://localhost:3009",
   COPILOT_APP_URL: process.env.COPILOT_APP_URL ?? "http://localhost:3010",
 }

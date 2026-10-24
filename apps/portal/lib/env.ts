@@ -18,8 +18,8 @@ const RULES: Rule[] = [
   { key: "CALENDARS_APP_URL", url: true },
   { key: "FILES_APP_URL", url: true },
   { key: "MESSAGES_APP_URL", url: true },
-  { key: "CRM_APP_URL", url: true },
-  { key: "HR_APP_URL", url: true },
+  { key: "CLIENTS_APP_URL", url: true },
+  { key: "EMPLOYEES_APP_URL", url: true },
   { key: "PORTAL_APP_URL", url: true },
   { key: "COPILOT_APP_URL", url: true },
 ]

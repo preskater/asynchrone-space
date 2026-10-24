@@ -1,5 +1,6 @@
 import {
   BriefcaseIcon,
+  UsersIcon,
   CalendarIcon,
   CommandIcon,
   FileIcon,
@@ -16,8 +17,8 @@ export const WORKSPACE_APP_ICONS = {
   calendars: CalendarIcon,
   files: FileIcon,
   messages: MessageSquareIcon,
-  crm: HandshakeIcon,
-  hr: BriefcaseIcon,
+  clients: HandshakeIcon,
+  employees: UsersIcon,
   portal: GlobeIcon,
   copilot: SparklesIcon,
 } as const

@@ -6,8 +6,6 @@
   "searchDescription": "Recherchez dans vos projets, messages et fichiers.",
   "settingsTitle": "Paramètres",
   "settingsDescription": "Gérez votre organisation, vos membres et vos rôles.",
-  "hrTitle": "Temps & présence",
-  "hrDescription": "Présences, congés, suivi du temps et capacité de votre équipe.",
   "clientsTitle": "Clients",
   "clientsDescription": "Vos sociétés, prospects et clients au même endroit.",
   "contactsTitle": "Contacts",
@@ -30,5 +28,7 @@
   "calendarNotFoundTitle": "Calendrier introuvable",
   "calendarNotFoundDescription": "Ce calendrier n'existe pas ou a peut-être été retiré.",
   "projectNotFoundTitle": "Projet introuvable",
-  "projectNotFoundDescription": "Ce projet a peut-être été supprimé ou le lien est incorrect."
+  "projectNotFoundDescription": "Ce projet a peut-être été supprimé ou le lien est incorrect.",
+  "employeesTitle": "Employés",
+  "employeesDescription": "Personnes, temps, congés, capacité et paie."
 }

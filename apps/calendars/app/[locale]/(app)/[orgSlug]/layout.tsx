@@ -49,8 +49,8 @@ export default async function WorkspaceLayout({
     { key: "messages", title: t("messages"), href: appUrl("messages", { locale, orgSlug }) },
     { key: "calendars", title: t("calendars"), href: appUrl("calendars", { locale, orgSlug }), active: true },
     { key: "files", title: t("files"), href: appUrl("files", { locale, orgSlug }) },
-    { key: "crm", title: t("crm"), href: appUrl("crm", { locale, orgSlug }) },
-    { key: "hr", title: t("hr"), href: appUrl("hr", { locale, orgSlug }) },
+    { key: "clients", title: t("clients"), href: appUrl("clients", { locale, orgSlug }) },
+    { key: "employees", title: t("employees"), href: appUrl("employees", { locale, orgSlug }) },
     { key: "copilot", title: t("assistant"), href: appUrl("copilot", { locale, orgSlug }) },
   ]
   const shell = appOrigin("web")

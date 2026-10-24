@@ -6,13 +6,13 @@
   "projects": "Projets",
   "calendars": "Calendriers",
   "files": "Fichiers",
-  "hr": "RH",
-  "crm": "CRM",
   "settings": "Paramètres",
   "account": "Compte",
   "search": "Rechercher",
   "searchPlaceholder": "Rechercher ou accéder à…",
   "noResults": "Aucun résultat.",
   "feedback": "Retour d'expérience",
-  "getHelp": "Aide"
+  "getHelp": "Aide",
+  "clients": "Clients",
+  "employees": "Employés"
 }

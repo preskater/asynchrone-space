@@ -57,8 +57,8 @@ presk-web:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     NEXT_PUBLIC_APP_URL: https://presk.re
@@ -204,8 +204,8 @@ presk-projects:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -251,8 +251,8 @@ presk-calendars:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -269,9 +269,9 @@ presk-calendars:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:
@@ -308,8 +308,8 @@ presk-files:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -355,8 +355,8 @@ presk-messages:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -373,9 +373,9 @@ presk-messages:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:
@@ -384,11 +384,11 @@ presk-messages:
 # ---------------------------------------------------------------------------
 # crm
 # ---------------------------------------------------------------------------
-presk-crm:
+presk-clients:
   enabled: true
-  nameOverride: crm
+  nameOverride: clients
   image:
-    repository: ghcr.io/preskater/presk-crm
+    repository: ghcr.io/preskater/presk-clients
     tag: ""
     pullPolicy: IfNotPresent
   replicaCount: 2
@@ -400,7 +400,7 @@ presk-crm:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     hosts:
-      - host: crm.presk.re
+      - host: clients.presk.re
         paths:
           - path: /
             pathType: Prefix
@@ -412,8 +412,8 @@ presk-crm:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -430,9 +430,9 @@ presk-crm:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:
@@ -441,11 +441,11 @@ presk-crm:
 # ---------------------------------------------------------------------------
 # hr
 # ---------------------------------------------------------------------------
-presk-hr:
+presk-employees:
   enabled: true
-  nameOverride: hr
+  nameOverride: employees
   image:
-    repository: ghcr.io/preskater/presk-hr
+    repository: ghcr.io/preskater/presk-employees
     tag: ""
     pullPolicy: IfNotPresent
   replicaCount: 2
@@ -457,7 +457,7 @@ presk-hr:
       nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
       nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
     hosts:
-      - host: hr.presk.re
+      - host: employees.presk.re
         paths:
           - path: /
             pathType: Prefix
@@ -469,8 +469,8 @@ presk-hr:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -487,9 +487,9 @@ presk-hr:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:
@@ -526,8 +526,8 @@ presk-portal:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -544,9 +544,9 @@ presk-portal:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:
@@ -583,8 +583,8 @@ presk-copilot:
     CALENDARS_APP_URL: https://calendars.presk.re
     FILES_APP_URL: https://files.presk.re
     MESSAGES_APP_URL: https://messages.presk.re
-    CRM_APP_URL: https://crm.presk.re
-    HR_APP_URL: https://hr.presk.re
+    CLIENTS_APP_URL: https://clients.presk.re
+    EMPLOYEES_APP_URL: https://employees.presk.re
     PORTAL_APP_URL: https://portal.presk.re
     COPILOT_APP_URL: https://copilot.presk.re
     DATABASE_POOL_MAX: "5"
@@ -601,9 +601,9 @@ presk-copilot:
   cache:
     mountPath: /usr/src/presk/apps/portal/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/hr/.next/cache
+    mountPath: /usr/src/presk/apps/employees/.next/cache
   cache:
-    mountPath: /usr/src/presk/apps/crm/.next/cache
+    mountPath: /usr/src/presk/apps/clients/.next/cache
   cache:
     mountPath: /usr/src/presk/apps/messages/.next/cache
   cache:

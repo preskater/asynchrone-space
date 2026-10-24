@@ -35,15 +35,15 @@ dependencies:
     repository: file://../presk-app
     condition: presk-messages.enabled
   - name: presk-app
-    alias: presk-crm
+    alias: presk-clients
     version: 0.1.0
     repository: file://../presk-app
-    condition: presk-crm.enabled
+    condition: presk-clients.enabled
   - name: presk-app
-    alias: presk-hr
+    alias: presk-employees
     version: 0.1.0
     repository: file://../presk-app
-    condition: presk-hr.enabled
+    condition: presk-employees.enabled
   - name: presk-app
     alias: presk-portal
     version: 0.1.0

@@ -159,28 +159,6 @@
     "contractor": "Prestataire",
     "other": "Autre"
   },
-  "crmClientStatus": {
-    "prospect": "Prospect",
-    "active": "Client actif",
-    "inactive": "Inactif"
-  },
-  "crmActivityType": {
-    "note": "Note",
-    "call": "Appel",
-    "email": "E-mail",
-    "meeting": "Réunion"
-  },
-  "crmFieldType": {
-    "text": "Texte",
-    "number": "Nombre",
-    "date": "Date",
-    "select": "Liste déroulante",
-    "multiselect": "Sélection multiple",
-    "boolean": "Oui / Non",
-    "url": "URL",
-    "email": "E-mail",
-    "phone": "Téléphone"
-  },
   "dealStatus": {
     "open": "Ouverte",
     "won": "Gagnée",
@@ -190,10 +168,6 @@
     "open": "Ouverte",
     "won": "Gagnée",
     "lost": "Perdue"
-  },
-  "crmDocumentVisibility": {
-    "internal": "Interne",
-    "client": "Visible client"
   },
   "presence": {
     "available": "Disponible",
@@ -254,5 +228,31 @@
     "meetingRequest": "Demande de rendez-vous",
     "meetingSlot": "Créneau de rendez-vous",
     "resource": "Ressource"
+  },
+  "clientStatus": {
+    "prospect": "Prospect",
+    "active": "Client actif",
+    "inactive": "Inactif"
+  },
+  "clientActivityType": {
+    "note": "Note",
+    "call": "Appel",
+    "email": "E-mail",
+    "meeting": "Réunion"
+  },
+  "clientFieldType": {
+    "text": "Texte",
+    "number": "Nombre",
+    "date": "Date",
+    "select": "Liste déroulante",
+    "multiselect": "Sélection multiple",
+    "boolean": "Oui / Non",
+    "url": "URL",
+    "email": "E-mail",
+    "phone": "Téléphone"
+  },
+  "clientDocumentVisibility": {
+    "internal": "Interne",
+    "client": "Visible client"
   }
 }

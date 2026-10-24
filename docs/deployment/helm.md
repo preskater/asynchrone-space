@@ -315,7 +315,7 @@ Desktop Kubernetes cluster. It uses:
 Build the images from the working tree:
 
 ```bash
-for app in web control-tower projects calendars files messages crm hr portal copilot; do
+for app in web control-tower projects calendars files messages clients employees portal copilot; do
   image="presk"
   [ "$app" != "web" ] && image="presk-$app"
   docker build --build-arg APP="$app" -t "$image:local" .
@@ -360,8 +360,8 @@ The apps are then available at:
 | Calendars | `https://calendars.presk.lvh.me` |
 | Files | `https://files.presk.lvh.me` |
 | Messages | `https://messages.presk.lvh.me` |
-| CRM | `https://crm.presk.lvh.me` |
-| HR | `https://hr.presk.lvh.me` |
+| Clients | `https://clients.presk.lvh.me` |
+| Employees | `https://employees.presk.lvh.me` |
 | Portal | `https://portal.presk.lvh.me` |
 | Copilot | `https://copilot.presk.lvh.me` |
 | Control tower | `https://control-tower.presk.lvh.me` |

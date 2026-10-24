@@ -12,7 +12,7 @@ export const maxDuration = 60
 
 /**
  * Download of a client-visible document for portal users. Access requires a
- * member row linked to a company and a CrmDocument(visibility=client) link on
+ * member row linked to a company and a ClientDocument(visibility=client) link on
  * that company.
  */
 export async function GET(
@@ -41,7 +41,7 @@ export async function GET(
     return new NextResponse("Forbidden", { status: 403 })
   }
 
-  const link = await prisma.crmDocument.findFirst({
+  const link = await prisma.clientDocument.findFirst({
     where: {
       organizationId: member.organizationId,
       entity: "client",

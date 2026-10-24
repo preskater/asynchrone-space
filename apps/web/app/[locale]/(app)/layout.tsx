@@ -99,14 +99,14 @@ export default async function AppLayout({
       href: appUrl("files", { locale, orgSlug: organization.slug }),
     },
     {
-      key: "crm",
-      title: tSidebar("crm"),
-      href: appUrl("crm", { locale, orgSlug: organization.slug }),
+      key: "clients",
+      title: tSidebar("clients"),
+      href: appUrl("clients", { locale, orgSlug: organization.slug }),
     },
     {
-      key: "hr",
-      title: tSidebar("hr"),
-      href: appUrl("hr", { locale, orgSlug: organization.slug }),
+      key: "employees",
+      title: tSidebar("employees"),
+      href: appUrl("employees", { locale, orgSlug: organization.slug }),
     },
     {
       key: "copilot",

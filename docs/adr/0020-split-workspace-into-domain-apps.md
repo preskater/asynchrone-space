@@ -96,3 +96,5 @@ Incremental, one domain at a time:
 - ADR 0021: shared customer sessions across subdomains
 - ADR 0022: Copilot app
 - ADR 0018: control tower isolation (unchanged)
+
+> **2026-10-24:** The `crm` and `hr` apps were renamed to `clients` and `employees`, including their packages, hosts and database tables. See [ADR 0023](0023-rename-crm-hr-to-clients-employees.md).

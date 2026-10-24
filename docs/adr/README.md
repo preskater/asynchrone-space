@@ -43,3 +43,4 @@ collection.
 | [0020](0020-split-workspace-into-domain-apps.md)          | proposed | Split the customer workspace into domain apps                            |
 | [0021](0021-share-customer-sessions-across-subdomains.md) | proposed | Share customer sessions across app subdomains                            |
 | [0022](0022-add-copilot-app-with-persisted-conversations.md) | proposed | Add a Copilot app with persisted conversations                         |
+| [0023](0023-rename-crm-hr-to-clients-employees.md) | accepted | Rename the CRM/HR apps, models and tables to Clients/Employees |

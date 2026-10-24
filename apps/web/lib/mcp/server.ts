@@ -2,9 +2,9 @@ import type { AuthInfo, McpServer } from "@modelcontextprotocol/server"
 import type * as z from "zod"
 
 import { calendarTools } from "./tools/calendars"
-import { crmTools } from "./tools/crm"
+import { clientsTools } from "./tools/clients"
 import { fileTools } from "./tools/files"
-import { hrTools } from "./tools/hr"
+import { employeesTools } from "./tools/employees"
 import { meetingTools } from "./tools/meetings"
 import { messagingTools } from "./tools/messaging"
 import { projectTools } from "./tools/projects"
@@ -14,8 +14,8 @@ import { contextFromAuthInfo } from "./context"
 export const allMcpTools: McpTool[] = [
   ...projectTools,
   ...calendarTools,
-  ...crmTools,
-  ...hrTools,
+  ...clientsTools,
+  ...employeesTools,
   ...meetingTools,
   ...fileTools,
   ...messagingTools,
