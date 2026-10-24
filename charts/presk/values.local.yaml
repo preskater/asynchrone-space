@@ -1,0 +1,325 @@
+# Local Docker Desktop values.
+#
+# Assumes:
+#   - images `presk:local`, `presk-<app>:local` and `presk-control-tower:local`
+#     are present in the Docker daemon (same daemon used by Docker Desktop K8s);
+#   - an in-cluster PostgreSQL service named `postgres` and the existing
+#     `presk-web-secrets` / `presk-control-tower-secrets`;
+#   - a TLS secret for `*.lvh.me`:
+#
+#       openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+#         -keyout /tmp/lvh.key -out /tmp/lvh.crt \
+#         -subj '/CN=*.lvh.me' \
+#         -addext 'subjectAltName=DNS:lvh.me,DNS:*.lvh.me,DNS:presk.lvh.me,DNS:*.presk.lvh.me'
+#       kubectl -n presk create secret tls presk-lvh-tls \
+#         --cert=/tmp/lvh.crt --key=/tmp/lvh.key
+#
+# The migration hook is disabled so migrations can be applied from the host
+# through `kubectl port-forward svc/postgres 55432:5432`.
+global:
+  imageTag: local
+  imagePullSecrets: []
+presk-web:
+  image:
+    repository: presk
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: 8m
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - presk.lvh.me
+  config:
+    BETTER_AUTH_URL: https://presk.lvh.me
+    AUTH_COOKIE_DOMAIN: .lvh.me
+    NEXT_PUBLIC_APP_URL: https://presk.lvh.me
+    CONTROL_TOWER_URL: https://control-tower.presk.lvh.me
+    PROJECTS_APP_URL: https://projects.presk.lvh.me
+    CALENDARS_APP_URL: https://calendars.presk.lvh.me
+    FILES_APP_URL: https://files.presk.lvh.me
+    MESSAGES_APP_URL: https://messages.presk.lvh.me
+    CRM_APP_URL: https://crm.presk.lvh.me
+    HR_APP_URL: https://hr.presk.lvh.me
+    PORTAL_APP_URL: https://portal.presk.lvh.me
+    COPILOT_APP_URL: https://copilot.presk.lvh.me
+    DATABASE_POOL_MAX: "5"
+    MCP_RESOURCE_URL: ""
+    OPENAI_API_URL: ""
+    ASSISTANT_MODEL: gpt-4o-mini
+    EMAIL_FROM: ""
+    REQUIRE_EMAIL_VERIFICATION: "false"
+    GITHUB_CLIENT_ID: ""
+    GITLAB_CLIENT_ID: ""
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: false
+presk-control-tower:
+  image:
+    repository: presk-control-tower
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    annotations: {}
+    hosts:
+      - host: control-tower.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - control-tower.presk.lvh.me
+  config:
+    BETTER_AUTH_URL: https://control-tower.presk.lvh.me
+    PLATFORM_APP_URL: https://presk.lvh.me
+    PLATFORM_ALLOWED_IPS: ""
+    DATABASE_POOL_MAX: "5"
+    DEPLOY_ENV: local
+    GIT_COMMIT_SHA: local
+  secret:
+    existingSecret: presk-control-tower-secrets
+migrate:
+  enabled: false
+presk-projects:
+  enabled: true
+  nameOverride: projects
+  image:
+    repository: presk-projects
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: projects.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - projects.presk.lvh.me
+  config:
+    BETTER_AUTH_URL: https://presk.lvh.me
+    AUTH_COOKIE_DOMAIN: .lvh.me
+    PROJECTS_APP_URL: https://projects.presk.lvh.me
+    CALENDARS_APP_URL: https://calendars.presk.lvh.me
+    FILES_APP_URL: https://files.presk.lvh.me
+    MESSAGES_APP_URL: https://messages.presk.lvh.me
+    CRM_APP_URL: https://crm.presk.lvh.me
+    HR_APP_URL: https://hr.presk.lvh.me
+    PORTAL_APP_URL: https://portal.presk.lvh.me
+    COPILOT_APP_URL: https://copilot.presk.lvh.me
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    uploadsSweep:
+      enabled: false
+    repositorySync:
+      enabled: true
+      path: /api/cron/repository-sync
+  cache:
+    mountPath: /usr/src/presk/apps/projects/.next/cache
+presk-calendars:
+  enabled: true
+  nameOverride: calendars
+  image:
+    repository: presk-calendars
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: calendars.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - calendars.presk.lvh.me
+  config: &a1
+    BETTER_AUTH_URL: https://presk.lvh.me
+    AUTH_COOKIE_DOMAIN: .lvh.me
+    PROJECTS_APP_URL: https://projects.presk.lvh.me
+    CALENDARS_APP_URL: https://calendars.presk.lvh.me
+    FILES_APP_URL: https://files.presk.lvh.me
+    MESSAGES_APP_URL: https://messages.presk.lvh.me
+    CRM_APP_URL: https://crm.presk.lvh.me
+    HR_APP_URL: https://hr.presk.lvh.me
+    PORTAL_APP_URL: https://portal.presk.lvh.me
+    COPILOT_APP_URL: https://copilot.presk.lvh.me
+    DATABASE_POOL_MAX: "5"
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/calendars/.next/cache
+presk-files:
+  enabled: true
+  nameOverride: files
+  image:
+    repository: presk-files
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: files.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - files.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cronjobs:
+    uploadsSweep:
+      enabled: true
+      path: /api/files/uploads/sweep
+    repositorySync:
+      enabled: false
+  cache:
+    mountPath: /usr/src/presk/apps/files/.next/cache
+presk-messages:
+  enabled: true
+  nameOverride: messages
+  image:
+    repository: presk-messages
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: messages.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - messages.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/messages/.next/cache
+presk-crm:
+  enabled: true
+  nameOverride: crm
+  image:
+    repository: presk-crm
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: crm.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - crm.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/crm/.next/cache
+presk-hr:
+  enabled: true
+  nameOverride: hr
+  image:
+    repository: presk-hr
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: hr.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - hr.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/hr/.next/cache
+presk-portal:
+  enabled: true
+  nameOverride: portal
+  image:
+    repository: presk-portal
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: portal.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - portal.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/portal/.next/cache
+presk-copilot:
+  enabled: true
+  nameOverride: copilot
+  image:
+    repository: presk-copilot
+    pullPolicy: IfNotPresent
+  replicaCount: 1
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: copilot.presk.lvh.me
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: presk-lvh-tls
+        hosts:
+          - copilot.presk.lvh.me
+  config: *a1
+  secret:
+    existingSecret: presk-web-secrets
+  cache:
+    mountPath: /usr/src/presk/apps/copilot/.next/cache

@@ -2,19 +2,35 @@
 {{- $ct := index .Values "presk-control-tower" -}}
 Presk installed as release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
 
+{{- if .Values.migrate.enabled }}
 The pre-install/pre-upgrade migration Job runs `prisma migrate deploy` before
 the Deployments roll out. If it fails, the release is aborted and the Job is
 left behind for logs:
 
   kubectl -n {{ .Release.Namespace }} logs job/{{ include "presk.fullname" . }}-migrate
+{{- else }}
+The migration hook is disabled. Run `prisma migrate deploy` separately before
+rolling out the apps.
+{{- end }}
 
-Customer app:
+Customer shell:
 {{- if $web.ingress.enabled }}
 {{- range $web.ingress.hosts }}
   - http{{ if $web.ingress.tls }}s{{ end }}://{{ .host }}
 {{- end }}
 {{- else }}
   - service {{ .Release.Name }}-presk-web:{{ $web.service.port }} (cluster-internal)
+{{- end }}
+
+Domain apps:
+{{- range $key, $value := .Values }}
+{{- if and (hasPrefix "presk-" $key) (not (or (eq $key "presk-web") (eq $key "presk-control-tower"))) }}
+{{- if $value.enabled }}
+{{- range $value.ingress.hosts }}
+  - http{{ if $value.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 Control tower:
@@ -30,8 +46,14 @@ Required secrets:
   - {{ $web.secret.existingSecret }} (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys)
   - {{ $ct.secret.existingSecret }} (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET)
 
-Scheduled jobs (formerly Vercel crons):
-  - uploads-sweep   {{ $web.cronjobs.uploadsSweep.schedule }} -> {{ $web.cronjobs.uploadsSweep.path }}
-  - repository-sync {{ $web.cronjobs.repositorySync.schedule }} -> {{ $web.cronjobs.repositorySync.path }}
+{{- $files := index .Values "presk-files" -}}
+{{- $projects := index .Values "presk-projects" -}}
+Scheduled jobs:
+{{- if and $files $files.cronjobs.uploadsSweep.enabled }}
+  - uploads-sweep   {{ $files.cronjobs.uploadsSweep.schedule }} -> {{ $files.cronjobs.uploadsSweep.path }} (files app)
+{{- end }}
+{{- if and $projects $projects.cronjobs.repositorySync.enabled }}
+  - repository-sync {{ $projects.cronjobs.repositorySync.schedule }} -> {{ $projects.cronjobs.repositorySync.path }} (projects app)
+{{- end }}
 
 Every platform operator must enroll TOTP at /setup-2fa on the control tower.

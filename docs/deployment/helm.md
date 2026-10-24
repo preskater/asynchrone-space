@@ -298,3 +298,74 @@ kubectl -n presk logs deploy/presk-web --tail=100
   `apps/<app>/.next/cache`, mounted as an `emptyDir`. If a custom runtime path
   is used, override `cache.mountPath` or
   `securityContext.readOnlyRootFilesystem`.
+
+## Local Docker Desktop cluster
+
+`charts/presk/values.local.yaml` deploys the whole workspace to the Docker
+Desktop Kubernetes cluster. It uses:
+
+- the local Docker daemon's images (`presk:local`, `presk-<app>:local`,
+  `presk-control-tower:local`);
+- HTTP ingress disabled in favour of HTTPS on `*.lvh.me` (resolves to
+  `127.0.0.1` for every app);
+- the in-cluster `postgres` service and the existing `presk-web-secrets` /
+  `presk-control-tower-secrets`;
+- `migrate.enabled: false`, because migrations are applied from the host.
+
+Build the images from the working tree:
+
+```bash
+for app in web control-tower projects calendars files messages crm hr portal copilot; do
+  image="presk"
+  [ "$app" != "web" ] && image="presk-$app"
+  docker build --build-arg APP="$app" -t "$image:local" .
+done
+```
+
+Create the wildcard TLS secret used by every ingress:
+
+```bash
+openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+  -keyout /tmp/lvh.key -out /tmp/lvh.crt \
+  -subj '/CN=*.lvh.me' \
+  -addext 'subjectAltName=DNS:lvh.me,DNS:*.lvh.me,DNS:presk.lvh.me,DNS:*.presk.lvh.me'
+kubectl -n presk create secret tls presk-lvh-tls \
+  --cert=/tmp/lvh.crt --key=/tmp/lvh.key
+```
+
+Apply the new migrations from the host (the Postgres Service is not exposed
+outside the cluster):
+
+```bash
+kubectl -n presk port-forward svc/postgres 55432:5432 &
+cd packages/db
+DATABASE_URL='postgresql://preskater:<password>@localhost:55432/preskater?schema=public' \
+  npx prisma migrate deploy
+```
+
+Deploy or upgrade:
+
+```bash
+helm dependency build charts/presk
+helm upgrade --install presk charts/presk -n presk \
+  -f charts/presk/values.local.yaml
+```
+
+The apps are then available at:
+
+| App | URL |
+| --- | --- |
+| Shell | `https://presk.lvh.me` |
+| Projects | `https://projects.presk.lvh.me` |
+| Calendars | `https://calendars.presk.lvh.me` |
+| Files | `https://files.presk.lvh.me` |
+| Messages | `https://messages.presk.lvh.me` |
+| CRM | `https://crm.presk.lvh.me` |
+| HR | `https://hr.presk.lvh.me` |
+| Portal | `https://portal.presk.lvh.me` |
+| Copilot | `https://copilot.presk.lvh.me` |
+| Control tower | `https://control-tower.presk.lvh.me` |
+
+The certificate is self-signed, so browsers warn once per host. Copilot chat
+needs `OPENAI_API_KEY` in `presk-web-secrets`; every app already mounts that
+Secret.
