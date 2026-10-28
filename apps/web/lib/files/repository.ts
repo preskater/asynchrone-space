@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 /**
  * Only the most recent versions/activity entries are needed by the file
@@ -70,6 +70,9 @@ export class FileRepository {
     mimeType?: string
     oid?: number
     sha256?: string
+    restricted?: boolean
+    shared?: boolean
+    shares?: { userId: string; permission: string }[]
   }) {
     return this.db.fileNode.create({
       data: {
@@ -82,6 +85,9 @@ export class FileRepository {
         mimeType: data.mimeType,
         oid: data.oid,
         sha256: data.sha256,
+        restricted: data.restricted,
+        shared: data.shared,
+        shares: data.shares?.length ? { create: data.shares } : undefined,
       },
       include: FILE_INCLUDE,
     })

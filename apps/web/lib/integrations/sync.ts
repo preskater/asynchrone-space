@@ -1,5 +1,8 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
-import { nextTaskIdentifier } from "@/lib/projects/task-key"
+import type { PrismaClient } from "@workspace/db"
+import {
+  allocateTaskIdentifier,
+  taskPrefix,
+} from "@/lib/projects/task-key"
 
 import { createProviderClient } from "./providers"
 import type { RepositoryConnectionRow } from "./repository"
@@ -83,11 +86,17 @@ export async function createTaskFromIssue(
     select: { identifier: true, order: true },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   })
-  const identifier = nextTaskIdentifier(
+  const prefix = taskPrefix(
     project.name,
     existing.map((task) => task.identifier)
   )
-  const nextOrder = existing.reduce((max, task) => Math.max(max, task.order), -1) + 1
+  const nextOrder =
+    existing.reduce((max, task) => Math.max(max, task.order), -1) + 1
+  const identifier = await allocateTaskIdentifier(
+    db,
+    connection.organizationId,
+    prefix
+  )
   await db.task.create({
     data: {
       organizationId: connection.organizationId,
@@ -208,7 +217,11 @@ export async function applyPullRequestEvent(
 ): Promise<boolean> {
   const issueNumber = issueNumberFromPullRequest(pullRequest)
   if (!issueNumber) return false
-  const task = await findTaskByIssueNumber(db, connection.projectId, issueNumber)
+  const task = await findTaskByIssueNumber(
+    db,
+    connection.projectId,
+    issueNumber
+  )
   if (!task) return false
   const data: {
     status?: string
@@ -237,7 +250,9 @@ export async function applyPullRequestEvent(
  * lazy so tasks that existed before a repository was connected are pushed on
  * the first write (and on connect via the backfill). Callers may pass a stale
  * row (e.g. before a previous push linked the issue); the database is
- * re-read before creating anything so no duplicate issue is produced.
+ * re-read before creating anything so no duplicate issue is produced. Tasks
+ * created with issue creation disabled are never reported: they stay local
+ * and get no issue or pull request.
  */
 export async function ensureIssueForTask(
   db: PrismaClient,
@@ -245,10 +260,10 @@ export async function ensureIssueForTask(
   task: SyncTaskRow,
   token: string
 ): Promise<SyncTaskRow> {
-  if (task.externalIssueNumber) return task
+  if (!task.createIssue || task.externalIssueNumber) return task
   const current = await db.task.findUnique({ where: { id: task.id } })
   if (!current) return task
-  if (current.externalIssueNumber) return current
+  if (!current.createIssue || current.externalIssueNumber) return current
   const client = buildProviderClient(connection, token)
   const issue = await client.api.createIssue({
     title: current.title,
@@ -415,7 +430,10 @@ export async function syncConnection(
 
   const issues = await client.api.listIssues()
   const linked = await db.task.findMany({
-    where: { projectId: connection.projectId, externalIssueNumber: { not: null } },
+    where: {
+      projectId: connection.projectId,
+      externalIssueNumber: { not: null },
+    },
   })
   const byIssueNumber = new Map(
     linked.map((task) => [task.externalIssueNumber as number, task])
@@ -431,13 +449,15 @@ export async function syncConnection(
       continue
     }
     const remoteUpdatedAt = parseRemoteDate(issue.updatedAt)
-    if (remoteUpdatedAt && task.updatedAt.getTime() > remoteUpdatedAt.getTime()) {
+    if (
+      remoteUpdatedAt &&
+      task.updatedAt.getTime() > remoteUpdatedAt.getTime()
+    ) {
       // The local task was edited after this remote revision: heal a push
       // that never landed (provider outage, dropped debounce) instead of
       // letting the stale remote state overwrite it.
       const contentDiffers =
-        task.title !== issue.title ||
-        (task.description ?? "") !== issue.body
+        task.title !== issue.title || (task.description ?? "") !== issue.body
       const stateDiffers =
         (task.status === "done") !== (issue.state === "closed")
       if (contentDiffers) await pushTaskContent(db, connection, task, token)
@@ -450,7 +470,12 @@ export async function syncConnection(
   }
 
   const unlinked = await db.task.findMany({
-    where: { projectId: connection.projectId, externalIssueNumber: null },
+    where: {
+      projectId: connection.projectId,
+      externalIssueNumber: null,
+      // Tasks created without issue creation are deliberately local-only.
+      createIssue: true,
+    },
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   })
   for (const task of unlinked) {

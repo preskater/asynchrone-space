@@ -1,4 +1,8 @@
-import type { PortalPolicy } from "@/lib/projects/types"
+import type {
+  PortalPolicy,
+  TaskPriority,
+  TaskStatus,
+} from "@/lib/projects/types"
 
 /** One project of the client's company, with its task progress. */
 export interface PortalProjectSummary {
@@ -65,8 +69,8 @@ export interface PortalTaskDetailData {
   identifier: string
   title: string
   description?: string
-  status: string
-  priority: string
+  status: TaskStatus
+  priority: TaskPriority
   dueDate?: string
   endDate?: string
   createdAt: string

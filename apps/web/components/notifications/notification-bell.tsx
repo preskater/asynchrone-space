@@ -132,6 +132,12 @@ export function NotificationBell({
           identifier: String(data.identifier ?? ""),
           title: String(data.title ?? ""),
         })
+      case "meeting.requested":
+        return t("meetingRequested", {
+          actor,
+          client: String(data.clientName ?? ""),
+          title: String(data.title ?? ""),
+        })
       default:
         return item.type
     }
@@ -164,6 +170,9 @@ export function NotificationBell({
       typeof item.data.clientId === "string"
     ) {
       return `/${orgSlug}/clients/${item.data.clientId}`
+    }
+    if (item.type === "meeting.requested") {
+      return `/${orgSlug}/calendars`
     }
     return null
   }

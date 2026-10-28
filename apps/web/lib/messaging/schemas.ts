@@ -42,7 +42,6 @@ export const addThreadReplySchema = z.object({
 
 export const toggleReactionSchema = z.object({
   emoji: z.string().min(1).max(16),
-  memberId: z.string().optional(),
 })
 
 export const startDmSchema = z.object({

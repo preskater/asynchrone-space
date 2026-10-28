@@ -63,7 +63,6 @@ interface CalendarStore extends CalendarData {
   ) => void
   setAttendeeResponse: (
     eventId: string,
-    memberId: string,
     response: CalendarEvent["attendees"][number]["response"]
   ) => void
 }
@@ -247,14 +246,14 @@ export function CalendarsProvider({
             toast.error(te(error, "addCalendarFailed"))
           })
       },
-      setAttendeeResponse: (eventId, memberId, response) => {
+      setAttendeeResponse: (eventId, response) => {
         setEvents((prev) =>
           prev.map((event) =>
             event.id === eventId
               ? {
                   ...event,
                   attendees: event.attendees.map((attendee) =>
-                    attendee.memberId === memberId
+                    attendee.memberId === currentUserId
                       ? { ...attendee, response }
                       : attendee
                   ),
@@ -262,7 +261,7 @@ export function CalendarsProvider({
               : event
           )
         )
-        void respondToEventAction(eventId, { memberId, response })
+        void respondToEventAction(eventId, { response })
           .then((result) => unwrapActionResult(result))
           .catch((error) => toast.error(te(error, "updateFailed")))
       },

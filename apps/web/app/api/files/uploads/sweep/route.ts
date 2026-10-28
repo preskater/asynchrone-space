@@ -7,8 +7,9 @@ export const maxDuration = 60
 
 /**
  * Removes large objects for upload sessions that were never completed. Safe to
- * call from a Vercel Cron; guard with `CRON_SECRET` when configured. Unfinished
- * uploads are also swept opportunistically when a new session starts.
+ * call from the scheduled Kubernetes CronJob; guard with `CRON_SECRET` when
+ * configured. Unfinished uploads are also swept opportunistically when a new
+ * session starts.
  */
 export async function GET(request: Request): Promise<NextResponse> {
   const secret = process.env.CRON_SECRET

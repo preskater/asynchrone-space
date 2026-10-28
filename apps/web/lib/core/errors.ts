@@ -56,6 +56,23 @@ export type ServiceErrorCode =
   | "repository_user_token_missing"
   | "repository_access_denied"
   | "repository_issue_create_failed"
+  | "role_cannot_manage_meetings"
+  | "meeting_requests_disabled"
+  | "meeting_overlap"
+  | "meeting_slot_too_soon"
+  | "meeting_slot_outside_window"
+  | "meeting_notice_beyond_window"
+  | "meeting_duration_invalid"
+  | "meeting_invalid_window"
+  | "meeting_slots_invalid"
+  | "meeting_slots_duplicate"
+  | "meeting_not_pending"
+  | "meeting_url_required"
+  | "meeting_address_required"
+  | "meeting_provider_not_connected"
+  | "meeting_attendee_invalid"
+  | "feedback_rate_limited"
+  | "feedback_delivery_failed"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

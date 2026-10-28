@@ -7,13 +7,15 @@ ARG WORKDIR=/usr/src/presk
 # ---
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base
 ARG WORKDIR
+# Workspace app to build: `web` (customer app) or `control-tower`.
+ARG APP=web
 WORKDIR ${WORKDIR}
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # ---
 FROM base AS prepare
 COPY . .
-RUN npx turbo prune web --docker
+RUN npx turbo prune ${APP} --docker
 
 # ---
 FROM base AS builder
@@ -31,6 +33,9 @@ COPY --from=prepare ${WORKDIR}/out/full/ .
 ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV BETTER_AUTH_SECRET=build-placeholder-secret-not-used-at-runtime
 ENV BETTER_AUTH_URL=http://localhost:3000
+# Required by the control-tower build (unused by the web build).
+ENV CONTROL_TOWER_BETTER_AUTH_SECRET=build-placeholder-control-tower-secret-not-used
+ENV PLATFORM_APP_URL=http://localhost:3000
 
 # Uncomment and pass build args to enable remote caching
 # ARG TURBO_TEAM
@@ -42,17 +47,20 @@ RUN npx turbo build
 
 # ---
 # Applies pending Prisma migrations, then exits. Runs before `web` starts.
-# Reuses the pruned dependency install + source from `prepare`.
+# Reuses the pruned dependency install + source from `prepare`. The schema and
+# migrations live in `packages/db` (shared with the control tower).
 FROM base AS migrate
 ARG WORKDIR
 COPY --from=prepare ${WORKDIR}/out/json/ .
 RUN npm ci
 COPY --from=prepare ${WORKDIR}/out/full/ .
-CMD ["sh", "-c", "cd apps/web && npx prisma migrate deploy"]
+CMD ["sh", "-c", "cd packages/db && npx prisma migrate deploy"]
 
 # ---
 FROM node:${NODE_VERSION}-alpine AS runner
 ARG WORKDIR
+ARG APP=web
+ENV APP=${APP}
 WORKDIR ${WORKDIR}
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -65,10 +73,10 @@ USER nextjs
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/app/api-reference/config/next-config-js/output
-COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/web/.next/static ./apps/web/.next/static
-COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/${APP}/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/${APP}/.next/static ./apps/${APP}/.next/static
+COPY --from=builder --chown=nextjs:nodejs ${WORKDIR}/apps/${APP}/public ./apps/${APP}/public
 
 EXPOSE 3000
 
-CMD ["node", "apps/web/server.js"]
+CMD ["sh", "-c", "node apps/${APP}/server.js"]

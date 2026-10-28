@@ -56,7 +56,6 @@ export const toggleCalendarSchema = z.object({
 })
 
 export const setAttendeeResponseSchema = z.object({
-  memberId: z.string().min(1),
   response: attendeeResponseSchema,
 })
 

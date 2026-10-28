@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 import type { RepositoryProvider } from "./types"
 
 export class RepositoryConnectionRepository {

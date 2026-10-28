@@ -9,7 +9,7 @@
       "env": ["DATABASE_URL"]
     },
     "build": {
-      "dependsOn": ["^build", "generate"],
+      "dependsOn": ["^build", "^generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
       "env": [
@@ -25,7 +25,18 @@
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "GITLAB_CLIENT_ID",
-        "GITLAB_CLIENT_SECRET"
+        "GITLAB_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "EMAIL_FROM",
+        "FEEDBACK_EMAIL_TO",
+        "NEXT_PUBLIC_APP_URL",
+        "REQUIRE_EMAIL_VERIFICATION",
+        "CONTROL_TOWER_BETTER_AUTH_SECRET",
+        "PLATFORM_APP_URL",
+        "CONTROL_TOWER_URL",
+        "PLATFORM_ALLOWED_IPS",
+        "DEPLOY_ENV",
+        "GIT_COMMIT_SHA"
       ]
     },
     "lint": {
@@ -35,10 +46,10 @@
       "dependsOn": ["^format"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck", "generate"]
+      "dependsOn": ["^typecheck", "^generate"]
     },
     "dev": {
-      "dependsOn": ["generate"],
+      "dependsOn": ["^generate"],
       "cache": false,
       "persistent": true,
       "env": [
@@ -54,7 +65,18 @@
         "GITHUB_CLIENT_ID",
         "GITHUB_CLIENT_SECRET",
         "GITLAB_CLIENT_ID",
-        "GITLAB_CLIENT_SECRET"
+        "GITLAB_CLIENT_SECRET",
+        "RESEND_API_KEY",
+        "EMAIL_FROM",
+        "FEEDBACK_EMAIL_TO",
+        "NEXT_PUBLIC_APP_URL",
+        "REQUIRE_EMAIL_VERIFICATION",
+        "CONTROL_TOWER_BETTER_AUTH_SECRET",
+        "PLATFORM_APP_URL",
+        "CONTROL_TOWER_URL",
+        "PLATFORM_ALLOWED_IPS",
+        "DEPLOY_ENV",
+        "GIT_COMMIT_SHA"
       ]
     }
   }

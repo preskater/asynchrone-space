@@ -29,16 +29,14 @@ export const calendarTools: McpTool[] = [
   {
     name: "respond_to_event",
     title: "Respond to event",
-    description: "Set a member's response (accepted, tentative, declined) for an event.",
+    description: "Set your response (accepted, tentative, declined) for an event.",
     inputSchema: {
       eventId: z.string(),
-      memberId: z.string(),
       response: z.enum(["accepted", "tentative", "declined", "pending"]),
     },
     readOnly: false,
     run: (ctx, input) =>
       calendarService.setAttendeeResponse(ctx, String(input.eventId), {
-        memberId: String(input.memberId),
         response: input.response as "accepted" | "tentative" | "declined" | "pending",
       }),
   },

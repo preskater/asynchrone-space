@@ -8,7 +8,6 @@ node_modules
 out
 dist
 build
-.vercel
 
 # Turbo
 .turbo
@@ -16,9 +15,11 @@ build
 # Testing
 coverage
 
-# Environment files
+# Environment files (any depth, so local secrets never enter the image)
 .env
 .env*
+**/.env
+**/.env.*
 
 # Debug logs
 npm-debug.log*

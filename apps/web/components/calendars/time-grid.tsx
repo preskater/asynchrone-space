@@ -94,6 +94,7 @@ function TimeColumn({
             {isActive ? null : (
               <button
                 type="button"
+                data-no-fx
                 aria-label={t("resizeEvent")}
                 onPointerDown={(event) =>
                   onResizePointerDown(event, item.event)
@@ -214,10 +215,7 @@ export function TimeGrid({
         })}
       </div>
 
-      <div
-        tabIndex={0}
-        className="flex min-h-0 flex-1 overflow-y-auto"
-      >
+      <div tabIndex={0} className="flex min-h-0 flex-1 overflow-y-auto">
         <div className="w-16 shrink-0 border-e">
           {HOURS.map((hour) => (
             <div

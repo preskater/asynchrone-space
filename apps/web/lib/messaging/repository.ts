@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 /** Thread replies are bounded: only the latest replies of a message load. */
 export const messageInclude = {

@@ -201,6 +201,42 @@
     "busy": "Occupé",
     "offline": "Hors ligne"
   },
+  "meetingStatus": {
+    "pending": "En attente",
+    "accepted": "Accepté",
+    "declined": "Refusé",
+    "cancelled": "Annulé"
+  },
+  "meetingMode": {
+    "online": "En ligne",
+    "in_person": "En présentiel"
+  },
+  "meetingProvider": {
+    "manual": "Aucune application (lien fourni par le client)",
+    "google_meet": "Google Meet",
+    "microsoft_teams": "Microsoft Teams",
+    "zoom": "Zoom"
+  },
+  "feedbackCategory": {
+    "bug": "Anomalie",
+    "idea": "Idée",
+    "design": "Design / UX",
+    "performance": "Performance",
+    "other": "Autre"
+  },
+  "feedbackImpact": {
+    "low": "Faible",
+    "medium": "Moyenne",
+    "high": "Élevée",
+    "critical": "Critique"
+  },
+  "feedbackFrequency": {
+    "always": "Toujours",
+    "often": "Souvent",
+    "sometimes": "Parfois",
+    "once": "Une fois",
+    "unknown": "Je ne sais pas"
+  },
   "resource": {
     "project": "Projet",
     "task": "Tâche",
@@ -215,6 +251,8 @@
     "invitation": "Invitation",
     "label": "Étiquette",
     "taskTemplate": "Modèle de tâche",
+    "meetingRequest": "Demande de rendez-vous",
+    "meetingSlot": "Créneau de rendez-vous",
     "resource": "Ressource"
   }
 }

@@ -8,6 +8,7 @@ export const NOTIFICATION_TYPES = [
   "portal.message",
   "portal.document",
   "portal.comment",
+  "meeting.requested",
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 

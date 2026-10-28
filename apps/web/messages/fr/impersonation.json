@@ -1,0 +1,5 @@
+{
+  "title": "Vous agissez en tant que {name}",
+  "description": "Cette session a été ouverte depuis la tour de contrôle et les actions sont auditées.",
+  "stop": "Arrêter l'usurpation"
+}

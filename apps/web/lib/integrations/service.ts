@@ -6,7 +6,7 @@ import {
   ValidationError,
 } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 import { ROLE_RANK } from "@/lib/organization/roles"
 
 import { decryptSecret, encryptSecret, generateWebhookSecret } from "./crypto"
@@ -224,7 +224,8 @@ export class RepositoryIntegrationService {
       this.contentPushTimers.delete(taskId)
       void this.bestEffort("task content", async () => {
         const task = await this.db.task.findUnique({ where: { id: taskId } })
-        if (!task) return
+        // Local-only tasks have no issue and never gain one.
+        if (!task || !task.createIssue) return
         const connection = await this.connectionForProject(
           task.organizationId,
           task.projectId
@@ -418,7 +419,8 @@ export class RepositoryIntegrationService {
    * the user's token so the issue is authored by and linked to them. Throws
    * when the user has no token or cannot access the repository — callers must
    * not create the task in that case. Transient failures throw as well: in a
-   * connected project, a task is expected to exist as an issue.
+   * connected project, a task is expected to exist as an issue unless issue
+   * creation was explicitly disabled for it.
    */
   async createTaskInRepository(
     ctx: RequestContext,
@@ -474,7 +476,8 @@ export class RepositoryIntegrationService {
    * Mirrors a status change on the linked issue (close on done, reopen, and a
    * draft PR on review) with the acting user's token. Access problems throw
    * before the caller commits the local change; transient failures are
-   * logged and reconciled by the next sync.
+   * logged and reconciled by the next sync. Tasks created without issue
+   * creation are local-only: no issue, no pull request, no token needed.
    */
   async pushTaskStatus(
     ctx: RequestContext,
@@ -482,7 +485,7 @@ export class RepositoryIntegrationService {
     status: string
   ): Promise<void> {
     const task = await this.db.task.findUnique({ where: { id: taskId } })
-    if (!task) return
+    if (!task || !task.createIssue) return
     const connection = await this.connectionForProject(
       task.organizationId,
       task.projectId

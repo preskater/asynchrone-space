@@ -43,6 +43,14 @@ export function enumLabels(t: Translator) {
       t(`pipelineStageType.${value}` as never),
     crmDocumentVisibility: (value: string) =>
       t(`crmDocumentVisibility.${value}` as never),
+    meetingStatus: (value: string) => t(`meetingStatus.${value}` as never),
+    meetingMode: (value: string) => t(`meetingMode.${value}` as never),
+    meetingProvider: (value: string) => t(`meetingProvider.${value}` as never),
+    feedbackCategory: (value: string) =>
+      t(`feedbackCategory.${value}` as never),
+    feedbackImpact: (value: string) => t(`feedbackImpact.${value}` as never),
+    feedbackFrequency: (value: string) =>
+      t(`feedbackFrequency.${value}` as never),
     resource: (value: string) => t(`resource.${value}` as never),
   }
 }

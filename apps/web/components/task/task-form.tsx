@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { DatePicker } from "@/components/task/date-picker"
 import { MemberPicker } from "@/components/task/member-picker"
+import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Field,
   FieldDescription,
@@ -29,6 +30,7 @@ import {
 } from "@workspace/ui/components/toggle-group"
 
 import { useProjectStore, type CreateTaskInput } from "@/lib/projects/store"
+import { repositoryProviderLabel } from "@/lib/integrations/types"
 import { useEnumLabel } from "@/lib/i18n/labels"
 import {
   isEmptyTaskCustomFieldValue,
@@ -83,8 +85,16 @@ export function TaskForm({
     label: L.taskStatus(value),
     value,
   }))
-  const { labels } = useProjectStore()
+  const { labels, getProject } = useProjectStore()
   const fields = template?.fields ?? []
+  // Only a new task can opt out of issue creation: once a task is linked to an
+  // issue, the link is kept. The checkbox is a base field, so it shows for the
+  // quick task form and every template alike.
+  const repositoryProvider = getProject(projectId)?.repositoryProvider
+  const providerLabel = repositoryProvider
+    ? repositoryProviderLabel(repositoryProvider)
+    : ""
+  const canChooseIssue = !task && repositoryProvider !== undefined
   const [title, setTitle] = React.useState(task?.title ?? "")
   const [description, setDescription] = React.useState(
     task?.description ?? template?.description ?? ""
@@ -110,6 +120,7 @@ export function TaskForm({
   const [customValues, setCustomValues] = React.useState<TaskCustomFieldValues>(
     () => ({ ...(task?.customFields ?? {}) })
   )
+  const [createIssue, setCreateIssue] = React.useState(true)
   const [submitted, setSubmitted] = React.useState(false)
   const titleInvalid = submitted && !title.trim()
 
@@ -162,6 +173,7 @@ export function TaskForm({
           labelIds,
           dueDate,
           endDate,
+          createIssue: canChooseIssue ? createIssue : undefined,
           customFields:
             fields.length > 0
               ? customFieldPayload(answered, customValues)
@@ -287,6 +299,26 @@ export function TaskForm({
             <DatePicker value={endDate} onChange={setEndDate} />
           </Field>
         </div>
+        {canChooseIssue ? (
+          <Field orientation="horizontal">
+            <Checkbox
+              id={`${formId}-create-issue`}
+              checked={createIssue}
+              onCheckedChange={(checked) => setCreateIssue(checked === true)}
+            />
+            <div className="flex flex-col gap-1">
+              <FieldLabel
+                htmlFor={`${formId}-create-issue`}
+                className="font-normal"
+              >
+                {t("taskCreateIssue", {
+                  provider: providerLabel,
+                })}
+              </FieldLabel>
+              <FieldDescription>{t("taskCreateIssueHint")}</FieldDescription>
+            </div>
+          </Field>
+        ) : null}
         {fields.length > 0 ? (
           <>
             <Separator />

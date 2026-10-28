@@ -8,6 +8,7 @@ import {
   FileIcon,
   FolderIcon,
   HandshakeIcon,
+  MessageSquareHeartIcon,
   MessageSquareIcon,
   SearchIcon,
   Settings2Icon,
@@ -19,7 +20,7 @@ import { CalendarsSidebar } from "@/components/calendars/calendars-sidebar"
 import { ConversationSidebar } from "@/components/messaging/conversation-sidebar"
 import { FilesSidebar } from "@/components/files/files-sidebar"
 import { NavMain, type NavApp } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
+import { NavSecondary } from "@workspace/ui/components/nav-secondary"
 import { Link, usePathname } from "@/i18n/navigation"
 import {
   Sidebar,
@@ -89,6 +90,11 @@ export function useNavSecondary(orgSlug: string) {
       title: t("search"),
       url: `/${orgSlug}/search`,
       icon: <SearchIcon />,
+    },
+    {
+      title: t("feedback"),
+      url: `/${orgSlug}/feedback`,
+      icon: <MessageSquareHeartIcon />,
     },
     {
       title: t("getHelp"),

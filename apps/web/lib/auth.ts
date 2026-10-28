@@ -5,8 +5,14 @@ import { betterAuth } from "better-auth"
 import { createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { jwt, organization } from "better-auth/plugins"
+import { admin, jwt, organization } from "better-auth/plugins"
+import {
+  adminAc,
+  defaultAc,
+  userAc,
+} from "better-auth/plugins/admin/access"
 
+import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
 import { parseRoles } from "./organization/utils"
 import { prisma } from "./prisma"
@@ -45,6 +51,25 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    // Flipped on at GA; `lib/env.ts` refuses to boot if it is enabled without
+    // an email provider, which would otherwise lock every new user out.
+    requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
+    resetPasswordTokenExpiresIn: 3600,
+    revokeSessionsOnPasswordReset: true,
+    sendResetPassword: async ({ user, url }) => {
+      sendResetPasswordEmail({ to: user.email, url })
+    },
+    onPasswordReset: async ({ user }) => {
+      console.info(`[auth] password reset completed for user ${user.id}`)
+    },
+  },
+  emailVerification: {
+    // Existing accounts (created before the flag was enabled) are unverified
+    // too, so an unverified sign-in attempt sends them a fresh link.
+    sendOnSignIn: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      sendVerificationEmail({ to: user.email, url })
+    },
   },
   socialProviders: {
     ...(githubOauth ? { github: githubOauth } : {}),
@@ -84,6 +109,21 @@ export const auth = betterAuth({
             },
           })
         },
+      },
+    }),
+    // Platform administration lives in `apps/control-tower`, but the plugin
+    // must be registered here too so bans and role checks apply to customer
+    // sign-in and so the impersonation handoff can create a session.
+    admin({
+      adminRoles: ["platform_admin"],
+      defaultRole: "user",
+      roles: {
+        platform_admin: adminAc,
+        platform_support: defaultAc.newRole({
+          user: ["list", "get"],
+          session: ["list"],
+        }),
+        user: userAc,
       },
     }),
     jwt(),

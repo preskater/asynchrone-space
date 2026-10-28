@@ -6,6 +6,7 @@ import {
   BellIcon,
   CalendarIcon,
   ClockIcon,
+  KeyRoundIcon,
   MapPinIcon,
   PencilIcon,
   Trash2Icon,
@@ -129,6 +130,13 @@ export function EventDetailsSheet({
                 </a>
               </DetailRow>
             ) : null}
+            {event.meetingPassword ? (
+              <DetailRow icon={KeyRoundIcon}>
+                {t("meetingPasswordLabel", {
+                  password: event.meetingPassword,
+                })}
+              </DetailRow>
+            ) : null}
             {event.reminderMinutes !== undefined ? (
               <DetailRow icon={BellIcon}>
                 {REMINDER_KEY[event.reminderMinutes]
@@ -191,9 +199,7 @@ export function EventDetailsSheet({
                         key={response}
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setAttendeeResponse(event.id, "u_aria", response)
-                        }
+                        onClick={() => setAttendeeResponse(event.id, response)}
                       >
                         {response === "accepted"
                           ? t("accept")

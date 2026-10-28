@@ -30,6 +30,7 @@ export interface CalendarEvent {
   calendarId: string
   location?: string
   meetingUrl?: string
+  meetingPassword?: string
   attendees: Attendee[]
   color: EventColor
   reminderMinutes?: number

@@ -9,6 +9,7 @@ import {
   type PageInput,
 } from "@/lib/core/pagination"
 import { unlinkLargeObject } from "@/lib/large-object"
+import { roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"
 
 import { MessagingRepository } from "./repository"
@@ -30,15 +31,8 @@ import type {
   Team,
 } from "./types"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
 function canWrite(ctx: RequestContext) {
-  if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
+  if (roleRank(ctx.role) >= 2) return
   throw new ForbiddenError("Your role cannot send messages.", {
     code: "role_cannot_send_messages",
   })
@@ -46,7 +40,8 @@ function canWrite(ctx: RequestContext) {
 
 /** Only the author (or an admin/owner) may edit or delete a message. */
 function assertAuthor(ctx: RequestContext, authorId: string) {
-  if (authorId === ctx.userId || ctx.role === "owner" || ctx.role === "admin") return
+  if (authorId === ctx.userId || ctx.role === "owner" || ctx.role === "admin")
+    return
   throw new ForbiddenError("You can only modify your own messages.", {
     code: "message_not_author",
   })
@@ -58,9 +53,7 @@ type ConversationRow = Awaited<
 type MessageRow = Awaited<
   ReturnType<MessagingRepository["listMessagesForConversation"]>
 >[number]
-type ReplyRow = Awaited<
-  ReturnType<MessagingRepository["listReplies"]>
->[number]
+type ReplyRow = Awaited<ReturnType<MessagingRepository["listReplies"]>>[number]
 type TeamRow = Awaited<ReturnType<MessagingRepository["listTeams"]>>[number]
 
 export class MessagingService {
@@ -110,7 +103,9 @@ export class MessagingService {
     }
   }
 
-  private mapReactions(row: { reactions: MessageRow["reactions"] }): Reaction[] {
+  private mapReactions(row: {
+    reactions: MessageRow["reactions"]
+  }): Reaction[] {
     const grouped = new Map<string, string[]>()
     for (const reaction of row.reactions) {
       grouped.set(reaction.emoji, [
@@ -259,7 +254,9 @@ export class MessagingService {
       body: input.body,
       parentId: input.parentId,
       meetingTitle: input.meeting?.title,
-      meetingStartsAt: input.meeting ? new Date(input.meeting.startsAt) : undefined,
+      meetingStartsAt: input.meeting
+        ? new Date(input.meeting.startsAt)
+        : undefined,
       meetingDuration: input.meeting?.durationMinutes,
       attachments: input.attachments?.map((attachment) => ({
         name: attachment.name,
@@ -298,7 +295,10 @@ export class MessagingService {
     return message
   }
 
-  async deleteMessage(ctx: RequestContext, id: string): Promise<{ id: string }> {
+  async deleteMessage(
+    ctx: RequestContext,
+    id: string
+  ): Promise<{ id: string }> {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
@@ -310,7 +310,10 @@ export class MessagingService {
     await Promise.all(
       oids.map((oid) =>
         unlinkLargeObject(Number(oid)).catch((error) =>
-          console.error(`[messaging] failed to unlink large object ${oid}`, error)
+          console.error(
+            `[messaging] failed to unlink large object ${oid}`,
+            error
+          )
         )
       )
     )
@@ -325,11 +328,7 @@ export class MessagingService {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, messageId)
     if (!existing) throw new NotFoundError("Message")
-    await this.repo.toggleReaction(
-      messageId,
-      input.emoji,
-      input.memberId ?? ctx.userId
-    )
+    await this.repo.toggleReaction(messageId, input.emoji, ctx.userId)
     const row = await this.repo.findMessage(ctx.organizationId, messageId)
     return this.mapMessage(row ?? existing)
   }
@@ -339,7 +338,10 @@ export class MessagingService {
     input: AddThreadReplyInput
   ): Promise<Message> {
     canWrite(ctx)
-    const parent = await this.repo.findMessage(ctx.organizationId, input.parentId)
+    const parent = await this.repo.findMessage(
+      ctx.organizationId,
+      input.parentId
+    )
     if (!parent) throw new NotFoundError("Message")
     const row = await this.repo.createMessage({
       conversationId: parent.conversationId,
@@ -359,7 +361,8 @@ export class MessagingService {
       conversationId
     )
     if (!conversation) return null
-    if (conversation.unreadCount === 0) return this.mapConversation(conversation)
+    if (conversation.unreadCount === 0)
+      return this.mapConversation(conversation)
     const row = await this.repo.updateConversation(conversationId, {
       unreadCount: 0,
     })

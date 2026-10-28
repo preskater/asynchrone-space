@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 /**
  * Project relations needed by the app shell (sidebar, pickers, cards).
@@ -9,6 +9,7 @@ export const projectInclude = {
   client: { select: { id: true, name: true } },
   members: { include: { project: false } },
   labels: { include: { label: true } },
+  repository: { select: { provider: true } },
   _count: { select: { tasks: true } },
 }
 
@@ -204,6 +205,7 @@ export class ProjectRepository {
     customFields?: unknown
     order: number
     labelIds: string[]
+    createIssue?: boolean
     externalIssueNumber?: number | null
     externalIssueUrl?: string | null
     externalUpdatedAt?: Date | null
@@ -223,6 +225,7 @@ export class ProjectRepository {
         templateId: data.templateId ?? null,
         customFields: (data.customFields ?? {}) as never,
         order: data.order,
+        createIssue: data.createIssue ?? true,
         externalIssueNumber: data.externalIssueNumber ?? null,
         externalIssueUrl: data.externalIssueUrl ?? null,
         externalUpdatedAt: data.externalUpdatedAt ?? null,
@@ -274,15 +277,15 @@ export class ProjectRepository {
     return this.db.task.delete({ where: { id } })
   }
 
-  toggleSubtask(subtaskId: string) {
-    return this.db.subtask
-      .findUniqueOrThrow({ where: { id: subtaskId } })
-      .then((subtask) =>
-        this.db.subtask.update({
-          where: { id: subtaskId },
-          data: { done: !subtask.done },
-        })
-      )
+  async toggleSubtask(taskId: string, subtaskId: string) {
+    const subtask = await this.db.subtask.findFirst({
+      where: { id: subtaskId, taskId },
+    })
+    if (!subtask) return null
+    return this.db.subtask.update({
+      where: { id: subtaskId },
+      data: { done: !subtask.done },
+    })
   }
 
   addComment(

@@ -17,11 +17,11 @@ import {
 import { repositoryIntegrationService } from "@/lib/integrations"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 import { ProjectRepository } from "./repository"
 import { createTaskComment } from "./task-comments"
-import { nextTaskIdentifier } from "./task-key"
+import { allocateTaskIdentifier, taskPrefix } from "./task-key"
 import type {
   AddCommentInput,
   AddLabelInput,
@@ -53,17 +53,6 @@ import type {
 } from "./types"
 import { ACTIVITY_STATUS_SENTINEL, TASK_TEMPLATE_FIELD_TYPES } from "./types"
 
-const ROLE_RANK: Record<string, number> = {
-  owner: 4,
-  admin: 3,
-  member: 2,
-  viewer: 1,
-}
-
-function roleAtLeast(role: string, min: number) {
-  return (ROLE_RANK[role] ?? 0) >= min
-}
-
 function iso(date: Date | null | undefined) {
   return date ? date.toISOString() : undefined
 }
@@ -88,14 +77,14 @@ export class ProjectService {
   ) {}
 
   private canWrite(ctx: RequestContext) {
-    if (roleAtLeast(ctx.role, 2)) return
+    if (roleRank(ctx.role) >= 2) return
     throw new ForbiddenError("Your role cannot modify projects.", {
       code: "role_cannot_modify_projects",
     })
   }
 
   private canManage(ctx: RequestContext) {
-    if (roleAtLeast(ctx.role, 3)) return
+    if (roleRank(ctx.role) >= 3) return
     throw new ForbiddenError("Your role cannot manage workspace members.", {
       code: "role_cannot_manage_members",
     })
@@ -253,6 +242,9 @@ export class ProjectService {
         row.clientTaskComments as Project["clientTaskComments"],
       memberIds: row.members.map((member) => member.userId),
       labelIds: row.labels.map((label) => label.labelId),
+      repositoryProvider:
+        (row.repository?.provider as Project["repositoryProvider"]) ??
+        undefined,
       taskCount: counts?.total ?? row._count?.tasks,
       doneTaskCount: counts?.done,
       createdAt: requiredIso(row.createdAt),
@@ -502,7 +494,7 @@ export class ProjectService {
       ctx.organizationId,
       input.projectId
     )
-    const identifier = nextTaskIdentifier(
+    const prefix = taskPrefix(
       project.name,
       existing.map((task) => task.identifier)
     )
@@ -522,19 +514,26 @@ export class ProjectService {
       )
     }
 
-    // In a connected project a task is expected to exist as a repository
-    // issue: the issue is created first (authored by the acting user's own
-    // token) and users without repository access cannot create the task.
-    const remote = await repositoryIntegrationService.createTaskInRepository(
-      ctx,
-      {
-        projectId: input.projectId,
-        title: input.title,
-        description: input.description,
-        status: input.status,
-      }
-    )
+    // In a connected project a task is normally expected to exist as a
+    // repository issue: the issue is created first (authored by the acting
+    // user's own token) and users without repository access cannot create the
+    // task. Tasks explicitly opted out (`createIssue: false`) skip the remote
+    // side entirely — no issue, no token, and later no pull request.
+    const createIssue = input.createIssue !== false
+    const remote = createIssue
+      ? await repositoryIntegrationService.createTaskInRepository(ctx, {
+          projectId: input.projectId,
+          title: input.title,
+          description: input.description,
+          status: input.status,
+        })
+      : null
 
+    const identifier = await allocateTaskIdentifier(
+      this.db,
+      ctx.organizationId,
+      prefix
+    )
     const row = await this.repo.createTask({
       organizationId: ctx.organizationId,
       projectId: input.projectId,
@@ -550,6 +549,7 @@ export class ProjectService {
       customFields,
       order: existing.length,
       labelIds: input.labelIds ?? [],
+      createIssue,
       externalIssueNumber: remote?.externalIssueNumber ?? null,
       externalIssueUrl: remote?.externalIssueUrl ?? null,
       externalUpdatedAt: remote?.externalUpdatedAt ?? null,
@@ -709,7 +709,8 @@ export class ProjectService {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, taskId)
     if (!existing) throw new NotFoundError("Task")
-    await this.repo.toggleSubtask(subtaskId)
+    const toggled = await this.repo.toggleSubtask(taskId, subtaskId)
+    if (!toggled) throw new NotFoundError("Subtask")
     const fresh = await this.repo.findTask(ctx.organizationId, taskId)
     return this.mapTask(fresh ?? existing)
   }

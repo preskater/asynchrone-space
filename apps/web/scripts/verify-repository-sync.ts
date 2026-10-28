@@ -337,6 +337,10 @@ async function main() {
         order: 0,
       },
     })
+    // Seeded outside the service, so seed its identifier counter too.
+    await prisma.taskIdentifierCounter.create({
+      data: { organizationId: orgId, prefix: "VRF", value: 1 },
+    })
 
     const ctx: RequestContext = {
       userId: user.id,
@@ -651,6 +655,51 @@ async function main() {
     assert(
       createdRow.externalIssueNumber !== null,
       "new task was reported as an issue"
+    )
+
+    // 10b. Tasks created without issue creation stay local: no issue, no
+    // backfill, and moving one to review creates no pull request either —
+    // even without a profile token.
+    const issueSequenceBefore = mock.latestIssueNumber()
+    await service.removeUserToken(ctx, "github")
+    const localOnly = await projectService.createTask(ctx, {
+      projectId: project.id,
+      title: "Local only",
+      createIssue: false,
+    })
+    const localOnlyRow = await prisma.task.findUniqueOrThrow({
+      where: { id: localOnly.id },
+    })
+    assert(
+      localOnlyRow.createIssue === false &&
+        localOnlyRow.externalIssueNumber === null,
+      "an opted-out task is created without an issue (and without a token)"
+    )
+    assert(
+      mock.latestIssueNumber() === issueSequenceBefore,
+      "opted-out task creation made no provider call"
+    )
+    await projectService.moveTask(ctx, localOnly.id, { status: "review" })
+    const localOnlyMoved = await prisma.task.findUniqueOrThrow({
+      where: { id: localOnly.id },
+    })
+    assert(
+      localOnlyMoved.status === "review" &&
+        localOnlyMoved.externalIssueNumber === null &&
+        localOnlyMoved.externalPrNumber === null,
+      "moving an opted-out task to review creates no issue or pull request"
+    )
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "ghp_verify_token",
+    })
+    await service.sync(ctx, project.id)
+    const localOnlySynced = await prisma.task.findUniqueOrThrow({
+      where: { id: localOnly.id },
+    })
+    assert(
+      localOnlySynced.externalIssueNumber === null,
+      "sync does not backfill opted-out tasks"
     )
 
     // 11. GitLab: connect, MR webhook with token verification

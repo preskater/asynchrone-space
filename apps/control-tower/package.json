@@ -1,0 +1,41 @@
+{
+  "name": "control-tower",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit",
+    "grant:platform-role": "tsx scripts/grant-platform-role.ts",
+    "verify:auth-config": "tsx scripts/verify-auth-config.ts",
+    "verify:platform-authorization": "tsx scripts/verify-platform-authorization.ts"
+  },
+  "dependencies": {
+    "@workspace/db": "*",
+    "@workspace/ui": "*",
+    "better-auth": "^1.7.7",
+    "dotenv": "^18.0.7",
+    "lucide-react": "^1.56.0",
+    "next": "16.4.2",
+    "next-themes": "^0.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "sonner": "^2.0.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10",
+    "tsx": "^4.23.15",
+    "typescript": "^7"
+  }
+}

@@ -13,6 +13,11 @@ node_modules
 # testing
 coverage
 
+# playwright
+test-results/
+playwright-report/
+blob-report/
+
 # next.js
 .next/
 out/
@@ -41,8 +46,8 @@ yarn-error.log*
 # prisma generated client
 **/lib/generated/
 
-# vercel
-.vercel
+# helm dependency build output (run `helm dependency build charts/presk`)
+charts/presk/charts/
 
 # typescript
 *.tsbuildinfo

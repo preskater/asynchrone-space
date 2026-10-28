@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@/lib/generated/prisma/client"
+import type { PrismaClient } from "@workspace/db"
 
 /** Columns selecting the company fields shared by every CRM query. */
 const CLIENT_SELECT = {

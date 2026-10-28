@@ -2,6 +2,7 @@ import account from "./account.json"
 import activity from "./activity.json"
 import announcement from "./announcement.json"
 import appPages from "./appPages.json"
+import appearance from "./appearance.json"
 import assistant from "./assistant.json"
 import auth from "./auth.json"
 import blog from "./blog.json"
@@ -11,13 +12,16 @@ import crm from "./crm.json"
 import enums from "./enums.json"
 import error from "./error.json"
 import errors from "./errors.json"
+import feedback from "./feedback.json"
 import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
 import hr from "./hr.json"
+import impersonation from "./impersonation.json"
 import landing from "./landing.json"
 import legal from "./legal.json"
 import marketing from "./marketing.json"
+import meetingRequests from "./meetingRequests.json"
 import meetings from "./meetings.json"
 import messaging from "./messaging.json"
 import metadata from "./metadata.json"
@@ -38,6 +42,7 @@ export default {
   Activity: activity,
   Announcement: announcement,
   AppPages: appPages,
+  Appearance: appearance,
   Assistant: assistant,
   Auth: auth,
   Blog: blog,
@@ -47,13 +52,16 @@ export default {
   Enums: enums,
   Error: error,
   Errors: errors,
+  Feedback: feedback,
   Files: files,
   Footer: footer,
   Forms: forms,
   Hr: hr,
+  Impersonation: impersonation,
   Landing: landing,
   Legal: legal,
   Marketing: marketing,
+  MeetingRequests: meetingRequests,
   Meetings: meetings,
   Messaging: messaging,
   Metadata: metadata,

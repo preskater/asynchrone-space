@@ -26,7 +26,11 @@ import {
   listTaskComments,
   type TaskCommentData,
 } from "@/lib/projects/task-comments"
-import type { PortalPolicy } from "@/lib/projects/types"
+import type {
+  PortalPolicy,
+  TaskPriority,
+  TaskStatus,
+} from "@/lib/projects/types"
 
 import type { PortalContext } from "./context"
 import type { InvitePortalUserInput } from "./schemas"
@@ -140,7 +144,9 @@ export class PortalService {
         id: link.id,
         fileId: link.fileId,
         name: link.file.name,
-        sizeBytes: link.file.sizeBytes ? Number(link.file.sizeBytes) : undefined,
+        sizeBytes: link.file.sizeBytes
+          ? Number(link.file.sizeBytes)
+          : undefined,
         createdAt: link.createdAt.toISOString(),
         isNew: lastSeen ? link.createdAt.getTime() > lastSeen.getTime() : true,
       })),
@@ -310,8 +316,8 @@ export class PortalService {
         identifier: task.identifier,
         title: task.title,
         description: task.description ?? undefined,
-        status: task.status,
-        priority: task.priority,
+        status: task.status as TaskStatus,
+        priority: task.priority as TaskPriority,
         dueDate: iso(task.dueDate),
         endDate: iso(task.endDate),
         createdAt: task.createdAt.toISOString(),

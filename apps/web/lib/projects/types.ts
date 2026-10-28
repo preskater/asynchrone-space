@@ -1,3 +1,5 @@
+import type { RepositoryProvider } from "@/lib/integrations/types"
+
 export type TaskStatus = "backlog" | "todo" | "in_progress" | "review" | "done"
 
 export type TaskPriority = "low" | "medium" | "high" | "urgent"
@@ -128,6 +130,8 @@ export interface Project {
   clientVisible: boolean
   clientDiscussion: PortalPolicy
   clientTaskComments: PortalPolicy
+  /** GitHub/GitLab repository connected to this project, when there is one. */
+  repositoryProvider?: RepositoryProvider
   memberIds: string[]
   labelIds: string[]
   /** Shell counters, computed without loading tasks. */
@@ -192,16 +196,6 @@ export const PROJECT_STATUS_VALUES: ProjectStatus[] = [
   "paused",
   "completed",
 ]
-
-export const PRIORITY_BADGE_VARIANT: Record<
-  TaskPriority,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  low: "outline",
-  medium: "secondary",
-  high: "default",
-  urgent: "destructive",
-}
 
 export function formatDate(value?: string, locale = "en") {
   if (!value) return null

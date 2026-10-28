@@ -5,6 +5,7 @@ import { calendarTools } from "./tools/calendars"
 import { crmTools } from "./tools/crm"
 import { fileTools } from "./tools/files"
 import { hrTools } from "./tools/hr"
+import { meetingTools } from "./tools/meetings"
 import { messagingTools } from "./tools/messaging"
 import { projectTools } from "./tools/projects"
 import type { McpTool } from "./tools/projects"
@@ -15,6 +16,7 @@ export const allMcpTools: McpTool[] = [
   ...calendarTools,
   ...crmTools,
   ...hrTools,
+  ...meetingTools,
   ...fileTools,
   ...messagingTools,
 ]
