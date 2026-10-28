@@ -29,7 +29,7 @@
 
 ## Deployment
 
-- `.github/workflows/docker.yml` publishes three GHCR images: `asynchrone` (web runner), `asynchrone-control-tower` (control-tower runner) and `asynchrone-migrate` (Dockerfile `migrate` stage).
+- `.github/workflows/docker.yml` publishes three GHCR images: `asynchrone-space` (web runner), `asynchrone-space-control-tower` (control-tower runner) and `asynchrone-space-migrate` (Dockerfile `migrate` stage).
 - Helm charts live in `charts/`: `asynchrone-space` is the umbrella (migration hook and production values), `asynchrone-space-web` and `asynchrone-space-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/asynchrone-space` then `helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space --set global.imageTag=sha-…`.
 - The chart requires the existing Secrets `asynchrone-space-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `asynchrone-space-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
 - The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the two CronJobs that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.

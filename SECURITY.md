@@ -17,7 +17,7 @@ Please **do not** report security vulnerabilities through public GitHub issues,
 discussions, or pull requests.
 
 Instead, report them privately using GitHub's
-[Report a vulnerability](https://github.com/preskater/asynchrone/security/advisories/new)
+[Report a vulnerability](https://github.com/preskater/asynchrone-space/security/advisories/new)
 flow. If you are unable to use that form, email the maintainers at
 **security@asynchrone.space**.
 

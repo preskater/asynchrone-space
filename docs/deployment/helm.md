@@ -42,9 +42,9 @@ and every `v*` tag:
 
 | Image | Built from | Purpose |
 | --- | --- | --- |
-| `ghcr.io/preskater/asynchrone` | `runner` stage, `APP=web` | Customer app |
-| `ghcr.io/preskater/asynchrone-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
-| `ghcr.io/preskater/asynchrone-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
+| `ghcr.io/preskater/asynchrone-space` | `runner` stage, `APP=web` | Customer app |
+| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
+| `ghcr.io/preskater/asynchrone-space-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
 
 The workflow tags images with the branch, the release tag and `sha-<shortsha>`.
 Use the immutable `sha-` tag:
@@ -233,7 +233,7 @@ migrations manually (for example when recovering a cluster):
 
 ```bash
 kubectl -n asynchrone-space create job asynchrone-space-migrate-manual \
-  --image=ghcr.io/preskater/asynchrone-migrate:sha-abc1234
+  --image=ghcr.io/preskater/asynchrone-space-migrate:sha-abc1234
 ```
 
 The migrate image runs as a non-root user with a read-only root filesystem and

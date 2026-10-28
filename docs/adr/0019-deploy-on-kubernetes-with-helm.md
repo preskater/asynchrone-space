@@ -41,7 +41,7 @@ migrations, scheduling, secrets, ingress and rolling updates.
 `charts/asynchrone-space` is an umbrella chart with `asynchrone-space-web` and `asynchrone-space-control-tower`
 subcharts. The customer app owns the two CronJobs that replace the Vercel crons.
 The umbrella chart owns a `pre-install,pre-upgrade` Job that runs
-`prisma migrate deploy` from the dedicated `asynchrone-migrate` image. Both apps read
+`prisma migrate deploy` from the dedicated `asynchrone-space-migrate` image. Both apps read
 configuration from ConfigMaps and secrets from existing Kubernetes Secrets
 (`asynchrone-space-web-secrets` and `asynchrone-space-control-tower-secrets`); the chart never renders
 or stores secret material. One `global.imageTag` pins the three images built by
@@ -105,8 +105,8 @@ that Helm deploys.
 - `charts/asynchrone-space` — umbrella chart, migration hook and production values
 - `charts/asynchrone-space-web` — customer app, ingress and CronJobs
 - `charts/asynchrone-space-control-tower` — internal app and ingress
-- `.github/workflows/docker.yml` — `asynchrone`, `asynchrone-control-tower` and
-  `asynchrone-migrate` images
+- `.github/workflows/docker.yml` — `asynchrone-space`, `asynchrone-space-control-tower` and
+  `asynchrone-space-migrate` images
 - `.github/workflows/helm.yml` — chart lint/render CI
 - [ADR 0009](0009-ship-standalone-docker-image.md) — standalone Docker images
 - `docs/deployment/helm.md` — installation and operations guide

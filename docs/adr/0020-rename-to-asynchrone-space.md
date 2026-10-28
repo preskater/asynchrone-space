@@ -72,7 +72,7 @@ account.
   `presk/<n>` prefix are no longer recognized.
 - Kubernetes cannot upgrade the renamed chart in place: deploy a fresh
   `asynchrone-space` namespace and Secrets, cut DNS over, then remove the old
-  release. GHCR publishes new `asynchrone*` images on the next `main`
+  release. GHCR publishes new `asynchrone-space*` images on the next `main`
   build.
 - Historical references in earlier ADRs are rewritten to the new name; this
   record documents the rename itself.

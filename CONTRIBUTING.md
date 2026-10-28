@@ -8,13 +8,13 @@ By participating you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md)
 ## Ways to contribute
 
 - Report bugs or request features using our
-  [issue templates](https://github.com/preskater/asynchrone/issues/new/choose).
-- Improve docs (see the [documentation template](https://github.com/preskater/asynchrone/issues/new/choose)).
+  [issue templates](https://github.com/preskater/asynchrone-space/issues/new/choose).
+- Improve docs (see the [documentation template](https://github.com/preskater/asynchrone-space/issues/new/choose)).
 - Submit a pull request for an open issue. Issues labelled
-  [`good first issue`](https://github.com/preskater/asynchrone/labels/good%20first%20issue)
-  and [`help wanted`](https://github.com/preskater/asynchrone/labels/help%20wanted)
+  [`good first issue`](https://github.com/preskater/asynchrone-space/labels/good%20first%20issue)
+  and [`help wanted`](https://github.com/preskater/asynchrone-space/labels/help%20wanted)
   are great starting points.
-- Review pull requests and join [discussions](https://github.com/preskater/asynchrone/discussions).
+- Review pull requests and join [discussions](https://github.com/preskater/asynchrone-space/discussions).
 
 ## Prerequisites
 
