@@ -1,12 +1,12 @@
 # Use Next.js App Router with React 19
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk needs a framework that delivers server-rendered, authenticated product
+Asynchrone Space needs a framework that delivers server-rendered, authenticated product
 surfaces (calendars, projects, files, messages) plus API route handlers for
 uploads, MCP, and auth, all from one deployable. Which rendering framework
 should the web application be built on?

@@ -61,7 +61,7 @@ export function contextFromAuthInfo(
     userId: extra.userId,
     organizationId: extra.organizationId,
     role: extra.role ?? "member",
-    userName: extra.userName ?? "Presk Assistant",
-    userEmail: extra.userEmail ?? "assistant@presk.app",
+    userName: extra.userName ?? "Asynchrone Space Assistant",
+    userEmail: extra.userEmail ?? "assistant@asynchrone.space",
   }
 }

@@ -1,7 +1,7 @@
 {
   "privacy": {
     "title": "Politique de confidentialité",
-    "description": "Comment Presk collecte, utilise et protège vos données.",
+    "description": "Comment Asynchrone Space collecte, utilise et protège vos données.",
     "updated": "1 octobre 2026",
     "s1h": "Informations que nous collectons",
     "s1b1": "Nous collectons les informations que vous fournissez lorsque vous créez un compte, notamment votre nom, votre adresse e-mail et les détails de votre organisation.",
@@ -12,14 +12,14 @@
     "s3h": "Conservation des données",
     "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez votre compte, nous retirons ou anonymisons vos données sous 30 jours, sauf lorsque la loi nous oblige à les conserver.",
     "s4h": "Vos droits",
-    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@presk.app pour exercer ces droits."
+    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@asynchrone.space pour exercer ces droits."
   },
   "terms": {
     "title": "Conditions d'utilisation",
-    "description": "L'accord qui régit votre utilisation de Presk.",
+    "description": "L'accord qui régit votre utilisation de Asynchrone Space.",
     "updated": "1 octobre 2026",
     "s1h": "Acceptation des conditions",
-    "s1b1": "En accédant à Presk ou en l'utilisant, vous acceptez d'être lié par ces conditions. Si vous utilisez le service pour le compte d'une organisation, vous déclarez avoir l'autorité pour engager cette organisation.",
+    "s1b1": "En accédant à Asynchrone Space ou en l'utilisant, vous acceptez d'être lié par ces conditions. Si vous utilisez le service pour le compte d'une organisation, vous déclarez avoir l'autorité pour engager cette organisation.",
     "s2h": "Utilisation acceptable",
     "s2b1": "Vous acceptez de ne pas détourner le service, notamment en tentant d'y accéder par d'autres moyens que les interfaces que nous fournissons, ou en l'utilisant pour stocker ou partager du contenu illicite.",
     "s3h": "Abonnements et facturation",
@@ -29,7 +29,7 @@
   },
   "security": {
     "title": "Sécurité",
-    "description": "Comment Presk protège votre espace de travail et vos données.",
+    "description": "Comment Asynchrone Space protège votre espace de travail et vos données.",
     "updated": "1 octobre 2026",
     "s1h": "Chiffrement",
     "s1b1": "Toutes les données sont chiffrées en transit via TLS et au repos avec un chiffrement standard du secteur. Les identifiants sont hachés, jamais stockés en clair.",
@@ -38,12 +38,12 @@
     "s2b1": "Les organisations incluent un contrôle d'accès basé sur les rôles avec les rôles propriétaire, administrateur, membre et lecteur. Les permissions de fichiers peuvent être définies par personne et par fichier.",
     "s2b2": "Les offres Enterprise ajoutent le SSO, le provisionnement SCIM et une journalisation d'audit détaillée.",
     "s3h": "Conformité et signalement",
-    "s3b1": "Nous effectuons des sauvegardes régulières et surveillons les anomalies. Si vous pensez avoir découvert une vulnérabilité, contactez security@presk.app.",
+    "s3b1": "Nous effectuons des sauvegardes régulières et surveillons les anomalies. Si vous pensez avoir découvert une vulnérabilité, contactez security@asynchrone.space.",
     "s3b2": "Nous divulguons les incidents rapidement et en toute transparence aux organisations concernées."
   },
   "cookies": {
     "title": "Politique de cookies",
-    "description": "Comment Presk utilise les cookies et technologies similaires.",
+    "description": "Comment Asynchrone Space utilise les cookies et technologies similaires.",
     "updated": "1 octobre 2026",
     "s1h": "À quoi servent les cookies",
     "s1b1": "Nous utilisons des cookies pour vous garder connecté, mémoriser vos préférences telles que la langue et le thème, et comprendre comment le produit est utilisé afin de l'améliorer.",

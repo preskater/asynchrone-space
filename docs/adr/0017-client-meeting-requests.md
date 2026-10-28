@@ -1,7 +1,7 @@
 # Client meeting requests
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-21
 
 ## Context and Problem Statement

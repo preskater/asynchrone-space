@@ -3,11 +3,7 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
 import { admin, twoFactor } from "better-auth/plugins"
-import {
-  adminAc,
-  defaultAc,
-  userAc,
-} from "better-auth/plugins/admin/access"
+import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 import { prisma } from "@workspace/db"
 
 // Validates this app's runtime configuration on first import (fail fast).
@@ -51,11 +47,11 @@ export const authConfig = {
         user: userAc,
       },
     }),
-    twoFactor({ issuer: "Presk Control Tower" }),
+    twoFactor({ issuer: "Asynchrone Space Control Tower" }),
     nextCookies(),
   ],
   advanced: {
-    cookiePrefix: "presk-control-tower",
+    cookiePrefix: "asynchrone-space-control-tower",
     // crossSubDomainCookies: intentionally absent. See ADR 0018.
   },
 } satisfies BetterAuthOptions

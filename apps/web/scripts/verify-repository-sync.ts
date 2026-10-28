@@ -150,14 +150,20 @@ class MockRepositoryServer {
       })
     }
     if (path === `${gh}/repos/acme/widget/issues` && req.method === "GET") {
-      return this.json(res, 200, [...this.issues.values()].map((i) => this.issuePayload(i)))
+      return this.json(
+        res,
+        200,
+        [...this.issues.values()].map((i) => this.issuePayload(i))
+      )
     }
     if (path === `${gh}/repos/acme/widget/issues` && req.method === "POST") {
       const input = JSON.parse(body) as { title: string; body: string }
       const issue = this.seedIssue(input.title, input.body)
       return this.json(res, 201, this.issuePayload(issue))
     }
-    const ghIssue = path.match(/^\/api\/v3\/repos\/acme\/widget\/issues\/(\d+)$/)
+    const ghIssue = path.match(
+      /^\/api\/v3\/repos\/acme\/widget\/issues\/(\d+)$/
+    )
     if (ghIssue && req.method === "PATCH") {
       const issue = this.issues.get(Number(ghIssue[1]))
       if (!issue) return this.json(res, 404, { message: "Not Found" })
@@ -188,7 +194,11 @@ class MockRepositoryServer {
       return this.json(res, 201, { content: { sha: "blob-sha" } })
     }
     if (path === `${gh}/repos/acme/widget/pulls` && req.method === "POST") {
-      const input = JSON.parse(body) as { title: string; body: string; head: string }
+      const input = JSON.parse(body) as {
+        title: string
+        body: string
+        head: string
+      }
       this.pullSequence += 1
       return this.json(res, 201, {
         number: this.pullSequence,
@@ -352,7 +362,10 @@ async function main() {
     const connectionRepo = new RepositoryConnectionRepository(prisma)
     const service = new RepositoryIntegrationService(connectionRepo, prisma)
     const webhookHandler = new RepositoryWebhookHandler(connectionRepo, prisma)
-    const projectService = new ProjectService(new ProjectRepository(prisma), prisma)
+    const projectService = new ProjectService(
+      new ProjectRepository(prisma),
+      prisma
+    )
 
     // 1. Token gating: connecting requires the admin's own token, and the
     // token must actually grant access to the repository.
@@ -367,7 +380,10 @@ async function main() {
       "repository_user_token_missing",
       "connect without a profile token is rejected"
     )
-    await service.setUserToken(ctx, { provider: "github", token: "denied-token" })
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "denied-token",
+    })
     await assertRejects(
       service.connect(ctx, {
         projectId: project.id,
@@ -394,8 +410,14 @@ async function main() {
       repo: "widget",
       baseUrl,
     })
-    assert(connectResult.summary.issuesImported === 2, "connect imports 2 issues")
-    assert(connectResult.summary.tasksPushed === 1, "connect reports 1 local task")
+    assert(
+      connectResult.summary.issuesImported === 2,
+      "connect imports 2 issues"
+    )
+    assert(
+      connectResult.summary.tasksPushed === 1,
+      "connect reports 1 local task"
+    )
 
     const tasksAfterConnect = await prisma.task.findMany({
       where: { projectId: project.id },
@@ -433,17 +455,29 @@ async function main() {
     })
     await service.removeUserToken(ctx, "github")
     await assertRejects(
-      projectService.createTask(ctx, { projectId: project.id, title: "No token" }),
+      projectService.createTask(ctx, {
+        projectId: project.id,
+        title: "No token",
+      }),
       "repository_user_token_missing",
       "creating a task without a profile token is rejected"
     )
-    await service.setUserToken(ctx, { provider: "github", token: "denied-token" })
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "denied-token",
+    })
     await assertRejects(
-      projectService.createTask(ctx, { projectId: project.id, title: "Denied" }),
+      projectService.createTask(ctx, {
+        projectId: project.id,
+        title: "Denied",
+      }),
       "repository_access_denied",
       "creating a task without repo access is rejected"
     )
-    await service.setUserToken(ctx, { provider: "github", token: "flaky-token" })
+    await service.setUserToken(ctx, {
+      provider: "github",
+      token: "flaky-token",
+    })
     await assertRejects(
       projectService.createTask(ctx, { projectId: project.id, title: "Flaky" }),
       "repository_issue_create_failed",
@@ -476,7 +510,7 @@ async function main() {
       "task edit reached the issue body"
     )
 
-    // 5. Moving to review creates a draft PR from a presk/ branch.
+    // 5. Moving to review creates a draft PR from an asynchrone-space/ branch.
     await projectService.moveTask(ctx, importedA.id, { status: "review" })
     await sleep(100)
     const reviewed = await prisma.task.findUniqueOrThrow({
@@ -488,14 +522,13 @@ async function main() {
       "review move created a pull request"
     )
     assert(
-      mock.hasRequest("PUT", `/contents/.presk/${reviewed.identifier}.md`) ||
-        mock.hasRequest("PUT", "/contents/"),
+      mock.hasRequest(
+        "PUT",
+        `/contents/.asynchrone-space/${reviewed.identifier}.md`
+      ) || mock.hasRequest("PUT", "/contents/"),
       "PR branch has a marker commit"
     )
-    assert(
-      mock.hasRequest("POST", `/pulls`),
-      "pull request was opened"
-    )
+    assert(mock.hasRequest("POST", `/pulls`), "pull request was opened")
 
     // 6. A closed issue marks the task done (verified webhook).
     const closedPayload = JSON.stringify({
@@ -510,7 +543,10 @@ async function main() {
         updated_at: new Date(Date.now() + 5000).toISOString(),
       },
     })
-    const signature = createHmac("sha256", connectResult.connection.webhookSecret)
+    const signature = createHmac(
+      "sha256",
+      connectResult.connection.webhookSecret
+    )
       .update(closedPayload)
       .digest("hex")
     const closeResult = await webhookHandler.handle({
@@ -767,8 +803,7 @@ async function main() {
       where: { id: gitlabTask.id },
     })
     assert(
-      gitlabAfterMr.status === "review" &&
-        gitlabAfterMr.externalPrNumber === 5,
+      gitlabAfterMr.status === "review" && gitlabAfterMr.externalPrNumber === 5,
       "GitLab MR moved the task to review"
     )
 

@@ -139,7 +139,7 @@
   "taskDescriptionPlaceholder": "Add more detail about this task...",
   "labelsHint": "Tag this task with one or more labels.",
   "taskCreateIssue": "Create an issue in {provider}",
-  "taskCreateIssueHint": "The issue is linked to this task and stays in sync with it. Uncheck to keep this task in Presk only.",
+  "taskCreateIssueHint": "The issue is linked to this task and stays in sync with it. Uncheck to keep this task in Asynchrone Space only.",
   "selectDay": "Select a day",
   "tasksDue": "{count, plural, one {# task} other {# tasks}} due",
   "noTasksDue": "No tasks due on this day.",

@@ -23,14 +23,14 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Build chart dependencies
-        run: helm dependency build charts/presk
+        run: helm dependency build charts/asynchrone-space
 
       - name: Lint
-        run: helm lint --strict charts/presk --set global.imageTag=ci-placeholder-tag
+        run: helm lint --strict charts/asynchrone-space --set global.imageTag=ci-placeholder-tag
 
       - name: Render
         run: |
-          helm template presk charts/presk \
-            --namespace presk \
+          helm template asynchrone-space charts/asynchrone-space \
+            --namespace asynchrone-space \
             --set global.imageTag=ci-placeholder-tag \
             > /dev/null

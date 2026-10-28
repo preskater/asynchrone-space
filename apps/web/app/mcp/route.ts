@@ -18,7 +18,10 @@ const resource =
  */
 const mcpHandler = createMcpHandler(
   (requestContext) => {
-    const server = new McpServer({ name: "presk-mcp", version: "0.1.0" })
+    const server = new McpServer({
+      name: "asynchrone-space-mcp",
+      version: "0.1.0",
+    })
     registerTools(server, requestContext.authInfo)
     return server
   },

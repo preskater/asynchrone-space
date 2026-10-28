@@ -1,13 +1,13 @@
 # Sync project tasks with GitHub/GitLab repositories
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-15
 
 ## Context and Problem Statement
 
 User feedback (issue #47): IT teams live in their repositories and their issue
-trackers. Round-tripping between Presk and GitHub/GitLab to check or file work
+trackers. Round-tripping between Asynchrone Space and GitHub/GitLab to check or file work
 loses time, and statuses drift apart. The workspace needs a repository
 connected to a project such that issues and tasks stay in sync both ways:
 
@@ -75,8 +75,8 @@ strategy.
   wins); connect/sync surface provider errors to the user.
 - Status mapping: closed issue ⇔ `done` task; reopening moves a done task back
   to `todo`. Moving a task to `review` (or a PR opening against its issue)
-  links a draft PR/MR created from a `presk/<issue>-<slug>` branch with a
-  marker commit (`.presk/<identifier>.md`), including `Closes #<issue>` so
+  links a draft PR/MR created from an `asynchrone-space/<issue>-<slug>` branch with a
+  marker commit (`.asynchrone-space/<identifier>.md`), including `Closes #<issue>` so
   merging closes the issue and completes the loop.
 - Accounts: GitHub/GitLab OAuth apps are optional (`GITHUB_CLIENT_ID`/…).
   A linked user's token is preferred for their actions so issues/PRs are

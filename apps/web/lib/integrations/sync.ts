@@ -1,8 +1,5 @@
 import type { PrismaClient } from "@workspace/db"
-import {
-  allocateTaskIdentifier,
-  taskPrefix,
-} from "@/lib/projects/task-key"
+import { allocateTaskIdentifier, taskPrefix } from "@/lib/projects/task-key"
 
 import { createProviderClient } from "./providers"
 import type { RepositoryConnectionRow } from "./repository"
@@ -38,7 +35,9 @@ export function issueStateForStatus(status: string): "open" | "closed" {
   return status === "done" ? "closed" : "open"
 }
 
-export function isRepositoryProvider(value: string): value is RepositoryProvider {
+export function isRepositoryProvider(
+  value: string
+): value is RepositoryProvider {
   return (REPOSITORY_PROVIDERS as readonly string[]).includes(value)
 }
 
@@ -190,14 +189,16 @@ export async function applyIssueEvent(
 }
 
 /**
- * Finds the task an incoming pull/merge request refers to. Presk-created
- * branches embed the issue number (`presk/<n>-…`); opening links written by
+ * Finds the task an incoming pull/merge request refers to. Branches created by
+ * Asynchrone Space embed the issue number (`asynchrone-space/<n>-…`); opening links written by
  * hand usually reference the issue as `#<n>` in the title or description.
  */
 export function issueNumberFromPullRequest(
   pullRequest: RemotePullRequest
 ): number | null {
-  const branch = pullRequest.sourceBranch.match(/^presk\/(\d+)(?:-|$)/)
+  const branch = pullRequest.sourceBranch.match(
+    /^asynchrone-space\/(\d+)(?:-|$)/
+  )
   if (branch) return Number(branch[1])
   const reference = `${pullRequest.title}\n${pullRequest.body}`.match(
     /(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)?\s*#(\d+)/i
@@ -364,13 +365,13 @@ function buildMarkerFile(task: SyncTaskRow): string {
     task.description ?? "_No description._",
     "",
     "---",
-    "_Created automatically by Presk when this task moved to review._",
+    "_Created automatically by Asynchrone Space when this task moved to review._",
     "",
   ].join("\n")
 }
 
 /**
- * Creates a draft pull/merge request for the task from a `presk/<issue>-…`
+ * Creates a draft pull/merge request for the task from an `asynchrone-space/<issue>-…`
  * branch (with a marker commit so the PR has content), and stores the link.
  * No-op when a PR is already linked.
  */
@@ -385,17 +386,17 @@ export async function ensurePullRequestForTask(
   const issueNumber = linked.externalIssueNumber
   if (!issueNumber) return
   const client = buildProviderClient(connection, token)
-  const branch = `presk/${issueNumber}-${slugify(linked.title) || "task"}`
+  const branch = `asynchrone-space/${issueNumber}-${slugify(linked.title) || "task"}`
   const pullRequest = await client.api.createPullRequest({
     title: `${linked.identifier}: ${linked.title}`,
     body: [
-      `Draft opened automatically by Presk for **${linked.identifier} — ${linked.title}**.`,
+      `Draft opened automatically by Asynchrone Space for **${linked.identifier} — ${linked.title}**.`,
       "",
       `Closes #${issueNumber}`,
       ...(linked.description ? ["", linked.description] : []),
     ].join("\n"),
     branch,
-    filePath: `.presk/${linked.identifier}.md`,
+    filePath: `.asynchrone-space/${linked.identifier}.md`,
     fileContent: buildMarkerFile(linked),
   })
   await db.task.update({

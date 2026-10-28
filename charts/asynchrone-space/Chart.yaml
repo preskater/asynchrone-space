@@ -1,0 +1,16 @@
+apiVersion: v2
+name: asynchrone-space
+description: Umbrella chart for the Asynchrone Space customer app and control tower
+type: application
+version: 0.1.0
+appVersion: "0.0.1"
+
+dependencies:
+  - name: asynchrone-space-web
+    version: 0.1.0
+    repository: file://../asynchrone-space-web
+    condition: asynchrone-space-web.enabled
+  - name: asynchrone-space-control-tower
+    version: 0.1.0
+    repository: file://../asynchrone-space-control-tower
+    condition: asynchrone-space-control-tower.enabled

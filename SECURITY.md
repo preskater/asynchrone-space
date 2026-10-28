@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Presk is under active development. Security fixes are applied to the latest
+Asynchrone Space is under active development. Security fixes are applied to the latest
 code on `main` and to the most recent tagged release.
 
 | Version | Supported |
@@ -17,9 +17,9 @@ Please **do not** report security vulnerabilities through public GitHub issues,
 discussions, or pull requests.
 
 Instead, report them privately using GitHub's
-[Report a vulnerability](https://github.com/preskater/presk/security/advisories/new)
+[Report a vulnerability](https://github.com/preskater/asynchrone-space/security/advisories/new)
 flow. If you are unable to use that form, email the maintainers at
-**security@presk.re**.
+**security@asynchrone.space**.
 
 Please include as much of the following as possible:
 
