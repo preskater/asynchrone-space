@@ -1,7 +1,7 @@
 # Extend clients into the CRM core
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-14
 
 ## Context and Problem Statement

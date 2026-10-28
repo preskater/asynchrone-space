@@ -1,7 +1,7 @@
 {
   "consent": {
     "title": "Authorize {client}",
-    "description": "{client} wants to access your Presk workspace.",
+    "description": "{client} wants to access your Asynchrone Space workspace.",
     "unknownClient": "an application",
     "scopesTitle": "This will allow it to:",
     "scope_openid": "Verify your identity",

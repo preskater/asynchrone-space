@@ -2,7 +2,7 @@
 
 ARG NODE_VERSION=26.10.0
 ARG ALPINE_VERSION=3.24
-ARG WORKDIR=/usr/src/presk
+ARG WORKDIR=/usr/src/asynchrone-space
 
 # ---
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS base

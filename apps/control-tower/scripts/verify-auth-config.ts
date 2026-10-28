@@ -6,7 +6,7 @@ import { authConfig } from "../lib/auth"
  * Guards the session-cookie decision recorded in ADR 0018.
  *
  * The control tower must never share a cookie domain with the customer app:
- * `Domain=.presk.re` would ship the admin session to every subdomain (including
+ * `Domain=.asynchrone.space` would ship the admin session to every subdomain (including
  * vendor hosts) and allow cookie tossing. This check fails the build if someone
  * enables cross-subdomain cookies later.
  */
@@ -25,13 +25,12 @@ function check(condition: unknown, message: string) {
 check(
   !(
     authConfig.advanced as
-      | { crossSubDomainCookies?: { enabled?: boolean } }
-      | undefined
+      { crossSubDomainCookies?: { enabled?: boolean } } | undefined
   )?.crossSubDomainCookies?.enabled,
   "cross-subdomain cookies are disabled"
 )
 check(
-  authConfig.advanced?.cookiePrefix === "presk-control-tower",
+  authConfig.advanced?.cookiePrefix === "asynchrone-space-control-tower",
   "the session cookie prefix is scoped to this app"
 )
 check(

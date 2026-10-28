@@ -9,7 +9,7 @@ export function Wordmark({ className }: { className?: string }) {
         <CommandIcon className="size-4" />
       </span>
       <span className="font-heading text-lg font-semibold tracking-tight">
-        Presk
+        Asynchrone Space
       </span>
     </span>
   )

@@ -1,7 +1,7 @@
 # Customizable appearance and animations
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-19
 
 ## Context and Problem Statement
@@ -59,7 +59,7 @@ Chosen option: **B**, with a small **C** companion.
   independent from the organization theme. `PriorityBadge` renders
   `data-priority`; the animation layer only decorates it.
 - Per-user preferences (`highContrast`, `disableAnimations`) live in
-  `localStorage` under `presk.appearance.user.<userId>` and are mirrored to
+  `localStorage` under `asynchrone-space.appearance.user.<userId>` and are mirrored to
   `data-contrast` / `data-motion` on `<html>`. An inline boot script applies them
   (and the organization theme) before the first paint.
 - `prefers-reduced-motion` is honoured independently, and high contrast

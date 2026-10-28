@@ -1,7 +1,7 @@
 # Task templates as form configurations
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-15
 
 ## Context and Problem Statement

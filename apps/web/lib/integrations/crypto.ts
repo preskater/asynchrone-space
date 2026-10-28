@@ -26,7 +26,7 @@ function deriveKey(): Buffer {
     )
   }
   return createHash("sha256")
-    .update(`presk:repository-token:${secret}`)
+    .update(`asynchrone-space:repository-token:${secret}`)
     .digest()
 }
 

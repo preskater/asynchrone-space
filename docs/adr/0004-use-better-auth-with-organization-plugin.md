@@ -1,12 +1,12 @@
 # Use Better Auth with the organization plugin for multi-tenant RBAC
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk is multi-tenant: every calendar, project, file, and message belongs to an
+Asynchrone Space is multi-tenant: every calendar, project, file, and message belongs to an
 organization, and users have a role within each organization. The app also needs
 email/password authentication and an admin surface. How should authentication,
 organization membership, and role-based access control be implemented without

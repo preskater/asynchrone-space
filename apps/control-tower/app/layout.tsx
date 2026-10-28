@@ -9,10 +9,10 @@ import { cn } from "@workspace/ui/lib/utils"
 
 export const metadata: Metadata = {
   title: {
-    default: "Presk Control Tower",
-    template: "%s · Presk Control Tower",
+    default: "Asynchrone Space Control Tower",
+    template: "%s · Asynchrone Space Control Tower",
   },
-  description: "Internal platform administration for Presk.",
+  description: "Internal platform administration for Asynchrone Space.",
   robots: { index: false, follow: false },
 }
 

@@ -150,7 +150,7 @@ export interface Testimonial {
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "Presk replaced four tools for us. Projects, chat and files finally live in the same place, so context never gets lost.",
+      "Asynchrone Space replaced four tools for us. Projects, chat and files finally live in the same place, so context never gets lost.",
     name: "Aria Chen",
     role: "Head of Product, Northwind",
     initials: "AC",
@@ -342,8 +342,7 @@ export const jobs: Job[] = [
 ]
 
 export const contactChannels: { key: string; detail: string }[] = [
-  { key: "sales", detail: "sales@presk.app" },
-  { key: "support", detail: "support@presk.app" },
-  { key: "careers", detail: "careers@presk.app" },
+  { key: "sales", detail: "sales@asynchrone.space" },
+  { key: "support", detail: "support@asynchrone.space" },
+  { key: "careers", detail: "careers@asynchrone.space" },
 ]
-

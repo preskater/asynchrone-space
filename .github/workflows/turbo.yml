@@ -68,19 +68,19 @@ jobs:
       postgres:
         image: postgres:18-alpine
         env:
-          POSTGRES_USER: preskater
-          POSTGRES_PASSWORD: preskater
-          POSTGRES_DB: preskater
+          POSTGRES_USER: asynchrone
+          POSTGRES_PASSWORD: asynchrone
+          POSTGRES_DB: asynchrone
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U preskater"
+          --health-cmd "pg_isready -U asynchrone"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql://preskater:preskater@localhost:5432/preskater?schema=public
+      DATABASE_URL: postgresql://asynchrone:asynchrone@localhost:5432/asynchrone?schema=public
       BETTER_AUTH_SECRET: ci-e2e-secret-placeholder-value
       BETTER_AUTH_URL: http://localhost:3000
       CONTROL_TOWER_BETTER_AUTH_SECRET: ci-control-tower-placeholder-secret-not-used

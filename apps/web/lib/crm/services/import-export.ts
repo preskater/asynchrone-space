@@ -54,7 +54,10 @@ export class CrmImportExportService extends CrmServiceCore {
           toDateKey(row.createdAt),
         ])
       }
-      return { filename: `presk-clients-${today}.csv`, content: toCsv(csvRows) }
+      return {
+        filename: `asynchrone-space-clients-${today}.csv`,
+        content: toCsv(csvRows),
+      }
     }
 
     if (input.entity === "contacts") {
@@ -89,7 +92,7 @@ export class CrmImportExportService extends CrmServiceCore {
         ])
       }
       return {
-        filename: `presk-contacts-${today}.csv`,
+        filename: `asynchrone-space-contacts-${today}.csv`,
         content: toCsv(csvRows),
       }
     }
@@ -132,7 +135,10 @@ export class CrmImportExportService extends CrmServiceCore {
         toDateKey(row.createdAt),
       ])
     }
-    return { filename: `presk-deals-${today}.csv`, content: toCsv(csvRows) }
+    return {
+      filename: `asynchrone-space-deals-${today}.csv`,
+      content: toCsv(csvRows),
+    }
   }
 
   async importClients(

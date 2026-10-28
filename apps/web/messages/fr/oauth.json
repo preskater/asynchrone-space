@@ -1,7 +1,7 @@
 {
   "consent": {
     "title": "Autoriser {client}",
-    "description": "{client} souhaite accéder à votre espace Presk.",
+    "description": "{client} souhaite accéder à votre espace Asynchrone Space.",
     "unknownClient": "une application",
     "scopesTitle": "Cela lui permettra de :",
     "scope_openid": "Vérifier votre identité",

@@ -7,7 +7,7 @@ import {
 
 /** localStorage key that scopes accessibility preferences per user. */
 export function userAppearanceStorageKey(userId: string) {
-  return `presk.appearance.user.${userId}`
+  return `asynchrone-space.appearance.user.${userId}`
 }
 
 /**

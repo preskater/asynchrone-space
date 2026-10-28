@@ -14,7 +14,7 @@ export interface RecentEntry {
 
 type RecentsState = Record<AppKey, RecentEntry[]>
 
-const STORAGE_PREFIX = "presk.recents.v2"
+const STORAGE_PREFIX = "asynchrone-space.recents.v2"
 const MAX_STORED = 5
 
 const EMPTY: RecentsState = {
