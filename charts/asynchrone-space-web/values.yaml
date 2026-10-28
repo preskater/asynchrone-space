@@ -13,7 +13,7 @@ global:
 replicaCount: 2
 
 image:
-  repository: ghcr.io/preskater/asynchrone-space
+  repository: ghcr.io/preskater/asynchrone
   # Falls back to global.imageTag. One of the two must be set.
   tag: ""
   pullPolicy: IfNotPresent

@@ -231,9 +231,9 @@ The Docker workflow publishes three images to GHCR:
 
 | Image | Dockerfile stage | Runs |
 | --- | --- | --- |
-| `ghcr.io/preskater/asynchrone-space` | `runner` (`APP=web`) | Customer app |
-| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
-| `ghcr.io/preskater/asynchrone-space-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
+| `ghcr.io/preskater/asynchrone` | `runner` (`APP=web`) | Customer app |
+| `ghcr.io/preskater/asynchrone-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
+| `ghcr.io/preskater/asynchrone-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
 
 Deploy them with the Helm umbrella chart in `charts/asynchrone-space`, which composes the
 `asynchrone-space-web` and `asynchrone-space-control-tower` subcharts:

@@ -96,6 +96,6 @@ implemented instead as an explicit, single-use, audited handoff
 
 ### Links
 
-- Issue: [#61](https://github.com/preskater/asynchrone-space/issues/61)
+- Issue: [#61](https://github.com/preskater/asynchrone/issues/61)
 - Migration history: `packages/db/prisma/migrations`
 - Web shim: `apps/web/lib/prisma.ts`
