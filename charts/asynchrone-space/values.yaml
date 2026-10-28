@@ -27,7 +27,7 @@ asynchrone-space-web:
   # Release `asynchrone-space` yields the resources `asynchrone-space-web-*`.
   nameOverride: web
   image:
-    repository: ghcr.io/preskater/asynchrone-space
+    repository: ghcr.io/preskater/asynchrone
     tag: ""
     pullPolicy: IfNotPresent
 
@@ -89,7 +89,7 @@ asynchrone-space-control-tower:
   # Release `asynchrone-space` yields the resources `asynchrone-space-control-tower-*`.
   nameOverride: control-tower
   image:
-    repository: ghcr.io/preskater/asynchrone-space-control-tower
+    repository: ghcr.io/preskater/asynchrone-control-tower
     tag: ""
     pullPolicy: IfNotPresent
 
@@ -129,7 +129,7 @@ asynchrone-space-control-tower:
 migrate:
   enabled: true
   image:
-    repository: ghcr.io/preskater/asynchrone-space-migrate
+    repository: ghcr.io/preskater/asynchrone-migrate
     tag: ""
     pullPolicy: IfNotPresent
   imagePullSecrets: []
