@@ -2,8 +2,10 @@ import "dotenv/config"
 
 import { randomUUID } from "node:crypto"
 
+import { getAiQuota } from "../lib/assistant/usage"
 import type { RequestContext } from "../lib/core/context"
 import { orgQuotaBytes } from "../lib/files/storage"
+import { getOrganizationEntitlements } from "../lib/organization/entitlements"
 import {
   getTrialStatus,
   processTrials,
@@ -156,6 +158,17 @@ async function main() {
       (await getTrialStatus(orgs.main, start))?.daysLeft === 14,
       "banner status reports 14 days left"
     )
+    const trialEntitlements = await getOrganizationEntitlements(orgs.main)
+    check(
+      trialEntitlements.seats === 100 &&
+        trialEntitlements.granularPermissions &&
+        trialEntitlements.aiBudgetMicrosPerSeat > 0,
+      "the whole Team plan applies during the trial, not just storage"
+    )
+    check(
+      (await getAiQuota(orgs.main, start)).budgetMicros > 0,
+      "the AI allowance is unlocked during the trial"
+    )
 
     // Abuse checks
     check(
@@ -225,6 +238,14 @@ async function main() {
     check(
       (await orgQuotaBytes(orgs.main)) === 1 * GB,
       "workspace is back on Starter (1 GB)"
+    )
+    check(
+      (await getOrganizationEntitlements(orgs.main)).seats === 5,
+      "seats are back on the Starter cap"
+    )
+    check(
+      (await getAiQuota(orgs.main, end)).budgetMicros === 0,
+      "the AI allowance is gone after the trial"
     )
     check(
       (await prisma.project.findUnique({ where: { id: project.id } })) !== null,
