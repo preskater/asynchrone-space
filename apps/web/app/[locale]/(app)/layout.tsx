@@ -20,6 +20,8 @@ import { fileService } from "@/lib/files"
 import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
+import { getOrganizationEntitlements } from "@/lib/organization/entitlements"
+import { EntitlementsProvider } from "@/lib/organization/use-entitlements"
 import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
 import { CalendarsProvider } from "@/lib/calendars/store"
@@ -81,6 +83,7 @@ export default async function AppLayout({
     storageQuotaBytes,
     notificationData,
     appearance,
+    entitlements,
   ] = await Promise.all([
     projectService.list(ctx),
     calendarService.list(ctx),
@@ -89,79 +92,82 @@ export default async function AppLayout({
     orgQuotaBytes(organization.id),
     notificationService.list(ctx),
     getOrganizationAppearance(organization.id),
+    getOrganizationEntitlements(organization.id),
   ])
 
   return (
     <TooltipProvider>
-      <AppearanceProvider initialAppearance={appearance} userId={ctx.userId}>
-        <RecentsProvider organizationId={organization.id}>
-          <ProjectStoreProvider
-            initialData={projectData}
-            currentUserId={ctx.userId}
-          >
-            <MessagingProvider
-              initialData={messagingData}
+      <EntitlementsProvider entitlements={entitlements}>
+        <AppearanceProvider initialAppearance={appearance} userId={ctx.userId}>
+          <RecentsProvider organizationId={organization.id}>
+            <ProjectStoreProvider
+              initialData={projectData}
               currentUserId={ctx.userId}
-              organizationId={organization.id}
-              members={projectData.members}
             >
-              <CalendarsProvider
-                initialData={calendarData}
+              <MessagingProvider
+                initialData={messagingData}
                 currentUserId={ctx.userId}
+                organizationId={organization.id}
                 members={projectData.members}
               >
-                <FilesProvider
-                  initialData={filesData}
+                <CalendarsProvider
+                  initialData={calendarData}
                   currentUserId={ctx.userId}
-                  organizationId={organization.id}
-                  storageQuotaBytes={storageQuotaBytes}
                   members={projectData.members}
                 >
-                  <WorkspaceNavProvider>
-                    <AssistantProvider>
-                      <SidebarProvider
-                        style={
-                          {
-                            "--sidebar-width": "calc(var(--spacing) * 72)",
-                            "--header-height": "calc(var(--spacing) * 12)",
-                          } as React.CSSProperties
-                        }
-                      >
-                        <a
-                          href="#main-content"
-                          className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
+                  <FilesProvider
+                    initialData={filesData}
+                    currentUserId={ctx.userId}
+                    organizationId={organization.id}
+                    storageQuotaBytes={storageQuotaBytes}
+                    members={projectData.members}
+                  >
+                    <WorkspaceNavProvider>
+                      <AssistantProvider>
+                        <SidebarProvider
+                          style={
+                            {
+                              "--sidebar-width": "calc(var(--spacing) * 72)",
+                              "--header-height": "calc(var(--spacing) * 12)",
+                            } as React.CSSProperties
+                          }
                         >
-                          {t("skipToContent")}
-                        </a>
-                        <AppSidebar
-                          variant="inset"
-                          orgSlug={organization.slug}
-                        />
-                        <SidebarInset id="main-content">
-                          {session.session.impersonatedBy ? (
-                            <ImpersonationBanner name={session.user.name} />
-                          ) : null}
-                          <SiteHeader
+                          <a
+                            href="#main-content"
+                            className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
+                          >
+                            {t("skipToContent")}
+                          </a>
+                          <AppSidebar
+                            variant="inset"
                             orgSlug={organization.slug}
-                            user={session.user}
-                            activeOrganizationId={organization.id}
-                            notifications={notificationData}
                           />
-                          <div className="flex flex-1 flex-col">
-                            <div className="@container/main flex flex-1 flex-col gap-2">
-                              {children}
+                          <SidebarInset id="main-content">
+                            {session.session.impersonatedBy ? (
+                              <ImpersonationBanner name={session.user.name} />
+                            ) : null}
+                            <SiteHeader
+                              orgSlug={organization.slug}
+                              user={session.user}
+                              activeOrganizationId={organization.id}
+                              notifications={notificationData}
+                            />
+                            <div className="flex flex-1 flex-col">
+                              <div className="@container/main flex flex-1 flex-col gap-2">
+                                {children}
+                              </div>
                             </div>
-                          </div>
-                        </SidebarInset>
-                      </SidebarProvider>
-                    </AssistantProvider>
-                  </WorkspaceNavProvider>
-                </FilesProvider>
-              </CalendarsProvider>
-            </MessagingProvider>
-          </ProjectStoreProvider>
-        </RecentsProvider>
-      </AppearanceProvider>
+                          </SidebarInset>
+                        </SidebarProvider>
+                      </AssistantProvider>
+                    </WorkspaceNavProvider>
+                  </FilesProvider>
+                </CalendarsProvider>
+              </MessagingProvider>
+            </ProjectStoreProvider>
+          </RecentsProvider>
+        </AppearanceProvider>
+      </EntitlementsProvider>
     </TooltipProvider>
   )
 }

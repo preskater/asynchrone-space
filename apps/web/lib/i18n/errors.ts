@@ -70,6 +70,7 @@ const CODE_KEYS: Record<string, string> = {
   meeting_attendee_invalid: "meetingAttendeeInvalid",
   feedback_rate_limited: "feedbackRateLimited",
   feedback_delivery_failed: "feedbackDeliveryFailed",
+  upgrade_required: "upgradeRequired",
 }
 
 export function useErrorTranslator() {

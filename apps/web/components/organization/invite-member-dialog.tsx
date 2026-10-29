@@ -33,6 +33,7 @@ import {
 } from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
 
+import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"
 import { authClient } from "@/lib/auth-client"
 import { useEnumLabel } from "@/lib/i18n/labels"
 import { INVITABLE_ROLES, type OrgRole } from "@/lib/organization/roles"
@@ -52,6 +53,7 @@ export function InviteMemberDialog({
   const [role, setRole] = React.useState<OrgRole>("member")
   const [submitting, setSubmitting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [seatLimitReached, setSeatLimitReached] = React.useState(false)
   const [inviteUrl, setInviteUrl] = React.useState<string | null>(null)
   const [copied, setCopied] = React.useState(false)
 
@@ -60,6 +62,7 @@ export function InviteMemberDialog({
       setEmail("")
       setRole("member")
       setError(null)
+      setSeatLimitReached(false)
       setInviteUrl(null)
       setCopied(false)
     }
@@ -78,6 +81,11 @@ export function InviteMemberDialog({
       email: trimmed,
       role,
     })
+    if (error?.code === "UPGRADE_REQUIRED") {
+      setSeatLimitReached(true)
+      setSubmitting(false)
+      return
+    }
     if (error || !data) {
       setError(error?.message ?? t("unableToSendInvitation"))
       setSubmitting(false)
@@ -109,9 +117,7 @@ export function InviteMemberDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("inviteMember")}</DialogTitle>
-          <DialogDescription>
-            {t("inviteSomeoneDescription")}
-          </DialogDescription>
+          <DialogDescription>{t("inviteSomeoneDescription")}</DialogDescription>
         </DialogHeader>
 
         {inviteUrl ? (
@@ -130,9 +136,7 @@ export function InviteMemberDialog({
                   {copied ? <CheckIcon /> : <CopyIcon />}
                 </Button>
               </div>
-              <FieldDescription>
-                {t("inviteLinkDescription")}
-              </FieldDescription>
+              <FieldDescription>{t("inviteLinkDescription")}</FieldDescription>
             </Field>
             <DialogFooter>
               <DialogClose render={<Button />}>{t("done")}</DialogClose>
@@ -179,6 +183,7 @@ export function InviteMemberDialog({
                   {L.orgRoleDescription(role)}
                 </FieldDescription>
               </Field>
+              {seatLimitReached ? <PlanUpgradePrompt feature="seats" /> : null}
               {error ? (
                 <p className="text-sm text-destructive">{error}</p>
               ) : null}
