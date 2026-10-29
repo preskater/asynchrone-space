@@ -1,5 +1,4 @@
 import {
-  getDefaultModel,
   run,
   type AgentInputItem,
   type RunStreamEvent,
@@ -12,6 +11,7 @@ import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
 import { upgradeRequired } from "@/lib/organization/entitlements"
 import { rateLimit } from "@/lib/core/rate-limit"
 import { assistantAgent } from "@/lib/assistant/agent"
+import { DEFAULT_ASSISTANT_MODEL } from "@/lib/assistant/model"
 import { getAiQuota, quotaExceeded, recordAiUsage } from "@/lib/assistant/usage"
 
 export const runtime = "nodejs"
@@ -131,7 +131,8 @@ export async function POST(request: Request) {
   const abort = new AbortController()
   request.signal.addEventListener("abort", () => abort.abort())
 
-  const model = process.env.ASSISTANT_MODEL || getDefaultModel()
+  // Same model the agent runs on, so the cost written to AiUsageEvent matches.
+  const model = process.env.ASSISTANT_MODEL ?? DEFAULT_ASSISTANT_MODEL
   const stream = await run(
     assistantAgent,
     parsed.data.messages as AgentInputItem[],

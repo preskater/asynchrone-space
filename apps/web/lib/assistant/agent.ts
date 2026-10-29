@@ -3,6 +3,7 @@ import "./provider"
 import { Agent } from "@openai/agents"
 
 import type { RequestContext } from "@/lib/core/context"
+import { DEFAULT_ASSISTANT_MODEL } from "@/lib/assistant/model"
 import { assistantTools } from "@/lib/assistant/tools"
 
 export const INSTRUCTIONS = `You are the Asynchrone Space assistant, embedded in an AI-native productivity workspace.
@@ -15,7 +16,5 @@ export const assistantAgent = new Agent<RequestContext>({
   name: "Asynchrone Space Assistant",
   instructions: INSTRUCTIONS,
   tools: assistantTools,
-  ...(process.env.ASSISTANT_MODEL
-    ? { model: process.env.ASSISTANT_MODEL }
-    : {}),
+  model: process.env.ASSISTANT_MODEL ?? DEFAULT_ASSISTANT_MODEL,
 })
