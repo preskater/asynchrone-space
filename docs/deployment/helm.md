@@ -129,6 +129,7 @@ lists. The defaults already target `asynchrone.space` and
 | CronJob | `asynchrone-space-web-uploads-sweep` | `0 3 * * *` |
 | CronJob | `asynchrone-space-web-repository-sync` | `0 * * * *` |
 | CronJob | `asynchrone-space-web-trial-expiry` | `0 6 * * *` |
+| CronJob | `asynchrone-space-web-organization-deletion` | `30 3 * * *` |
 | Job (hook) | `asynchrone-space-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled |
 | PDB | `asynchrone-space-web`, `asynchrone-space-control-tower` | `minAvailable: 1` |
@@ -244,7 +245,9 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 ## Scheduled jobs
 
 The uploads-sweep and repository-sync CronJobs replace the former Vercel crons;
-trial-expiry runs the daily Team trial reminders and expiry (ADR 0021). They
+trial-expiry runs the daily Team trial reminders and expiry (ADR 0021);
+organization-deletion deletes organizations whose 30-day deletion grace period
+has passed, including their file large objects. They
 call the in-cluster Service and send `Authorization: Bearer $CRON_SECRET`, read from
 `asynchrone-space-web-secrets`; the corresponding route rejects a missing/incorrect token
 when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping

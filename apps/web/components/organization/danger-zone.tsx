@@ -2,9 +2,14 @@
 
 import * as React from "react"
 import { useRouter } from "@/i18n/navigation"
-import { useTranslations } from "next-intl"
-import { LogOutIcon, Trash2Icon } from "lucide-react"
+import { useFormatter, useTranslations } from "next-intl"
+import { LogOutIcon, Trash2Icon, Undo2Icon } from "lucide-react"
 import { toast } from "sonner"
+
+import {
+  cancelOrganizationDeletionAction,
+  requestOrganizationDeletionAction,
+} from "@/actions/organization-deletion"
 
 import {
   AlertDialog,
@@ -33,35 +38,50 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
+import { unwrapActionResult } from "@/lib/core/action"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 
 export function OrganizationDangerZone({
   organization,
   isOwner,
   isOnlyOwner,
+  deletionScheduledAt,
 }: {
   organization: { id: string; name: string }
   isOwner: boolean
   isOnlyOwner: boolean
+  deletionScheduledAt: Date | null
 }) {
   const router = useRouter()
   const t = useTranslations("Org")
+  const te = useErrorTranslator()
+  const format = useFormatter()
   const [confirmName, setConfirmName] = React.useState("")
   const [deleting, setDeleting] = React.useState(false)
   const [leaving, setLeaving] = React.useState(false)
 
-  async function deleteOrganization() {
+  async function requestDeletion() {
     setDeleting(true)
-    const { error } = await authClient.organization.delete({
-      organizationId: organization.id,
-    })
-    if (error) {
-      toast.error(error.message ?? t("unableToDeleteOrganization"))
-      setDeleting(false)
-      return
+    try {
+      unwrapActionResult(await requestOrganizationDeletionAction(confirmName))
+      toast.success(t("deletionScheduled"))
+      router.refresh()
+    } catch (error) {
+      toast.error(te(error, "internal"))
     }
-    toast.success(t("organizationDeleted"))
-    router.push("/onboarding")
-    router.refresh()
+    setDeleting(false)
+  }
+
+  async function cancelDeletion() {
+    setDeleting(true)
+    try {
+      unwrapActionResult(await cancelOrganizationDeletionAction())
+      toast.success(t("deletionCancelled"))
+      router.refresh()
+    } catch (error) {
+      toast.error(te(error, "internal"))
+    }
+    setDeleting(false)
   }
 
   async function leaveOrganization() {
@@ -80,7 +100,7 @@ export function OrganizationDangerZone({
     router.refresh()
   }
 
-  const canDelete = isOwner && !isOnlyOwner
+  const canDelete = isOwner
   const canLeave = !isOwner
 
   return (
@@ -130,7 +150,32 @@ export function OrganizationDangerZone({
           </div>
         ) : null}
 
-        {canDelete ? (
+        {canDelete && deletionScheduledAt ? (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-col gap-1">
+              <span className="text-sm font-medium">
+                {t("deletionScheduledTitle")}
+              </span>
+              <span className="text-sm text-muted-foreground">
+                {t("deletionScheduledDescription", {
+                  date: format.dateTime(deletionScheduledAt, {
+                    dateStyle: "long",
+                  }),
+                })}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={cancelDeletion}
+            >
+              <Undo2Icon data-icon="inline-start" />
+              {t("cancelDeletion")}
+            </Button>
+          </div>
+        ) : null}
+
+        {canDelete && !deletionScheduledAt ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
               <span className="text-sm font-medium">{t("deleteOrganization")}</span>
@@ -172,7 +217,7 @@ export function OrganizationDangerZone({
                   <AlertDialogAction
                     variant="destructive"
                     disabled={confirmName !== organization.name}
-                    onClick={deleteOrganization}
+                    onClick={requestDeletion}
                   >
                     {t("deleteOrganization")}
                   </AlertDialogAction>
