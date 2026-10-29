@@ -84,6 +84,19 @@ Add optional keys to `asynchrone-space-web-secrets` as needed:
 | `RESEND_API_KEY` | Verification and password-reset email |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth account linking |
 | `GITLAB_CLIENT_SECRET` | GitLab OAuth account linking |
+| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile on sign-up and password reset |
+| `STRIPE_SECRET_KEY` | Billing: Checkout and the Customer Portal |
+| `STRIPE_WEBHOOK_SECRET` | Billing: signing secret of `/api/webhooks/stripe` |
+
+`TURNSTILE_SECRET_KEY` must be set together with
+`asynchrone-space-web.config.TURNSTILE_SITE_KEY`, and `STRIPE_WEBHOOK_SECRET`
+requires `STRIPE_SECRET_KEY`; the app refuses to boot on a half-configured
+pair.
+
+Plan and trial limits need no extra configuration. Billing falls back to the
+inline Team price when `asynchrone-space-web.config.STRIPE_PRICE_TEAM_MONTHLY` /
+`STRIPE_PRICE_TEAM_YEARLY` are empty; see [../billing.md](../billing.md) for the
+Stripe endpoint, test-mode procedure and the production checklist.
 
 Use different `BETTER_AUTH_SECRET` and `CONTROL_TOWER_BETTER_AUTH_SECRET`
 values. Keep `BETTER_AUTH_SECRET` stable: it encrypts the JWKS rows in the
