@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { DEFAULT_ASSISTANT_MODEL } from "./model"
 import { costMicros, FALLBACK_PRICE, MODEL_PRICES, priceFor } from "./pricing"
 
 describe("priceFor", () => {
@@ -22,6 +23,12 @@ describe("priceFor", () => {
       )
       expect(FALLBACK_PRICE.output).toBeGreaterThanOrEqual(price.output)
     }
+  })
+
+  it("prices the model the assistant runs on by default", () => {
+    // A default model missing from the table would drain the AI quota at the
+    // fallback rate; keep DEFAULT_ASSISTANT_MODEL listed here.
+    expect(priceFor(DEFAULT_ASSISTANT_MODEL)).not.toBe(FALLBACK_PRICE)
   })
 })
 

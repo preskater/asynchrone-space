@@ -1,7 +1,8 @@
 /**
  * Model prices in USD per million tokens, which is also micro-USD per token.
  * Cost is stored on each `AiUsageEvent`, so editing a price never rewrites
- * history; add a model here before switching `ASSISTANT_MODEL` to it.
+ * history; add a model here before switching `ASSISTANT_MODEL` (or
+ * `DEFAULT_ASSISTANT_MODEL`) to it.
  */
 export interface ModelPrice {
   input: number
