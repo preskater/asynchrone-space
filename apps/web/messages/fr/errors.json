@@ -93,5 +93,10 @@
   "createTaskFailed": "Impossible de créer la tâche.",
   "commentFailed": "Le commentaire a échoué.",
   "addMemberFailed": "Impossible d'ajouter le membre.",
-  "addLabelFailed": "Impossible d'ajouter l'étiquette."
+  "addLabelFailed": "Impossible d'ajouter l'étiquette.",
+  "roleCannotManageBilling": "Seuls les propriétaires et les administrateurs peuvent gérer la facturation.",
+  "billingNotConfigured": "La facturation n'est pas configurée sur ce déploiement.",
+  "billingManualContract": "Cette organisation est facturée via un contrat manuel.",
+  "billingSubscriptionExists": "Cette organisation a déjà un abonnement. Gérez-le depuis le portail client.",
+  "billingNoPaymentAccount": "Aucun moyen de paiement à gérer pour le moment."
 }

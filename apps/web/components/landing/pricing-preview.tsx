@@ -12,9 +12,11 @@ import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-gr
 export function PricingPreview({
   isAuthenticated,
   dashboardHref,
+  billingHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
 }) {
   const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
@@ -46,6 +48,7 @@ export function PricingPreview({
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
+          billingHref={billingHref}
         />
       </div>
       <div className="mt-10 flex justify-center">

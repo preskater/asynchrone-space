@@ -9,7 +9,11 @@ import { FinalCta } from "@/components/landing/final-cta"
 import { getMarketingAuth } from "@/lib/landing/session"
 
 export default async function HomePage() {
-  const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
+  const {
+    isAuthenticated: authenticated,
+    dashboardHref,
+    billingHref,
+  } = await getMarketingAuth()
 
   return (
     <>
@@ -18,7 +22,11 @@ export default async function HomePage() {
       <FeatureGrid limit={3} showCta />
       <ProductShowcase />
       <Testimonials />
-      <PricingPreview isAuthenticated={authenticated} dashboardHref={dashboardHref} />
+      <PricingPreview
+        isAuthenticated={authenticated}
+        dashboardHref={dashboardHref}
+        billingHref={billingHref}
+      />
       <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>
   )

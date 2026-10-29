@@ -40,3 +40,4 @@ collection.
 | [0017](0017-client-meeting-requests.md)                   | accepted | Let clients request meetings that the team books on the calendar         |
 | [0018](0018-control-tower-on-shared-database-package.md)  | accepted | Add a separate control-tower app on a shared `packages/db`               |
 | [0019](0019-deploy-on-kubernetes-with-helm.md)            | accepted | Deploy on Kubernetes with Helm                                            |
+| [0020](0020-bill-subscriptions-through-stripe.md)                | accepted | Bill subscriptions through Stripe with a local plan state                 |

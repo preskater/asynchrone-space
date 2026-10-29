@@ -141,6 +141,9 @@ model Organization {
   meetingSettings MeetingSettings?
   meetingRequests MeetingRequest[]
 
+  subscription Subscription?
+  invoices     Invoice[]
+
   @@unique([slug])
   @@map("organization")
 }
@@ -1590,3 +1593,90 @@ model TwoFactor {
   @@map("twoFactor")
 }
 
+
+// ---------------------------------------------------------------------------
+// Billing (Stripe)
+// ---------------------------------------------------------------------------
+
+/// One row per organization. `plan` is the source of truth the product reads to
+/// apply limits; `status` mirrors the payment provider's subscription status.
+/// A platform admin override sets `provider` to `manual` and `manualOverride`
+/// to `true`, which makes webhook updates stop touching `plan`.
+model Subscription {
+  id                     String       @id @default(cuid())
+  organizationId         String       @unique
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// `free`, `team` or `enterprise`.
+  plan                   String       @default("free")
+  /// `inactive`, `trialing`, `active`, `past_due`, `canceled`, `unpaid`.
+  status                 String       @default("inactive")
+  /// `stripe` when the customer pays through checkout, `manual` for contracts.
+  provider               String       @default("stripe")
+  providerCustomerId     String?
+  providerSubscriptionId String?      @unique
+  providerPriceId        String?
+  /// `month` or `year`; null for manually granted plans.
+  billingInterval        String?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean      @default(false)
+  trialEndsAt            DateTime?
+  /// Set when a platform admin granted the plan by hand; webhooks never
+  /// downgrade an overridden plan.
+  manualOverride         Boolean      @default(false)
+  /// Last time the "your trial ends soon" email was sent.
+  trialReminderSentAt    DateTime?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  invoices Invoice[]
+
+  @@index([providerCustomerId])
+  @@index([status])
+  @@index([trialEndsAt])
+  @@map("subscription")
+}
+
+/// Provider invoices, mirrored for the settings page. Amounts are in the
+/// smallest currency unit (cents). No card data is ever stored.
+model Invoice {
+  id                String        @id @default(cuid())
+  organizationId    String
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  providerInvoiceId String        @unique
+  number            String?
+  /// `draft`, `open`, `paid`, `void` or `uncollectible`.
+  status            String
+  amountDue         Int           @default(0)
+  amountPaid        Int           @default(0)
+  currency          String        @default("eur")
+  hostedInvoiceUrl  String?
+  invoicePdf        String?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@map("invoice")
+}
+
+/// Webhook idempotency log. The unique `(provider, eventId)` pair makes a
+/// replayed delivery a no-op; the row is claimed before the handler runs.
+model BillingEvent {
+  id             String   @id @default(cuid())
+  provider       String   @default("stripe")
+  eventId        String
+  type           String
+  organizationId String?
+  /// `processed`, `ignored` or `failed`.
+  status         String   @default("processed")
+  error          String?
+  processedAt    DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([organizationId, processedAt])
+  @@map("billingEvent")
+}

@@ -1,10 +1,15 @@
 "use client"
 
 import * as React from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
+import {
+  BillingPanel,
+  type CheckoutReturn,
+} from "@/components/billing/billing-panel"
 import { OrganizationAppearanceForm } from "@/components/appearance/organization-appearance-form"
 import { MeetingSettingsForm } from "@/components/meetings/meeting-settings-form"
 import { OrganizationDangerZone } from "@/components/organization/danger-zone"
@@ -31,11 +36,54 @@ import { authClient } from "@/lib/auth-client"
 import { parseRoles } from "@/lib/organization/utils"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
-export function OrganizationSettings() {
+/** Tab ids are part of the URL (`?tab=billing`), so links can deep-link here. */
+const TAB_IDS = [
+  "general",
+  "billing",
+  "appearance",
+  "meetings",
+  "members",
+  "invitations",
+  "danger",
+] as const
+type TabId = (typeof TAB_IDS)[number]
+
+function resolveTab(value: string | null, fallback: TabId): TabId {
+  return TAB_IDS.includes(value as TabId) ? (value as TabId) : fallback
+}
+
+export function OrganizationSettings({
+  checkout,
+}: {
+  checkout?: CheckoutReturn
+}) {
   const t = useTranslations("Org")
   const tAppearance = useTranslations("Appearance")
   const tMeetings = useTranslations("MeetingRequests")
   const permissions = useOrgPermissions()
+  const searchParams = useSearchParams()
+  const pathname = usePathname()
+  const router = useRouter()
+  // Returning from Stripe keeps `checkout`/`session_id` but no `tab`, so the
+  // billing panel must be the one that mounts to finish the checkout.
+  const activeTab = resolveTab(
+    searchParams.get("tab"),
+    checkout ? "billing" : "general"
+  )
+
+  function changeTab(value: string) {
+    const tab = resolveTab(value, "general")
+    const next = new URLSearchParams(searchParams.toString())
+    if (tab === "general") {
+      next.delete("tab")
+    } else {
+      next.set("tab", tab)
+    }
+    const query = next.toString()
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    })
+  }
   const {
     data: organization,
     isPending,
@@ -74,9 +122,14 @@ export function OrganizationSettings() {
     owners.some((member) => member.userId === currentUserId)
 
   return (
-    <Tabs defaultValue="general" className="flex flex-col gap-4">
+    <Tabs
+      value={activeTab}
+      onValueChange={changeTab}
+      className="flex flex-col gap-4"
+    >
       <TabsList variant="line" className="w-full justify-start border-b pb-0">
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
+        <TabsTrigger value="billing">{t("billing")}</TabsTrigger>
         <TabsTrigger value="appearance">{tAppearance("title")}</TabsTrigger>
         <TabsTrigger value="meetings">{tMeetings("settingsTitle")}</TabsTrigger>
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
@@ -90,6 +143,10 @@ export function OrganizationSettings() {
           canEdit={permissions.canUpdateOrganization}
           onSaved={refetch}
         />
+      </TabsContent>
+
+      <TabsContent value="billing">
+        <BillingPanel checkout={checkout} />
       </TabsContent>
 
       <TabsContent value="appearance">

@@ -182,3 +182,60 @@ export function sendResetPasswordEmail({
     }),
   })
 }
+
+function formatAmount(amount: number, currency: string) {
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency: currency.toUpperCase(),
+  }).format(amount / 100)
+}
+
+export function sendPaymentFailedEmail({
+  to,
+  organizationName,
+  amountDue,
+  currency,
+  url,
+}: {
+  to: string
+  organizationName: string
+  amountDue: number
+  currency: string
+  url: string
+}) {
+  const link = publicUrl(url)
+  sendEmail({
+    to,
+    subject: `Payment failed for ${organizationName}`,
+    html: layout({
+      heading: "We couldn't collect your payment",
+      body: `The ${formatAmount(amountDue, currency)} payment for ${organizationName} did not go through. Update your payment method to keep the Team plan — we retry automatically for a few days.`,
+      cta: "Update payment method",
+      url: link,
+    }),
+  })
+}
+
+export function sendTrialEndingEmail({
+  to,
+  organizationName,
+  endsOn,
+  url,
+}: {
+  to: string
+  organizationName: string
+  endsOn: string
+  url: string
+}) {
+  const link = publicUrl(url)
+  sendEmail({
+    to,
+    subject: `Your ${organizationName} trial ends on ${endsOn}`,
+    html: layout({
+      heading: "Your Team trial is ending soon",
+      body: `The Team trial for ${organizationName} ends on ${endsOn}. Add a payment method to keep Team, or do nothing and the workspace moves back to Starter — your data stays intact.`,
+      cta: "Choose a plan",
+      url: link,
+    }),
+  })
+}

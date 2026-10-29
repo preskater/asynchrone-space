@@ -4,6 +4,7 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   BellIcon,
+  CreditCardIcon,
   FileUpIcon,
   HandshakeIcon,
   ListTodoIcon,
@@ -43,9 +44,34 @@ function iconFor(type: string) {
   if (type === "portal.document") {
     return <FileUpIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   }
+  if (type.startsWith("billing.")) {
+    return (
+      <CreditCardIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    )
+  }
   return (
     <HandshakeIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   )
+}
+
+function formatInvoiceAmount(
+  amount: unknown,
+  currency: unknown,
+  locale: string
+) {
+  const value = typeof amount === "number" ? amount : 0
+  const code =
+    typeof currency === "string" && currency.length === 3
+      ? currency.toUpperCase()
+      : "EUR"
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: code,
+    }).format(value / 100)
+  } catch {
+    return `${(value / 100).toFixed(2)} ${code}`
+  }
 }
 
 /** Header bell with the current user's unread notifications. */
@@ -138,6 +164,14 @@ export function NotificationBell({
           client: String(data.clientName ?? ""),
           title: String(data.title ?? ""),
         })
+      case "billing.payment_failed":
+        return t("billingPaymentFailed", {
+          amount: formatInvoiceAmount(data.amountDue, data.currency, locale),
+        })
+      case "billing.trial_ending":
+        return t("billingTrialEnding", {
+          date: String(data.trialEndsAt ?? "").slice(0, 10),
+        })
       default:
         return item.type
     }
@@ -173,6 +207,12 @@ export function NotificationBell({
     }
     if (item.type === "meeting.requested") {
       return `/${orgSlug}/calendars`
+    }
+    if (
+      item.type === "billing.payment_failed" ||
+      item.type === "billing.trial_ending"
+    ) {
+      return `/${orgSlug}/settings?tab=billing`
     }
     return null
   }

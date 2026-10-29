@@ -53,6 +53,13 @@ if (process.env.REQUIRE_EMAIL_VERIFICATION === "true") {
   }
 }
 
+// A webhook secret without an API key would fail every delivery at runtime.
+if (process.env.STRIPE_WEBHOOK_SECRET && !process.env.STRIPE_SECRET_KEY) {
+  problems.push(
+    "STRIPE_SECRET_KEY is required when STRIPE_WEBHOOK_SECRET is set"
+  )
+}
+
 if (problems.length > 0) {
   throw new Error(
     `Invalid environment configuration:\n${problems

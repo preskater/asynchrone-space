@@ -115,7 +115,7 @@ export function SiteHeader({
           <NotificationBell orgSlug={orgSlug} initial={notifications} />
           <OrgSwitcher activeOrganizationId={activeOrganizationId} compact />
           <ThemeToggle ariaLabel={common("toggleTheme")} />
-          <NavUser user={user} compact />
+          <NavUser user={user} orgSlug={orgSlug} compact />
         </div>
       </div>
       <CommandMenu

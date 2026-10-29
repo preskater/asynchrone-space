@@ -21,7 +21,7 @@ import { PlanForm } from "@/components/plan-form"
 import { StatCard } from "@/components/stat-card"
 import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
-import { orgQuotaBytes, parsePlan, usagePercent } from "@/lib/platform/plan"
+import { effectivePlan, orgQuotaBytes, usagePercent } from "@/lib/platform/plan"
 
 export const metadata = { title: "Organization" }
 
@@ -43,6 +43,21 @@ export default async function OrganizationDetailPage({
       metadata: true,
       storageQuotaBytes: true,
       createdAt: true,
+      subscription: {
+        select: {
+          plan: true,
+          status: true,
+          provider: true,
+          billingInterval: true,
+          currentPeriodEnd: true,
+          trialEndsAt: true,
+          cancelAtPeriodEnd: true,
+          manualOverride: true,
+          providerCustomerId: true,
+          providerSubscriptionId: true,
+          updatedAt: true,
+        },
+      },
       _count: {
         select: {
           members: true,
@@ -134,7 +149,7 @@ export default async function OrganizationDetailPage({
   const used = Number(storage._sum.sizeBytes ?? 0)
   const quota = orgQuotaBytes(organization)
   const percent = usagePercent(used, quota)
-  const plan = parsePlan(organization.metadata)
+  const plan = effectivePlan(organization)
 
   return (
     <div className="space-y-6">
@@ -196,6 +211,7 @@ export default async function OrganizationDetailPage({
                 ? null
                 : Number(organization.storageQuotaBytes)
             }
+            subscription={organization.subscription}
           />
         </div>
       </section>

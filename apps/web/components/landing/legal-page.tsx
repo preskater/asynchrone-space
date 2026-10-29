@@ -4,7 +4,7 @@ import { Container, Section } from "@/components/landing/section"
 import type { LegalSlug } from "@/lib/landing/legal"
 
 const LEGAL_STRUCTURE: Record<LegalSlug, { sections: number[] }> = {
-  privacy: { sections: [2, 2, 1, 1] },
+  privacy: { sections: [2, 2, 1, 1, 1] },
   terms: { sections: [1, 1, 1, 1] },
   security: { sections: [2, 2, 2] },
   cookies: { sections: [1, 2, 1] },

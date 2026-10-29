@@ -163,6 +163,10 @@ cronjobs:
     enabled: true
     schedule: "0 * * * *"
     path: /api/cron/repository-sync
+  billingTrials:
+    enabled: true
+    schedule: "0 9 * * *"
+    path: /api/cron/billing-trials
 
 tests:
   image: busybox:1.37.0

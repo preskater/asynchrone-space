@@ -31,25 +31,37 @@ function PricingCard({
   yearly,
   isAuthenticated,
   dashboardHref,
+  billingHref,
 }: {
   tier: PricingTier
   index: number
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
 }) {
   const t = useTranslations("Pricing")
   const tCta = useTranslations("Landing.cta")
   const key = tierKey(index)
   const isEnterprise = key === "enterprise"
+  const isTeam = key === "team"
   const amount = yearly ? tier.yearly : tier.monthly
   const price = isEnterprise ? t("custom") : amount === 0 ? t("free") : `$${amount}`
+  // Signed-in visitors who are already working go straight to the paid plan.
   const ctaHref = isEnterprise
     ? "/contact"
     : isAuthenticated
-      ? dashboardHref
+      ? isTeam
+        ? billingHref
+        : dashboardHref
       : "/sign-up"
-  const ctaLabel = isAuthenticated ? tCta("dashboard") : t(`${key}Cta` as never)
+  const ctaLabel = isEnterprise
+    ? t("enterpriseCta")
+    : isAuthenticated
+      ? isTeam
+        ? t("teamCtaCurrent")
+        : tCta("dashboard")
+      : t(`${key}Cta` as never)
 
   return (
     <Card
@@ -104,10 +116,12 @@ export function PricingGrid({
   yearly,
   isAuthenticated,
   dashboardHref,
+  billingHref,
 }: {
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -119,6 +133,7 @@ export function PricingGrid({
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
+          billingHref={billingHref}
         />
       ))}
     </div>
@@ -128,9 +143,11 @@ export function PricingGrid({
 export function PricingSection({
   isAuthenticated,
   dashboardHref,
+  billingHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
 }) {
   const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
@@ -162,6 +179,7 @@ export function PricingSection({
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
+          billingHref={billingHref}
         />
       </div>
     </Section>

@@ -110,5 +110,6 @@
   "welcomeToOrganization": "Welcome to the organization!",
   "pleaseEnterOrganizationName": "Please enter an organization name.",
   "useLettersOrNumbers": "Please use letters or numbers in the name.",
-  "unableToSwitchOrganization": "Unable to switch organization."
+  "unableToSwitchOrganization": "Unable to switch organization.",
+  "billing": "Billing"
 }

@@ -5,6 +5,7 @@ import appPages from "./appPages.json"
 import appearance from "./appearance.json"
 import assistant from "./assistant.json"
 import auth from "./auth.json"
+import billing from "./billing.json"
 import blog from "./blog.json"
 import calendars from "./calendars.json"
 import common from "./common.json"
@@ -45,6 +46,7 @@ export default {
   Appearance: appearance,
   Assistant: assistant,
   Auth: auth,
+  Billing: billing,
   Blog: blog,
   Calendars: calendars,
   Common: common,

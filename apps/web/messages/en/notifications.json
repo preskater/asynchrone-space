@@ -11,5 +11,7 @@
   "portalMessage": "{actor} sent a client message in {project}",
   "portalDocument": "{actor} shared a document on {client}",
   "portalComment": "{actor} commented on {identifier} · {title}",
-  "meetingRequested": "{actor} requested a meeting for {client} · {title}"
+  "meetingRequested": "{actor} requested a meeting for {client} · {title}",
+  "billingPaymentFailed": "We couldn't collect the {amount} payment for your subscription",
+  "billingTrialEnding": "Your Team trial ends on {date}"
 }

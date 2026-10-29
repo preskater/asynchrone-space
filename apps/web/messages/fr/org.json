@@ -110,5 +110,6 @@
   "welcomeToOrganization": "Bienvenue dans l'organisation !",
   "pleaseEnterOrganizationName": "Veuillez saisir un nom d'organisation.",
   "useLettersOrNumbers": "Veuillez utiliser des lettres ou des chiffres dans le nom.",
-  "unableToSwitchOrganization": "Impossible de changer d'organisation."
+  "unableToSwitchOrganization": "Impossible de changer d'organisation.",
+  "billing": "Facturation"
 }

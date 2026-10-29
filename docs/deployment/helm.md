@@ -128,6 +128,7 @@ lists. The defaults already target `presk.re` and
 | ConfigMap | `presk-web`, `presk-control-tower` | Non-secret runtime config |
 | CronJob | `presk-web-uploads-sweep` | `0 3 * * *` |
 | CronJob | `presk-web-repository-sync` | `0 * * * *` |
+| CronJob | `presk-web-billing-trials` | `0 9 * * *` |
 | Job (hook) | `presk-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `presk-web`, `presk-control-tower`, `presk-migrate` | Token automount disabled |
 | PDB | `presk-web`, `presk-control-tower` | `minAvailable: 1` |
@@ -242,11 +243,12 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 
 ## Scheduled jobs
 
-The two CronJobs replace the former Vercel crons and call the in-cluster
-Service. Both send `Authorization: Bearer $CRON_SECRET`, read from
-`presk-web-secrets`; the corresponding route rejects a missing/incorrect token
-when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
-runs. Change schedules through `presk-web.cronjobs.<job>.schedule`.
+The CronJobs replace the former Vercel crons and call the in-cluster
+Service: uploads sweep, repository sync and the billing trial reminder. Each
+sends an `Authorization` bearer token read from `presk-web-secrets`; the
+corresponding route rejects a missing or incorrect token when `CRON_SECRET` is
+set. `concurrencyPolicy: Forbid` prevents overlapping runs. Change schedules
+through `presk-web.cronjobs.<job>.schedule`.
 
 ## Upgrades and rollback
 

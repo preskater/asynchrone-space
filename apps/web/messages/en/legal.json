@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "description": "How Presk collects, uses and protects your data.",
-    "updated": "October 1, 2026",
+    "updated": "October 28, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
     "s1b2": "We also collect usage data — such as the features you interact with — to operate, secure and improve the service.",
@@ -12,7 +12,9 @@
     "s3h": "Data retention",
     "s3b1": "We retain personal data for as long as your account is active. When you delete your account, we remove or anonymize your data within 30 days, except where we are required to retain it by law.",
     "s4h": "Your rights",
-    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@presk.app to exercise these rights."
+    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@presk.app to exercise these rights.",
+    "s5h": "Sub-processors",
+    "s5b1": "We use a small set of service providers to run Presk. Stripe processes payments, subscriptions and invoices for paid plans; card details are entered on Stripe and never reach our servers. Resend delivers transactional email, and OpenAI powers the AI assistant when it is enabled. Each provider is bound by a data-processing agreement and only receives the data needed for its task. Contact privacy@presk.app for the current list."
   },
   "terms": {
     "title": "Terms of Service",
