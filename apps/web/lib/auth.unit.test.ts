@@ -61,3 +61,13 @@ describe("auth rate limiting", () => {
     expect(longest * 1000).toBeGreaterThanOrEqual(MAX_WINDOW_MS)
   })
 })
+
+describe("auth client ip headers", () => {
+  it("trusts the proxy headers the chart sets by default", async () => {
+    const { auth } = await import("./auth")
+    expect(auth.options.advanced?.ipAddress?.ipAddressHeaders).toEqual([
+      "x-real-ip",
+      "x-forwarded-for",
+    ])
+  })
+})

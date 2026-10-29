@@ -9,6 +9,7 @@ import { admin, captcha, jwt, organization } from "better-auth/plugins"
 import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
 import { rateLimit } from "./core/rate-limit"
+import { parseTrustedIpHeaders } from "./core/trusted-ip"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
 import { seatsFull } from "./organization/entitlements"
@@ -145,9 +146,13 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    // ingress-nginx sets X-Real-IP to the client address; X-Forwarded-For
-    // alone carries several hops behind a load balancer and is then ignored.
-    ipAddress: { ipAddressHeaders: ["x-real-ip", "x-forwarded-for"] },
+    // Only headers a proxy overwrites are trusted. ingress-nginx sets X-Real-IP
+    // to the client address and appends to X-Forwarded-For; behind anything
+    // else (or exposed directly) a client could choose these values, so the
+    // deployment must terminate at such a proxy. See TRUSTED_IP_HEADERS.
+    ipAddress: {
+      ipAddressHeaders: parseTrustedIpHeaders(process.env.TRUSTED_IP_HEADERS),
+    },
   },
   databaseHooks: {
     user: {

@@ -39,6 +39,7 @@ export function SignUpForm({
   const [awaitingVerification, setAwaitingVerification] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaAttempt, setCaptchaAttempt] = useState(0)
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false)
 
   const formSchema = z
     .object({
@@ -227,8 +228,17 @@ export function SignUpForm({
                   <Turnstile
                     key={captchaAttempt}
                     siteKey={captchaSiteKey}
-                    onToken={setCaptchaToken}
+                    onToken={(token) => {
+                      setCaptchaToken(token)
+                      if (token) setCaptchaUnavailable(false)
+                    }}
+                    onUnavailable={() => setCaptchaUnavailable(true)}
                   />
+                )}
+                {captchaUnavailable && (
+                  <p role="alert" className="text-xs text-destructive">
+                    {t("captchaUnavailable")}
+                  </p>
                 )}
                 <Button
                   type="submit"

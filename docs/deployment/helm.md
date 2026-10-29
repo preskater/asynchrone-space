@@ -181,6 +181,12 @@ Web values live under `asynchrone-space-web` and `asynchrone-space-control-tower
 app uses `CONTROL_TOWER_URL` for "Stop impersonating"; the control tower uses
 `PLATFORM_APP_URL` for impersonation handoff links.
 
+`asynchrone-space-web.config.TRUSTED_IP_HEADERS` (default
+`x-real-ip,x-forwarded-for`) lists the headers Better Auth trusts for the
+per-IP auth rate limits. They are only trustworthy because ingress-nginx
+overwrites them: never expose the web pods without the ingress (no
+`port-forward`, no direct `Service` URL) in production.
+
 ### TLS and DNS
 
 Point both hostnames at the ingress controller's load balancer, then configure

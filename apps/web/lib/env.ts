@@ -6,6 +6,8 @@
  * message instead of crashing per request. Keep this dependency-free so it can
  * also run under `tsx` (e.g. `scripts/verify-large-object.ts`).
  */
+import { trustedIpHeaderProblems } from "./core/trusted-ip"
+
 interface Rule {
   key: string
   required?: boolean
@@ -70,6 +72,10 @@ if (
     "TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY must be set together"
   )
 }
+
+// Only a header a trusted proxy overwrites may carry the client IP; a typo or
+// an empty list would silently disable the per-IP auth limits.
+problems.push(...trustedIpHeaderProblems(process.env.TRUSTED_IP_HEADERS))
 
 if (problems.length > 0) {
   throw new Error(
