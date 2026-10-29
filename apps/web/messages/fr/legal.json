@@ -10,7 +10,7 @@
     "s2b1": "Nous utilisons vos informations pour fournir le service, authentifier les utilisateurs, répondre aux demandes d'assistance et envoyer les nouveautés produit auxquelles vous avez souscrit.",
     "s2b2": "Nous ne vendons jamais vos données personnelles.",
     "s3h": "Conservation des données",
-    "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez votre compte, nous retirons ou anonymisons vos données sous 30 jours, sauf lorsque la loi nous oblige à les conserver.",
+    "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez un compte ou une organisation, nous retirons ou anonymisons ses données sous 30 jours, sauf lorsque la loi nous oblige à les conserver. Deux enregistrements subsistent après la suppression d'une organisation : les événements d'audit de la plateforme, et l'adresse e-mail et le domaine d'entreprise utilisés pour réclamer un essai Team, que nous conservons afin d'éviter qu'un même essai soit réclamé à nouveau.",
     "s4h": "Vos droits",
     "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@asynchrone.space pour exercer ces droits.",
     "s5h": "Sous-traitants",
@@ -25,7 +25,7 @@
     "s2h": "Utilisation acceptable",
     "s2b1": "Vous acceptez de ne pas détourner le service, notamment en tentant d'y accéder par d'autres moyens que les interfaces que nous fournissons, ou en l'utilisant pour stocker ou partager du contenu illicite.",
     "s3h": "Abonnements et facturation",
-    "s3b1": "Les offres payantes ne sont pas encore disponibles. Les conditions de facturation, y compris le renouvellement et les remboursements, seront publiées ici avant toute offre payante. Vous serez responsable des taxes liées à un futur abonnement.",
+    "s3b1": "Les offres payantes sont facturées via Stripe Checkout. Un abonnement se renouvelle automatiquement selon la périodicité et le prix affichés avant le paiement, jusqu'à son annulation ; vous pouvez l'annuler ou modifier le moyen de paiement à tout moment depuis les paramètres de facturation, et l'accès se poursuit jusqu'à la fin de la période payée. Les taxes sont calculées par Stripe à partir de votre adresse de facturation et affichées avant le paiement. Sauf obligation légale contraire, les sommes déjà versées ne sont pas remboursées.",
     "s4h": "Résiliation",
     "s4b1": "Vous pouvez cesser d'utiliser le service à tout moment. Nous pouvons suspendre ou résilier l'accès si vous enfreignez ces conditions ou si cela est nécessaire pour protéger le service ou les autres utilisateurs."
   },
