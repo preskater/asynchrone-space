@@ -7,6 +7,7 @@ import { AppearanceProvider } from "@/components/appearance/appearance-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { SiteHeader } from "@/components/site-header"
 import { TrialBanner } from "@/components/trial/trial-banner"
+import { DeletionBanner } from "@/components/organization/deletion-banner"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
@@ -23,6 +24,7 @@ import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
 import { getOrganizationEntitlements } from "@/lib/organization/entitlements"
 import { getTrialStatus } from "@/lib/organization/trial-service"
+import { getDeletionScheduledAt } from "@/lib/organization/deletion-service"
 import { EntitlementsProvider } from "@/lib/organization/use-entitlements"
 import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
@@ -94,6 +96,7 @@ export default async function AppLayout({
     appearance,
     entitlements,
     trial,
+    deletionScheduledAt,
   ] = await Promise.all([
     // Shell-level only: project metadata, calendar sources and conversation
     // metadata. Tasks, events, files and messages load per feature.
@@ -105,6 +108,7 @@ export default async function AppLayout({
     getOrganizationAppearance(organization.id),
     getOrganizationEntitlements(organization.id),
     getTrialStatus(organization.id),
+    getDeletionScheduledAt(organization.id),
   ])
   const filesData = EMPTY_FILES_DATA
 
@@ -158,6 +162,12 @@ export default async function AppLayout({
                           <SidebarInset id="main-content">
                             {session.session.impersonatedBy ? (
                               <ImpersonationBanner name={session.user.name} />
+                            ) : null}
+                            {deletionScheduledAt ? (
+                              <DeletionBanner
+                                scheduledAt={deletionScheduledAt}
+                                orgSlug={organization.slug}
+                              />
                             ) : null}
                             {trial?.state === "active" ? (
                               <TrialBanner daysLeft={trial.daysLeft} />

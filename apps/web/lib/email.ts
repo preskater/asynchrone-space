@@ -236,3 +236,22 @@ export function sendTrialEndedEmail({
     }),
   })
 }
+
+export function sendOrganizationDeletedEmail({
+  to,
+  organizationName,
+}: {
+  to: string
+  organizationName: string
+}) {
+  sendEmail({
+    to,
+    subject: "Your organization has been deleted",
+    html: layout({
+      heading: "Your organization has been deleted",
+      body: `${escapeHtml(organizationName)} and all of its data, including files, have been permanently deleted as you requested.`,
+      cta: "Open Asynchrone Space",
+      url: publicUrl(new URL("/", process.env.BETTER_AUTH_URL).toString()),
+    }),
+  })
+}

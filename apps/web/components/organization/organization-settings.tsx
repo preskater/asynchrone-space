@@ -31,7 +31,11 @@ import { authClient } from "@/lib/auth-client"
 import { parseRoles } from "@/lib/organization/utils"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
-export function OrganizationSettings() {
+export function OrganizationSettings({
+  deletionScheduledAt,
+}: {
+  deletionScheduledAt: Date | null
+}) {
   const t = useTranslations("Org")
   const tAppearance = useTranslations("Appearance")
   const tMeetings = useTranslations("MeetingRequests")
@@ -162,6 +166,7 @@ export function OrganizationSettings() {
           organization={organization}
           isOwner={permissions.isOwner}
           isOnlyOwner={isOnlyOwner}
+          deletionScheduledAt={deletionScheduledAt}
         />
       </TabsContent>
     </Tabs>
