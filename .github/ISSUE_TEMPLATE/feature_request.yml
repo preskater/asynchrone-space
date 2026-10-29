@@ -1,12 +1,12 @@
 name: Feature Request
-description: Propose a new feature for Presk
+description: Propose a new feature for Asynchrone Space
 title: "[Feature] "
 labels: ["enhancement", "triage"]
 body:
   - type: markdown
     attributes:
       value: |
-        Use this template to propose new Presk features or improvements.
+        Use this template to propose new Asynchrone Space features or improvements.
 
   - type: input
     id: summary

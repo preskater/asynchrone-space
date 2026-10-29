@@ -29,7 +29,7 @@ function detectLocale(acceptLanguage: string | null): "en" | "fr" {
 }
 
 export const metadata: Metadata = {
-  title: "Page not found · Presk",
+  title: "Page not found · Asynchrone Space",
 }
 
 export default async function GlobalNotFound() {

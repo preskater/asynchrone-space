@@ -1,5 +1,13 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import { unlinkLargeObject } from "@/lib/large-object"
 import { roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"
@@ -43,8 +51,9 @@ type ConversationRow = Awaited<
   ReturnType<MessagingRepository["listConversations"]>
 >[number]
 type MessageRow = Awaited<
-  ReturnType<MessagingRepository["listMessages"]>
+  ReturnType<MessagingRepository["listMessagesForConversation"]>
 >[number]
+type ReplyRow = Awaited<ReturnType<MessagingRepository["listReplies"]>>[number]
 type TeamRow = Awaited<ReturnType<MessagingRepository["listTeams"]>>[number]
 
 export class MessagingService {
@@ -65,7 +74,7 @@ export class MessagingService {
     }
   }
 
-  private mapMessage(row: MessageRow): Message {
+  private mapMessage(row: MessageRow | ReplyRow): Message {
     return {
       id: row.id,
       conversationId: row.conversationId,
@@ -94,7 +103,9 @@ export class MessagingService {
     }
   }
 
-  private mapReactions(row: MessageRow): Reaction[] {
+  private mapReactions(row: {
+    reactions: MessageRow["reactions"]
+  }): Reaction[] {
     const grouped = new Map<string, string[]>()
     for (const reaction of row.reactions) {
       grouped.set(reaction.emoji, [
@@ -114,16 +125,22 @@ export class MessagingService {
     }
   }
 
+  /**
+   * Shell payload: conversations, teams and presence. Messages are loaded per
+   * conversation through `listMessages` so the layout never scans the whole
+   * message table.
+   */
   async list(ctx: RequestContext): Promise<MessagingData> {
-    const [conversations, messages, teams, onlineUsers] = await Promise.all([
-      this.repo.listConversations(ctx.organizationId),
-      this.repo.listMessages(ctx.organizationId),
-      this.repo.listTeams(ctx.organizationId),
-      prisma.member.findMany({
-        where: { organizationId: ctx.organizationId, clientId: null },
-        select: { userId: true, user: { select: { lastSeenAt: true } } },
-      }),
-    ])
+    const [conversations, teams, latestMessages, onlineUsers] =
+      await Promise.all([
+        this.repo.listConversations(ctx.organizationId),
+        this.repo.listTeams(ctx.organizationId),
+        this.repo.listLatestMessages(ctx.organizationId),
+        prisma.member.findMany({
+          where: { organizationId: ctx.organizationId, clientId: null },
+          select: { userId: true, user: { select: { lastSeenAt: true } } },
+        }),
+      ])
     const now = Date.now()
     const presence: Record<string, Presence> = {}
     for (const entry of onlineUsers) {
@@ -139,10 +156,62 @@ export class MessagingService {
       conversations: conversations.map((conversation) =>
         this.mapConversation(conversation)
       ),
-      messages: messages.map((message) => this.mapMessage(message)),
+      // Previews only. The conversation screen replaces these with a bounded
+      // page through `listMessages`.
+      messages: latestMessages.map((row) => ({
+        id: row.id,
+        conversationId: row.conversationId,
+        authorId: row.authorId,
+        body: row.body,
+        createdAt: row.createdAt.toISOString(),
+        reactions: [],
+        attachments: [],
+      })),
       presence,
       typing,
     }
+  }
+
+  /**
+   * One bounded page of a conversation, newest page first by default.
+   * Thread replies are flattened after their parent so the client store keeps
+   * working with a single message array.
+   */
+  async listMessages(
+    ctx: RequestContext,
+    conversationId: string,
+    input: PageInput = {}
+  ): Promise<Page<Message>> {
+    const conversation = await this.repo.findConversation(
+      ctx.organizationId,
+      conversationId
+    )
+    if (!conversation) throw new NotFoundError("Conversation")
+
+    const limit = pageSize(input.limit, 50)
+    const decoded = decodeCursor(input.cursor)
+    const before =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const rows = await this.repo.listMessagesForConversation(
+      ctx.organizationId,
+      conversationId,
+      { before, take: limit + 1 }
+    )
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    // Newest-first query, oldest-first rendering; replies stay after parents.
+    const ordered = [...page.items].reverse()
+    const items: Message[] = []
+    for (const row of ordered) {
+      items.push(this.mapMessage(row))
+      for (const reply of [...row.replies].reverse()) {
+        items.push(this.mapMessage(reply))
+      }
+    }
+    return { items, nextCursor: page.nextCursor }
   }
 
   async listConversations(ctx: RequestContext): Promise<Conversation[]> {
@@ -154,18 +223,18 @@ export class MessagingService {
     ctx: RequestContext,
     conversationId: string
   ): Promise<Message[]> {
-    const conversation = await this.repo.findConversation(
-      ctx.organizationId,
-      conversationId
-    )
-    if (!conversation) throw new NotFoundError("Conversation")
-    const messages = await this.repo.listMessages(ctx.organizationId)
-    return messages
-      .filter(
-        (message) =>
-          message.conversationId === conversationId && !message.parentId
-      )
-      .map((message) => this.mapMessage(message))
+    const page = await this.listMessages(ctx, conversationId)
+    return page.items
+  }
+
+  async listThreadReplies(
+    ctx: RequestContext,
+    messageId: string
+  ): Promise<Message[]> {
+    const parent = await this.repo.findMessage(ctx.organizationId, messageId)
+    if (!parent) throw new NotFoundError("Message")
+    const rows = await this.repo.listReplies(ctx.organizationId, messageId)
+    return rows.map((row) => this.mapMessage(row))
   }
 
   async sendMessage(

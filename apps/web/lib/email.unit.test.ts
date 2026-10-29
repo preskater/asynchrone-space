@@ -17,7 +17,7 @@ import {
 describe("email", () => {
   beforeEach(() => {
     vi.stubEnv("RESEND_API_KEY", "re_test")
-    vi.stubEnv("EMAIL_FROM", "Presk <noreply@example.com>")
+    vi.stubEnv("EMAIL_FROM", "Asynchrone Space <noreply@example.com>")
     vi.stubEnv("NEXT_PUBLIC_APP_URL", "")
     send.mockReset()
     send.mockResolvedValue({ data: { id: "email_1" }, error: null })
@@ -42,7 +42,7 @@ describe("email", () => {
     })
 
     expect(send).toHaveBeenCalledWith({
-      from: "Presk <noreply@example.com>",
+      from: "Asynchrone Space <noreply@example.com>",
       to: "user@example.com",
       subject: "Verify your email address",
       html: expect.stringContaining(
@@ -52,7 +52,7 @@ describe("email", () => {
   })
 
   it("sends the reset email and rewrites the link to NEXT_PUBLIC_APP_URL", () => {
-    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://presk.example.com")
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://asynchrone-space.example.com")
 
     sendResetPasswordEmail({
       to: "user@example.com",
@@ -60,11 +60,11 @@ describe("email", () => {
     })
 
     expect(send).toHaveBeenCalledWith({
-      from: "Presk <noreply@example.com>",
+      from: "Asynchrone Space <noreply@example.com>",
       to: "user@example.com",
       subject: "Reset your password",
       html: expect.stringContaining(
-        "https://presk.example.com/api/auth/reset-password/tok_1?callbackURL=%2Fen"
+        "https://asynchrone-space.example.com/api/auth/reset-password/tok_1?callbackURL=%2Fen"
       ),
     })
   })

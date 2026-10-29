@@ -1,10 +1,12 @@
 import type { PrismaClient } from "@workspace/db"
 
+/** Thread replies are bounded: only the latest replies of a message load. */
 export const messageInclude = {
   reactions: true,
   attachments: true,
   replies: {
-    orderBy: { createdAt: "asc" as const },
+    orderBy: { createdAt: "desc" as const },
+    take: 50,
     include: { reactions: true, attachments: true },
   },
 }
@@ -88,18 +90,82 @@ export class MessagingRepository {
     })
   }
 
-  listMessages(organizationId: string) {
+  /**
+   * Top-level messages of one conversation, newest first. Callers request one
+   * extra row to detect whether an older page exists.
+   */
+  listMessagesForConversation(
+    organizationId: string,
+    conversationId: string,
+    options: {
+      before?: { createdAt: Date; id: string } | null
+      take: number
+    }
+  ) {
     return this.db.message.findMany({
-      where: { conversation: { organizationId } },
+      where: {
+        conversationId,
+        parentId: null,
+        conversation: { organizationId },
+        ...(options.before
+          ? {
+              OR: [
+                { createdAt: { lt: options.before.createdAt } },
+                {
+                  createdAt: options.before.createdAt,
+                  id: { lt: options.before.id },
+                },
+              ],
+            }
+          : {}),
+      },
       include: messageInclude,
-      orderBy: { createdAt: "asc" },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: options.take,
     })
+  }
+
+  /** One latest top-level message per conversation (list previews). */
+  listLatestMessages(organizationId: string) {
+    return this.db.$queryRaw<
+      {
+        id: string
+        conversationId: string
+        authorId: string
+        body: string
+        createdAt: Date
+      }[]
+    >`
+      SELECT DISTINCT ON (m."conversationId")
+             m.id,
+             m."conversationId",
+             m."authorId",
+             m.body,
+             m."createdAt"
+      FROM "message" m
+      INNER JOIN "conversation" c ON c.id = m."conversationId"
+      WHERE c."organizationId" = ${organizationId}
+        AND m."parentId" IS NULL
+      ORDER BY m."conversationId", m."createdAt" DESC
+    `
   }
 
   findMessage(organizationId: string, id: string) {
     return this.db.message.findFirst({
       where: { id, conversation: { organizationId } },
       include: messageInclude,
+    })
+  }
+
+  listReplies(organizationId: string, parentId: string, take = 100) {
+    return this.db.message.findMany({
+      where: {
+        parentId,
+        conversation: { organizationId },
+      },
+      include: { reactions: true, attachments: true },
+      orderBy: { createdAt: "asc" },
+      take,
     })
   }
 

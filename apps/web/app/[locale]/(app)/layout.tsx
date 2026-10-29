@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { AppearanceProvider } from "@/components/appearance/appearance-provider"
 import { ImpersonationBanner } from "@/components/impersonation-banner"
 import { SiteHeader } from "@/components/site-header"
+import { TrialBanner } from "@/components/trial/trial-banner"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
@@ -16,10 +17,13 @@ import { getOrganizationAppearance } from "@/lib/appearance/service"
 import { AssistantProvider } from "@/lib/assistant/use-assistant"
 import { calendarService } from "@/lib/calendars"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
-import { fileService } from "@/lib/files"
+import type { FilesData } from "@/lib/files/types"
 import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
+import { getOrganizationEntitlements } from "@/lib/organization/entitlements"
+import { getTrialStatus } from "@/lib/organization/trial-service"
+import { EntitlementsProvider } from "@/lib/organization/use-entitlements"
 import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
 import { CalendarsProvider } from "@/lib/calendars/store"
@@ -28,6 +32,14 @@ import { MessagingProvider } from "@/lib/messaging/store"
 import { ProjectStoreProvider } from "@/lib/projects/store"
 import { RecentsProvider } from "@/lib/recents/store"
 import { WorkspaceNavProvider } from "@/lib/workspace-nav/store"
+
+/** Files are hydrated by the files screen, not by the app shell. */
+const EMPTY_FILES_DATA: FilesData = {
+  files: [],
+  shares: {},
+  versions: {},
+  activities: {},
+}
 
 export default async function AppLayout({
   children,
@@ -76,92 +88,102 @@ export default async function AppLayout({
   const [
     projectData,
     calendarData,
-    filesData,
     messagingData,
     storageQuotaBytes,
     notificationData,
     appearance,
+    entitlements,
+    trial,
   ] = await Promise.all([
-    projectService.list(ctx),
-    calendarService.list(ctx),
-    fileService.list(ctx),
+    // Shell-level only: project metadata, calendar sources and conversation
+    // metadata. Tasks, events, files and messages load per feature.
+    projectService.listShell(ctx),
+    calendarService.listShell(ctx),
     messagingService.list(ctx),
     orgQuotaBytes(organization.id),
     notificationService.list(ctx),
     getOrganizationAppearance(organization.id),
+    getOrganizationEntitlements(organization.id),
+    getTrialStatus(organization.id),
   ])
+  const filesData = EMPTY_FILES_DATA
 
   return (
     <TooltipProvider>
-      <AppearanceProvider initialAppearance={appearance} userId={ctx.userId}>
-        <RecentsProvider organizationId={organization.id}>
-          <ProjectStoreProvider
-            initialData={projectData}
-            currentUserId={ctx.userId}
-          >
-            <MessagingProvider
-              initialData={messagingData}
+      <EntitlementsProvider entitlements={entitlements}>
+        <AppearanceProvider initialAppearance={appearance} userId={ctx.userId}>
+          <RecentsProvider organizationId={organization.id}>
+            <ProjectStoreProvider
+              initialData={projectData}
               currentUserId={ctx.userId}
-              organizationId={organization.id}
-              members={projectData.members}
             >
-              <CalendarsProvider
-                initialData={calendarData}
+              <MessagingProvider
+                initialData={messagingData}
                 currentUserId={ctx.userId}
+                organizationId={organization.id}
                 members={projectData.members}
               >
-                <FilesProvider
-                  initialData={filesData}
+                <CalendarsProvider
+                  initialData={calendarData}
                   currentUserId={ctx.userId}
-                  organizationId={organization.id}
-                  storageQuotaBytes={storageQuotaBytes}
                   members={projectData.members}
                 >
-                  <WorkspaceNavProvider>
-                    <AssistantProvider>
-                      <SidebarProvider
-                        style={
-                          {
-                            "--sidebar-width": "calc(var(--spacing) * 72)",
-                            "--header-height": "calc(var(--spacing) * 12)",
-                          } as React.CSSProperties
-                        }
-                      >
-                        <a
-                          href="#main-content"
-                          className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
+                  <FilesProvider
+                    initialData={filesData}
+                    currentUserId={ctx.userId}
+                    organizationId={organization.id}
+                    storageQuotaBytes={storageQuotaBytes}
+                    members={projectData.members}
+                  >
+                    <WorkspaceNavProvider>
+                      <AssistantProvider>
+                        <SidebarProvider
+                          style={
+                            {
+                              "--sidebar-width": "calc(var(--spacing) * 72)",
+                              "--header-height": "calc(var(--spacing) * 12)",
+                            } as React.CSSProperties
+                          }
                         >
-                          {t("skipToContent")}
-                        </a>
-                        <AppSidebar
-                          variant="inset"
-                          orgSlug={organization.slug}
-                        />
-                        <SidebarInset id="main-content">
-                          {session.session.impersonatedBy ? (
-                            <ImpersonationBanner name={session.user.name} />
-                          ) : null}
-                          <SiteHeader
+                          <a
+                            href="#main-content"
+                            className="sr-only focus:not-sr-only focus:absolute focus:start-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:shadow"
+                          >
+                            {t("skipToContent")}
+                          </a>
+                          <AppSidebar
+                            variant="inset"
                             orgSlug={organization.slug}
-                            user={session.user}
-                            activeOrganizationId={organization.id}
-                            notifications={notificationData}
                           />
-                          <div className="flex flex-1 flex-col">
-                            <div className="@container/main flex flex-1 flex-col gap-2">
-                              {children}
+                          <SidebarInset id="main-content">
+                            {session.session.impersonatedBy ? (
+                              <ImpersonationBanner name={session.user.name} />
+                            ) : null}
+                            {trial?.state === "active" ? (
+                              <TrialBanner daysLeft={trial.daysLeft} />
+                            ) : null}
+                            <SiteHeader
+                              orgSlug={organization.slug}
+                              user={session.user}
+                              activeOrganizationId={organization.id}
+                              notifications={notificationData}
+                            />
+                            <div className="flex flex-1 flex-col">
+                              <div className="@container/main flex flex-1 flex-col gap-2">
+                                {children}
+                              </div>
                             </div>
-                          </div>
-                        </SidebarInset>
-                      </SidebarProvider>
-                    </AssistantProvider>
-                  </WorkspaceNavProvider>
-                </FilesProvider>
-              </CalendarsProvider>
-            </MessagingProvider>
-          </ProjectStoreProvider>
-        </RecentsProvider>
-      </AppearanceProvider>
+                          </SidebarInset>
+                        </SidebarProvider>
+                      </AssistantProvider>
+                    </WorkspaceNavProvider>
+                  </FilesProvider>
+                </CalendarsProvider>
+              </MessagingProvider>
+            </ProjectStoreProvider>
+          </RecentsProvider>
+        </AppearanceProvider>
+      </EntitlementsProvider>
     </TooltipProvider>
   )
 }

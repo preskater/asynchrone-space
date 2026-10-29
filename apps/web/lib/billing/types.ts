@@ -24,15 +24,6 @@ export type BillingInterval = (typeof BILLING_INTERVALS)[number]
 export const BILLING_PROVIDERS = ["stripe", "manual"] as const
 export type BillingProviderId = (typeof BILLING_PROVIDERS)[number]
 
-/**
- * Default days of Team granted when a checkout starts without a payment method.
- * Overridable with `STRIPE_TEAM_TRIAL_DAYS`; `0` charges on the first invoice.
- */
-export const TEAM_TRIAL_DAYS = 14
-
-/** How long before a trial ends the reminder is sent. */
-export const TRIAL_REMINDER_DAYS = 3
-
 export interface InvoiceSummaryData {
   id: string
   number: string | null
@@ -147,9 +138,9 @@ export interface SubscriptionRecord {
   billingInterval: string | null
   currentPeriodEnd: Date | null
   cancelAtPeriodEnd: boolean
+  /** Only set when the provider itself reports a trial on the subscription. */
   trialEndsAt: Date | null
   manualOverride: boolean
-  trialReminderSentAt: Date | null
 }
 
 /** Persistence the service needs, isolated so the webhook is unit-testable. */
@@ -165,12 +156,7 @@ export interface BillingRepositoryPort {
   getSubscriptionByOrganization(
     organizationId: string
   ): Promise<SubscriptionRecord | null>
-  upsertSubscription(
-    input: Omit<SubscriptionRecord, "id" | "trialReminderSentAt"> & {
-      /** Keeps an already sent trial reminder from firing twice. */
-      trialReminderSentAt?: Date | null
-    }
-  ): Promise<void>
+  upsertSubscription(input: Omit<SubscriptionRecord, "id">): Promise<void>
   setCustomerId(organizationId: string, customerId: string): Promise<void>
   recordEvent(input: {
     provider: string
@@ -225,11 +211,6 @@ export interface BillingRepositoryPort {
   listOwnerRecipients(
     organizationId: string
   ): Promise<{ userId: string; email: string; name: string }[]>
-  listTrialsEndingBefore(
-    before: Date,
-    limit: number
-  ): Promise<{ organizationId: string; trialEndsAt: Date }[]>
-  markTrialReminderSent(organizationId: string): Promise<void>
 }
 
 /** Notification side effects, injected so the webhook stays testable. */
@@ -240,9 +221,5 @@ export interface BillingNotifierPort {
     amountDue: number
     currency: string
     hostedInvoiceUrl: string | null
-  }): Promise<void>
-  trialEnding(input: {
-    organizationId: string
-    trialEndsAt: Date
   }): Promise<void>
 }

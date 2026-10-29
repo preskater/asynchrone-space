@@ -71,6 +71,15 @@ export function SiteHeader({
   const t = useTranslations("Sidebar")
   const common = useTranslations("Common")
   const [paletteOpen, setPaletteOpen] = React.useState(false)
+  const titleRef = React.useRef<HTMLHeadingElement>(null)
+  const previousPathname = React.useRef(pathname)
+
+  // Client-side navigation keeps focus on the clicked link; move it to the new page title.
+  React.useEffect(() => {
+    if (previousPathname.current === pathname) return
+    previousPathname.current = pathname
+    titleRef.current?.focus()
+  }, [pathname])
 
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -96,7 +105,11 @@ export function SiteHeader({
           orientation="vertical"
           className="mx-2 hidden h-4 sm:block data-vertical:self-auto"
         />
-        <h1 className="hidden truncate text-base font-medium sm:block">
+        <h1
+          ref={titleRef}
+          tabIndex={-1}
+          className="truncate text-base font-medium outline-none max-sm:sr-only"
+        >
           {title}
         </h1>
         <div className="ms-auto flex items-center gap-1">

@@ -54,7 +54,10 @@ export class CrmImportExportService extends CrmServiceCore {
           toDateKey(row.createdAt),
         ])
       }
-      return { filename: `presk-clients-${today}.csv`, content: toCsv(csvRows) }
+      return {
+        filename: `asynchrone-space-clients-${today}.csv`,
+        content: toCsv(csvRows),
+      }
     }
 
     if (input.entity === "contacts") {
@@ -89,7 +92,7 @@ export class CrmImportExportService extends CrmServiceCore {
         ])
       }
       return {
-        filename: `presk-contacts-${today}.csv`,
+        filename: `asynchrone-space-contacts-${today}.csv`,
         content: toCsv(csvRows),
       }
     }
@@ -132,7 +135,10 @@ export class CrmImportExportService extends CrmServiceCore {
         toDateKey(row.createdAt),
       ])
     }
-    return { filename: `presk-deals-${today}.csv`, content: toCsv(csvRows) }
+    return {
+      filename: `asynchrone-space-deals-${today}.csv`,
+      content: toCsv(csvRows),
+    }
   }
 
   async importClients(
@@ -141,7 +147,7 @@ export class CrmImportExportService extends CrmServiceCore {
   ): Promise<CrmImportResultData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const existing = await this.repo.listClients(ctx.organizationId)
+    const existing = await this.repo.listClientNames(ctx.organizationId)
     const byName = new Map(existing.map((row) => [row.name.toLowerCase(), row]))
     const result: CrmImportResultData = {
       created: 0,
@@ -163,7 +169,7 @@ export class CrmImportExportService extends CrmServiceCore {
               website: row.website ?? null,
               phone: row.phone ?? null,
               address: row.address ?? null,
-              contactEmail: row.contactEmail ?? found.contactEmail ?? null,
+              contactEmail: row.contactEmail ?? null,
               description: row.description ?? null,
               source: row.source ?? null,
             })
@@ -221,19 +227,17 @@ export class CrmImportExportService extends CrmServiceCore {
   ): Promise<CrmImportResultData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const [existingContacts, clientRows] = await Promise.all([
-      this.repo.listContacts(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
+    const [existingEmails, clientRows] = await Promise.all([
+      this.repo.listContactEmails(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
     ])
     const emailSet = new Set(
-      existingContacts
+      existingEmails
         .map((row) => row.email?.toLowerCase())
         .filter((email): email is string => Boolean(email))
     )
     const clientByName = new Map(
-      clientRows
-        .filter((row) => !row.deletedAt)
-        .map((row) => [row.name.toLowerCase(), row])
+      clientRows.map((row) => [row.name.toLowerCase(), row])
     )
     const result: CrmImportResultData = {
       created: 0,

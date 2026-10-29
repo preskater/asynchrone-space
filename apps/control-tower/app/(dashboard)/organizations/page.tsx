@@ -16,8 +16,13 @@ import {
 import { PageHeader } from "@/components/page-header"
 import { Pagination } from "@/components/pagination"
 import { formatBytes, formatDate, formatNumber } from "@/lib/platform/format"
-import { PAGE_SIZE, readPage, readString, type SearchParams } from "@/lib/platform/params"
-import { effectivePlan, orgQuotaBytes, usagePercent } from "@/lib/platform/plan"
+import {
+  PAGE_SIZE,
+  readPage,
+  readString,
+  type SearchParams,
+} from "@/lib/platform/params"
+import { enforcedPlan, orgQuotaBytes, usagePercent } from "@/lib/platform/plan"
 import { requirePlatformContext } from "@/lib/platform/guard"
 
 export const metadata = { title: "Organizations" }
@@ -56,6 +61,7 @@ export default async function OrganizationsPage({
         createdAt: true,
         storageQuotaBytes: true,
         metadata: true,
+        trialEndsAt: true,
         subscription: { select: { plan: true } },
         _count: { select: { members: true, projects: true, tasks: true } },
       },
@@ -67,7 +73,9 @@ export default async function OrganizationsPage({
       ? await prisma.fileNode.groupBy({
           by: ["organizationId"],
           where: {
-            organizationId: { in: organizations.map((organization) => organization.id) },
+            organizationId: {
+              in: organizations.map((organization) => organization.id),
+            },
             trashed: false,
           },
           _sum: { sizeBytes: true },
@@ -97,7 +105,11 @@ export default async function OrganizationsPage({
           Search
         </Button>
         {query ? (
-          <Button variant="ghost" nativeButton={false} render={<Link href="/organizations" />}>
+          <Button
+            variant="ghost"
+            nativeButton={false}
+            render={<Link href="/organizations" />}
+          >
             Clear
           </Button>
         ) : null}
@@ -127,7 +139,7 @@ export default async function OrganizationsPage({
                 const used = usedByOrg.get(organization.id) ?? 0
                 const quota = orgQuotaBytes(organization)
                 const percent = usagePercent(used, quota)
-                const plan = effectivePlan(organization)
+                const plan = enforcedPlan(organization)
 
                 return (
                   <TableRow key={organization.id}>
@@ -144,10 +156,14 @@ export default async function OrganizationsPage({
                     </TableCell>
                     <TableCell>
                       <Badge
-                        variant={plan === "free" ? "outline" : "secondary"}
+                        variant={
+                          enforcedPlan(organization) === "free"
+                            ? "outline"
+                            : "secondary"
+                        }
                         className="capitalize"
                       >
-                        {plan}
+                        {enforcedPlan(organization)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-end tabular-nums">

@@ -37,6 +37,7 @@
   "moreOptions": "More options",
   "searchLabel": "Search",
   "sharedAMeeting": "Shared a meeting",
+  "loadEarlier": "Load earlier messages",
   "noMessagesYet": "No messages yet",
   "beFirst": "Be the first to say something in this conversation.",
   "typing": "{name} is typing",

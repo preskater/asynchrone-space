@@ -14,6 +14,10 @@ export type AppErrorCode =
  * the HTTP-level {@link AppErrorCode}.
  */
 export type ServiceErrorCode =
+  | "trial_not_eligible"
+  | "trial_already_used"
+  | "trial_email_unverified"
+  | "trial_already_claimed"
   | "role_cannot_modify_projects"
   | "role_cannot_manage_members"
   | "email_already_member"
@@ -73,6 +77,9 @@ export type ServiceErrorCode =
   | "meeting_attendee_invalid"
   | "feedback_rate_limited"
   | "feedback_delivery_failed"
+  | "upgrade_required"
+  | "quota_exceeded"
+  | "assistant_unavailable"
   | "role_cannot_manage_billing"
   | "billing_not_configured"
   | "billing_manual_contract"

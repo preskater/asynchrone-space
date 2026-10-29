@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server"
 
-import { OrganizationSettings } from "@/components/organization/organization-settings"
 import type { CheckoutReturn } from "@/components/billing/billing-panel"
+import { OrganizationSettings } from "@/components/organization/organization-settings"
+import { TrialCard } from "@/components/trial/trial-card"
 
 function checkoutFrom(
   params: Record<string, string | string[] | undefined>
@@ -29,6 +30,7 @@ export default async function SettingsPage({
           {t("settingsDescription")}
         </p>
       </div>
+      <TrialCard />
       <OrganizationSettings checkout={checkout} />
     </div>
   )

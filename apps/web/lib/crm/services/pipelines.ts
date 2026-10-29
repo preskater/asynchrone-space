@@ -9,10 +9,13 @@ export class CrmPipelinesService extends CrmServiceCore {
     ctx: RequestContext,
     pipelineId: string
   ): Promise<CrmPipelineData> {
-    const rows = await this.repo.listPipelines(ctx.organizationId)
+    const [rows, stageStats] = await Promise.all([
+      this.repo.listPipelines(ctx.organizationId),
+      this.repo.stageDealStats(ctx.organizationId),
+    ])
     const row = rows.find((pipeline) => pipeline.id === pipelineId)
     if (!row) throw new NotFoundError("Pipeline")
-    return this.mapPipeline(row)
+    return this.mapPipeline(row, this.stageStatsMap(stageStats))
   }
 
   async savePipeline(
@@ -107,9 +110,7 @@ export class CrmPipelinesService extends CrmServiceCore {
         code: "pipeline_is_default",
       })
     }
-    const rows = await this.repo.listPipelines(ctx.organizationId)
-    const pipeline = rows.find((row) => row.id === pipelineId)
-    const dealCount = pipeline?.deals.length ?? 0
+    const dealCount = await this.repo.countDealsInPipeline(pipelineId)
     if (dealCount > 0) {
       throw new ConflictError(
         "Move the deals of this pipeline to another pipeline first.",
@@ -202,7 +203,10 @@ export class CrmPipelinesService extends CrmServiceCore {
     const index = stages.findIndex((stage) => stage.id === input.stageId)
     if (index < 0) throw new NotFoundError("Stage")
     const target = input.direction === "up" ? index - 1 : index + 1
-    if (target < 0 || target >= stages.length) return this.mapPipeline(pipeline)
+    if (target < 0 || target >= stages.length) {
+      const stageStats = await this.repo.stageDealStats(ctx.organizationId)
+      return this.mapPipeline(pipeline, this.stageStatsMap(stageStats))
+    }
     const swapped = [...stages]
     const [moved] = swapped.splice(index, 1)
     swapped.splice(target, 0, moved!)

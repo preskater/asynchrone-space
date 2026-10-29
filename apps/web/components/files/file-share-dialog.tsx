@@ -5,6 +5,7 @@ import { LinkIcon, LockIcon, PlusIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslations } from "next-intl"
 
+import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -41,6 +42,7 @@ import {
 
 import { useFiles } from "@/lib/files/store"
 import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEntitlements } from "@/lib/organization/use-entitlements"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import type { FileNode, SharePermission } from "@/lib/files/types"
 
@@ -72,6 +74,7 @@ export function FileShareDialog({
   const setOpen = onOpenChange ?? setUncontrolledOpen
   const [pickerOpen, setPickerOpen] = React.useState(false)
   const entries = sharesFor(file.id)
+  const sharingEnabled = useEntitlements().can("granularPermissions")
 
   function copyLink() {
     void navigator.clipboard?.writeText(
@@ -80,28 +83,37 @@ export function FileShareDialog({
     toast.success(t("linkCopied"))
   }
 
-  const permissionItems = (["view", "comment", "edit"] as const).map((value) => ({
-    label: L.sharePermission(value),
-    value,
-  }))
+  const permissionItems = (["view", "comment", "edit"] as const).map(
+    (value) => ({
+      label: L.sharePermission(value),
+      value,
+    })
+  )
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={children} />
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{t("share")} “{file.name}”</DialogTitle>
-          <DialogDescription>
-            {t("invitePeople")}
-          </DialogDescription>
+          <DialogTitle>
+            {t("share")} “{file.name}”
+          </DialogTitle>
+          <DialogDescription>{t("invitePeople")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
+          {sharingEnabled ? null : (
+            <PlanUpgradePrompt feature="granularPermissions" />
+          )}
           <div className="flex gap-2">
             <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
               <PopoverTrigger
                 render={
-                  <Button variant="outline" className="flex-1 justify-start font-normal" />
+                  <Button
+                    variant="outline"
+                    className="flex-1 justify-start font-normal"
+                    disabled={!sharingEnabled}
+                  />
                 }
               >
                 <PlusIcon data-icon="inline-start" />
@@ -171,6 +183,7 @@ export function FileShareDialog({
                     <Select
                       items={permissionItems}
                       value={entry.permission}
+                      disabled={!sharingEnabled}
                       onValueChange={(value) =>
                         setPermission(
                           file.id,

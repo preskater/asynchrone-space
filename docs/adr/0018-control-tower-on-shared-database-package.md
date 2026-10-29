@@ -1,12 +1,12 @@
 # Add a control-tower app on a shared database package
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-22
 
 ## Context and Problem Statement
 
-Presk ships a single customer-facing application (`apps/web`) whose permissions are
+Asynchrone Space ships a single customer-facing application (`apps/web`) whose permissions are
 organization-scoped only (`Member.role`: `owner | admin | member | viewer | client`).
 There is no platform/super-admin surface, so the founders and support team cannot
 inspect organizations, users, storage usage, audit trails or operational health
@@ -62,12 +62,12 @@ an internal tool.
 
 The control tower uses its **own** Better Auth instance, its own
 `CONTROL_TOWER_BETTER_AUTH_SECRET`, its own sign-in, and a host-only session
-cookie with `advanced.cookiePrefix: "presk-control-tower"`.
+cookie with `advanced.cookiePrefix: "asynchrone-space-control-tower"`.
 
 `advanced.crossSubDomainCookies` stays **disabled**. With the customer app on
-`https://presk.re` and the control tower on `https://control-tower.presk.re`, a
-`Domain=.presk.re` cookie would be transmitted to every current and future
-`*.presk.re` host (including vendor-hosted subdomains and their logs), would let
+`https://asynchrone.space` and the control tower on `https://control-tower.asynchrone.space`, a
+`Domain=.asynchrone.space` cookie would be transmitted to every current and future
+`*.asynchrone.space` host (including vendor-hosted subdomains and their logs), would let
 any subdomain shadow the cookie, and would forfeit the `__Host-` cookie prefix.
 The only feature that would benefit from a shared cookie — impersonation — is
 implemented instead as an explicit, single-use, audited handoff
@@ -96,6 +96,6 @@ implemented instead as an explicit, single-use, audited handoff
 
 ### Links
 
-- Issue: [#61](https://github.com/preskater/presk/issues/61)
+- Issue: [#61](https://github.com/preskater/asynchrone/issues/61)
 - Migration history: `packages/db/prisma/migrations`
 - Web shim: `apps/web/lib/prisma.ts`

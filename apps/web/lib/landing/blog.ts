@@ -60,7 +60,7 @@ export function getPost(
     title: data.title ?? slug,
     description: data.description ?? "",
     date: data.date ?? "",
-    author: data.author ?? "Presk",
+    author: data.author ?? "Asynchrone Space",
     tag: data.tag ?? "Product",
   }
 }

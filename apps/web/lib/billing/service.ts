@@ -1,3 +1,5 @@
+import { entitlementsFor } from "@workspace/db/plans"
+
 import type { RequestContext } from "@/lib/core/context"
 import {
   BadRequestError,
@@ -5,7 +7,6 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@/lib/core/errors"
-import { quotaForPlan } from "@/lib/organization/plans"
 import { roleRank } from "@/lib/organization/roles"
 
 import {
@@ -21,7 +22,6 @@ import {
   parseSubscriptionObject,
 } from "./webhook-payload"
 import {
-  TRIAL_REMINDER_DAYS,
   type BillingInterval,
   type BillingNotifierPort,
   type BillingOverviewData,
@@ -34,7 +34,6 @@ import {
   type SubscriptionStatus,
 } from "./types"
 
-const DAY_MS = 24 * 60 * 60 * 1000
 const MANAGER_RANK = 3
 const WEBHOOK_PROVIDER = "stripe"
 const INVOICE_PAGE_SIZE = 12
@@ -123,7 +122,11 @@ export class BillingService {
     // has not arrived yet) reconcile once so the table is never wrong.
     const invoices =
       localInvoices.length === 0 && record?.providerCustomerId
-        ? await this.backfillInvoices(ctx.organizationId, record.id, record.providerCustomerId)
+        ? await this.backfillInvoices(
+            ctx.organizationId,
+            record.id,
+            record.providerCustomerId
+          )
         : localInvoices
 
     const status = this.toStatus(record?.status, plan)
@@ -155,7 +158,7 @@ export class BillingService {
         storageQuotaBytes:
           organization.storageQuotaBytes !== null
             ? Number(organization.storageQuotaBytes)
-            : quotaForPlan(plan),
+            : entitlementsFor(plan).storageBytes,
       },
       invoices: invoices.map((invoice) => ({
         id: invoice.id,
@@ -297,9 +300,7 @@ export class BillingService {
     organizationId: string,
     subscriptionId: string | null,
     customerId: string
-  ): Promise<
-    Awaited<ReturnType<BillingRepositoryPort["listInvoices"]>>
-  > {
+  ): Promise<Awaited<ReturnType<BillingRepositoryPort["listInvoices"]>>> {
     if (!this.deps.provider.configured) {
       return this.deps.repo.listInvoices(organizationId, INVOICE_PAGE_SIZE)
     }
@@ -559,28 +560,6 @@ export class BillingService {
       trialEndsAt: status === "trialing" ? subscription.trialEndsAt : null,
       manualOverride: false,
     })
-  }
-
-  // -------------------------------------------------------------------------
-  // Trial reminders (cron)
-  // -------------------------------------------------------------------------
-
-  async sendTrialReminders(): Promise<number> {
-    const now = this.now()
-    const windowEnd = new Date(now.getTime() + TRIAL_REMINDER_DAYS * DAY_MS)
-    const rows = await this.deps.repo.listTrialsEndingBefore(windowEnd, 100)
-
-    let sent = 0
-    for (const row of rows) {
-      if (row.trialEndsAt.getTime() <= now.getTime()) continue
-      await this.deps.notifier.trialEnding({
-        organizationId: row.organizationId,
-        trialEndsAt: row.trialEndsAt,
-      })
-      await this.deps.repo.markTrialReminderSent(row.organizationId)
-      sent += 1
-    }
-    return sent
   }
 }
 

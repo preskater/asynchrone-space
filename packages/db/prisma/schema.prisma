@@ -100,6 +100,13 @@ model Organization {
   createdAt         DateTime
   metadata          String?
   storageQuotaBytes BigInt?
+  /// Team trial window. The trial grants Team while `trialEndsAt` is in the
+  /// future; `metadata.plan` is never changed by it.
+  trialStartedAt      DateTime?
+  trialEndsAt         DateTime?
+  /// Set once by the trial-expiry cron so reminders and expiry never repeat.
+  trialReminderSentAt DateTime?
+  trialEndedAt        DateTime?
   teams             Team[]
   members           Member[]
   invitations       Invitation[]
@@ -143,9 +150,25 @@ model Organization {
 
   subscription Subscription?
   invoices     Invoice[]
+  aiUsageEvents AiUsageEvent[]
 
   @@unique([slug])
   @@map("organization")
+}
+
+/// One row per Team trial ever started. Deliberately not related to
+/// Organization so deleting a workspace does not free its email/domain for a
+/// new trial.
+model TrialClaim {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  /// Null for public mailbox providers (gmail.com…), which are not blocked.
+  domain         String?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  @@unique([domain])
+  @@map("trialClaim")
 }
 
 model Team {
@@ -1623,8 +1646,6 @@ model Subscription {
   /// Set when a platform admin granted the plan by hand; webhooks never
   /// downgrade an overridden plan.
   manualOverride         Boolean      @default(false)
-  /// Last time the "your trial ends soon" email was sent.
-  trialReminderSentAt    DateTime?
   createdAt              DateTime     @default(now())
   updatedAt              DateTime     @updatedAt
 
@@ -1679,4 +1700,30 @@ model BillingEvent {
   @@unique([provider, eventId])
   @@index([organizationId, processedAt])
   @@map("billingEvent")
+}
+
+// ---------------------------------------------------------------------------
+// AI usage
+// ---------------------------------------------------------------------------
+
+/// One row per assistant run. Cost is computed at write time so historical
+/// rows keep the price that applied when the tokens were spent.
+model AiUsageEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Kept without a relation so usage survives the user's deletion.
+  userId         String
+  model          String
+  requests       Int
+  inputTokens    Int
+  outputTokens   Int
+  cachedTokens   Int
+  /// Micro-USD (1e-6 USD).
+  costMicros     Int
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+  @@map("ai_usage_event")
 }

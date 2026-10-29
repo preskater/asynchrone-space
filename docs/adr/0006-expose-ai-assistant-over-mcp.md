@@ -1,12 +1,12 @@
 # Expose the AI assistant over MCP
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk is AI-native: an assistant can read and modify the user's projects, tasks,
+Asynchrone Space is AI-native: an assistant can read and modify the user's projects, tasks,
 calendars, files, and messages. The same capabilities are also useful to external
 agents and machine clients. How should assistant and third-party agent access to
 workspace data be exposed in a consistent, authenticated way?

@@ -33,7 +33,7 @@
   "createOrganizationDescription": "Configurez un espace de travail pour votre équipe. Vous pourrez inviter des membres une fois créé.",
   "organizationName": "Nom de l'organisation",
   "organizationNamePlaceholder": "Acme Inc.",
-  "workspaceUrl": "URL de l'espace de travail : presk.app/{slug}",
+  "workspaceUrl": "URL de l'espace de travail : asynchrone.space/{slug}",
   "canChangeLater": "Modifiable ultérieurement.",
   "creating": "Création...",
   "welcome": "Bienvenue, {name}",

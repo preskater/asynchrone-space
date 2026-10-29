@@ -6,6 +6,14 @@ import {
 } from "@/lib/core/errors"
 import { toMemberView } from "@/lib/core/members"
 import type { RequestContext } from "@/lib/core/context"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import { repositoryIntegrationService } from "@/lib/integrations"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
@@ -217,7 +225,10 @@ export class ProjectService {
     }
   }
 
-  private mapProject(row: ProjectRow): Project {
+  private mapProject(
+    row: ProjectRow,
+    counts?: { total: number; done: number }
+  ): Project {
     return {
       id: row.id,
       name: row.name,
@@ -234,6 +245,8 @@ export class ProjectService {
       repositoryProvider:
         (row.repository?.provider as Project["repositoryProvider"]) ??
         undefined,
+      taskCount: counts?.total ?? row._count?.tasks,
+      doneTaskCount: counts?.done,
       createdAt: requiredIso(row.createdAt),
       dueDate: iso(row.dueDate),
     }
@@ -264,7 +277,7 @@ export class ProjectService {
         title: subtask.title,
         done: subtask.done,
       })),
-      comments: row.comments.map((comment): Comment => ({
+      comments: [...row.comments].reverse().map((comment): Comment => ({
         id: comment.id,
         authorId: comment.authorId,
         authorKind: comment.authorKind === "client" ? "client" : "internal",
@@ -285,32 +298,33 @@ export class ProjectService {
       )
   }
 
-  async list(ctx: RequestContext): Promise<ProjectData> {
-    const [projects, labels, members, templates] = await Promise.all([
-      this.repo.list(ctx.organizationId),
-      this.repo.listLabels(ctx.organizationId),
-      this.listMembersView(ctx),
-      this.repo.listTemplates(ctx.organizationId),
-    ])
+  /**
+   * Shell payload: projects, members, labels and templates without the task
+   * history. The app layout calls this on every request.
+   */
+  async listShell(ctx: RequestContext): Promise<ProjectData> {
+    const [projects, labels, members, templates, statusCounts] =
+      await Promise.all([
+        this.repo.listShell(ctx.organizationId),
+        this.repo.listLabels(ctx.organizationId),
+        this.listMembersView(ctx),
+        this.repo.listTemplates(ctx.organizationId),
+        this.repo.taskStatusCounts(ctx.organizationId),
+      ])
 
-    const tasks = projects.flatMap((project) =>
-      project.tasks.map((task) => this.mapTask(task))
-    )
-
-    const activities: Activity[] = projects.flatMap((project) =>
-      project.activities.map((activity) => ({
-        id: activity.id,
-        projectId: activity.projectId,
-        actorId: activity.actorId,
-        action: activity.action,
-        target: activity.target,
-        createdAt: requiredIso(activity.createdAt),
-      }))
-    )
+    const counts = new Map<string, { total: number; done: number }>()
+    for (const row of statusCounts) {
+      const entry = counts.get(row.projectId) ?? { total: 0, done: 0 }
+      entry.total += row._count._all
+      if (row.status === "done") entry.done += row._count._all
+      counts.set(row.projectId, entry)
+    }
 
     return {
-      projects: projects.map((project) => this.mapProject(project)),
-      tasks,
+      projects: projects.map((project) =>
+        this.mapProject(project, counts.get(project.id))
+      ),
+      tasks: [],
       members,
       labels: labels.map((label): Label => ({
         id: label.id,
@@ -318,7 +332,76 @@ export class ProjectService {
         color: label.color,
       })),
       templates: templates.map((template) => this.mapTemplate(template)),
-      activities,
+      activities: [],
+    }
+  }
+
+  /**
+   * Feature payload for the projects/calendar screens: tasks plus the latest
+   * activity feed. Both are bounded so a large workspace cannot load its
+   * entire history in one request.
+   */
+  async listWorkspace(
+    ctx: RequestContext,
+    options: { taskLimit?: number; activityLimit?: number } = {}
+  ): Promise<{ tasks: Task[]; activities: Activity[] }> {
+    const [tasks, activityRows] = await Promise.all([
+      this.repo.listAllTasks(ctx.organizationId, options.taskLimit ?? 1000),
+      this.repo.listActivities(ctx.organizationId, {
+        take: options.activityLimit ?? 100,
+      }),
+    ])
+    return {
+      tasks: tasks.map((task) => this.mapTask(task)),
+      activities: activityRows.map((activity): Activity => ({
+        id: activity.id,
+        projectId: activity.projectId,
+        actorId: activity.actorId,
+        action: activity.action,
+        target: activity.target,
+        createdAt: requiredIso(activity.createdAt),
+      })),
+    }
+  }
+
+  /** Full payload kept for the MCP/programmatic API. */
+  async list(ctx: RequestContext): Promise<ProjectData> {
+    const [shell, workspace] = await Promise.all([
+      this.listShell(ctx),
+      this.listWorkspace(ctx),
+    ])
+    return { ...shell, ...workspace }
+  }
+
+  /** Keyset-paginated activity feed (`(createdAt, id)` descending). */
+  async listActivities(
+    ctx: RequestContext,
+    input: PageInput & { projectId?: string } = {}
+  ): Promise<Page<Activity>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const before =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : undefined
+    const rows = await this.repo.listActivities(ctx.organizationId, {
+      projectId: input.projectId,
+      before,
+      take: limit + 1,
+    })
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((activity): Activity => ({
+        id: activity.id,
+        projectId: activity.projectId,
+        actorId: activity.actorId,
+        action: activity.action,
+        target: activity.target,
+        createdAt: requiredIso(activity.createdAt),
+      })),
+      nextCursor: page.nextCursor,
     }
   }
 
@@ -660,6 +743,33 @@ export class ProjectService {
 
   async listMembers(ctx: RequestContext): Promise<Member[]> {
     return this.listMembersView(ctx)
+  }
+
+  /**
+   * Keyset page of organization members ordered by `(createdAt, id)`.
+   * Used by the REST members endpoint and member pickers that outgrow one page.
+   */
+  async listMembersPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<Member>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const before =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const rows = await this.repo.listMembersPage(ctx.organizationId, {
+      before,
+      take: limit + 1,
+    })
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) => this.mapMember(row)),
+      nextCursor: page.nextCursor,
+    }
   }
 
   async addMember(ctx: RequestContext, input: AddMemberInput): Promise<Member> {

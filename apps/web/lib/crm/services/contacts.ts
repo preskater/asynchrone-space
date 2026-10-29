@@ -1,11 +1,18 @@
 import type { RequestContext } from "@/lib/core/context"
 import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import type { ContactInput } from "../schemas"
 import type { CrmContactData } from "../types"
 import {
   CrmServiceCore,
   requireEdit,
-  type ClientRow,
   type ContactRow,
   type FieldRow,
 } from "./core"
@@ -26,11 +33,13 @@ export class CrmContactsService extends CrmServiceCore {
   private async contactPayload(
     ctx: RequestContext,
     fieldRows: FieldRow[],
-    clientRows: ClientRow[],
+    clientRows: { id: string }[],
     input: ContactInput
   ) {
-    const memberRows = await this.repo.listMembers(ctx.organizationId)
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
+    if (
+      input.ownerId &&
+      !(await this.repo.memberExists(ctx.organizationId, input.ownerId))
+    ) {
       throw new NotFoundError("Member")
     }
     const knownClients = new Set(clientRows.map((client) => client.id))
@@ -91,6 +100,44 @@ export class CrmContactsService extends CrmServiceCore {
     )
   }
 
+  async listContactsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmContactData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1] && decoded[2]
+        ? {
+            lastName: decoded[0],
+            firstName: decoded[1],
+            id: decoded[2],
+          }
+        : null
+    const [rows, memberRows, dealCounts] = await Promise.all([
+      this.repo.listContactsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+      this.loadContactDealCounts(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.lastName, row.firstName, row.id])
+    )
+    return {
+      items: page.items.map((row) =>
+        this.mapContact(
+          row,
+          dealCounts.get(row.id) ?? 0,
+          row.ownerId ? nameById.get(row.ownerId) : undefined
+        )
+      ),
+      nextCursor: page.nextCursor,
+    }
+  }
+
   async saveContact(
     ctx: RequestContext,
     input: ContactInput
@@ -99,7 +146,7 @@ export class CrmContactsService extends CrmServiceCore {
     requireEdit(access)
     const [fieldRows, clientRows] = await Promise.all([
       this.repo.listFieldDefinitions(ctx.organizationId),
-      this.repo.listClients(ctx.organizationId),
+      this.repo.listClientOptions(ctx.organizationId),
     ])
     const payload = await this.contactPayload(ctx, fieldRows, clientRows, input)
 

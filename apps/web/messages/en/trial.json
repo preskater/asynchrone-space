@@ -1,0 +1,12 @@
+{
+  "bannerActive": "{days, plural, one {# day} other {# days}} left in your Team trial.",
+  "bannerDescription": "When it ends you drop back to Starter — your data stays intact.",
+  "choosePlan": "Choose a plan",
+  "cardTitle": "Team trial",
+  "availableDescription": "Try every Team feature free for 14 days. No payment method needed. When it ends you can pick a plan or drop back to Starter — your data stays intact either way.",
+  "activeDescription": "{days, plural, one {# day} other {# days}} left. Your trial ends on {date}.",
+  "endedDescription": "Your Team trial has ended and this workspace is back on Starter. Your data is intact.",
+  "start": "Start 14-day trial",
+  "started": "Your Team trial has started.",
+  "adminOnly": "Only workspace owners and admins can start the trial."
+}

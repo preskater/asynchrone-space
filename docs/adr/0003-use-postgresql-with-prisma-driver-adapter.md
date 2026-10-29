@@ -1,12 +1,12 @@
 # Use PostgreSQL with Prisma 7 and the pg driver adapter
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk stores relational domain data (organizations, members, projects, tasks,
+Asynchrone Space stores relational domain data (organizations, members, projects, tasks,
 calendars, messages, files) and also streams binary file bytes from the same
 database using PostgreSQL large objects. The application runs on serverless
 platforms where each instance has a low, fixed database connection budget. How

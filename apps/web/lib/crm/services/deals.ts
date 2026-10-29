@@ -1,5 +1,13 @@
 import type { RequestContext } from "@/lib/core/context"
 import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import { notificationService } from "@/lib/notifications"
 import { parseDateKey, toDateKey } from "../dates"
 import type { CrmRepository } from "../repository"
@@ -40,19 +48,21 @@ export class CrmDealsService extends CrmServiceCore {
     input: DealInput,
     existing?: DealRow
   ) {
-    const [memberRows, clientRows, contactRows, pipelineRows] =
+    const [ownerExists, clientExists, knownContactCount, pipelineRows] =
       await Promise.all([
-        this.repo.listMembers(ctx.organizationId),
-        this.repo.listClients(ctx.organizationId),
-        this.repo.listContacts(ctx.organizationId),
+        input.ownerId
+          ? this.repo.memberExists(ctx.organizationId, input.ownerId)
+          : Promise.resolve(true),
+        input.clientId
+          ? this.repo.clientExists(ctx.organizationId, input.clientId)
+          : Promise.resolve(true),
+        this.repo.countContactsByIds(ctx.organizationId, [
+          ...new Set(input.contactIds),
+        ]),
         this.repo.listPipelines(ctx.organizationId),
       ])
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
-      throw new NotFoundError("Member")
-    }
-    if (input.clientId && !clientRows.some((c) => c.id === input.clientId)) {
-      throw new NotFoundError("Client")
-    }
+    if (!ownerExists) throw new NotFoundError("Member")
+    if (!clientExists) throw new NotFoundError("Client")
 
     let pipeline = input.pipelineId
       ? pipelineRows.find((row) => row.id === input.pipelineId)
@@ -75,14 +85,11 @@ export class CrmDealsService extends CrmServiceCore {
     pipeline =
       pipelineRows.find((row) => row.id === stage.pipelineId) ?? pipeline
 
-    const knownContacts = new Set(
-      contactRows.filter((row) => !row.deletedAt).map((row) => row.id)
-    )
-    const contactIds: string[] = []
-    for (const contactId of input.contactIds) {
-      if (!knownContacts.has(contactId)) throw new NotFoundError("Contact")
-      if (!contactIds.includes(contactId)) contactIds.push(contactId)
+    const uniqueContactIds = [...new Set(input.contactIds)]
+    if (uniqueContactIds.length !== knownContactCount) {
+      throw new NotFoundError("Contact")
     }
+    const contactIds = uniqueContactIds
 
     const status = this.statusForStageType(stage.type)
     const today = new Date()
@@ -178,10 +185,7 @@ export class CrmDealsService extends CrmServiceCore {
     }
 
     const payload = await this.dealPayload(ctx, fieldRows, input)
-    const stageDeals = await this.repo.listDeals(ctx.organizationId)
-    const position = stageDeals.filter(
-      (row) => row.stageId === payload.stage.id && !row.deletedAt
-    ).length
+    const position = await this.repo.countDealsInStage(payload.stage.id)
     const row = await this.repo.createDeal(
       {
         organizationId: ctx.organizationId,
@@ -203,16 +207,44 @@ export class CrmDealsService extends CrmServiceCore {
     return this.returnDeal(ctx, row.id)
   }
 
+  async listDealsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmDealData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const [rows, memberRows] = await Promise.all([
+      this.repo.listDealsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) =>
+        this.mapDeal(row, row.ownerId ? nameById.get(row.ownerId) : undefined)
+      ),
+      nextCursor: page.nextCursor,
+    }
+  }
+
   async moveDeal(
     ctx: RequestContext,
     input: MoveDealInput
   ): Promise<CrmDealData> {
     const access = this.accessFor(ctx)
     requireEdit(access)
-    const [deal, stage, dealRows] = await Promise.all([
+    const [deal, stage] = await Promise.all([
       this.repo.findDeal(ctx.organizationId, input.dealId),
       this.repo.findStage(ctx.organizationId, input.stageId),
-      this.repo.listDeals(ctx.organizationId),
     ])
     if (!deal) throw new NotFoundError("Deal")
     if (!stage) throw new NotFoundError("Stage")
@@ -220,12 +252,8 @@ export class CrmDealsService extends CrmServiceCore {
     const stageChanged = deal.stageId !== stage.id
     const status = this.statusForStageType(stage.type)
 
-    const siblings = dealRows
-      .filter(
-        (row) =>
-          row.id !== deal.id && row.stageId === stage.id && !row.deletedAt
-      )
-      .sort((a, b) => a.position - b.position)
+    const stageDeals = await this.repo.listDealPositions(stage.id)
+    const siblings = stageDeals.filter((row) => row.id !== deal.id)
     const index = Math.max(
       0,
       Math.min(input.position ?? siblings.length, siblings.length)

@@ -57,21 +57,26 @@ function nextLink(linkHeader: string | null): string | null {
   return null
 }
 
-export function createGitHubClient(config: ProviderClientConfig): ProviderClient {
+export function createGitHubClient(
+  config: ProviderClientConfig
+): ProviderClient {
   const baseUrl = githubApiBase(config.baseUrl)
 
   async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-    const response = await fetch(path.startsWith("http") ? path : `${baseUrl}${path}`, {
-      ...init,
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${config.accessToken}`,
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "Presk",
-        ...(init.headers ?? {}),
-      },
-      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    })
+    const response = await fetch(
+      path.startsWith("http") ? path : `${baseUrl}${path}`,
+      {
+        ...init,
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${config.accessToken}`,
+          "X-GitHub-Api-Version": "2022-11-28",
+          "User-Agent": "Asynchrone Space",
+          ...(init.headers ?? {}),
+        },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      }
+    )
     if (!response.ok) {
       const details = await response.text().catch(() => "")
       throw new RepositoryApiError(
@@ -85,7 +90,8 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
 
   async function listIssues(): Promise<RemoteIssue[]> {
     const issues: RemoteIssue[] = []
-    let next: string | null = `/repos/${config.owner}/${config.repo}/issues?state=all&sort=updated&direction=desc&per_page=${PAGE_SIZE}`
+    let next: string | null =
+      `/repos/${config.owner}/${config.repo}/issues?state=all&sort=updated&direction=desc&per_page=${PAGE_SIZE}`
     for (let page = 0; page < MAX_ISSUE_PAGES && next; page += 1) {
       const url = next.startsWith("http") ? next : `${baseUrl}${next}`
       const response = await fetch(url, {
@@ -93,7 +99,7 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
           Accept: "application/vnd.github+json",
           Authorization: `Bearer ${config.accessToken}`,
           "X-GitHub-Api-Version": "2022-11-28",
-          "User-Agent": "Presk",
+          "User-Agent": "Asynchrone Space",
         },
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       })
@@ -181,19 +187,26 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
       branch,
     }
     try {
-      await request(`/repos/${config.owner}/${config.repo}/contents/${filePath}`, {
-        method: "PUT",
-        body: JSON.stringify(body),
-      })
+      await request(
+        `/repos/${config.owner}/${config.repo}/contents/${filePath}`,
+        {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }
+      )
     } catch (error) {
-      if (!(error instanceof RepositoryApiError) || error.status !== 422) throw error
+      if (!(error instanceof RepositoryApiError) || error.status !== 422)
+        throw error
       const existing = await request<{ sha: string }>(
         `/repos/${config.owner}/${config.repo}/contents/${filePath}?ref=${encodeURIComponent(branch)}`
       )
-      await request(`/repos/${config.owner}/${config.repo}/contents/${filePath}`, {
-        method: "PUT",
-        body: JSON.stringify({ ...body, sha: existing.sha }),
-      })
+      await request(
+        `/repos/${config.owner}/${config.repo}/contents/${filePath}`,
+        {
+          method: "PUT",
+          body: JSON.stringify({ ...body, sha: existing.sha }),
+        }
+      )
     }
   }
 
@@ -213,7 +226,7 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
       input.branch,
       input.filePath,
       input.fileContent,
-      `Presk: ${input.title}`
+      `Asynchrone Space: ${input.title}`
     )
     try {
       const payload = await request<{
@@ -249,7 +262,8 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
         targetBranch: payload.base.ref,
       }
     } catch (error) {
-      if (!(error instanceof RepositoryApiError) || error.status !== 422) throw error
+      if (!(error instanceof RepositoryApiError) || error.status !== 422)
+        throw error
       // A pull request for this branch is already open; reuse it.
       const existing = await request<
         Array<{
@@ -303,9 +317,7 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
     } catch {
       return { kind: "ignored", reason: "invalid JSON body" }
     }
-    const repository = payload.repository as
-      | { full_name?: string }
-      | undefined
+    const repository = payload.repository as { full_name?: string } | undefined
     if (
       repository?.full_name &&
       repository.full_name.toLowerCase() !==
@@ -346,10 +358,9 @@ export function createGitHubClient(config: ProviderClientConfig): ProviderClient
           }
         | undefined
       if (!pull) return { kind: "ignored", reason: "missing pull_request" }
-      let mapped: Extract<
-        RepositoryWebhookEvent,
-        { kind: "pull_request" }
-      >["action"] | null = null
+      let mapped:
+        | Extract<RepositoryWebhookEvent, { kind: "pull_request" }>["action"]
+        | null = null
       if (action === "opened") mapped = "opened"
       else if (action === "reopened") mapped = "reopened"
       else if (action === "edited") mapped = "edited"

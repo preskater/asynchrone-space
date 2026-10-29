@@ -4,6 +4,7 @@ import * as React from "react"
 import { LockIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
+import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Checkbox } from "@workspace/ui/components/checkbox"
@@ -34,6 +35,7 @@ import {
 
 import { useFiles } from "@/lib/files/store"
 import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEntitlements } from "@/lib/organization/use-entitlements"
 import type { FileNode, SharePermission } from "@/lib/files/types"
 
 export function FilePermissionsSheet({
@@ -50,15 +52,18 @@ export function FilePermissionsSheet({
   const t = useTranslations("Files")
   const L = useEnumLabel()
   const [linkAccess, setLinkAccess] = React.useState("view")
+  const sharingEnabled = useEntitlements().can("granularPermissions")
 
   if (!file) return null
   const entries = sharesFor(file.id)
   const inherited = !file.restricted
 
-  const permissionItems = (["view", "comment", "edit"] as const).map((value) => ({
-    label: L.sharePermission(value),
-    value,
-  }))
+  const permissionItems = (["view", "comment", "edit"] as const).map(
+    (value) => ({
+      label: L.sharePermission(value),
+      value,
+    })
+  )
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -70,6 +75,9 @@ export function FilePermissionsSheet({
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+          {sharingEnabled ? null : (
+            <PlanUpgradePrompt feature="granularPermissions" />
+          )}
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-medium">{t("people")}</h3>
             <Table>
@@ -96,6 +104,7 @@ export function FilePermissionsSheet({
                         <Select
                           items={permissionItems}
                           value={entry.permission}
+                          disabled={!sharingEnabled}
                           onValueChange={(value) =>
                             setPermission(
                               file.id,
@@ -141,6 +150,8 @@ export function FilePermissionsSheet({
             <label className="flex items-start gap-2">
               <Checkbox
                 checked={inherited}
+                // Restricting needs the plan; lifting a restriction never does.
+                disabled={inherited && !sharingEnabled}
                 onCheckedChange={(checked) =>
                   setRestricted(file.id, checked !== true)
                 }

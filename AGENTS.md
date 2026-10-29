@@ -13,6 +13,7 @@
 - The Turbo `generate` task (`prisma generate` → `packages/db/lib/generated/prisma`) is a dependency of `build`/`typecheck`/`dev`. After editing `schema.prisma`, run `npm run generate --workspace=@workspace/db`.
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
+- Manual Team trial check (needs a live DB; start, abuse checks, D-3 reminder, idempotent expiry): `npm run verify:trial --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
 - Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
 - Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
@@ -29,11 +30,11 @@
 
 ## Deployment
 
-- `.github/workflows/docker.yml` publishes three GHCR images: `presk` (web runner), `presk-control-tower` (control-tower runner) and `presk-migrate` (Dockerfile `migrate` stage).
-- Helm charts live in `charts/`: `presk` is the umbrella (migration hook and production values), `presk-web` and `presk-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/presk` then `helm upgrade --install presk charts/presk -n presk --set global.imageTag=sha-…`.
-- The chart requires the existing Secrets `presk-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `presk-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
-- The pre-install/pre-upgrade `presk-migrate` Job runs `prisma migrate deploy`; the web subchart owns the two CronJobs that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
-- Verify chart changes with `helm dependency build charts/presk && helm lint --strict charts/presk --set global.imageTag=test && helm template presk charts/presk --set global.imageTag=test`.
+- `.github/workflows/docker.yml` publishes three GHCR images: `asynchrone-space` (web runner), `asynchrone-space-control-tower` (control-tower runner) and `asynchrone-space-migrate` (Dockerfile `migrate` stage).
+- Helm charts live in `charts/`: `asynchrone-space` is the umbrella (migration hook and production values), `asynchrone-space-web` and `asynchrone-space-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/asynchrone-space` then `helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space --set global.imageTag=sha-…`. The packaged subcharts under `charts/asynchrone-space/charts/` are committed (Git-based chart sources such as Rancher never run `helm dependency build`); after editing a subchart, run `helm dependency build` and commit the archives — CI verifies they match the sources.
+- The chart requires the existing Secrets `asynchrone-space-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `asynchrone-space-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
+- The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the two CronJobs that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
+- Verify chart changes with `helm dependency build charts/asynchrone-space && helm lint --strict charts/asynchrone-space --set global.imageTag=test && helm template asynchrone-space charts/asynchrone-space --set global.imageTag=test`.
 
 <!-- BEGIN:turborepo-agent-rules -->
 
@@ -68,7 +69,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Internal app at `apps/control-tower` (port 3001). Platform roles live in the comma-separated `user.role`: `platform_admin` (full) and `platform_support` (read-only for now). Grant one with `npm run grant:platform-role --workspace=control-tower -- --email you@example.com`; the account must then enroll a TOTP device at `/setup-2fa`.
 - Every platform role requires TOTP (`twoFactor` plugin; `TwoFactor` table and `user.twoFactorEnabled`). `requirePlatformContext()` redirects unenrolled operators to `/setup-2fa` and rejects server actions; `requirePlatformSession()` is the 2FA-free variant used only by that page.
 - Optional `PLATFORM_ALLOWED_IPS` (comma-separated IPv4/CIDR or `*`) restricts the control tower to known networks as defense in depth. Unset allows every address; in-app auth still applies.
-- Its Better Auth instance is deliberately separate: own secret, own host-only cookie (`presk-control-tower.session_token`), sign-up disabled, no `jwt`/`mcp`/`organization` plugins. **Never enable `advanced.crossSubDomainCookies`** — see ADR 0018 and `verify:auth-config`.
+- Its Better Auth instance is deliberately separate: own secret, own host-only cookie (`asynchrone-space-control-tower.session_token`), sign-up disabled, no `jwt`/`mcp`/`organization` plugins. **Never enable `advanced.crossSubDomainCookies`** — see ADR 0018 and `verify:auth-config`.
 - Pages guard with `requirePlatformContext()`; anonymous users go to `/sign-in`, signed-in users without a platform role get `notFound()`. Server actions use `requirePlatformContext({ surface: "action" })` / `withPlatformAction`.
 - Platform mutations write `PlatformAuditEvent` rows (never the org-scoped `AuditLog`). Impersonation uses the single-use `PlatformHandoff` table, not a shared cookie.
 - Platform mutations are server actions under `apps/control-tower/actions/`. Each uses `withPlatformAction`, enforces `platform_admin` for destructive changes (`platform_support` may revoke sessions), appends a `PlatformAuditEvent`, and revalidates the affected path.

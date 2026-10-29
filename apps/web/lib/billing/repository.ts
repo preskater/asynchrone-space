@@ -50,7 +50,6 @@ export class BillingRepository implements BillingRepositoryPort {
         cancelAtPeriodEnd: true,
         trialEndsAt: true,
         manualOverride: true,
-        trialReminderSentAt: true,
       },
     })
   }
@@ -168,30 +167,5 @@ export class BillingRepository implements BillingRepositoryPort {
       email: member.user.email,
       name: member.user.name,
     }))
-  }
-
-  async listTrialsEndingBefore(before: Date, limit: number) {
-    const rows = await prisma.subscription.findMany({
-      where: {
-        status: "trialing",
-        trialEndsAt: { not: null, lte: before },
-        trialReminderSentAt: null,
-      },
-      orderBy: { trialEndsAt: "asc" },
-      take: limit,
-      select: { organizationId: true, trialEndsAt: true },
-    })
-    return rows.flatMap((row) =>
-      row.trialEndsAt
-        ? [{ organizationId: row.organizationId, trialEndsAt: row.trialEndsAt }]
-        : []
-    )
-  }
-
-  async markTrialReminderSent(organizationId: string): Promise<void> {
-    await prisma.subscription.updateMany({
-      where: { organizationId },
-      data: { trialReminderSentAt: new Date() },
-    })
   }
 }

@@ -1,6 +1,6 @@
 # Architecture Decision Records
 
-This directory holds the Architecture Decision Records (ADRs) for Presk. Each
+This directory holds the Architecture Decision Records (ADRs) for Asynchrone Space. Each
 record captures one architecturally significant decision together with its
 context, the options that were considered, and the consequences.
 
@@ -16,6 +16,9 @@ collection.
 - Records are immutable: to change a decision, add a new record that supersedes
   the old one rather than editing it. Additive updates are allowed with a dated
   note.
+- Exception: product-name references in existing records were rewritten once
+  during the rename to Asynchrone Space ([ADR 0020](0020-rename-to-asynchrone-space.md)).
+  Those edits changed naming only, never the recorded decisions.
 
 ## Index
 
@@ -40,4 +43,6 @@ collection.
 | [0017](0017-client-meeting-requests.md)                   | accepted | Let clients request meetings that the team books on the calendar         |
 | [0018](0018-control-tower-on-shared-database-package.md)  | accepted | Add a separate control-tower app on a shared `packages/db`               |
 | [0019](0019-deploy-on-kubernetes-with-helm.md)            | accepted | Deploy on Kubernetes with Helm                                            |
-| [0020](0020-bill-subscriptions-through-stripe.md)                | accepted | Bill subscriptions through Stripe with a local plan state                 |
+| [0020](0020-rename-to-asynchrone-space.md)                | accepted | Rename the product to Asynchrone Space                                     |
+| [0021](0021-team-trial-without-billing.md)                | accepted | Model the Team trial as a time window, not a plan change                   |
+| [0022](0022-bill-subscriptions-through-stripe.md)         | accepted | Bill subscriptions through Stripe with a local plan state                  |

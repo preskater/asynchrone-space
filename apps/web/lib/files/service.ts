@@ -5,6 +5,7 @@ import {
   unlinkLargeObject,
   uploadLargeObject,
 } from "@/lib/large-object"
+import { requireEntitlement } from "@/lib/organization/entitlements"
 import { roleRank } from "@/lib/organization/roles"
 
 import { kindFromName } from "./file-utils"
@@ -550,6 +551,9 @@ export class FileService {
     restricted: boolean
   ): Promise<FileNode> {
     await this.requireWrite(ctx, id)
+    // Lifting a restriction stays allowed so a downgraded org can clean up.
+    if (restricted)
+      await requireEntitlement(ctx.organizationId, "granularPermissions")
     const row = await this.repo.update(id, { restricted })
     return this.mapFile(row)
   }
@@ -560,6 +564,7 @@ export class FileService {
     input: AddShareInput
   ): Promise<ShareEntry[]> {
     await this.requireWrite(ctx, id)
+    await requireEntitlement(ctx.organizationId, "granularPermissions")
     await this.repo.addShare(id, input.memberId, input.permission)
     await this.repo.update(id, { shared: true })
     const row = await this.repo.findById(ctx.organizationId, id)
@@ -572,6 +577,7 @@ export class FileService {
     input: UpdateShareInput
   ): Promise<ShareEntry[]> {
     await this.requireWrite(ctx, id)
+    await requireEntitlement(ctx.organizationId, "granularPermissions")
     await this.repo.addShare(id, input.memberId, input.permission)
     const row = await this.repo.findById(ctx.organizationId, id)
     return row ? this.mapShares(row) : []

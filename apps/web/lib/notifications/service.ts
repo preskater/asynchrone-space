@@ -12,7 +12,8 @@ export interface NotifyArgs {
   organizationId: string
   /** Recipient. Notifications to yourself are skipped. */
   userId: string | null | undefined
-  actorId: string
+  /** Null for system notifications (e.g. the trial-expiry cron). */
+  actorId: string | null
   type: NotificationType
   data?: Record<string, unknown>
 }

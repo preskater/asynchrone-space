@@ -1,33 +1,18 @@
 /** Plan catalog and status mapping shared by the billing UI and services. */
 
-import { DEFAULT_PLAN, type OrgPlan } from "@/lib/organization/plans"
+import { ORG_PLANS, parsePlan, type OrgPlan } from "@workspace/db/plans"
 
 import type { BillingInterval, SubscriptionStatus } from "./types"
 
 /** Narrow an unknown string to a known plan, defaulting to Starter. */
 export function normalizePlan(value: string | null | undefined): OrgPlan {
-  if (value === "team" || value === "enterprise" || value === "free") {
-    return value
-  }
-  return DEFAULT_PLAN
+  return ORG_PLANS.includes(value as OrgPlan) ? (value as OrgPlan) : "free"
 }
 
 /**
- * Organizations created before billing existed carry their plan in
- * `metadata.plan` (written by the control tower). It stays as a fallback so
- * those workspaces keep their quota until a subscription row exists.
+ * Stored plan: the subscription row wins over `metadata.plan`, which remains
+ * the field the control tower and the trial write.
  */
-export function parsePlanMetadata(metadata: string | null): OrgPlan {
-  if (!metadata) return DEFAULT_PLAN
-  try {
-    const parsed = JSON.parse(metadata) as { plan?: string }
-    return normalizePlan(parsed.plan)
-  } catch {
-    return DEFAULT_PLAN
-  }
-}
-
-/** Effective plan: the subscription row wins over the legacy metadata field. */
 export function planForOrganization(organization: {
   metadata: string | null
   subscription: { plan: string } | null
@@ -35,7 +20,7 @@ export function planForOrganization(organization: {
   if (organization.subscription) {
     return normalizePlan(organization.subscription.plan)
   }
-  return parsePlanMetadata(organization.metadata)
+  return parsePlan(organization.metadata)
 }
 
 export const PAID_PLAN: OrgPlan = "team"
@@ -83,7 +68,7 @@ export function planForStatus(status: SubscriptionStatus): OrgPlan {
     case "past_due":
       return PAID_PLAN
     default:
-      return DEFAULT_PLAN
+      return "free"
   }
 }
 

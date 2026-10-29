@@ -19,7 +19,7 @@ export default async function SetupTwoFactorPage() {
       <div className="w-full max-w-lg space-y-5">
         <div className="space-y-1 text-center">
           <p className="text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-            Presk
+            Asynchrone Space
           </p>
           <h1 className="text-2xl font-semibold">Control Tower</h1>
         </div>

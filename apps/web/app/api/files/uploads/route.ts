@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
 import { toAppError } from "@/lib/core/errors"
-import { jsonError } from "@/lib/core/http"
+import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
 import { createUploadSession } from "@/lib/files/upload-session"
 
 export const runtime = "nodejs"
@@ -11,6 +11,8 @@ export const maxDuration = 60
 const MAX_NAME = 200
 
 export async function POST(request: Request): Promise<NextResponse> {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   try {
     const ctx = await getRequestContext({ request })
     const url = new URL(request.url)

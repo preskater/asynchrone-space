@@ -22,6 +22,13 @@ export const listMessagingAction = withAction(async () => {
   return messagingService.list(ctx)
 })
 
+export const listMessagesAction = withAction(
+  async (conversationId: string, cursor?: string | null) => {
+    const ctx = await getRequestContext()
+    return messagingService.listMessages(ctx, conversationId, { cursor })
+  }
+)
+
 export const touchPresenceAction = withAction(async () => {
   const ctx = await getRequestContext()
   await messagingService.touchPresence(ctx)

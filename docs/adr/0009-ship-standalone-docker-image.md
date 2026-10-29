@@ -1,12 +1,12 @@
 # Ship a standalone Docker image with a separate migration service
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk must be deployable reproducibly and runnable locally with its database.
+Asynchrone Space must be deployable reproducibly and runnable locally with its database.
 Database migrations must be applied exactly once before the web server serves
 traffic, and the production image should be as small as possible and not run as
 root. How should the container build and startup sequence be structured?
@@ -85,5 +85,5 @@ to completion, then `web`.
 ## Notes
 
 - 2026-10-22: These images are now deployed with the Helm charts in
-  `charts/presk`; see [ADR 0019](0019-deploy-on-kubernetes-with-helm.md). The
+  `charts/asynchrone-space`; see [ADR 0019](0019-deploy-on-kubernetes-with-helm.md). The
   image structure described here is unchanged.

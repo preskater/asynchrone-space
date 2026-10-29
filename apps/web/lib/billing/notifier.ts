@@ -1,4 +1,4 @@
-import { sendPaymentFailedEmail, sendTrialEndingEmail } from "@/lib/email"
+import { sendPaymentFailedEmail } from "@/lib/email"
 import { notificationService } from "@/lib/notifications"
 import { routing } from "@/i18n/routing"
 
@@ -76,35 +76,6 @@ export class BillingNotifier implements BillingNotifierPort {
         amountDue: input.amountDue,
         currency: input.currency,
         url: input.hostedInvoiceUrl ?? billingUrl(organization.slug),
-      })
-    }
-  }
-
-  async trialEnding(input: {
-    organizationId: string
-    trialEndsAt: Date
-  }): Promise<void> {
-    const recipients = await this.recipients(input.organizationId)
-    if (recipients.length === 0) return
-
-    const organization = await organizationOf(this.repo, input.organizationId)
-    const endsOn = input.trialEndsAt.toISOString().slice(0, 10)
-
-    for (const recipient of recipients) {
-      await notificationService.notify({
-        organizationId: input.organizationId,
-        userId: recipient.userId,
-        actorId: "system",
-        type: "billing.trial_ending",
-        data: { trialEndsAt: input.trialEndsAt.toISOString() },
-      })
-
-      if (!organization.slug) continue
-      sendTrialEndingEmail({
-        to: recipient.email,
-        organizationName: organization.name,
-        endsOn,
-        url: billingUrl(organization.slug),
       })
     }
   }

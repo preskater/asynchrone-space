@@ -1,41 +1,49 @@
 # Billing
 
 Plans are paid through Stripe Checkout and managed in the Stripe Customer
-Portal. Presk keeps a local mirror of the subscription and invoices so the app
-can enforce limits without calling the provider. The decision is recorded in
-[ADR 0020](adr/0020-bill-subscriptions-through-stripe.md).
+Portal. Asynchrone Space keeps a local mirror of the subscription and invoices
+so the app can enforce limits without calling the provider. The decision is recorded in
+[ADR 0022](adr/0022-bill-subscriptions-through-stripe.md); the free
+Team trial is separate and lives in
+[ADR 0021](adr/0021-team-trial-without-billing.md).
 
 ## Where things live
 
-| Concern | Location |
-| --- | --- |
-| Tables | `Subscription`, `Invoice`, `BillingEvent` (`packages/db/prisma/schema.prisma`) |
-| Invoice mirror | filled by `invoice.paid` / `invoice.payment_failed`, backfilled on view when empty |
-| Plan state and status mapping | `apps/web/lib/billing/plans.ts` |
-| Stripe client and request shaping | `apps/web/lib/billing/stripe-provider.ts` |
-| Webhook handling | `apps/web/lib/billing/service.ts`, `apps/web/app/api/webhooks/stripe/route.ts` |
-| Settings → Billing | `apps/web/components/billing/billing-panel.tsx` |
-| Billing tab deep link | `/{locale}/{orgSlug}/settings?tab=billing` (also the user menu's "Billing") |
-| Pricing CTAs | Team card starts Checkout; signed-out visitors sign up first (`?redirect=/onboarding?subscribe=<interval>`) |
-| Trial reminder job | `apps/web/app/api/cron/billing-trials/route.ts` |
-| Manual override | `apps/control-tower/actions/organizations.ts` |
+| Concern                           | Location                                                                                                    |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Tables                            | `Subscription`, `Invoice`, `BillingEvent` (`packages/db/prisma/schema.prisma`)                              |
+| Invoice mirror                    | filled by `invoice.paid` / `invoice.payment_failed`, backfilled on view when empty                          |
+| Plan state and status mapping     | `apps/web/lib/billing/plans.ts`                                                                             |
+| Stripe client and request shaping | `apps/web/lib/billing/stripe-provider.ts`                                                                   |
+| Webhook handling                  | `apps/web/lib/billing/service.ts`, `apps/web/app/api/webhooks/stripe/route.ts`                              |
+| Settings → Billing                | `apps/web/components/billing/billing-panel.tsx`                                                             |
+| Billing tab deep link             | `/{locale}/{orgSlug}/settings?tab=billing` (also the user menu's "Billing")                                 |
+| Pricing CTAs                      | Team card starts Checkout; signed-out visitors sign up first (`?redirect=/onboarding?subscribe=<interval>`) |
+| Trial window and reminders        | `apps/web/lib/organization/trial-service.ts` (ADR 0021)                                                     |
+| Manual override                   | `apps/control-tower/actions/organizations.ts`                                                               |
 
-Plan resolution order: `Subscription.plan` first, then the legacy
-`organization.metadata.plan`. Organizations created before billing existed need
-no backfill.
+Plan resolution order (`apps/web/lib/organization/entitlements.ts`):
+`Subscription.plan` first, then `organization.metadata.plan` — the field the
+control tower writes and what a Stripe-less workspace still uses. An open Team
+trial then upgrades a free organization to Team (ADR 0021). Every entitlement —
+storage, seats, AI budget, permissions — resolves through that one function, so
+billing cannot grant some limits but not others. Organizations created before
+billing existed need no backfill.
+
+Stripe never runs its own trial: the trial is card-less and lives on the
+organization, so checkout charges the first invoice immediately.
 
 ## Configuration
 
-Set these in `apps/web/.env` (or the `presk-web-secrets` Secret in production):
+Set these in `apps/web/.env` (or the `asynchrone-space-web-secrets` Secret in production):
 
-| Variable | Purpose |
-| --- | --- |
-| `STRIPE_SECRET_KEY` | API key. Empty disables checkout and the portal but keeps the plan readable. |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret of the endpoint below. Required for webhooks. |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Reserved for Elements/embedded checkout; not needed for hosted Checkout. |
-| `STRIPE_PRICE_TEAM_MONTHLY` / `STRIPE_PRICE_TEAM_YEARLY` | Optional Price IDs. When empty, Checkout receives the Team price inline (€12 / €120). |
-| `STRIPE_AUTOMATIC_TAX` | `true` turns on Stripe Tax and requires a billing address. Needs a tax registration in Stripe. |
-| `STRIPE_TEAM_TRIAL_DAYS` | Trial length on a first checkout. Defaults to `14`; `0` charges immediately, so the subscription is `active` instead of `trialing`. |
+| Variable                                                 | Purpose                                                                                        |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`                                      | API key. Empty disables checkout and the portal but keeps the plan readable.                   |
+| `STRIPE_WEBHOOK_SECRET`                                  | Signing secret of the endpoint below. Required for webhooks.                                   |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                     | Reserved for Elements/embedded checkout; not needed for hosted Checkout.                       |
+| `STRIPE_PRICE_TEAM_MONTHLY` / `STRIPE_PRICE_TEAM_YEARLY` | Optional Price IDs. When empty, Checkout receives the Team price inline (€12 / €120).          |
+| `STRIPE_AUTOMATIC_TAX`                                   | `true` turns on Stripe Tax and requires a billing address. Needs a tax registration in Stripe. |
 
 If `STRIPE_WEBHOOK_SECRET` is set without `STRIPE_SECRET_KEY` the app refuses to
 boot (`lib/env.ts`).
@@ -80,8 +88,9 @@ boot (`lib/env.ts`).
    ```
 
    Expect `plan = team`, `status = active` once Stripe has collected the test
-   card. With the default 14-day trial the first checkout reports `trialing`
-   instead, so set `STRIPE_TEAM_TRIAL_DAYS=0` while testing the payment flow.
+   card. Stripe never grants its own trial: the Team trial is a card-less
+   window on the organization ([ADR 0021](adr/0021-team-trial-without-billing.md)),
+   so checkout always charges the first invoice.
 
 5. Replay an event to confirm idempotency. `stripe listen` prints event ids:
 
@@ -94,17 +103,17 @@ boot (`lib/env.ts`).
 
 6. Exercise the lifecycle:
 
-   | Scenario | Stripe CLI | Expected |
-   | --- | --- | --- |
-   | Cancel at period end | `stripe subscriptions update sub_… --cancel-at-period-end` | `cancelAtPeriodEnd = true`, plan stays `team` |
-   | End the period early | `stripe subscriptions cancel sub_…` | `status = canceled`, plan `free`, data intact |
-   | Failed payment | `stripe trigger invoice.payment_failed` | `status = past_due`, plan stays `team`, owners notified |
-   | Paid invoice | `stripe trigger invoice.paid` | invoice row `paid`, `paidAt` set |
+   | Scenario             | Stripe CLI                                                 | Expected                                                |
+   | -------------------- | ---------------------------------------------------------- | ------------------------------------------------------- |
+   | Cancel at period end | `stripe subscriptions update sub_… --cancel-at-period-end` | `cancelAtPeriodEnd = true`, plan stays `team`           |
+   | End the period early | `stripe subscriptions cancel sub_…`                        | `status = canceled`, plan `free`, data intact           |
+   | Failed payment       | `stripe trigger invoice.payment_failed`                    | `status = past_due`, plan stays `team`, owners notified |
+   | Paid invoice         | `stripe trigger invoice.paid`                              | invoice row `paid`, `paidAt` set                        |
 
 7. Open **Manage subscription** to confirm the Customer Portal loads (payment
    methods, switches, invoice downloads).
 
-8. Check the invoice table on the Billing tab. Stripe *generates* invoices; Presk
+8. Check the invoice table on the Billing tab. Stripe _generates_ invoices; Presk
    only mirrors them. `invoice.paid` writes the row, and if that delivery was
    missed the settings page reconciles once from the provider (the local
    `invoice` table is empty for a customer that has invoices), so the list is
@@ -120,7 +129,7 @@ boot (`lib/env.ts`).
    ```
 
    `stripe listen` prints one line per delivery (`checkout.session.completed
-   [200]`). No lines means nothing reached the app; check the forwarded URL
+[200]`). No lines means nothing reached the app; check the forwarded URL
    (3000 for `npm run dev`, 3002 for `docker compose`).
 
 ## Production checklist
@@ -132,8 +141,8 @@ boot (`lib/env.ts`).
 - Enable the Customer Portal in Stripe with cancellation and plan switching
   allowed; the app never edits subscriptions itself.
 - Configure tax registrations before setting `STRIPE_AUTOMATIC_TAX=true`.
-- Keep `CRON_SECRET` set so `presk-web-billing-trials` (daily 09:00) can call
-  the reminder route.
+- Keep `CRON_SECRET` set so `asynchrone-space-web-trial-expiry` (daily 06:00)
+  can run the trial reminders and expiry.
 - Do not reuse test keys in production, and never commit either key.
 
 ## Manual overrides and Enterprise
@@ -153,12 +162,12 @@ is audited as `organization.plan.release`.
 The Team card on `/pricing` (and the home page preview) is the only place that
 sells a plan. What a click does depends on the visitor:
 
-| Visitor | Click action |
-| --- | --- |
-| Signed out | `/sign-up?redirect=/onboarding?subscribe=<interval>` — account first, then a workspace, then checkout |
-| Signed in, no workspace | `/onboarding?subscribe=<interval>` — workspace first, then checkout |
-| Signed in, workspace on Starter | Creates the Stripe Checkout session immediately and redirects to Stripe |
-| Signed in, workspace already paying | "Manage plan" → `/{orgSlug}/settings?tab=billing` (no second checkout) |
+| Visitor                             | Click action                                                                                          |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Signed out                          | `/sign-up?redirect=/onboarding?subscribe=<interval>` — account first, then a workspace, then checkout |
+| Signed in, no workspace             | `/onboarding?subscribe=<interval>` — workspace first, then checkout                                   |
+| Signed in, workspace on Starter     | Creates the Stripe Checkout session immediately and redirects to Stripe                               |
+| Signed in, workspace already paying | "Manage plan" → `/{orgSlug}/settings?tab=billing` (no second checkout)                                |
 
 The `subscribe` intent is carried through onboarding; the billing panel starts
 the checkout as soon as it resolves the plan, so a new customer lands on

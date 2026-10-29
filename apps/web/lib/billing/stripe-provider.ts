@@ -1,7 +1,6 @@
 import Stripe from "stripe"
 
 import { TEAM_PRICE } from "./plans"
-import { TEAM_TRIAL_DAYS } from "./types"
 import type {
   BillingInterval,
   BillingProviderPort,
@@ -50,20 +49,6 @@ function priceReference(interval: BillingInterval): string | null {
       ? process.env.STRIPE_PRICE_TEAM_MONTHLY
       : process.env.STRIPE_PRICE_TEAM_YEARLY
   return configured || null
-}
-
-/**
- * Trial length for the first Team subscription. `STRIPE_TEAM_TRIAL_DAYS=0`
- * drops the trial so Checkout charges immediately — useful when testing the
- * payment flow, since a trial would leave the subscription `trialing` instead
- * of `active`.
- */
-export function teamTrialDays(): number {
-  const raw = process.env.STRIPE_TEAM_TRIAL_DAYS
-  if (raw === undefined || raw.trim() === "") return TEAM_TRIAL_DAYS
-  const value = Number(raw)
-  if (!Number.isFinite(value) || value < 0) return TEAM_TRIAL_DAYS
-  return Math.floor(value)
 }
 
 function organizationIdOf(
@@ -137,8 +122,6 @@ export class StripeBillingProvider implements BillingProviderPort {
     const price = TEAM_PRICE[input.interval]
     const priceId = priceReference(input.interval)
     const automaticTax = process.env.STRIPE_AUTOMATIC_TAX === "true"
-    // Repeat customers never get a second trial.
-    const trialDays = input.customerId ? 0 : teamTrialDays()
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -157,15 +140,16 @@ export class StripeBillingProvider implements BillingProviderPort {
                 unit_amount: price.amount,
                 recurring: { interval: input.interval },
                 product_data: {
-                  name: `Presk Team — ${input.organizationName}`,
+                  name: `Asynchrone Space Team — ${input.organizationName}`,
                 },
               },
             },
       ],
       metadata: { organizationId: input.organizationId },
       subscription_data: {
+        // The Team trial is a free, card-less window modelled on the
+        // organization (ADR 0021), so checkout always charges immediately.
         metadata: { organizationId: input.organizationId },
-        ...(trialDays > 0 ? { trial_period_days: trialDays } : {}),
       },
       billing_address_collection: automaticTax ? "required" : "auto",
       tax_id_collection: { enabled: true },

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: asynchrone-space-control-tower
+description: Internal Asynchrone Space platform administration app
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

@@ -1,7 +1,7 @@
 # Use server actions as the only CRUD transport
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-16
 
 ## Context and Problem Statement

@@ -36,6 +36,7 @@ import pricing from "./pricing.json"
 import projects from "./projects.json"
 import sidebar from "./sidebar.json"
 import toasts from "./toasts.json"
+import trial from "./trial.json"
 import userMenu from "./userMenu.json"
 
 export default {
@@ -77,5 +78,6 @@ export default {
   Projects: projects,
   Sidebar: sidebar,
   Toasts: toasts,
+  Trial: trial,
   UserMenu: userMenu,
 } as const

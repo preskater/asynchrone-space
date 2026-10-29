@@ -110,10 +110,16 @@ export function ResetPasswordForm({
                     type="password"
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   <FieldDescription>{t("passwordHint")}</FieldDescription>
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}
@@ -132,9 +138,15 @@ export function ResetPasswordForm({
                     type="password"
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}

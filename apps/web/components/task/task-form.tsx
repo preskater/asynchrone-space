@@ -190,9 +190,16 @@ export function TaskForm({
             onChange={(event) => setTitle(event.target.value)}
             placeholder={t("titlePlaceholder")}
             aria-invalid={titleInvalid}
+            aria-describedby={
+              titleInvalid ? `${formId}-title-error` : undefined
+            }
             autoFocus
           />
-          {titleInvalid ? <FieldError>{t("titleRequired")}</FieldError> : null}
+          {titleInvalid ? (
+            <FieldError id={`${formId}-title-error`}>
+              {t("titleRequired")}
+            </FieldError>
+          ) : null}
         </Field>
         <Field>
           <FieldLabel htmlFor={`${formId}-description`}>
@@ -363,6 +370,7 @@ function TaskCustomFieldInput({
   const t = useTranslations("Projects")
   const id = `${formId}-${field.id}`
   const textValue = typeof value === "string" ? value : ""
+  const errorId = invalid ? `${id}-error` : undefined
 
   return (
     <Field data-invalid={invalid}>
@@ -375,6 +383,7 @@ function TaskCustomFieldInput({
           id={id}
           value={textValue}
           aria-invalid={invalid}
+          aria-describedby={errorId}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : field.type === "textarea" ? (
@@ -382,6 +391,7 @@ function TaskCustomFieldInput({
           id={id}
           value={textValue}
           aria-invalid={invalid}
+          aria-describedby={errorId}
           onChange={(event) => onChange(event.target.value)}
         />
       ) : field.type === "select" ? (
@@ -393,7 +403,12 @@ function TaskCustomFieldInput({
           value={textValue || null}
           onValueChange={(next) => onChange((next as string) ?? undefined)}
         >
-          <SelectTrigger id={id} className="w-full" aria-invalid={invalid}>
+          <SelectTrigger
+            id={id}
+            className="w-full"
+            aria-invalid={invalid}
+            aria-describedby={errorId}
+          >
             <SelectValue placeholder={t("selectPlaceholder")} />
           </SelectTrigger>
           <SelectContent>
@@ -449,7 +464,9 @@ function TaskCustomFieldInput({
           onChange={(next) => onChange(next)}
         />
       )}
-      {invalid ? <FieldError>{t("fieldRequiredError")}</FieldError> : null}
+      {invalid ? (
+        <FieldError id={errorId}>{t("fieldRequiredError")}</FieldError>
+      ) : null}
     </Field>
   )
 }

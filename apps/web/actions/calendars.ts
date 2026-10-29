@@ -18,6 +18,13 @@ export const listCalendarDataAction = withAction(async () => {
   return calendarService.list(ctx)
 })
 
+export const listCalendarEventsAction = withAction(
+  async (range?: { from?: string; to?: string }) => {
+    const ctx = await getRequestContext()
+    return calendarService.listEvents(ctx, range)
+  }
+)
+
 export const createEventAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(createEventSchema, input)

@@ -17,7 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import { pricingTiers, type PricingTier } from "@/lib/landing/content"
 
 const TIER_KEYS = ["starter", "team", "enterprise"] as const
@@ -53,34 +56,50 @@ function PricingCard({
   const isEnterprise = key === "enterprise"
   const isTeam = key === "team"
   const amount = yearly ? tier.yearly : tier.monthly
-  const price = isEnterprise ? t("custom") : amount === 0 ? t("free") : `$${amount}`
+  const price = isEnterprise
+    ? t("custom")
+    : amount === 0
+      ? t("free")
+      : `$${amount}`
+  // Team is the only self-serve plan: signed-in workspaces can pay right away
+  // and still start the free trial from settings.
+  const trialHref =
+    isTeam && isAuthenticated && dashboardHref !== "/onboarding"
+      ? `${dashboardHref}/settings`
+      : null
   const ctaHref = isEnterprise
     ? "/contact"
     : isAuthenticated
-      ? isTeam
-        ? billingHref
-        : dashboardHref
+      ? dashboardHref
       : "/sign-up"
   const ctaLabel = isEnterprise
     ? t("enterpriseCta")
     : isAuthenticated
-      ? isTeam
-        ? hasPaidPlan
-          ? t("teamCtaManage")
-          : t("teamCtaCurrent")
+      ? hasPaidPlan && isTeam
+        ? t("teamCtaManage")
         : tCta("dashboard")
       : t(`${key}Cta` as never)
 
-  // Team is the only self-serve plan, so it gets a real checkout action.
-  const teamCta = isTeam && !hasPaidPlan ? (
-    <TeamCheckoutButton
-      className="w-full"
-      interval={yearly ? "year" : "month"}
-      canStartCheckout={isAuthenticated && canStartCheckout}
-      subscribeHref={yearly ? subscribeHref.year : subscribeHref.month}
-      billingHref={billingHref}
-    />
-  ) : null
+  const teamCta =
+    isTeam && !hasPaidPlan ? (
+      <div className="flex w-full flex-col gap-2">
+        <TeamCheckoutButton
+          className="w-full"
+          interval={yearly ? "year" : "month"}
+          canStartCheckout={isAuthenticated && canStartCheckout}
+          subscribeHref={yearly ? subscribeHref.year : subscribeHref.month}
+          billingHref={billingHref}
+        />
+        {trialHref ? (
+          <Link
+            href={trialHref}
+            className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            {t("teamCtaTrial")}
+          </Link>
+        ) : null}
+      </div>
+    ) : null
 
   return (
     <Card
@@ -91,7 +110,7 @@ function PricingCard({
       }
     >
       {tier.featured ? (
-        <Badge className="absolute -top-2.5 start-6">{t("mostPopular")}</Badge>
+        <Badge className="absolute start-6 -top-2.5">{t("mostPopular")}</Badge>
       ) : null}
       <CardHeader>
         <CardTitle>{t(key)}</CardTitle>

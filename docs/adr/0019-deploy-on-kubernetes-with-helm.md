@@ -1,12 +1,12 @@
 # Deploy on Kubernetes with Helm
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-22
 
 ## Context and Problem Statement
 
-Presk was deployed to Vercel as two app-rooted projects, with `vercel.json`
+Asynchrone Space was deployed to Vercel as two app-rooted projects, with `vercel.json`
 files supplying the build command and two Vercel Cron schedules. The project
 already ships standalone Docker images ([ADR 0009](0009-ship-standalone-docker-image.md)),
 and those images are the intended production artifact. How should the customer
@@ -38,12 +38,12 @@ Chosen option: "Deploy with Helm to Kubernetes", because the project already
 produces standalone images and Kubernetes gives explicit control over
 migrations, scheduling, secrets, ingress and rolling updates.
 
-`charts/presk` is an umbrella chart with `presk-web` and `presk-control-tower`
+`charts/asynchrone-space` is an umbrella chart with `asynchrone-space-web` and `asynchrone-space-control-tower`
 subcharts. The customer app owns the two CronJobs that replace the Vercel crons.
 The umbrella chart owns a `pre-install,pre-upgrade` Job that runs
-`prisma migrate deploy` from the dedicated `presk-migrate` image. Both apps read
+`prisma migrate deploy` from the dedicated `asynchrone-migrate` image. Both apps read
 configuration from ConfigMaps and secrets from existing Kubernetes Secrets
-(`presk-web-secrets` and `presk-control-tower-secrets`); the chart never renders
+(`asynchrone-space-web-secrets` and `asynchrone-space-control-tower-secrets`); the chart never renders
 or stores secret material. One `global.imageTag` pins the three images built by
 `.github/workflows/docker.yml`.
 
@@ -102,11 +102,11 @@ that Helm deploys.
 
 ## Links
 
-- `charts/presk` — umbrella chart, migration hook and production values
-- `charts/presk-web` — customer app, ingress and CronJobs
-- `charts/presk-control-tower` — internal app and ingress
-- `.github/workflows/docker.yml` — `presk`, `presk-control-tower` and
-  `presk-migrate` images
+- `charts/asynchrone-space` — umbrella chart, migration hook and production values
+- `charts/asynchrone-space-web` — customer app, ingress and CronJobs
+- `charts/asynchrone-space-control-tower` — internal app and ingress
+- `.github/workflows/docker.yml` — `asynchrone`, `asynchrone-control-tower` and
+  `asynchrone-migrate` images
 - `.github/workflows/helm.yml` — chart lint/render CI
 - [ADR 0009](0009-ship-standalone-docker-image.md) — standalone Docker images
 - `docs/deployment/helm.md` — installation and operations guide

@@ -12,6 +12,7 @@
   "portalDocument": "{actor} a partagé un document sur {client}",
   "portalComment": "{actor} a commenté {identifier} · {title}",
   "meetingRequested": "{actor} a demandé un rendez-vous pour {client} · {title}",
-  "billingPaymentFailed": "Le paiement de {amount} pour votre abonnement a échoué",
-  "billingTrialEnding": "Votre essai Team se termine le {date}"
+  "trialReminder": "Votre essai Team pour {organization} se termine dans {days, plural, one {# jour} other {# jours}}",
+  "trialEnded": "Votre essai Team pour {organization} est terminé — retour sur Starter",
+  "billingPaymentFailed": "Le paiement de {amount} pour votre abonnement a échoué"
 }

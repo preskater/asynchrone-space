@@ -55,7 +55,6 @@ class FakeRepository implements BillingRepositoryPort {
     this.subscription = {
       ...input,
       id: this.subscription?.id ?? "sub_row_1",
-      trialReminderSentAt: this.subscription?.trialReminderSentAt ?? null,
     }
   }
 
@@ -78,7 +77,6 @@ class FakeRepository implements BillingRepositoryPort {
       cancelAtPeriodEnd: false,
       trialEndsAt: null,
       manualOverride: false,
-      trialReminderSentAt: null,
     }
   }
 
@@ -131,12 +129,6 @@ class FakeRepository implements BillingRepositoryPort {
   async listOwnerRecipients() {
     return [{ userId: "user_1", email: "owner@acme.test", name: "Owner" }]
   }
-
-  async listTrialsEndingBefore() {
-    return []
-  }
-
-  async markTrialReminderSent() {}
 }
 
 function subscriptionPayload(overrides: Record<string, unknown> = {}) {
@@ -220,7 +212,6 @@ function setup(
   } satisfies BillingProviderPort
   const notifier = {
     paymentFailed: vi.fn(async () => {}),
-    trialEnding: vi.fn(async () => {}),
   } satisfies BillingNotifierPort
 
   const service = new BillingService({ repo, provider, notifier })
@@ -338,7 +329,6 @@ describe("billing webhook", () => {
       cancelAtPeriodEnd: false,
       trialEndsAt: null,
       manualOverride: true,
-      trialReminderSentAt: null,
     }
 
     await service.handleEvent({

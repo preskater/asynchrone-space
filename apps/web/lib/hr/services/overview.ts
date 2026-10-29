@@ -62,7 +62,12 @@ export class HrOverviewService extends HrServiceCore {
       this.repo.listClients(ctx.organizationId),
       this.repo.listActivities(ctx.organizationId),
       this.repo.listProjects(ctx.organizationId),
-      this.repo.listAllocationEntries(ctx.organizationId),
+      // Project totals only need the current year; unbounded allocations made
+      // the overview grow with every tracked half-day ever recorded.
+      this.repo.listAllocationEntries(ctx.organizationId, {
+        from: parseDateKey(`${year}-01-01`),
+        to: parseDateKey(rangeEnd),
+      }),
       access.isAdmin ? this.repo.listSalaryProfiles(ctx.organizationId) : [],
       access.isAdmin ? this.repo.listAudit(ctx.organizationId, 100) : [],
     ])

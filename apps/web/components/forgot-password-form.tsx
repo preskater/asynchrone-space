@@ -97,9 +97,15 @@ export function ForgotPasswordForm({
                     placeholder="m@example.com"
                     autoComplete="email"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}

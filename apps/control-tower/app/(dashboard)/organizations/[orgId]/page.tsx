@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { ExternalLink } from "lucide-react"
 
 import { prisma } from "@workspace/db"
+import { entitlementsFor, monthWindow } from "@workspace/db/plans"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -19,9 +20,22 @@ import { PageHeader } from "@/components/page-header"
 import { OAuthClientToggle } from "@/components/oauth-client-toggle"
 import { PlanForm } from "@/components/plan-form"
 import { StatCard } from "@/components/stat-card"
-import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/platform/format"
+import {
+  formatBytes,
+  formatDate,
+  formatDateTime,
+  formatNumber,
+  formatRelative,
+  formatUsdMicros,
+} from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
-import { effectivePlan, orgQuotaBytes, usagePercent } from "@/lib/platform/plan"
+import {
+  enforcedPlan,
+  orgQuotaBytes,
+  storedPlan,
+  trialSummary,
+  usagePercent,
+} from "@/lib/platform/plan"
 
 export const metadata = { title: "Organization" }
 
@@ -42,6 +56,8 @@ export default async function OrganizationDetailPage({
       slug: true,
       metadata: true,
       storageQuotaBytes: true,
+      trialStartedAt: true,
+      trialEndsAt: true,
       createdAt: true,
       subscription: {
         select: {
@@ -74,82 +90,117 @@ export default async function OrganizationDetailPage({
 
   if (!organization) notFound()
 
-  const [storage, members, repositories, oauthClients, auditLogs, platformEvents] =
-    await Promise.all([
-      prisma.fileNode.aggregate({
-        where: { organizationId: orgId, trashed: false },
-        _sum: { sizeBytes: true },
-      }),
-      prisma.member.findMany({
-        where: { organizationId: orgId },
-        orderBy: { createdAt: "asc" },
-        take: 100,
-        select: {
-          id: true,
-          role: true,
-          clientId: true,
-          createdAt: true,
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              emailVerified: true,
-              banned: true,
-            },
+  const month = monthWindow()
+  const previousMonth = monthWindow(
+    new Date(month.start.getTime() - 24 * 60 * 60 * 1000)
+  )
+  const [
+    storage,
+    members,
+    repositories,
+    oauthClients,
+    auditLogs,
+    platformEvents,
+    aiThisMonth,
+    aiLastMonth,
+    seats,
+  ] = await Promise.all([
+    prisma.fileNode.aggregate({
+      where: { organizationId: orgId, trashed: false },
+      _sum: { sizeBytes: true },
+    }),
+    prisma.member.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "asc" },
+      take: 100,
+      select: {
+        id: true,
+        role: true,
+        clientId: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            emailVerified: true,
+            banned: true,
           },
         },
-      }),
-      prisma.repositoryConnection.findMany({
-        where: { organizationId: orgId },
-        orderBy: { createdAt: "desc" },
-        select: {
-          id: true,
-          provider: true,
-          owner: true,
-          repo: true,
-          lastSyncedAt: true,
-          createdAt: true,
-        },
-      }),
-      prisma.oauthClient.findMany({
-        where: { referenceId: orgId },
-        orderBy: { createdAt: "desc" },
-        select: { clientId: true, name: true, disabled: true, createdAt: true },
-      }),
-      prisma.auditLog.findMany({
-        where: { organizationId: orgId },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        select: {
-          id: true,
-          action: true,
-          entityType: true,
-          entityId: true,
-          actorId: true,
-          createdAt: true,
-        },
-      }),
-      prisma.platformAuditEvent.findMany({
-        where: { organizationId: orgId },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        select: {
-          id: true,
-          action: true,
-          actorEmail: true,
-          actorRole: true,
-          targetType: true,
-          targetId: true,
-          createdAt: true,
-        },
-      }),
-    ])
+      },
+    }),
+    prisma.repositoryConnection.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        provider: true,
+        owner: true,
+        repo: true,
+        lastSyncedAt: true,
+        createdAt: true,
+      },
+    }),
+    prisma.oauthClient.findMany({
+      where: { referenceId: orgId },
+      orderBy: { createdAt: "desc" },
+      select: { clientId: true, name: true, disabled: true, createdAt: true },
+    }),
+    prisma.auditLog.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        action: true,
+        entityType: true,
+        entityId: true,
+        actorId: true,
+        createdAt: true,
+      },
+    }),
+    prisma.platformAuditEvent.findMany({
+      where: { organizationId: orgId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      select: {
+        id: true,
+        action: true,
+        actorEmail: true,
+        actorRole: true,
+        targetType: true,
+        targetId: true,
+        createdAt: true,
+      },
+    }),
+    prisma.aiUsageEvent.aggregate({
+      where: { organizationId: orgId, createdAt: { gte: month.start } },
+      _sum: { costMicros: true, inputTokens: true, outputTokens: true },
+      _count: true,
+    }),
+    prisma.aiUsageEvent.aggregate({
+      where: {
+        organizationId: orgId,
+        createdAt: { gte: previousMonth.start, lt: month.start },
+      },
+      _sum: { costMicros: true },
+    }),
+    prisma.member.count({ where: { organizationId: orgId, clientId: null } }),
+  ])
 
   const used = Number(storage._sum.sizeBytes ?? 0)
   const quota = orgQuotaBytes(organization)
   const percent = usagePercent(used, quota)
-  const plan = effectivePlan(organization)
+  const aiSpent = aiThisMonth._sum.costMicros ?? 0
+  const aiTokens =
+    (aiThisMonth._sum.inputTokens ?? 0) + (aiThisMonth._sum.outputTokens ?? 0)
+  const plan = enforcedPlan(organization)
+  const stored = storedPlan(organization)
+  const trial = trialSummary(organization)
+  // Back on the stored plan after a trial that is no longer running.
+  const trialEnded =
+    !trial && organization.trialStartedAt !== null && stored === "free"
+  const aiBudget = entitlementsFor(plan).aiBudgetMicrosPerSeat * seats
 
   return (
     <div className="space-y-6">
@@ -158,9 +209,25 @@ export default async function OrganizationDetailPage({
         description={
           <span className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-xs">{organization.slug}</span>
-            <Badge variant={plan === "free" ? "outline" : "secondary"} className="capitalize">
+            <Badge
+              variant={plan === "free" ? "outline" : "secondary"}
+              className="capitalize"
+            >
               {plan}
             </Badge>
+            {trial ? (
+              <Badge variant="outline">
+                trial · {trial.daysLeft} {trial.daysLeft === 1 ? "day" : "days"}{" "}
+                left
+              </Badge>
+            ) : trialEnded ? (
+              <Badge variant="outline">trial ended</Badge>
+            ) : null}
+            {trial ? (
+              <span className="text-xs text-muted-foreground">
+                · ends {formatDate(trial.endsAt)}
+              </span>
+            ) : null}
             <span>· created {formatDate(organization.createdAt)}</span>
             <span className="font-mono text-xs">· {organization.id}</span>
           </span>
@@ -190,14 +257,31 @@ export default async function OrganizationDetailPage({
           value={formatBytes(used)}
           hint={`${percent}% of ${formatBytes(quota)}${organization.storageQuotaBytes !== null ? " (override)" : ""}`}
         />
-        <StatCard label="Members" value={formatNumber(organization._count.members)} />
+        <StatCard
+          label="Members"
+          value={formatNumber(organization._count.members)}
+        />
         <StatCard
           label="Projects"
           value={formatNumber(organization._count.projects)}
         />
-        <StatCard label="Tasks" value={formatNumber(organization._count.tasks)} />
-        <StatCard label="Clients" value={formatNumber(organization._count.clients)} />
-        <StatCard label="Deals" value={formatNumber(organization._count.deals)} />
+        <StatCard
+          label="Tasks"
+          value={formatNumber(organization._count.tasks)}
+        />
+        <StatCard
+          label="Clients"
+          value={formatNumber(organization._count.clients)}
+        />
+        <StatCard
+          label="Deals"
+          value={formatNumber(organization._count.deals)}
+        />
+        <StatCard
+          label="AI spend this month"
+          value={formatUsdMicros(aiSpent)}
+          hint={`${usagePercent(aiSpent, aiBudget)}% of ${formatUsdMicros(aiBudget)} · ${formatNumber(aiTokens)} tokens in ${formatNumber(aiThisMonth._count)} runs · last month ${formatUsdMicros(aiLastMonth._sum.costMicros ?? 0)}`}
+        />
       </div>
 
       <section className="space-y-3">
@@ -205,7 +289,7 @@ export default async function OrganizationDetailPage({
         <div className="rounded-xl border bg-card p-4">
           <PlanForm
             organizationId={organization.id}
-            plan={plan}
+            plan={stored}
             quotaBytes={
               organization.storageQuotaBytes === null
                 ? null
@@ -347,7 +431,9 @@ export default async function OrganizationDetailPage({
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={client.disabled ? "destructive" : "outline"}>
+                        <Badge
+                          variant={client.disabled ? "destructive" : "outline"}
+                        >
                           {client.disabled ? "disabled" : "active"}
                         </Badge>
                       </TableCell>
@@ -392,7 +478,9 @@ export default async function OrganizationDetailPage({
                 ) : (
                   auditLogs.map((entry) => (
                     <TableRow key={entry.id}>
-                      <TableCell className="font-medium">{entry.action}</TableCell>
+                      <TableCell className="font-medium">
+                        {entry.action}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {entry.entityType}
                       </TableCell>
@@ -428,7 +516,9 @@ export default async function OrganizationDetailPage({
                 ) : (
                   platformEvents.map((event) => (
                     <TableRow key={event.id}>
-                      <TableCell className="font-medium">{event.action}</TableCell>
+                      <TableCell className="font-medium">
+                        {event.action}
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         {event.actorEmail}
                       </TableCell>

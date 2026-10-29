@@ -33,7 +33,7 @@
   "createOrganizationDescription": "Set up a workspace for your team. You can invite members once it exists.",
   "organizationName": "Organization name",
   "organizationNamePlaceholder": "Acme Inc.",
-  "workspaceUrl": "Workspace URL: presk.app/{slug}",
+  "workspaceUrl": "Workspace URL: asynchrone.space/{slug}",
   "canChangeLater": "This can be changed later.",
   "creating": "Creating...",
   "welcome": "Welcome, {name}",

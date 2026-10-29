@@ -1,5 +1,6 @@
 import type { RequestContext } from "@/lib/core/context"
 import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import type { HrAccess } from "../access"
 import { parseDateKey, toDateKey } from "../date-utils"
 import type {
   ClearAttendanceInput,
@@ -56,6 +57,18 @@ export class HrAttendanceService extends HrServiceCore {
     input: SetAttendanceInput
   ): Promise<AttendanceEntryData> {
     const access = await this.accessFor(ctx)
+    return this.writeAttendance(ctx, input, access)
+  }
+
+  /**
+   * Write one half-day using an access decision the caller already resolved.
+   * `setDayStatus` uses this to update both periods with a single profile query.
+   */
+  private async writeAttendance(
+    ctx: RequestContext,
+    input: SetAttendanceInput,
+    access: HrAccess
+  ): Promise<AttendanceEntryData> {
     const targetUserId = input.userId ?? ctx.userId
     if (targetUserId === ctx.userId) {
       requireTrack(access)
@@ -71,9 +84,11 @@ export class HrAttendanceService extends HrServiceCore {
 
     let projectId = input.projectId
     let activityId = input.internalActivityId
+    let projectIsBillable: boolean | undefined
     if (projectId) {
       const project = await this.repo.findProject(ctx.organizationId, projectId)
       if (!project) throw new NotFoundError("Project")
+      projectIsBillable = project.isBillable
     }
     if (activityId) {
       const activity = await this.repo.findActivity(
@@ -93,8 +108,7 @@ export class HrAttendanceService extends HrServiceCore {
     if (absence || projectId === null) {
       isBillable = false
     } else if (projectId) {
-      const project = await this.repo.findProject(ctx.organizationId, projectId)
-      isBillable = project?.isBillable ?? false
+      isBillable = projectIsBillable ?? false
     }
 
     const date = parseDateKey(input.date)
@@ -202,17 +216,25 @@ export class HrAttendanceService extends HrServiceCore {
     ctx: RequestContext,
     input: SetDayStatusInput
   ): Promise<{ updated: number }> {
+    const access = await this.accessFor(ctx)
     const periods = input.periods ?? [...DAY_PERIODS]
     const location = QUICK_LOCATION[input.status] ?? null
-    for (const period of periods) {
-      await this.setAttendance(ctx, {
-        userId: input.userId,
-        date: input.date,
-        period,
-        status: input.status,
-        location,
-      })
-    }
+    // One access lookup for both half-days, then parallel writes.
+    await Promise.all(
+      periods.map((period) =>
+        this.writeAttendance(
+          ctx,
+          {
+            userId: input.userId,
+            date: input.date,
+            period,
+            status: input.status,
+            location,
+          },
+          access
+        )
+      )
+    )
     return { updated: periods.length }
   }
 }

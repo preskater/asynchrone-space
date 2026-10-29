@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "presk": {
+    "asynchrone-space": {
       "url": "http://localhost:3000/mcp"
     }
   }

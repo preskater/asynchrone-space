@@ -46,9 +46,9 @@ yarn-error.log*
 # prisma generated client
 **/lib/generated/
 
-# helm dependency build output (run `helm dependency build charts/presk`)
-charts/presk/charts/
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# graphify
+graphify-out

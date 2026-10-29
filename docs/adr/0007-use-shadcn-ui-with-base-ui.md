@@ -1,12 +1,12 @@
 # Use shadcn/ui with Base UI and Tailwind CSS
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk needs a consistent, accessible component library shared between the app and
+Asynchrone Space needs a consistent, accessible component library shared between the app and
 future surfaces, while retaining full control over markup and styling. The
 workspace also migrated its component primitives from Radix UI to Base UI. How
 should the UI layer be built and distributed across the monorepo?

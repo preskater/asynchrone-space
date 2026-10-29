@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { useTranslations } from "next-intl"
 import { FolderXIcon } from "lucide-react"
 
@@ -13,9 +14,13 @@ import { useOrgSlug } from "@/lib/organization/use-org-slug"
 
 export function ProjectWorkspace({ projectId }: { projectId: string }) {
   const t = useTranslations("Projects")
-  const { getProject } = useProjectStore()
+  const { getProject, ensureProjectData } = useProjectStore()
   const orgSlug = useOrgSlug()
   const project = getProject(projectId)
+
+  React.useEffect(() => {
+    ensureProjectData()
+  }, [ensureProjectData])
 
   if (!project) {
     return (

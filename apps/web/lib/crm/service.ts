@@ -1,4 +1,5 @@
 import type { RequestContext } from "@/lib/core/context"
+import type { Page, PageInput } from "@/lib/core/pagination"
 import type {
   ActivityInput,
   ClientInput,
@@ -103,6 +104,38 @@ export class CrmService {
     dealId: string
   ): Promise<CrmDealDetailData> {
     return this.overview.getDealDetail(ctx, dealId)
+  }
+
+  async listClientsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmClientData>> {
+    return this.clients.listClientsPage(ctx, input)
+  }
+
+  async listContactsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmContactData>> {
+    return this.contacts.listContactsPage(ctx, input)
+  }
+
+  async listDealsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmDealData>> {
+    return this.deals.listDealsPage(ctx, input)
+  }
+
+  async listActivitiesPage(
+    ctx: RequestContext,
+    input: PageInput & {
+      clientId?: string
+      contactId?: string
+      dealId?: string
+    } = {}
+  ): Promise<Page<CrmActivityData>> {
+    return this.activities.listActivitiesPage(ctx, input)
   }
 
   async saveClient(

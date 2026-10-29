@@ -1,21 +1,14 @@
+import { escapeHtml } from "@/lib/email"
+
 import type { SubmitFeedbackInput } from "./types"
 
 /**
  * Renders the internal notification email for one feedback report.
  *
- * The email is read by the Presk team, not by the tester, so it stays in
+ * The email is read by the Asynchrone Space team, not by the tester, so it stays in
  * English like the other transactional emails. Every value is escaped: the
  * report is user-generated content.
  */
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
-}
 
 function row(label: string, value: string) {
   return `<tr>

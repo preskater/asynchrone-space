@@ -13,6 +13,7 @@ import {
   createTaskTemplateAction,
   deleteProjectAction,
   deleteTaskAction,
+  loadProjectWorkspaceAction,
   moveTaskAction,
   removeLabelAction,
   removeMemberAction,
@@ -89,6 +90,9 @@ interface ProjectStore {
   labels: Label[]
   activities: Activity[]
   currentUserId: string
+  tasksLoaded: boolean
+  /** Load tasks + activity once, when a project/calendar screen needs them. */
+  ensureProjectData: () => void
   getProject: (id: string) => Project | undefined
   getMember: (id?: string) => Member | undefined
   getLabel: (id: string) => Label | undefined
@@ -152,15 +156,39 @@ export function ProjectStoreProvider({
   const [activities, setActivities] = React.useState<Activity[]>(
     initialData.activities
   )
+  const [tasksLoaded, setTasksLoaded] = React.useState(
+    initialData.tasks.length > 0 || initialData.activities.length > 0
+  )
+  const tasksLoadedRef = React.useRef(tasksLoaded)
 
   React.useEffect(() => {
     setProjects(initialData.projects)
-    setTasks(initialData.tasks)
     setMembers(initialData.members)
     setLabels(initialData.labels)
     setTemplates(initialData.templates)
-    setActivities(initialData.activities)
+    // The layout only sends shell data. Keep what the feature already loaded
+    // instead of wiping it on every server refresh.
+    if (!tasksLoadedRef.current) {
+      setTasks(initialData.tasks)
+      setActivities(initialData.activities)
+    }
   }, [initialData])
+
+  const ensureProjectData = React.useCallback(() => {
+    if (tasksLoadedRef.current) return
+    tasksLoadedRef.current = true
+    setTasksLoaded(true)
+    void loadProjectWorkspaceAction()
+      .then((result) => {
+        const data = unwrapActionResult(result)
+        setTasks(data.tasks)
+        setActivities(data.activities)
+      })
+      .catch(() => {
+        tasksLoadedRef.current = false
+        setTasksLoaded(false)
+      })
+  }, [])
 
   const pushActivity = React.useCallback(
     (projectId: string, action: string, target: string) => {
@@ -193,6 +221,8 @@ export function ProjectStoreProvider({
       templates,
       activities,
       currentUserId,
+      tasksLoaded,
+      ensureProjectData,
       getProject,
       getMember,
       getLabel,
@@ -541,6 +571,8 @@ export function ProjectStoreProvider({
     templates,
     activities,
     currentUserId,
+    tasksLoaded,
+    ensureProjectData,
     pushActivity,
   ])
 

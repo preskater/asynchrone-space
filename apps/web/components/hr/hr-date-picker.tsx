@@ -37,6 +37,7 @@ export function HrDatePicker({
   disabled,
   className,
   invalid,
+  "aria-describedby": describedBy,
 }: {
   id?: string
   value?: string
@@ -47,6 +48,7 @@ export function HrDatePicker({
   disabled?: boolean
   className?: string
   invalid?: boolean
+  "aria-describedby"?: string
 }) {
   const locale = useLocale()
   const [open, setOpen] = React.useState(false)
@@ -70,6 +72,7 @@ export function HrDatePicker({
             type="button"
             variant="outline"
             aria-invalid={invalid}
+            aria-describedby={describedBy}
             className={cn(
               "w-full justify-start font-normal",
               !value && "text-muted-foreground",

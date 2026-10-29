@@ -56,7 +56,9 @@ export function AppSidebar({
             >
               <ShieldCheck className="size-5!" />
               <span className="flex min-w-0 flex-col items-start leading-tight">
-                <span className="text-base font-semibold">Presk</span>
+                <span className="text-base font-semibold">
+                  Asynchrone Space
+                </span>
                 <span className="text-[10px] font-medium tracking-wider text-muted-foreground uppercase">
                   Control Tower
                 </span>

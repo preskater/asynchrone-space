@@ -12,6 +12,7 @@ import {
   createFolderAction,
   deleteFileAction,
   duplicateFileAction,
+  listFilesAction,
   moveFileAction,
   removeShareAction,
   renameFileAction,
@@ -46,6 +47,9 @@ interface FilesStore extends FilesData {
   organizationId: string
   storageQuotaBytes: number
   uploads: UploadItem[]
+  filesLoaded: boolean
+  /** Load the file tree the first time a files screen is opened. */
+  ensureFilesLoaded: () => void
   getMember: (id?: string) => Member | undefined
   getFile: (id?: string) => FileNode | undefined
   breadcrumbFor: (folderId: string | null) => FileNode[]
@@ -112,13 +116,36 @@ export function FilesProvider({
       initialData.activities
     )
   const [uploads, setUploads] = React.useState<UploadItem[]>([])
+  const [filesLoaded, setFilesLoaded] = React.useState(
+    initialData.files.length > 0
+  )
+  const filesLoadedRef = React.useRef(filesLoaded)
 
   React.useEffect(() => {
+    if (filesLoadedRef.current) return
     setFiles(initialData.files)
     setShares(initialData.shares)
     setVersions(initialData.versions)
     setActivities(initialData.activities)
   }, [initialData])
+
+  const ensureFilesLoaded = React.useCallback(() => {
+    if (filesLoadedRef.current) return
+    filesLoadedRef.current = true
+    setFilesLoaded(true)
+    void listFilesAction()
+      .then((result) => {
+        const data = unwrapActionResult(result)
+        setFiles(data.files)
+        setShares(data.shares)
+        setVersions(data.versions)
+        setActivities(data.activities)
+      })
+      .catch(() => {
+        filesLoadedRef.current = false
+        setFilesLoaded(false)
+      })
+  }, [])
 
   const store = React.useMemo<FilesStore>(() => {
     const getMember = (id?: string) =>
@@ -263,6 +290,8 @@ export function FilesProvider({
       currentUserId,
       organizationId,
       storageQuotaBytes,
+      filesLoaded,
+      ensureFilesLoaded,
       getMember,
       getFile,
       breadcrumbFor,
@@ -527,7 +556,19 @@ export function FilesProvider({
         setUploads((prev) => prev.filter((item) => item.status !== "done"))
       },
     }
-  }, [files, shares, versions, activities, uploads, members, currentUserId, organizationId, storageQuotaBytes])
+  }, [
+    files,
+    shares,
+    versions,
+    activities,
+    uploads,
+    members,
+    currentUserId,
+    organizationId,
+    storageQuotaBytes,
+    filesLoaded,
+    ensureFilesLoaded,
+  ])
 
   return <FilesContext.Provider value={store}>{children}</FilesContext.Provider>
 }

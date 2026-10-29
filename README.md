@@ -1,24 +1,24 @@
-# Presk
+# Asynchrone Space
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
 **AI‑Native Productivity Platform**
 
-Presk is an AI‑first workspace that automates your workflow, centralizes your tasks, and connects your team in one place. It combines calendars, projects, files, and messaging with built‑in AI assistants to help you move faster and stay aligned.
+Asynchrone Space is an AI‑first workspace that automates your workflow, centralizes your tasks, and connects your team in one place. It combines calendars, projects, files, and messaging with built‑in AI assistants to help you move faster and stay aligned.
 
-## What you can do with Presk
+## What you can do with Asynchrone Space
 
 - **Calendars** – Schedule meetings, set reminders, and manage events across teams.  
 - **Projects** – Create projects, assign tasks, track progress, and manage deadlines.  
-- **Files** – Create, edit, and co‑author documents in real time with your team and AI.  
+- **Files** – Upload, version, preview, and share files with per‑person permissions.  
 - **Messages** – Chat with teammates and AI assistants in shared channels and threads.  
 - **Dashboard** – See all your tasks, projects, and team activity in a single, customizable view.
 
-## Why Presk
+## Why Asynchrone Space
 
 - **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.  
 - **Unified workspace**: No more switching between tools; everything you need lives in one platform.  
-- **Team‑first**: Built for collaboration, with real‑time editing, shared context, and clear ownership.
+- **Team‑first**: Built for collaboration, with shared context, threaded discussions, and clear ownership.
 
 ## Tech stack
 
@@ -41,7 +41,7 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 | `packages/ui` | Shared UI component library. |
 | `packages/eslint-config` | Shared ESLint configuration. |
 | `packages/typescript-config` | Shared TypeScript configuration. |
-| `charts/presk` | Helm umbrella chart for deploying both apps. |
+| `charts/asynchrone-space` | Helm umbrella chart for deploying both apps. |
 
 ## Getting started
 
@@ -231,27 +231,27 @@ The Docker workflow publishes three images to GHCR:
 
 | Image | Dockerfile stage | Runs |
 | --- | --- | --- |
-| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer app |
-| `ghcr.io/preskater/presk-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
-| `ghcr.io/preskater/presk-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
+| `ghcr.io/preskater/asynchrone-space` | `runner` (`APP=web`) | Customer app |
+| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
+| `ghcr.io/preskater/asynchrone-space-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
 
-Deploy them with the Helm umbrella chart in `charts/presk`, which composes the
-`presk-web` and `presk-control-tower` subcharts:
+Deploy them with the Helm umbrella chart in `charts/asynchrone-space`, which composes the
+`asynchrone-space-web` and `asynchrone-space-control-tower` subcharts:
 
 ```bash
-helm dependency build charts/presk
-kubectl create namespace presk
+helm dependency build charts/asynchrone-space
+kubectl create namespace asynchrone-space
 
-kubectl -n presk create secret generic presk-web-secrets \
+kubectl -n asynchrone-space create secret generic asynchrone-space-web-secrets \
   --from-literal=DATABASE_URL='postgresql://…' \
   --from-literal=BETTER_AUTH_SECRET='…' \
   --from-literal=CRON_SECRET='…'
 
-kubectl -n presk create secret generic presk-control-tower-secrets \
+kubectl -n asynchrone-space create secret generic asynchrone-space-control-tower-secrets \
   --from-literal=DATABASE_URL='postgresql://…' \
   --from-literal=CONTROL_TOWER_BETTER_AUTH_SECRET='…'
 
-helm upgrade --install presk charts/presk -n presk \
+helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space \
   --set global.imageTag=sha-abc1234
 ```
 

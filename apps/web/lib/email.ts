@@ -108,6 +108,15 @@ export function sendEmail(email: Email) {
   }
 }
 
+export function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
 function layout({
   heading,
   body,
@@ -190,6 +199,51 @@ function formatAmount(amount: number, currency: string) {
   }).format(amount / 100)
 }
 
+export function sendTrialReminderEmail({
+  to,
+  organizationName,
+  daysLeft,
+  url,
+}: {
+  to: string
+  organizationName: string
+  daysLeft: number
+  url: string
+}) {
+  const days = daysLeft === 1 ? "1 day" : `${daysLeft} days`
+  sendEmail({
+    to,
+    subject: `Your Team trial ends in ${days}`,
+    html: layout({
+      heading: `Your Team trial ends in ${days}`,
+      body: `The Team trial of ${escapeHtml(organizationName)} ends soon. Pick a plan to keep Team features, or do nothing to drop back to Starter — your data stays intact either way.`,
+      cta: "Choose a plan",
+      url: publicUrl(url),
+    }),
+  })
+}
+
+export function sendTrialEndedEmail({
+  to,
+  organizationName,
+  url,
+}: {
+  to: string
+  organizationName: string
+  url: string
+}) {
+  sendEmail({
+    to,
+    subject: "Your Team trial has ended",
+    html: layout({
+      heading: "Your Team trial has ended",
+      body: `${escapeHtml(organizationName)} is back on Starter. All your projects, files and messages are intact. Pick a plan any time to get Team features back.`,
+      cta: "Choose a plan",
+      url: publicUrl(url),
+    }),
+  })
+}
+
 export function sendPaymentFailedEmail({
   to,
   organizationName,
@@ -206,35 +260,11 @@ export function sendPaymentFailedEmail({
   const link = publicUrl(url)
   sendEmail({
     to,
-    subject: `Payment failed for ${organizationName}`,
+    subject: `Payment failed for ${escapeHtml(organizationName)}`,
     html: layout({
       heading: "We couldn't collect your payment",
-      body: `The ${formatAmount(amountDue, currency)} payment for ${organizationName} did not go through. Update your payment method to keep the Team plan — we retry automatically for a few days.`,
+      body: `The ${formatAmount(amountDue, currency)} payment for ${escapeHtml(organizationName)} did not go through. Update your payment method to keep the Team plan — we retry automatically for a few days.`,
       cta: "Update payment method",
-      url: link,
-    }),
-  })
-}
-
-export function sendTrialEndingEmail({
-  to,
-  organizationName,
-  endsOn,
-  url,
-}: {
-  to: string
-  organizationName: string
-  endsOn: string
-  url: string
-}) {
-  const link = publicUrl(url)
-  sendEmail({
-    to,
-    subject: `Your ${organizationName} trial ends on ${endsOn}`,
-    html: layout({
-      heading: "Your Team trial is ending soon",
-      body: `The Team trial for ${organizationName} ends on ${endsOn}. Add a payment method to keep Team, or do nothing and the workspace moves back to Starter — your data stays intact.`,
-      cta: "Choose a plan",
       url: link,
     }),
   })
