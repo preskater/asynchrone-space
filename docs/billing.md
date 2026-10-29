@@ -10,6 +10,7 @@ can enforce limits without calling the provider. The decision is recorded in
 | Concern | Location |
 | --- | --- |
 | Tables | `Subscription`, `Invoice`, `BillingEvent` (`packages/db/prisma/schema.prisma`) |
+| Invoice mirror | filled by `invoice.paid` / `invoice.payment_failed`, backfilled on view when empty |
 | Plan state and status mapping | `apps/web/lib/billing/plans.ts` |
 | Stripe client and request shaping | `apps/web/lib/billing/stripe-provider.ts` |
 | Webhook handling | `apps/web/lib/billing/service.ts`, `apps/web/app/api/webhooks/stripe/route.ts` |
@@ -102,8 +103,24 @@ boot (`lib/env.ts`).
 7. Open **Manage subscription** to confirm the Customer Portal loads (payment
    methods, switches, invoice downloads).
 
-8. Confirm no card data reached Presk: `invoice` stores only ids, amounts,
-   currency and hosted links; `billingEvent` stores the event id and type.
+8. Check the invoice table on the Billing tab. Stripe *generates* invoices; Presk
+   only mirrors them. `invoice.paid` writes the row, and if that delivery was
+   missed the settings page reconciles once from the provider (the local
+   `invoice` table is empty for a customer that has invoices), so the list is
+   correct even before the webhook lands. Confirm no card data reached Presk:
+   `invoice` stores only ids, amounts, currency and hosted links;
+   `billingEvent` stores the event id and type.
+
+9. Confirm webhooks are actually arriving — `billingEvent` is empty when
+   `stripe listen` was not running, or forwards to the wrong port:
+
+   ```bash
+   node -e '…select \"eventId\",type,status from \"billingEvent\"…'
+   ```
+
+   `stripe listen` prints one line per delivery (`checkout.session.completed
+   [200]`). No lines means nothing reached the app; check the forwarded URL
+   (3000 for `npm run dev`, 3002 for `docker compose`).
 
 ## Production checklist
 
