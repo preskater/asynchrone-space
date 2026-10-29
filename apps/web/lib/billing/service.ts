@@ -15,6 +15,7 @@ import {
   normalizeStatus,
   planForOrganization,
   planForStatus,
+  TEAM_PRICE,
 } from "./plans"
 import {
   parseCheckoutSessionObject,
@@ -110,18 +111,23 @@ export class BillingService {
     ])
     if (!organization) throw new NotFoundError("Organization")
 
+    // Invoices are finance data: only owners and admins may read them, and
+    // only they may trigger the provider reconciliation below.
+    const isManager = roleRank(ctx.role) >= MANAGER_RANK
     const plan = planForOrganization({
       metadata: organization.metadata,
       subscription: record ? { plan: record.plan } : null,
     })
     const [used, localInvoices] = await Promise.all([
       this.deps.repo.sumUsedBytes(ctx.organizationId),
-      this.deps.repo.listInvoices(ctx.organizationId, INVOICE_PAGE_SIZE),
+      isManager
+        ? this.deps.repo.listInvoices(ctx.organizationId, INVOICE_PAGE_SIZE)
+        : Promise.resolve([]),
     ])
     // The mirror is filled by `invoice.paid`; if that delivery was missed (or
     // has not arrived yet) reconcile once so the table is never wrong.
     const invoices =
-      localInvoices.length === 0 && record?.providerCustomerId
+      isManager && localInvoices.length === 0 && record?.providerCustomerId
         ? await this.backfillInvoices(
             ctx.organizationId,
             record.id,
@@ -136,6 +142,16 @@ export class BillingService {
       plan,
       status,
       provider,
+      prices: {
+        month: {
+          amount: TEAM_PRICE.month.amount,
+          currency: TEAM_PRICE.month.currency,
+        },
+        year: {
+          amount: TEAM_PRICE.year.amount,
+          currency: TEAM_PRICE.year.currency,
+        },
+      },
       interval:
         record?.billingInterval === "month" ||
         record?.billingInterval === "year"
@@ -146,10 +162,12 @@ export class BillingService {
       trialEndsAt: record?.trialEndsAt?.toISOString() ?? null,
       manualOverride: record?.manualOverride ?? false,
       canManagePayment:
+        isManager &&
         this.deps.provider.configured &&
         provider === "stripe" &&
         Boolean(record?.providerCustomerId),
       canSubscribe:
+        isManager &&
         this.deps.provider.configured &&
         plan !== "enterprise" &&
         !record?.manualOverride,
@@ -238,10 +256,10 @@ export class BillingService {
     this.requireManager(ctx)
 
     const session = await this.deps.provider.retrieveCheckoutSession(sessionId)
-    if (
-      session.organizationId &&
-      session.organizationId !== ctx.organizationId
-    ) {
+    // Stripe sessions are created with `client_reference_id` and
+    // `metadata.organizationId`; a session that carries neither did not come
+    // from this app and must never be attached to the caller's organization.
+    if (session.organizationId !== ctx.organizationId) {
       throw new ForbiddenError("This checkout belongs to another organization.")
     }
 
