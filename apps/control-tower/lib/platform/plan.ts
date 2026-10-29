@@ -1,5 +1,9 @@
 import { entitlementsFor, parsePlan, type OrgPlan } from "@workspace/db/plans"
-import { effectivePlan, isTrialActive, trialDaysLeft } from "@workspace/db/trial"
+import {
+  effectivePlan,
+  isTrialActive,
+  trialDaysLeft,
+} from "@workspace/db/trial"
 
 export { parsePlan } from "@workspace/db/plans"
 
@@ -8,9 +12,25 @@ type PlanOrganization = {
   trialEndsAt: Date | null
 }
 
-/** The plan the customer app enforces, including an active Team trial. */
-export function enforcedPlan(organization: PlanOrganization): OrgPlan {
-  return effectivePlan(parsePlan(organization.metadata), organization)
+/** Organizations whose plan may come from billing carry a subscription row. */
+export type BilledOrganization = PlanOrganization & {
+  subscription: { plan: string } | null
+}
+
+/** The plan stored for the organization, ignoring any running trial. */
+export function storedPlan(organization: BilledOrganization): OrgPlan {
+  const plan = organization.subscription?.plan
+  // Billing writes the enforced plan; `metadata.plan` is the legacy fallback.
+  if (plan === "team" || plan === "enterprise" || plan === "free") return plan
+  return parsePlan(organization.metadata)
+}
+
+/** The plan the customer app enforces: subscription first, then trial. */
+export function enforcedPlan(
+  organization: BilledOrganization,
+  now = new Date()
+): OrgPlan {
+  return effectivePlan(storedPlan(organization), organization, now)
 }
 
 /** Trial state for the detail page: null unless a trial window is open. */
@@ -27,11 +47,12 @@ export function trialSummary(
   }
 }
 
-export function orgQuotaBytes(organization: {
-  storageQuotaBytes: bigint | null
-  metadata: string | null
-  trialEndsAt: Date | null
-}): number {
+export function orgQuotaBytes(
+  organization: BilledOrganization & {
+    storageQuotaBytes: bigint | null
+  }
+): number {
+  // A per-organization override set here wins over the plan.
   if (organization.storageQuotaBytes !== null) {
     return Number(organization.storageQuotaBytes)
   }

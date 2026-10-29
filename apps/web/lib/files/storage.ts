@@ -1,20 +1,28 @@
-import { entitlementsFor, parsePlan } from "@workspace/db/plans"
-import { effectivePlan } from "@workspace/db/trial"
+import { entitlementsFor } from "@workspace/db/plans"
 
+import { resolvePlan } from "@/lib/organization/entitlements"
 import { prisma } from "@/lib/prisma"
 
 export async function orgQuotaBytes(organizationId: string): Promise<number> {
   const organization = await prisma.organization.findUnique({
     where: { id: organizationId },
-    select: { storageQuotaBytes: true, metadata: true, trialEndsAt: true },
+    select: {
+      storageQuotaBytes: true,
+      metadata: true,
+      trialEndsAt: true,
+      subscription: { select: { plan: true } },
+    },
   })
   // A per-organization override set from the control tower wins over the plan.
   if (organization?.storageQuotaBytes != null) {
     return Number(organization.storageQuotaBytes)
   }
+  if (!organization) return entitlementsFor("free").storageBytes
   return entitlementsFor(
-    effectivePlan(parsePlan(organization?.metadata), {
-      trialEndsAt: organization?.trialEndsAt ?? null,
+    resolvePlan({
+      metadata: organization.metadata,
+      trialEndsAt: organization.trialEndsAt,
+      subscription: organization.subscription ?? null,
     })
   ).storageBytes
 }

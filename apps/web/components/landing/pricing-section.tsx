@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { CheckIcon } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
+import { TeamCheckoutButton } from "@/components/landing/team-checkout-button"
 import { Link } from "@/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -34,33 +35,71 @@ function PricingCard({
   yearly,
   isAuthenticated,
   dashboardHref,
+  billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   tier: PricingTier
   index: number
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   const t = useTranslations("Pricing")
   const tCta = useTranslations("Landing.cta")
   const key = tierKey(index)
   const isEnterprise = key === "enterprise"
+  const isTeam = key === "team"
   const amount = yearly ? tier.yearly : tier.monthly
   const price = isEnterprise
     ? t("custom")
     : amount === 0
       ? t("free")
       : `$${amount}`
-  // Signed-in users start the Team trial from their workspace settings.
+  // Team is the only self-serve plan: signed-in workspaces can pay right away
+  // and still start the free trial from settings.
   const trialHref =
-    key === "team" && isAuthenticated && dashboardHref !== "/onboarding"
+    isTeam && isAuthenticated && dashboardHref !== "/onboarding"
       ? `${dashboardHref}/settings`
       : null
   const ctaHref = isEnterprise
     ? "/contact"
-    : (trialHref ?? (isAuthenticated ? dashboardHref : "/sign-up"))
-  const ctaLabel =
-    isAuthenticated && !trialHref ? tCta("dashboard") : t(`${key}Cta` as never)
+    : isAuthenticated
+      ? dashboardHref
+      : "/sign-up"
+  const ctaLabel = isEnterprise
+    ? t("enterpriseCta")
+    : isAuthenticated
+      ? hasPaidPlan && isTeam
+        ? t("teamCtaManage")
+        : tCta("dashboard")
+      : t(`${key}Cta` as never)
+
+  const teamCta =
+    isTeam && !hasPaidPlan ? (
+      <div className="flex w-full flex-col gap-2">
+        <TeamCheckoutButton
+          className="w-full"
+          interval={yearly ? "year" : "month"}
+          canStartCheckout={isAuthenticated && canStartCheckout}
+          subscribeHref={yearly ? subscribeHref.year : subscribeHref.month}
+          billingHref={billingHref}
+        />
+        {trialHref ? (
+          <Link
+            href={trialHref}
+            className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            {t("teamCtaTrial")}
+          </Link>
+        ) : null}
+      </div>
+    ) : null
 
   return (
     <Card
@@ -98,14 +137,16 @@ function PricingCard({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button
-          className="w-full"
-          variant={tier.featured ? "default" : "outline"}
-          render={<Link href={ctaHref} />}
-          nativeButton={false}
-        >
-          {ctaLabel}
-        </Button>
+        {teamCta ?? (
+          <Button
+            className="w-full"
+            variant={tier.featured ? "default" : "outline"}
+            render={<Link href={ctaHref} />}
+            nativeButton={false}
+          >
+            {ctaLabel}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )
@@ -115,10 +156,18 @@ export function PricingGrid({
   yearly,
   isAuthenticated,
   dashboardHref,
+  billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -130,6 +179,10 @@ export function PricingGrid({
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
+          billingHref={billingHref}
+          canStartCheckout={canStartCheckout}
+          hasPaidPlan={hasPaidPlan}
+          subscribeHref={subscribeHref}
         />
       ))}
     </div>
@@ -139,9 +192,17 @@ export function PricingGrid({
 export function PricingSection({
   isAuthenticated,
   dashboardHref,
+  billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
+  billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
@@ -173,6 +234,10 @@ export function PricingSection({
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
+          billingHref={billingHref}
+          canStartCheckout={canStartCheckout}
+          hasPaidPlan={hasPaidPlan}
+          subscribeHref={subscribeHref}
         />
       </div>
     </Section>

@@ -32,5 +32,9 @@
   "enterpriseF3": "Journal d'audit et rétention (bientôt disponible)",
   "enterpriseF4": "1 To de stockage de fichiers",
   "enterpriseF5": "Assistance dédiée",
-  "enterpriseCta": "Contacter les ventes"
+  "enterpriseCta": "Contacter les ventes",
+  "teamCtaCurrent": "Passer à Team",
+  "teamCtaManage": "Gérer l’offre",
+  "teamCtaRedirecting": "Ouverture de Stripe…",
+  "teamCtaTrial": "Ou commencez l’essai de 14 jours"
 }

@@ -42,9 +42,12 @@ interface PendingInvitation {
 export function OnboardingFlow({
   userName,
   invitations: initialInvitations,
+  subscribeInterval = null,
 }: {
   userName: string
   invitations: PendingInvitation[]
+  /** Set when the visitor clicked "Get Team": checkout starts after creation. */
+  subscribeInterval?: "month" | "year" | null
 }) {
   const router = useRouter()
   const t = useTranslations("Org")
@@ -112,6 +115,11 @@ export function OnboardingFlow({
       return
     }
     toast.success(t("organizationCreated"))
+    if (data?.slug && subscribeInterval) {
+      router.push(`/${data.slug}/settings?tab=billing&subscribe=${subscribeInterval}`)
+      router.refresh()
+      return
+    }
     router.push(data?.slug ? `/${data.slug}` : "/onboarding")
     router.refresh()
   }

@@ -18,7 +18,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function PricingPage() {
   const t = await getTranslations("Marketing.pricing")
-  const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
+  const {
+    isAuthenticated: authenticated,
+    dashboardHref,
+    billingHref,
+    canStartCheckout,
+    hasPaidPlan,
+    subscribeHref,
+  } = await getMarketingAuth()
 
   return (
     <>
@@ -27,7 +34,14 @@ export default async function PricingPage() {
         title={t("title")}
         description={t("description")}
       />
-      <PricingSection isAuthenticated={authenticated} dashboardHref={dashboardHref} />
+      <PricingSection
+        isAuthenticated={authenticated}
+        dashboardHref={dashboardHref}
+        billingHref={billingHref}
+        canStartCheckout={canStartCheckout}
+        hasPaidPlan={hasPaidPlan}
+        subscribeHref={subscribeHref}
+      />
       <FaqSection />
       <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>

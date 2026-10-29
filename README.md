@@ -260,6 +260,9 @@ Deployments roll out, and Kubernetes CronJobs replace the former Vercel crons.
 See [docs/deployment/helm.md](./docs/deployment/helm.md) for chart values,
 ingress/TLS, DNS, rollback and troubleshooting.
 
+Paid plans are billed through Stripe Checkout; [docs/billing.md](./docs/billing.md)
+covers the plan model, configuration and the test-mode procedure.
+
 ## Contributing
 
 Contributions are welcome! Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for

@@ -1,13 +1,13 @@
 import {
   entitlementsFor,
   hasEntitlement,
-  parsePlan,
   type Entitlement,
   type Entitlements,
   type OrgPlan,
 } from "@workspace/db/plans"
 import { effectivePlan } from "@workspace/db/trial"
 
+import { planForOrganization } from "@/lib/billing/plans"
 import { ForbiddenError } from "@/lib/core/errors"
 import { prisma } from "@/lib/prisma"
 
@@ -18,24 +18,44 @@ export {
   type OrgPlan,
 } from "@workspace/db/plans"
 
+/** The organization fields plan resolution needs. */
+export interface PlanSource {
+  metadata: string | null
+  trialEndsAt: Date | null
+  subscription: { plan: string } | null
+}
+
 /**
- * The plan actually enforced: the stored `metadata.plan`, upgraded to Team
- * while an active trial window is open (see `@workspace/db/trial`). Every
- * entitlement — storage, seats, AI budget, permissions — reads through here,
- * so a trial cannot grant some limits but not others.
- *
- * ponytail: reads `metadata.plan`; switch to the Subscription table once
- * billing lands.
+ * The plan actually enforced. A paid subscription (Stripe or a manual
+ * Enterprise grant) wins over `metadata.plan`; either way a free organization
+ * is upgraded to Team while its trial window is open. Every entitlement —
+ * storage, seats, AI budget, permissions — reads through here, so a trial or a
+ * subscription cannot grant some limits but not others.
  */
+export function resolvePlan(
+  organization: PlanSource,
+  now = new Date()
+): OrgPlan {
+  const stored = planForOrganization(organization)
+  return effectivePlan(stored, { trialEndsAt: organization.trialEndsAt }, now)
+}
+
 export async function getOrganizationPlan(
   organizationId: string
 ): Promise<OrgPlan> {
   const organization = await prisma.organization.findUnique({
     where: { id: organizationId },
-    select: { metadata: true, trialEndsAt: true },
+    select: {
+      metadata: true,
+      trialEndsAt: true,
+      subscription: { select: { plan: true } },
+    },
   })
-  return effectivePlan(parsePlan(organization?.metadata), {
-    trialEndsAt: organization?.trialEndsAt ?? null,
+  if (!organization) return "free"
+  return resolvePlan({
+    metadata: organization.metadata,
+    trialEndsAt: organization.trialEndsAt,
+    subscription: organization.subscription ?? null,
   })
 }
 

@@ -81,6 +81,11 @@ export type ServiceErrorCode =
   | "upgrade_required"
   | "quota_exceeded"
   | "assistant_unavailable"
+  | "role_cannot_manage_billing"
+  | "billing_not_configured"
+  | "billing_manual_contract"
+  | "billing_subscription_exists"
+  | "billing_no_payment_account"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
@@ -189,8 +194,11 @@ export class ConflictError extends AppError {
 }
 
 export class BadRequestError extends AppError {
-  constructor(message = "Bad request.") {
-    super("bad_request", message, { status: 400 })
+  constructor(message = "Bad request.", options: CodedErrorOptions = {}) {
+    super(options.code ?? "bad_request", message, {
+      params: options.params,
+      status: 400,
+    })
     this.name = "BadRequestError"
   }
 }

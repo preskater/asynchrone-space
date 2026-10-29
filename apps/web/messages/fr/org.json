@@ -109,6 +109,7 @@
   "pleaseEnterOrganizationName": "Veuillez saisir un nom d'organisation.",
   "useLettersOrNumbers": "Veuillez utiliser des lettres ou des chiffres dans le nom.",
   "unableToSwitchOrganization": "Impossible de changer d'organisation.",
+  "billing": "Facturation",
   "deletionScheduled": "Suppression programmée. Vous pouvez l'annuler pendant 30 jours.",
   "deletionCancelled": "Suppression annulée.",
   "deletionScheduledTitle": "Suppression programmée",

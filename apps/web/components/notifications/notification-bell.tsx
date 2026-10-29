@@ -4,6 +4,7 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 import {
   BellIcon,
+  CreditCardIcon,
   FileUpIcon,
   HandshakeIcon,
   ListTodoIcon,
@@ -35,17 +36,48 @@ import { useErrorTranslator } from "@/lib/i18n/errors"
 
 function iconFor(type: string) {
   if (type.startsWith("task.")) {
-    return <ListTodoIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    return (
+      <ListTodoIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    )
   }
   if (type === "portal.message" || type === "portal.comment") {
-    return <MessageSquareIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    return (
+      <MessageSquareIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    )
   }
   if (type === "portal.document") {
-    return <FileUpIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    return (
+      <FileUpIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    )
+  }
+  if (type.startsWith("billing.")) {
+    return (
+      <CreditCardIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+    )
   }
   return (
     <HandshakeIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
   )
+}
+
+function formatInvoiceAmount(
+  amount: unknown,
+  currency: unknown,
+  locale: string
+) {
+  const value = typeof amount === "number" ? amount : 0
+  const code =
+    typeof currency === "string" && currency.length === 3
+      ? currency.toUpperCase()
+      : "EUR"
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: code,
+    }).format(value / 100)
+  } catch {
+    return `${(value / 100).toFixed(2)} ${code}`
+  }
 }
 
 /** Header bell with the current user's unread notifications. */
@@ -82,7 +114,8 @@ export function NotificationBell({
     const diff = new Date(iso).getTime() - Date.now()
     const abs = Math.abs(diff)
     if (abs < 60_000) return formatter.format(Math.round(diff / 1000), "second")
-    if (abs < 3_600_000) return formatter.format(Math.round(diff / 60_000), "minute")
+    if (abs < 3_600_000)
+      return formatter.format(Math.round(diff / 60_000), "minute")
     if (abs < 86_400_000)
       return formatter.format(Math.round(diff / 3_600_000), "hour")
     if (abs < 2_592_000_000)
@@ -147,6 +180,10 @@ export function NotificationBell({
         return t("trialEnded", {
           organization: String(data.organizationName ?? ""),
         })
+      case "billing.payment_failed":
+        return t("billingPaymentFailed", {
+          amount: formatInvoiceAmount(data.amountDue, data.currency, locale),
+        })
       default:
         return item.type
     }
@@ -185,6 +222,9 @@ export function NotificationBell({
     }
     if (item.type.startsWith("trial.")) {
       return `/${orgSlug}/settings`
+    }
+    if (item.type === "billing.payment_failed") {
+      return `/${orgSlug}/settings?tab=billing`
     }
     return null
   }

@@ -40,7 +40,13 @@
         "CONTROL_TOWER_URL",
         "PLATFORM_ALLOWED_IPS",
         "DEPLOY_ENV",
-        "GIT_COMMIT_SHA"
+        "GIT_COMMIT_SHA",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_PRICE_TEAM_MONTHLY",
+        "STRIPE_PRICE_TEAM_YEARLY",
+        "STRIPE_AUTOMATIC_TAX"
       ]
     },
     "lint": {
@@ -84,7 +90,13 @@
         "CONTROL_TOWER_URL",
         "PLATFORM_ALLOWED_IPS",
         "DEPLOY_ENV",
-        "GIT_COMMIT_SHA"
+        "GIT_COMMIT_SHA",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "STRIPE_PRICE_TEAM_MONTHLY",
+        "STRIPE_PRICE_TEAM_YEARLY",
+        "STRIPE_AUTOMATIC_TAX"
       ]
     }
   }

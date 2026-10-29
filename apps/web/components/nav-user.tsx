@@ -45,6 +45,7 @@ function getInitials(name: string) {
 
 export function NavUser({
   user,
+  orgSlug,
   compact = false,
 }: {
   user: {
@@ -52,6 +53,8 @@ export function NavUser({
     email: string
     image?: string | null
   }
+  /** Active workspace; billing lives in its settings. */
+  orgSlug: string
   compact?: boolean
 }) {
   const { isMobile } = useSidebar()
@@ -136,7 +139,16 @@ export function NavUser({
             <CircleUserRoundIcon />
             {t("account")}
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem
+            render={
+              <Link
+                href={{
+                  pathname: `/${orgSlug}/settings`,
+                  query: { tab: "billing" },
+                }}
+              />
+            }
+          >
             <CreditCardIcon />
             {t("billing")}
           </DropdownMenuItem>

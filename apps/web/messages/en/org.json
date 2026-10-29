@@ -109,6 +109,7 @@
   "pleaseEnterOrganizationName": "Please enter an organization name.",
   "useLettersOrNumbers": "Please use letters or numbers in the name.",
   "unableToSwitchOrganization": "Unable to switch organization.",
+  "billing": "Billing",
   "deletionScheduled": "Deletion scheduled. You can cancel it for 30 days.",
   "deletionCancelled": "Deletion cancelled.",
   "deletionScheduledTitle": "Deletion scheduled",

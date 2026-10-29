@@ -101,5 +101,10 @@
   "trialNotEligible": "This workspace is already on a paid plan.",
   "trialAlreadyUsed": "This workspace has already used its Team trial.",
   "trialEmailUnverified": "Verify your email address before starting a trial.",
-  "trialAlreadyClaimed": "A Team trial was already used with this email or company domain."
+  "trialAlreadyClaimed": "A Team trial was already used with this email or company domain.",
+  "roleCannotManageBilling": "Only owners and admins can manage billing.",
+  "billingNotConfigured": "Billing is not configured on this deployment.",
+  "billingManualContract": "This organization is billed through a manual contract.",
+  "billingSubscriptionExists": "This organization already has a subscription. Manage it from the customer portal.",
+  "billingNoPaymentAccount": "There is no payment method to manage yet."
 }

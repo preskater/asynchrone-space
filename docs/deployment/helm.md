@@ -258,10 +258,11 @@ The uploads-sweep and repository-sync CronJobs replace the former Vercel crons;
 trial-expiry runs the daily Team trial reminders and expiry (ADR 0021);
 organization-deletion deletes organizations whose 30-day deletion grace period
 has passed, including their file large objects. They
-call the in-cluster Service and send `Authorization: Bearer $CRON_SECRET`, read from
-`asynchrone-space-web-secrets`; the corresponding route rejects a missing/incorrect token
-when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
-runs. Change schedules through `asynchrone-space-web.cronjobs.<job>.schedule`.
+call the in-cluster Service and send the same `CRON_SECRET` bearer token read
+from `asynchrone-space-web-secrets`; the corresponding route rejects a missing
+or incorrect token when `CRON_SECRET` is set. `concurrencyPolicy: Forbid`
+prevents overlapping runs. Change schedules through
+`asynchrone-space-web.cronjobs.<job>.schedule`.
 
 ## Upgrades and rollback
 

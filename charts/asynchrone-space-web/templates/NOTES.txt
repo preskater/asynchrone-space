@@ -9,8 +9,9 @@ Required Secret: {{ .Values.secret.existingSecret }}
   optional provider keys). Missing required keys make the pods fail at boot.
 
 The CronJobs use CRON_SECRET from {{ .Values.cronjobs.secretName | default .Values.secret.existingSecret }}:
-{{- range $name := list "uploads-sweep" "repository-sync" }}
-{{- $job := index $.Values.cronjobs (ternary "uploadsSweep" "repositorySync" (eq $name "uploads-sweep")) }}
+{{- range $name := list "uploads-sweep" "repository-sync" "trial-expiry" }}
+{{- $key := ternary "uploadsSweep" (ternary "repositorySync" "trialExpiry" (eq $name "repository-sync")) (eq $name "uploads-sweep") }}
+{{- $job := index $.Values.cronjobs $key }}
 {{- if $job.enabled }}
   - {{ $name }} ({{ $job.schedule }}) -> {{ $job.path }}
 {{- end }}

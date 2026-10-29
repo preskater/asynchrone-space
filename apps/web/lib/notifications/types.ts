@@ -11,6 +11,7 @@ export const NOTIFICATION_TYPES = [
   "meeting.requested",
   "trial.reminder",
   "trial.ended",
+  "billing.payment_failed",
 ] as const
 export type NotificationType = (typeof NOTIFICATION_TYPES)[number]
 

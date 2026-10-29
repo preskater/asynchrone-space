@@ -13,5 +13,6 @@
   "portalComment": "{actor} commented on {identifier} · {title}",
   "meetingRequested": "{actor} requested a meeting for {client} · {title}",
   "trialReminder": "Your Team trial for {organization} ends in {days, plural, one {# day} other {# days}}",
-  "trialEnded": "Your Team trial for {organization} has ended — you're back on Starter"
+  "trialEnded": "Your Team trial for {organization} has ended — you're back on Starter",
+  "billingPaymentFailed": "We couldn't collect the {amount} payment for your subscription"
 }

@@ -1,13 +1,29 @@
 import { getTranslations } from "next-intl/server"
 
+import type { CheckoutReturn } from "@/components/billing/billing-panel"
 import { OrganizationSettings } from "@/components/organization/organization-settings"
 import { TrialCard } from "@/components/trial/trial-card"
 
 import { getOptionalRequestContext } from "@/lib/core/auth-context"
 import { getDeletionScheduledAt } from "@/lib/organization/deletion-service"
 
-export default async function SettingsPage() {
+function checkoutFrom(
+  params: Record<string, string | string[] | undefined>
+): CheckoutReturn | undefined {
+  const status = params.checkout
+  if (status !== "success" && status !== "cancelled") return undefined
+  const sessionId =
+    typeof params.session_id === "string" ? params.session_id : null
+  return { status, sessionId }
+}
+
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}) {
   const t = await getTranslations("AppPages")
+  const checkout = checkoutFrom(await searchParams)
   const ctx = await getOptionalRequestContext()
   const deletionScheduledAt = ctx
     ? await getDeletionScheduledAt(ctx.organizationId)
@@ -21,7 +37,10 @@ export default async function SettingsPage() {
         </p>
       </div>
       <TrialCard />
-      <OrganizationSettings deletionScheduledAt={deletionScheduledAt} />
+      <OrganizationSettings
+        checkout={checkout}
+        deletionScheduledAt={deletionScheduledAt}
+      />
     </div>
   )
 }

@@ -44,20 +44,55 @@ export async function updateOrganizationPlan(
 
     const organization = await prisma.organization.findUnique({
       where: { id: organizationId },
-      select: { metadata: true, storageQuotaBytes: true },
+      select: {
+        metadata: true,
+        storageQuotaBytes: true,
+        subscription: {
+          select: {
+            plan: true,
+            status: true,
+            provider: true,
+            providerSubscriptionId: true,
+            manualOverride: true,
+          },
+        },
+      },
     })
     if (!organization) return { ok: false, error: "Organization not found." }
 
+    // `metadata.plan` stays in sync for older readers; `subscription` is what
+    // the customer app enforces.
     const metadata = parseMetadata(organization.metadata)
     metadata.plan = plan
 
-    await prisma.organization.update({
-      where: { id: organizationId },
-      data: {
-        metadata: JSON.stringify(metadata),
-        storageQuotaBytes: quotaBytes === null ? null : BigInt(quotaBytes),
-      },
-    })
+    const status = plan === "free" ? "inactive" : "active"
+
+    await prisma.$transaction([
+      prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          metadata: JSON.stringify(metadata),
+          storageQuotaBytes: quotaBytes === null ? null : BigInt(quotaBytes),
+        },
+      }),
+      prisma.subscription.upsert({
+        where: { organizationId },
+        create: {
+          organizationId,
+          plan,
+          status,
+          provider: "manual",
+          manualOverride: plan !== "free",
+        },
+        update: {
+          plan,
+          status,
+          provider: "manual",
+          manualOverride: plan !== "free",
+          cancelAtPeriodEnd: false,
+        },
+      }),
+    ])
 
     await recordPlatformEvent(ctx, {
       action: "organization.plan.update",
@@ -65,13 +100,25 @@ export async function updateOrganizationPlan(
       targetId: organizationId,
       organizationId,
       before: {
-        plan: parseMetadata(organization.metadata).plan ?? "free",
+        plan:
+          organization.subscription?.plan ??
+          parseMetadata(organization.metadata).plan ??
+          "free",
+        status: organization.subscription?.status ?? "inactive",
+        provider: organization.subscription?.provider ?? "manual",
+        manualOverride: organization.subscription?.manualOverride ?? false,
         storageQuotaBytes:
           organization.storageQuotaBytes === null
             ? null
             : organization.storageQuotaBytes.toString(),
       },
-      after: { plan, storageQuotaBytes: quotaBytes },
+      after: {
+        plan,
+        status,
+        provider: "manual",
+        manualOverride: plan !== "free",
+        storageQuotaBytes: quotaBytes,
+      },
     })
 
     revalidatePath(`/organizations/${organizationId}`)
@@ -119,6 +166,76 @@ export async function setOAuthClientDisabled(
 
     revalidatePath("/organizations")
     revalidatePath("/users")
+    return { ok: true }
+  })
+}
+
+const releaseSchema = z.object({
+  organizationId: z.string().min(1).max(64),
+})
+
+/**
+ * Gives the plan back to the payment provider. Keeps the current plan until
+ * the next webhook reconciles it, so releasing never silently downgrades a
+ * customer mid-period.
+ */
+export async function releaseOrganizationPlanOverride(
+  input: unknown
+): Promise<ActionResult> {
+  const parsed = releaseSchema.safeParse(input)
+  if (!parsed.success) return { ok: false, error: "Invalid input." }
+
+  const { organizationId } = parsed.data
+
+  return withPlatformAction(async (ctx) => {
+    if (ctx.role !== "platform_admin") {
+      return { ok: false, error: "Only platform admins can change plans." }
+    }
+
+    const subscription = await prisma.subscription.findUnique({
+      where: { organizationId },
+      select: {
+        plan: true,
+        status: true,
+        provider: true,
+        manualOverride: true,
+        providerSubscriptionId: true,
+      },
+    })
+    if (!subscription)
+      return { ok: false, error: "No subscription to release." }
+    if (!subscription.manualOverride) {
+      return { ok: false, error: "This plan is not manually overridden." }
+    }
+
+    const provider = subscription.providerSubscriptionId ? "stripe" : "manual"
+
+    await prisma.subscription.update({
+      where: { organizationId },
+      data: { manualOverride: false, provider },
+    })
+
+    await recordPlatformEvent(ctx, {
+      action: "organization.plan.release",
+      targetType: "organization",
+      targetId: organizationId,
+      organizationId,
+      before: {
+        plan: subscription.plan,
+        status: subscription.status,
+        provider: subscription.provider,
+        manualOverride: true,
+      },
+      after: {
+        plan: subscription.plan,
+        status: subscription.status,
+        provider,
+        manualOverride: false,
+      },
+    })
+
+    revalidatePath(`/organizations/${organizationId}`)
+    revalidatePath("/organizations")
     return { ok: true }
   })
 }

@@ -101,5 +101,10 @@
   "trialNotEligible": "Cet espace de travail a déjà un forfait payant.",
   "trialAlreadyUsed": "Cet espace de travail a déjà utilisé son essai Team.",
   "trialEmailUnverified": "Vérifiez votre adresse e-mail avant de démarrer un essai.",
-  "trialAlreadyClaimed": "Un essai Team a déjà été utilisé avec cet e-mail ou ce domaine d’entreprise."
+  "trialAlreadyClaimed": "Un essai Team a déjà été utilisé avec cet e-mail ou ce domaine d’entreprise.",
+  "roleCannotManageBilling": "Seuls les propriétaires et les administrateurs peuvent gérer la facturation.",
+  "billingNotConfigured": "La facturation n'est pas configurée sur ce déploiement.",
+  "billingManualContract": "Cette organisation est facturée via un contrat manuel.",
+  "billingSubscriptionExists": "Cette organisation a déjà un abonnement. Gérez-le depuis le portail client.",
+  "billingNoPaymentAccount": "Aucun moyen de paiement à gérer pour le moment."
 }

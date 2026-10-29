@@ -32,5 +32,9 @@
   "enterpriseF3": "Audit log and retention (coming soon)",
   "enterpriseF4": "1 TB of file storage",
   "enterpriseF5": "Dedicated support",
-  "enterpriseCta": "Contact sales"
+  "enterpriseCta": "Contact sales",
+  "teamCtaCurrent": "Upgrade to Team",
+  "teamCtaManage": "Manage plan",
+  "teamCtaRedirecting": "Opening Stripe…",
+  "teamCtaTrial": "Or start the 14-day trial"
 }
