@@ -138,14 +138,24 @@ function PricingCard({
       </CardContent>
       <CardFooter>
         {teamCta ?? (
-          <Button
-            className="w-full"
-            variant={tier.featured ? "default" : "outline"}
-            render={<Link href={ctaHref} />}
-            nativeButton={false}
-          >
-            {ctaLabel}
-          </Button>
+          <div className="flex w-full flex-col gap-2">
+            <Button
+              className="w-full"
+              variant={tier.featured ? "default" : "outline"}
+              render={<Link href={ctaHref} />}
+              nativeButton={false}
+            >
+              {ctaLabel}
+            </Button>
+            {isEnterprise ? (
+              <Link
+                href="/legal/dpa"
+                className="text-center text-xs text-muted-foreground underline-offset-4 hover:underline"
+              >
+                {t("enterpriseLegalPack")}
+              </Link>
+            ) : null}
+          </div>
         )}
       </CardFooter>
     </Card>
