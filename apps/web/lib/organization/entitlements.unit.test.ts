@@ -40,7 +40,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   team: {
     seats: 100,
     storageBytes: 100 * GB,
-    aiBudgetMicrosPerSeat: 13_000_000,
+    aiBudgetMicrosPerSeat: 8_000_000,
     auditLog: false,
     sso: false,
     scim: false,
@@ -50,7 +50,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   enterprise: {
     seats: Infinity,
     storageBytes: 1024 * GB,
-    aiBudgetMicrosPerSeat: 13_000_000,
+    aiBudgetMicrosPerSeat: 8_000_000,
     auditLog: true,
     sso: true,
     scim: true,
