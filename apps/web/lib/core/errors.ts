@@ -73,6 +73,7 @@ export type ServiceErrorCode =
   | "meeting_attendee_invalid"
   | "feedback_rate_limited"
   | "feedback_delivery_failed"
+  | "upgrade_required"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

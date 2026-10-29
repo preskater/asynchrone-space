@@ -5,6 +5,7 @@ import { ArrowUpIcon, SparklesIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { AssistantMessage } from "@/components/assistant/assistant-message"
+import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -18,18 +19,20 @@ import {
 
 import { suggestions } from "@/lib/assistant/suggestions"
 import { useAssistant } from "@/lib/assistant/use-assistant"
+import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 export function AssistantWorkspace() {
   const t = useTranslations("Assistant")
   const { messages, sendMessage, status, error } = useAssistant()
   const [input, setInput] = React.useState("")
+  const aiEnabled = useEntitlements().can("aiTokensPerMonth")
 
   const isBusy = status === "submitted" || status === "streaming"
   const isEmpty = messages.length === 0
 
   function submit(text: string) {
     const value = text.trim()
-    if (!value || isBusy) return
+    if (!value || isBusy || !aiEnabled) return
     void sendMessage({ text: value })
     setInput("")
   }
@@ -53,18 +56,22 @@ export function AssistantWorkspace() {
                 {t("subtitle")}
               </p>
             </div>
-            <div className="flex flex-wrap justify-center gap-2">
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion.labelKey}
-                  type="button"
-                  onClick={() => submit(t(suggestion.promptKey as never))}
-                  className="rounded-full border bg-background px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                >
-                  {t(suggestion.labelKey as never)}
-                </button>
-              ))}
-            </div>
+            {aiEnabled ? (
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.labelKey}
+                    type="button"
+                    onClick={() => submit(t(suggestion.promptKey as never))}
+                    className="rounded-full border bg-background px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    {t(suggestion.labelKey as never)}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <PlanUpgradePrompt feature="ai" className="max-w-md" />
+            )}
           </div>
         ) : (
           <div className="min-h-0 flex-1">
@@ -113,6 +120,7 @@ export function AssistantWorkspace() {
             onChange={(event) => setInput(event.target.value)}
             placeholder={t("placeholder")}
             aria-label={t("ask")}
+            disabled={!aiEnabled}
             autoFocus
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
@@ -120,7 +128,7 @@ export function AssistantWorkspace() {
             type="submit"
             size="icon-sm"
             aria-label={t("send")}
-            disabled={!input.trim() || isBusy}
+            disabled={!input.trim() || isBusy || !aiEnabled}
           >
             <ArrowUpIcon />
           </Button>
