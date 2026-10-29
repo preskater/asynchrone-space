@@ -20,6 +20,7 @@ function Calendar({
   buttonVariant = "ghost",
   locale,
   formatters,
+  labels,
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
@@ -42,6 +43,20 @@ function Calendar({
         formatMonthDropdown: (date) =>
           date.toLocaleString(locale?.code, { month: "short" }),
         ...formatters,
+      }}
+      labels={{
+        // The visible label of a day cell is its number ("27"), so the name
+        // must contain it: React DayPicker's default formats the ordinal
+        // ("September 27th") and fails WCAG 2.5.3 Label in Name.
+        labelDayButton: (date, modifiers) => {
+          let label = new Intl.DateTimeFormat(locale?.code, {
+            dateStyle: "full",
+          }).format(date)
+          if (modifiers.today) label = `Today, ${label}`
+          if (modifiers.selected) label = `${label}, selected`
+          return label
+        },
+        ...labels,
       }}
       classNames={{
         root: cn("w-fit", defaultClassNames.root),
