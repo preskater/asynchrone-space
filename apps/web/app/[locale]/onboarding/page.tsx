@@ -11,9 +11,12 @@ import { prisma } from "@/lib/prisma"
 export default async function OnboardingPage({
   searchParams,
 }: {
-  searchParams: Promise<{ create?: string }>
+  searchParams: Promise<{ create?: string; subscribe?: string }>
 }) {
-  const { create } = await searchParams
+  const { create, subscribe } = await searchParams
+  // Came from a "Get Team" click: keep the intent so checkout starts right
+  // after the workspace exists.
+  const interval = subscribe === "year" ? "year" : subscribe === "month" ? "month" : null
 
   const session = await auth.api.getSession({ headers: await headers() })
 
@@ -66,6 +69,7 @@ export default async function OnboardingPage({
         <OnboardingFlow
           userName={session.user.name}
           invitations={pendingInvitations}
+          subscribeInterval={interval}
         />
       </div>
     </div>

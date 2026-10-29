@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl"
 import { CheckIcon } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
+import { TeamCheckoutButton } from "@/components/landing/team-checkout-button"
 import { Link } from "@/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -32,6 +33,9 @@ function PricingCard({
   isAuthenticated,
   dashboardHref,
   billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   tier: PricingTier
   index: number
@@ -39,6 +43,9 @@ function PricingCard({
   isAuthenticated: boolean
   dashboardHref: string
   billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   const t = useTranslations("Pricing")
   const tCta = useTranslations("Landing.cta")
@@ -47,7 +54,6 @@ function PricingCard({
   const isTeam = key === "team"
   const amount = yearly ? tier.yearly : tier.monthly
   const price = isEnterprise ? t("custom") : amount === 0 ? t("free") : `$${amount}`
-  // Signed-in visitors who are already working go straight to the paid plan.
   const ctaHref = isEnterprise
     ? "/contact"
     : isAuthenticated
@@ -59,9 +65,22 @@ function PricingCard({
     ? t("enterpriseCta")
     : isAuthenticated
       ? isTeam
-        ? t("teamCtaCurrent")
+        ? hasPaidPlan
+          ? t("teamCtaManage")
+          : t("teamCtaCurrent")
         : tCta("dashboard")
       : t(`${key}Cta` as never)
+
+  // Team is the only self-serve plan, so it gets a real checkout action.
+  const teamCta = isTeam && !hasPaidPlan ? (
+    <TeamCheckoutButton
+      className="w-full"
+      interval={yearly ? "year" : "month"}
+      canStartCheckout={isAuthenticated && canStartCheckout}
+      subscribeHref={yearly ? subscribeHref.year : subscribeHref.month}
+      billingHref={billingHref}
+    />
+  ) : null
 
   return (
     <Card
@@ -99,14 +118,16 @@ function PricingCard({
         </ul>
       </CardContent>
       <CardFooter>
-        <Button
-          className="w-full"
-          variant={tier.featured ? "default" : "outline"}
-          render={<Link href={ctaHref} />}
-          nativeButton={false}
-        >
-          {ctaLabel}
-        </Button>
+        {teamCta ?? (
+          <Button
+            className="w-full"
+            variant={tier.featured ? "default" : "outline"}
+            render={<Link href={ctaHref} />}
+            nativeButton={false}
+          >
+            {ctaLabel}
+          </Button>
+        )}
       </CardFooter>
     </Card>
   )
@@ -117,11 +138,17 @@ export function PricingGrid({
   isAuthenticated,
   dashboardHref,
   billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
   billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -134,6 +161,9 @@ export function PricingGrid({
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
           billingHref={billingHref}
+          canStartCheckout={canStartCheckout}
+          hasPaidPlan={hasPaidPlan}
+          subscribeHref={subscribeHref}
         />
       ))}
     </div>
@@ -144,10 +174,16 @@ export function PricingSection({
   isAuthenticated,
   dashboardHref,
   billingHref,
+  canStartCheckout,
+  hasPaidPlan,
+  subscribeHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
   billingHref: string
+  canStartCheckout: boolean
+  hasPaidPlan: boolean
+  subscribeHref: { month: string; year: string }
 }) {
   const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
@@ -180,6 +216,9 @@ export function PricingSection({
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
           billingHref={billingHref}
+          canStartCheckout={canStartCheckout}
+          hasPaidPlan={hasPaidPlan}
+          subscribeHref={subscribeHref}
         />
       </div>
     </Section>

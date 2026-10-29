@@ -33,5 +33,7 @@
   "enterpriseF4": "Stockage illimité",
   "enterpriseF5": "Assistance dédiée",
   "enterpriseCta": "Contacter les ventes",
-  "teamCtaCurrent": "Passer à Team"
+  "teamCtaCurrent": "Passer à Team",
+  "teamCtaManage": "Gérer l’offre",
+  "teamCtaRedirecting": "Ouverture de Stripe…"
 }

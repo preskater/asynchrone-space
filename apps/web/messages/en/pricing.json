@@ -33,5 +33,7 @@
   "enterpriseF4": "Unlimited storage",
   "enterpriseF5": "Dedicated support",
   "enterpriseCta": "Contact sales",
-  "teamCtaCurrent": "Upgrade to Team"
+  "teamCtaCurrent": "Upgrade to Team",
+  "teamCtaManage": "Manage plan",
+  "teamCtaRedirecting": "Opening Stripe…"
 }

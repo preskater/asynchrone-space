@@ -22,6 +22,9 @@ export default async function PricingPage() {
     isAuthenticated: authenticated,
     dashboardHref,
     billingHref,
+    canStartCheckout,
+    hasPaidPlan,
+    subscribeHref,
   } = await getMarketingAuth()
 
   return (
@@ -35,6 +38,9 @@ export default async function PricingPage() {
         isAuthenticated={authenticated}
         dashboardHref={dashboardHref}
         billingHref={billingHref}
+        canStartCheckout={canStartCheckout}
+        hasPaidPlan={hasPaidPlan}
+        subscribeHref={subscribeHref}
       />
       <FaqSection />
       <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />

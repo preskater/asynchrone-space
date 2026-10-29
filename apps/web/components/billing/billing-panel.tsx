@@ -7,7 +7,7 @@ import {
   ReceiptTextIcon,
   SparklesIcon,
 } from "lucide-react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
@@ -106,7 +106,15 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
   const locale = useLocale()
   const router = useRouter()
   const params = useParams<{ orgSlug: string }>()
+  const searchParams = useSearchParams()
   const permissions = useOrgPermissions()
+  // Set when the visitor clicked "Get Team" on the pricing page.
+  const subscribeIntent = searchParams.get("subscribe")
+  const autoInterval: BillingInterval | null =
+    subscribeIntent === "month" || subscribeIntent === "year"
+      ? subscribeIntent
+      : null
+  const autoStarted = React.useRef(false)
   const [overview, setOverview] = React.useState<BillingOverviewData>()
   const [loading, setLoading] = React.useState(true)
   const [pending, setPending] = React.useState<string | null>(null)
@@ -153,6 +161,15 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
     }
   }, [checkout?.status, checkout?.sessionId, params.orgSlug, router, t, te])
 
+  /** Drops the `subscribe` intent so a reload does not retry the checkout. */
+  function clearSubscribeIntent() {
+    if (!params.orgSlug) return
+    router.replace({
+      pathname: `/${params.orgSlug}/settings`,
+      query: { tab: "billing" },
+    })
+  }
+
   async function redirect(
     target: "checkout" | "portal",
     interval?: BillingInterval
@@ -169,8 +186,21 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
     } catch (error) {
       toast.error(te(error))
       setPending(null)
+      if (autoInterval) clearSubscribeIntent()
     }
   }
+
+  React.useEffect(() => {
+    if (!overview || !autoInterval || autoStarted.current) return
+    autoStarted.current = true
+    if (overview.plan !== "free" || !overview.canSubscribe) {
+      clearSubscribeIntent()
+      return
+    }
+    void redirect("checkout", autoInterval)
+    // Only the resolved overview should trigger this, once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [overview, autoInterval])
 
   if (loading || !overview) {
     return (

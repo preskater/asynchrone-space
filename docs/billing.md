@@ -16,6 +16,7 @@ can enforce limits without calling the provider. The decision is recorded in
 | Webhook handling | `apps/web/lib/billing/service.ts`, `apps/web/app/api/webhooks/stripe/route.ts` |
 | Settings → Billing | `apps/web/components/billing/billing-panel.tsx` |
 | Billing tab deep link | `/{locale}/{orgSlug}/settings?tab=billing` (also the user menu's "Billing") |
+| Pricing CTAs | Team card starts Checkout; signed-out visitors sign up first (`?redirect=/onboarding?subscribe=<interval>`) |
 | Trial reminder job | `apps/web/app/api/cron/billing-trials/route.ts` |
 | Manual override | `apps/control-tower/actions/organizations.ts` |
 
@@ -146,6 +147,24 @@ not get overwritten by Stripe state. Each change appends a `PlatformAuditEvent`
 **Release override** clears the flag and hands the plan back to the provider on
 the next webhook without changing the current plan in the meantime. Releasing
 is audited as `organization.plan.release`.
+
+## Purchase entry points
+
+The Team card on `/pricing` (and the home page preview) is the only place that
+sells a plan. What a click does depends on the visitor:
+
+| Visitor | Click action |
+| --- | --- |
+| Signed out | `/sign-up?redirect=/onboarding?subscribe=<interval>` — account first, then a workspace, then checkout |
+| Signed in, no workspace | `/onboarding?subscribe=<interval>` — workspace first, then checkout |
+| Signed in, workspace on Starter | Creates the Stripe Checkout session immediately and redirects to Stripe |
+| Signed in, workspace already paying | "Manage plan" → `/{orgSlug}/settings?tab=billing` (no second checkout) |
+
+The `subscribe` intent is carried through onboarding; the billing panel starts
+the checkout as soon as it resolves the plan, so a new customer lands on
+Stripe's payment page without an extra click. The intent is dropped if checkout
+cannot start (no keys, plan already paid, role without permission), which sends
+the visitor to the billing tab instead.
 
 ## Known limits
 

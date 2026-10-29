@@ -13,6 +13,9 @@ export default async function HomePage() {
     isAuthenticated: authenticated,
     dashboardHref,
     billingHref,
+    canStartCheckout,
+    hasPaidPlan,
+    subscribeHref,
   } = await getMarketingAuth()
 
   return (
@@ -26,6 +29,9 @@ export default async function HomePage() {
         isAuthenticated={authenticated}
         dashboardHref={dashboardHref}
         billingHref={billingHref}
+        canStartCheckout={canStartCheckout}
+        hasPaidPlan={hasPaidPlan}
+        subscribeHref={subscribeHref}
       />
       <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>
