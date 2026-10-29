@@ -158,6 +158,11 @@ export interface BillingRepositoryPort {
   ): Promise<SubscriptionRecord | null>
   upsertSubscription(input: Omit<SubscriptionRecord, "id">): Promise<void>
   setCustomerId(organizationId: string, customerId: string): Promise<void>
+  /**
+   * "recorded" when this attempt may handle the event; "duplicate" when a
+   * previous attempt already finished with it. Failed and stale `processing`
+   * rows are reclaimable, so a provider retry can recover a transient error.
+   */
   recordEvent(input: {
     provider: string
     eventId: string

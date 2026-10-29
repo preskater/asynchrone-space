@@ -339,7 +339,9 @@ export class BillingService {
   /**
    * Applies one provider event. The `(provider, eventId)` row is claimed
    * before any side effect, so a replayed delivery returns `duplicate` and
-   * leaves the subscription untouched.
+   * leaves the subscription untouched. A delivery whose previous attempt
+   * failed, or that died mid-handler, is claimed again on the provider's retry
+   * instead of being dropped.
    */
   async handleEvent(event: BillingWebhookEvent): Promise<WebhookOutcome> {
     const organizationId = await this.resolveOrganizationId(event)

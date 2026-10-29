@@ -63,8 +63,11 @@ data because a card expired is worse than the revenue at risk.
 `checkout.session.completed`, `customer.subscription.created|updated|deleted`,
 `invoice.paid` and `invoice.payment_failed` are handled. Each delivery is
 claimed in `BillingEvent` before any side effect, so a replay returns
-`duplicate` and changes nothing. The success redirect also syncs the checkout
-session as a fallback when the webhook is delayed; both paths are idempotent.
+`duplicate` and changes nothing. A delivery whose handler threw, or that died
+mid-handler, is left as `failed` / `processing` and is claimed again on the
+provider's retry, so a transient error is not lost. The success redirect also
+syncs the checkout session as a fallback when the webhook is delayed; both
+paths are idempotent.
 
 A platform admin can still grant any plan from the control tower. That writes
 the `Subscription` row with `provider = "manual"` and, for paid plans,

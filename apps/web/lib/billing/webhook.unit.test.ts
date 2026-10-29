@@ -23,7 +23,10 @@ type InvoiceRow = Awaited<
 /** In-memory stand-in for Prisma; mirrors the unique constraints we rely on. */
 class FakeRepository implements BillingRepositoryPort {
   subscription: SubscriptionRecord | null = null
-  events = new Map<string, { type: string; status: string }>()
+  events = new Map<
+    string,
+    { type: string; status: string; processedAt: number }
+  >()
   invoices = new Map<string, InvoiceRow>()
   organization = {
     id: ORGANIZATION_ID,
@@ -84,19 +87,29 @@ class FakeRepository implements BillingRepositoryPort {
     input: Parameters<BillingRepositoryPort["recordEvent"]>[0]
   ) {
     const key = `${input.provider}:${input.eventId}`
-    if (this.events.has(key)) return "duplicate" as const
+    const now = Date.now()
+    const existing = this.events.get(key)
+    // Mirrors BillingRepository: only a failed or stale `processing` row is
+    // claimable again; a finished delivery stays a duplicate.
+    const retryable =
+      existing !== undefined &&
+      (existing.status === "failed" ||
+        (existing.status === "processing" &&
+          now - existing.processedAt > 10 * 60_000))
+    if (existing && !retryable) return "duplicate" as const
     this.events.set(key, {
       type: input.type,
       status: input.status ?? "processed",
+      processedAt: now,
     })
     return "recorded" as const
   }
 
   async markEvent(input: Parameters<BillingRepositoryPort["markEvent"]>[0]) {
-    this.events.set(`${input.provider}:${input.eventId}`, {
-      type: this.events.get(`${input.provider}:${input.eventId}`)?.type ?? "",
-      status: input.status,
-    })
+    const key = `${input.provider}:${input.eventId}`
+    const existing = this.events.get(key)
+    if (!existing) return
+    this.events.set(key, { ...existing, status: input.status })
   }
 
   async upsertInvoice(
@@ -254,6 +267,64 @@ describe("billing webhook", () => {
     await expect(service.handleEvent(event)).resolves.toBe("duplicate")
     expect(repo.subscription).toEqual(snapshot)
     expect(provider.retrieveSubscription).toHaveBeenCalledTimes(1)
+  })
+
+  it("re-processes a delivery whose previous attempt failed", async () => {
+    const { service, repo } = setup()
+    // Stripe retries any delivery that did not get a 2xx; the row left by the
+    // failed attempt must not swallow the retry as a duplicate.
+    repo.events.set("stripe:evt_retry", {
+      type: "customer.subscription.updated",
+      status: "failed",
+      processedAt: Date.now(),
+    })
+
+    await expect(
+      service.handleEvent({
+        id: "evt_retry",
+        type: "customer.subscription.updated",
+        data: { object: subscriptionPayload() },
+      })
+    ).resolves.toBe("processed")
+
+    expect(repo.subscription).toMatchObject({ plan: "team", status: "active" })
+    expect(repo.events.get("stripe:evt_retry")?.status).toBe("processed")
+  })
+
+  it("re-claims a delivery that was claimed but never finished", async () => {
+    const { service, repo } = setup()
+    repo.events.set("stripe:evt_stale", {
+      type: "customer.subscription.updated",
+      status: "processing",
+      processedAt: Date.now() - 11 * 60_000,
+    })
+
+    await expect(
+      service.handleEvent({
+        id: "evt_stale",
+        type: "customer.subscription.updated",
+        data: { object: subscriptionPayload() },
+      })
+    ).resolves.toBe("processed")
+    expect(repo.subscription).toMatchObject({ plan: "team" })
+  })
+
+  it("keeps a delivery that is still being processed idempotent", async () => {
+    const { service, repo } = setup()
+    repo.events.set("stripe:evt_running", {
+      type: "customer.subscription.updated",
+      status: "processing",
+      processedAt: Date.now(),
+    })
+
+    await expect(
+      service.handleEvent({
+        id: "evt_running",
+        type: "customer.subscription.updated",
+        data: { object: subscriptionPayload() },
+      })
+    ).resolves.toBe("duplicate")
+    expect(repo.subscription).toBeNull()
   })
 
   it("maps customer.subscription.updated to the paid plan and interval", async () => {

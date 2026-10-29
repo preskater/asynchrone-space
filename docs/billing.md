@@ -99,7 +99,10 @@ boot (`lib/env.ts`).
    ```
 
    The response is `{"received":true,"outcome":"duplicate"}` and nothing
-   changes. `billingEvent` has one row per event id.
+   changes. The same command is what recovers a delivery the handler failed on:
+   a `failed` row (or one stuck in `processing` for over ten minutes) is claimed
+   again, so a transient provider or database error is retried rather than
+   lost. `billingEvent` has one row per event id.
 
 6. Exercise the lifecycle:
 

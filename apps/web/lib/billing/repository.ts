@@ -9,6 +9,13 @@ function isUniqueViolation(error: unknown): boolean {
   )
 }
 
+/**
+ * A delivery claimed this long ago and still `processing` never finished: the
+ * process died between the claim and `markEvent`. Stripe retries for up to
+ * three days, so the row may be claimed again.
+ */
+const STALE_PROCESSING_MS = 10 * 60_000
+
 export class BillingRepository implements BillingRepositoryPort {
   async getOrganization(organizationId: string) {
     return prisma.organization.findUnique({
@@ -89,8 +96,31 @@ export class BillingRepository implements BillingRepositoryPort {
       })
       return "recorded"
     } catch (error) {
-      if (isUniqueViolation(error)) return "duplicate"
-      throw error
+      if (!isUniqueViolation(error)) throw error
+      // Stripe retries every delivery it did not get a 2xx for. The row from
+      // that attempt is `failed` (the handler threw) or still `processing`
+      // (the process died), so claim it again instead of answering `duplicate`
+      // and losing the event for good.
+      const { count } = await prisma.billingEvent.updateMany({
+        where: {
+          provider: input.provider,
+          eventId: input.eventId,
+          OR: [
+            { status: "failed" },
+            {
+              status: "processing",
+              processedAt: { lt: new Date(Date.now() - STALE_PROCESSING_MS) },
+            },
+          ],
+        },
+        data: {
+          status: input.status ?? "processing",
+          error: null,
+          organizationId: input.organizationId,
+          processedAt: new Date(),
+        },
+      })
+      return count > 0 ? "recorded" : "duplicate"
     }
   }
 
