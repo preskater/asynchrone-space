@@ -47,3 +47,4 @@ collection.
 | [0021](0021-team-trial-without-billing.md)                | accepted | Model the Team trial as a time window, not a plan change                   |
 | [0022](0022-shared-rate-limits-in-postgres.md)            | accepted | Share rate limits through PostgreSQL                                       |
 | [0023](0023-bill-subscriptions-through-stripe.md)         | accepted | Bill subscriptions through Stripe with a local plan state                  |
+| [0024](0024-delete-organizations-after-a-grace-period.md) | accepted | Delete organizations after a 30-day grace period                          |

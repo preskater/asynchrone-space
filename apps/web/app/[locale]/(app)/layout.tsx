@@ -19,12 +19,10 @@ import { AssistantProvider } from "@/lib/assistant/use-assistant"
 import { calendarService } from "@/lib/calendars"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
 import type { FilesData } from "@/lib/files/types"
-import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
-import { getOrganizationEntitlements } from "@/lib/organization/entitlements"
 import { getTrialStatus } from "@/lib/organization/trial-service"
-import { getDeletionScheduledAt } from "@/lib/organization/deletion-service"
+import { getOrganizationShell } from "@/lib/organization/shell"
 import { EntitlementsProvider } from "@/lib/organization/use-entitlements"
 import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
@@ -91,25 +89,27 @@ export default async function AppLayout({
     projectData,
     calendarData,
     messagingData,
-    storageQuotaBytes,
     notificationData,
     appearance,
-    entitlements,
     trial,
-    deletionScheduledAt,
+    // One read of the organization row for the plan, the storage quota and the
+    // deletion banner, instead of three lookups on the same row.
+    shell,
   ] = await Promise.all([
     // Shell-level only: project metadata, calendar sources and conversation
     // metadata. Tasks, events, files and messages load per feature.
     projectService.listShell(ctx),
     calendarService.listShell(ctx),
     messagingService.list(ctx),
-    orgQuotaBytes(organization.id),
     notificationService.list(ctx),
     getOrganizationAppearance(organization.id),
-    getOrganizationEntitlements(organization.id),
     getTrialStatus(organization.id),
-    getDeletionScheduledAt(organization.id),
+    getOrganizationShell(organization.id),
   ])
+  if (!shell) {
+    redirect("/onboarding")
+  }
+  const { entitlements, storageQuotaBytes, deletionScheduledAt } = shell
   const filesData = EMPTY_FILES_DATA
 
   return (

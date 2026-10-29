@@ -92,9 +92,13 @@ export async function cancelOrganizationDeletion(ctx: RequestContext) {
 /**
  * Deletes one organization whose grace period has passed. Rows go through the
  * schema's `onDelete: Cascade`; tables without a foreign key are cleared here.
- * A `PlatformAuditEvent` (no foreign key) is the proof that survives.
+ * Two records survive on purpose: a `PlatformAuditEvent` (the proof of the
+ * deletion) and the `TrialClaim` rows (email/domain) that stop a deleted
+ * workspace from claiming a second Team trial. Both are disclosed in the
+ * privacy policy's retention clause (`apps/web/messages/<locale>/legal.json`).
  * Large objects are unlinked only after the delete commits, so a failed
  * delete never loses file bytes. Returns false when there was nothing to do.
+ * See ADR 0024.
  */
 export async function deleteOrganization(
   organizationId: string,

@@ -276,7 +276,8 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 The uploads-sweep and repository-sync CronJobs replace the former Vercel crons;
 trial-expiry runs the daily Team trial reminders and expiry (ADR 0021);
 organization-deletion deletes organizations whose 30-day deletion grace period
-has passed, including their file large objects. They
+has passed, including their file large objects
+([ADR 0024](../adr/0024-delete-organizations-after-a-grace-period.md)). They
 call the in-cluster Service and send the same `CRON_SECRET` bearer token read
 from `asynchrone-space-web-secrets`; the corresponding route rejects a missing
 or incorrect token when `CRON_SECRET` is set. `concurrencyPolicy: Forbid`

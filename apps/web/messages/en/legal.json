@@ -10,7 +10,7 @@
     "s2b1": "We use your information to provide the service, authenticate users, respond to support requests and send product updates you have opted into.",
     "s2b2": "We never sell your personal data.",
     "s3h": "Data retention",
-    "s3b1": "We retain personal data for as long as your account is active. When you delete your account, we remove or anonymize your data within 30 days, except where we are required to retain it by law.",
+    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again.",
     "s4h": "Your rights",
     "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@asynchrone.space to exercise these rights.",
     "s5h": "Sub-processors",
@@ -25,7 +25,7 @@
     "s2h": "Acceptable use",
     "s2b1": "You agree not to misuse the service, including by attempting to access it by any means other than the interfaces we provide, or by using it to store or share unlawful content.",
     "s3h": "Subscriptions and billing",
-    "s3b1": "Paid plans are not available yet. Billing terms, including renewal and refunds, will be published here before any paid plan is offered. You are responsible for any taxes associated with a future subscription.",
+    "s3b1": "Paid plans are billed through Stripe Checkout. A subscription renews automatically at the interval and price shown before you pay, until you cancel it; you can cancel or change the payment method at any time from the billing settings, and access continues until the end of the paid period. Taxes are calculated by Stripe from your billing address and shown before you pay. Except where the law requires otherwise, amounts already paid are not refunded.",
     "s4h": "Termination",
     "s4b1": "You may stop using the service at any time. We may suspend or terminate access if you violate these terms or if required to protect the service or other users."
   },
