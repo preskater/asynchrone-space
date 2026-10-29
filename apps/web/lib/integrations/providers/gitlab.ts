@@ -50,7 +50,9 @@ function passwordsMatch(expected: string, received: string) {
   return timingSafeEqual(expectedBuffer, receivedBuffer)
 }
 
-export function createGitLabClient(config: ProviderClientConfig): ProviderClient {
+export function createGitLabClient(
+  config: ProviderClientConfig
+): ProviderClient {
   const baseUrl = gitlabApiBase(config.baseUrl)
   const projectPath = encodeURIComponent(`${config.owner}/${config.repo}`)
   // Personal access tokens authenticate via `PRIVATE-TOKEN`; OAuth tokens
@@ -66,7 +68,7 @@ export function createGitLabClient(config: ProviderClientConfig): ProviderClient
       ...init,
       headers: {
         Accept: "application/json",
-        "User-Agent": "Presk",
+        "User-Agent": "Asynchrone Space",
         ...authHeaders,
         ...(init.headers ?? {}),
       },
@@ -194,7 +196,7 @@ export function createGitLabClient(config: ProviderClientConfig): ProviderClient
       input.branch,
       input.filePath,
       input.fileContent,
-      `Presk: ${input.title}`
+      `Asynchrone Space: ${input.title}`
     )
     interface GitLabMergeRequest {
       iid: number
@@ -274,8 +276,7 @@ export function createGitLabClient(config: ProviderClientConfig): ProviderClient
       return { kind: "ignored", reason: "invalid JSON body" }
     }
     const project = payload.project as
-      | { path_with_namespace?: string }
-      | undefined
+      { path_with_namespace?: string } | undefined
     if (
       project?.path_with_namespace &&
       decodeURIComponent(project.path_with_namespace).toLowerCase() !==
@@ -300,13 +301,15 @@ export function createGitLabClient(config: ProviderClientConfig): ProviderClient
           }
         | undefined
       if (!attributes) return { kind: "ignored", reason: "missing issue" }
-      const actions: Record<string, "opened" | "edited" | "closed" | "reopened"> =
-        {
-          open: "opened",
-          update: "edited",
-          close: "closed",
-          reopen: "reopened",
-        }
+      const actions: Record<
+        string,
+        "opened" | "edited" | "closed" | "reopened"
+      > = {
+        open: "opened",
+        update: "edited",
+        close: "closed",
+        reopen: "reopened",
+      }
       const action = actions[attributes.action]
       if (!action) {
         return { kind: "ignored", reason: `issue.${attributes.action}` }
@@ -339,10 +342,9 @@ export function createGitLabClient(config: ProviderClientConfig): ProviderClient
           }
         | undefined
       if (!attributes) return { kind: "ignored", reason: "missing MR" }
-      let action: Extract<
-        RepositoryWebhookEvent,
-        { kind: "pull_request" }
-      >["action"] | null = null
+      let action:
+        | Extract<RepositoryWebhookEvent, { kind: "pull_request" }>["action"]
+        | null = null
       if (attributes.action === "open") action = "opened"
       else if (attributes.action === "reopen") action = "reopened"
       else if (attributes.action === "update") action = "edited"

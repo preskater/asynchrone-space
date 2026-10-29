@@ -1,12 +1,12 @@
 # Use a monorepo with Turborepo and npm workspaces
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk is a web application plus a shared UI component library and shared
+Asynchrone Space is a web application plus a shared UI component library and shared
 tooling (ESLint and TypeScript configurations). These packages are developed
 together, released together, and change in lockstep. How should the code be
 organized so that shared code is reused and changes are validated consistently?

@@ -93,5 +93,6 @@
   "createTaskFailed": "Could not create task.",
   "commentFailed": "Comment failed.",
   "addMemberFailed": "Could not add member.",
-  "addLabelFailed": "Could not add label."
+  "addLabelFailed": "Could not add label.",
+  "upgradeRequired": "This feature is not included in your plan. Upgrade to use it."
 }

@@ -93,5 +93,6 @@
   "createTaskFailed": "Impossible de créer la tâche.",
   "commentFailed": "Le commentaire a échoué.",
   "addMemberFailed": "Impossible d'ajouter le membre.",
-  "addLabelFailed": "Impossible d'ajouter l'étiquette."
+  "addLabelFailed": "Impossible d'ajouter l'étiquette.",
+  "upgradeRequired": "Cette fonctionnalité n'est pas incluse dans votre offre. Passez à une offre supérieure pour l'utiliser."
 }

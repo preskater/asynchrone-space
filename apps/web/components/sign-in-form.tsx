@@ -112,9 +112,15 @@ export function SignInForm({
                       placeholder="m@example.com"
                       autoComplete="email"
                       aria-invalid={fieldState.invalid}
+                      aria-describedby={
+                        fieldState.invalid ? `${field.name}-error` : undefined
+                      }
                     />
                     {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                      <FieldError
+                        id={`${field.name}-error`}
+                        errors={[fieldState.error]}
+                      />
                     )}
                   </Field>
                 )}
@@ -131,9 +137,15 @@ export function SignInForm({
                       type="password"
                       autoComplete="current-password"
                       aria-invalid={fieldState.invalid}
+                      aria-describedby={
+                        fieldState.invalid ? `${field.name}-error` : undefined
+                      }
                     />
                     {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
+                      <FieldError
+                        id={`${field.name}-error`}
+                        errors={[fieldState.error]}
+                      />
                     )}
                     <FieldDescription className="text-end">
                       <Link href="/forgot-password">{t("forgotPassword")}</Link>

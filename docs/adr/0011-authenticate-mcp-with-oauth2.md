@@ -1,7 +1,7 @@
 # Authenticate the MCP endpoint with OAuth2
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement

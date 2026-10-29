@@ -1,7 +1,7 @@
 # Use per-user repository tokens for issue and PR authoring
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-15
 
 ## Context and Problem Statement
@@ -13,7 +13,7 @@ member could push to the repository regardless of their own GitHub/GitLab
 access. Product feedback (issue #47):
 
 - a user must bring **their own** access token, saved in their profile, so an
-  issue created from Presk is automatically linked to them;
+  issue created from Asynchrone Space is automatically linked to them;
 - users **without repository access must not be able to create issues**.
 
 ## Decision Drivers

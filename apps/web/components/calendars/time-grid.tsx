@@ -39,7 +39,6 @@ function TimeColumn({
   onCreate: (start: Date, end: Date) => void
   onMove: (id: string, startAt: string, endAt: string) => void
 }) {
-  const t = useTranslations("Calendars")
   const {
     columnRef,
     draft,
@@ -92,10 +91,10 @@ function TimeColumn({
               onClick={onOpenEvent}
             />
             {isActive ? null : (
-              <button
-                type="button"
+              // Pointer-only shortcut: keyboard users change the time in the event dialog.
+              <div
+                aria-hidden
                 data-no-fx
-                aria-label={t("resizeEvent")}
                 onPointerDown={(event) =>
                   onResizePointerDown(event, item.event)
                 }

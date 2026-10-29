@@ -1,13 +1,13 @@
-# Deploying Presk with Helm
+# Deploying Asynchrone Space with Helm
 
-Presk runs as two Next.js apps backed by one PostgreSQL database. This guide
-installs both from the umbrella chart in `charts/presk`.
+Asynchrone Space runs as two Next.js apps backed by one PostgreSQL database. This guide
+installs both from the umbrella chart in `charts/asynchrone-space`.
 
 ```
 charts/
-  presk/                 # umbrella: dependencies, migration hook, values
-  presk-web/             # customer app, ingress, CronJobs
-  presk-control-tower/   # internal platform app, ingress
+  asynchrone-space/                 # umbrella: dependencies, migration hook, values
+  asynchrone-space-web/             # customer app, ingress, CronJobs
+  asynchrone-space-control-tower/   # internal platform app, ingress
 ```
 
 ## Prerequisites
@@ -21,7 +21,7 @@ charts/
   pull secret and pass it through `global.imagePullSecrets`:
 
   ```bash
-  kubectl -n presk create secret docker-registry ghcr-pull \
+  kubectl -n asynchrone-space create secret docker-registry ghcr-pull \
     --docker-server=ghcr.io \
     --docker-username=<github-user> \
     --docker-password=<github-token>
@@ -42,15 +42,15 @@ and every `v*` tag:
 
 | Image | Built from | Purpose |
 | --- | --- | --- |
-| `ghcr.io/preskater/presk` | `runner` stage, `APP=web` | Customer app |
-| `ghcr.io/preskater/presk-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
-| `ghcr.io/preskater/presk-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
+| `ghcr.io/preskater/asynchrone` | `runner` stage, `APP=web` | Customer app |
+| `ghcr.io/preskater/asynchrone-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
+| `ghcr.io/preskater/asynchrone-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
 
 The workflow tags images with the branch, the release tag and `sha-<shortsha>`.
 Use the immutable `sha-` tag:
 
 ```bash
-helm upgrade --install presk charts/presk -n presk \
+helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space \
   --set global.imageTag=sha-abc1234
 ```
 
@@ -64,19 +64,19 @@ them before installing; the migration Job and the pods fail fast if a required
 key is missing.
 
 ```bash
-kubectl create namespace presk
+kubectl create namespace asynchrone-space
 
-kubectl -n presk create secret generic presk-web-secrets \
-  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/presk?schema=public' \
+kubectl -n asynchrone-space create secret generic asynchrone-space-web-secrets \
+  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/asynchrone-space?schema=public' \
   --from-literal=BETTER_AUTH_SECRET='<at-least-16-chars>' \
   --from-literal=CRON_SECRET='<random-token>'
 
-kubectl -n presk create secret generic presk-control-tower-secrets \
-  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/presk?schema=public' \
+kubectl -n asynchrone-space create secret generic asynchrone-space-control-tower-secrets \
+  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/asynchrone-space?schema=public' \
   --from-literal=CONTROL_TOWER_BETTER_AUTH_SECRET='<at-least-32-chars>'
 ```
 
-Add optional keys to `presk-web-secrets` as needed:
+Add optional keys to `asynchrone-space-web-secrets` as needed:
 
 | Key | Used by |
 | --- | --- |
@@ -93,7 +93,7 @@ Secret values are injected with `envFrom` at pod start, so restart the
 Deployments after changing a Secret:
 
 ```bash
-kubectl -n presk rollout restart deploy/presk-web deploy/presk-control-tower
+kubectl -n asynchrone-space rollout restart deploy/asynchrone-space-web deploy/asynchrone-space-control-tower
 ```
 
 ## Install
@@ -102,53 +102,53 @@ The umbrella chart has local `file://` dependencies, so build them first when
 installing from a source checkout:
 
 ```bash
-helm dependency build charts/presk
+helm dependency build charts/asynchrone-space
 
-helm upgrade --install presk charts/presk \
-  --namespace presk \
+helm upgrade --install asynchrone-space charts/asynchrone-space \
+  --namespace asynchrone-space \
   --set global.imageTag=sha-abc1234
 ```
 
-`helm dependency build` writes packaged copies to `charts/presk/charts/`
+`helm dependency build` writes packaged copies to `charts/asynchrone-space/charts/`
 (git-ignored) and creates `Chart.lock`. Run it again after changing either
 subchart.
 
 Use `-f my-values.yaml` for production overrides instead of long `--set`
-lists. The defaults already target `presk.re` and
-`control-tower.presk.re` with the `nginx` ingress class.
+lists. The defaults already target `asynchrone.space` and
+`control-tower.asynchrone.space` with the `nginx` ingress class.
 
 ## What gets created
 
 | Resource | Name | Notes |
 | --- | --- | --- |
-| Deployment | `presk-web` | 2 replicas by default |
-| Deployment | `presk-control-tower` | 2 replicas by default |
-| Service | `presk-web`, `presk-control-tower` | ClusterIP, port 80 → container 3000 |
-| Ingress | `presk-web`, `presk-control-tower` | One host each |
-| ConfigMap | `presk-web`, `presk-control-tower` | Non-secret runtime config |
-| CronJob | `presk-web-uploads-sweep` | `0 3 * * *` |
-| CronJob | `presk-web-repository-sync` | `0 * * * *` |
-| Job (hook) | `presk-migrate` | Pre-install and pre-upgrade |
-| ServiceAccount | `presk-web`, `presk-control-tower`, `presk-migrate` | Token automount disabled |
-| PDB | `presk-web`, `presk-control-tower` | `minAvailable: 1` |
+| Deployment | `asynchrone-space-web` | 2 replicas by default |
+| Deployment | `asynchrone-space-control-tower` | 2 replicas by default |
+| Service | `asynchrone-space-web`, `asynchrone-space-control-tower` | ClusterIP, port 80 → container 3000 |
+| Ingress | `asynchrone-space-web`, `asynchrone-space-control-tower` | One host each |
+| ConfigMap | `asynchrone-space-web`, `asynchrone-space-control-tower` | Non-secret runtime config |
+| CronJob | `asynchrone-space-web-uploads-sweep` | `0 3 * * *` |
+| CronJob | `asynchrone-space-web-repository-sync` | `0 * * * *` |
+| Job (hook) | `asynchrone-space-migrate` | Pre-install and pre-upgrade |
+| ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled |
+| PDB | `asynchrone-space-web`, `asynchrone-space-control-tower` | `minAvailable: 1` |
 
 ## Configuration
 
-Web values live under `presk-web` and `presk-control-tower` in
-`charts/presk/values.yaml`. The most useful overrides:
+Web values live under `asynchrone-space-web` and `asynchrone-space-control-tower` in
+`charts/asynchrone-space/values.yaml`. The most useful overrides:
 
 | Value | Default | Purpose |
 | --- | --- | --- |
 | `global.imageTag` | `""` (required) | Tag shared by all three images |
 | `global.imagePullSecrets` | `[]` | Pull secrets for private GHCR packages |
-| `presk-web.replicaCount` | `2` | Customer app replicas |
-| `presk-control-tower.replicaCount` | `2` | Control tower replicas |
-| `presk-web.ingress.hosts` | `presk.re` | Customer app host(s) |
-| `presk-control-tower.ingress.hosts` | `control-tower.presk.re` | Control tower host(s) |
+| `asynchrone-space-web.replicaCount` | `2` | Customer app replicas |
+| `asynchrone-space-control-tower.replicaCount` | `2` | Control tower replicas |
+| `asynchrone-space-web.ingress.hosts` | `asynchrone.space` | Customer app host(s) |
+| `asynchrone-space-control-tower.ingress.hosts` | `control-tower.asynchrone.space` | Control tower host(s) |
 | `*.ingress.className` | `nginx` | Ingress controller class |
 | `*.ingress.tls` | `[]` | TLS secret(s) for the hosts |
 | `*.config` | see values | Non-secret environment variables |
-| `presk-web.cronjobs.*.enabled` | `true` | Toggle each scheduled job |
+| `asynchrone-space-web.cronjobs.*.enabled` | `true` | Toggle each scheduled job |
 | `migrate.enabled` | `true` | Toggle the migration hook |
 
 `BETTER_AUTH_URL`, `PLATFORM_APP_URL`, `NEXT_PUBLIC_APP_URL` and
@@ -162,18 +162,18 @@ Point both hostnames at the ingress controller's load balancer, then configure
 certificates either through cert-manager annotations:
 
 ```yaml
-presk-web:
+asynchrone-space-web:
   ingress:
     annotations:
       cert-manager.io/cluster-issuer: letsencrypt-prod
     tls:
-      - secretName: presk-tls
+      - secretName: asynchrone-space-tls
         hosts:
-          - presk.re
+          - asynchrone.space
 ```
 
 or by creating the TLS Secrets yourself. Repeat for
-`presk-control-tower`.
+`asynchrone-space-control-tower`.
 
 ### Uploads and proxy limits
 
@@ -205,13 +205,13 @@ npm run grant:platform-role --workspace=control-tower -- --email you@example.com
 ```
 
 The operator then enrolls an authenticator at `/setup-2fa`. Set
-`PLATFORM_ALLOWED_IPS` in `presk-control-tower.config` to a comma-separated list
+`PLATFORM_ALLOWED_IPS` in `asynchrone-space-control-tower.config` to a comma-separated list
 of IPv4 addresses/CIDRs (or `*`). The app reads `X-Forwarded-For` and
 `X-Real-IP`, so the ingress must be configured to preserve the client address.
 For defense in depth, also add an edge allowlist:
 
 ```yaml
-presk-control-tower:
+asynchrone-space-control-tower:
   ingress:
     annotations:
       nginx.ingress.kubernetes.io/whitelist-source-range: "203.0.113.0/24"
@@ -219,21 +219,21 @@ presk-control-tower:
 
 ## Migrations
 
-The `presk-migrate` Job is a Helm `pre-install,pre-upgrade` hook with a lower
+The `asynchrone-space-migrate` Job is a Helm `pre-install,pre-upgrade` hook with a lower
 hook weight than the Deployments. It runs `cd packages/db && npx prisma migrate
-deploy` with `DATABASE_URL` from `presk-web-secrets`. A failed migration aborts
+deploy` with `DATABASE_URL` from `asynchrone-space-web-secrets`. A failed migration aborts
 the release before pods roll; the Job is kept for inspection:
 
 ```bash
-kubectl -n presk logs job/presk-migrate
+kubectl -n asynchrone-space logs job/asynchrone-space-migrate
 ```
 
 The previous hook Job is deleted before the next install/upgrade. To apply
 migrations manually (for example when recovering a cluster):
 
 ```bash
-kubectl -n presk create job presk-migrate-manual \
-  --image=ghcr.io/preskater/presk-migrate:sha-abc1234
+kubectl -n asynchrone-space create job asynchrone-space-migrate-manual \
+  --image=ghcr.io/preskater/asynchrone-migrate:sha-abc1234
 ```
 
 The migrate image runs as a non-root user with a read-only root filesystem and
@@ -244,19 +244,19 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 
 The two CronJobs replace the former Vercel crons and call the in-cluster
 Service. Both send `Authorization: Bearer $CRON_SECRET`, read from
-`presk-web-secrets`; the corresponding route rejects a missing/incorrect token
+`asynchrone-space-web-secrets`; the corresponding route rejects a missing/incorrect token
 when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
-runs. Change schedules through `presk-web.cronjobs.<job>.schedule`.
+runs. Change schedules through `asynchrone-space-web.cronjobs.<job>.schedule`.
 
 ## Upgrades and rollback
 
 ```bash
-helm upgrade presk charts/presk -n presk \
+helm upgrade asynchrone-space charts/asynchrone-space -n asynchrone-space \
   --reuse-values \
   --set global.imageTag=sha-def5678
 
-helm history presk -n presk
-helm rollback presk 1 -n presk
+helm history asynchrone-space -n asynchrone-space
+helm rollback asynchrone-space 1 -n asynchrone-space
 ```
 
 `--reuse-values` keeps earlier overrides but does not merge new chart defaults;
@@ -267,11 +267,11 @@ release still need a database plan.
 ## Verify
 
 ```bash
-helm lint --strict charts/presk --set global.imageTag=ci
-helm template presk charts/presk -n presk --set global.imageTag=ci
-kubectl -n presk get pods,svc,ingress,cronjob,job
-helm test presk -n presk
-kubectl -n presk logs deploy/presk-web --tail=100
+helm lint --strict charts/asynchrone-space --set global.imageTag=ci
+helm template asynchrone-space charts/asynchrone-space -n asynchrone-space --set global.imageTag=ci
+kubectl -n asynchrone-space get pods,svc,ingress,cronjob,job
+helm test asynchrone-space -n asynchrone-space
+kubectl -n asynchrone-space logs deploy/asynchrone-space-web --tail=100
 ```
 
 `helm test` runs the per-subchart connection Pods against each Service.
@@ -292,7 +292,7 @@ kubectl -n presk logs deploy/presk-web --tail=100
 - **Client IPs are the ingress address** — configure the controller to preserve
   `X-Forwarded-For` (nginx: `use-forwarded-headers: "true"`).
 - **CronJob fails with `secret not found`** — `CRON_SECRET` is missing from
-  `presk-web-secrets`; the chart mounts it as a required key.
+  `asynchrone-space-web-secrets`; the chart mounts it as a required key.
 - **Read-only filesystem errors** — Next.js writes its image cache to
   `apps/<app>/.next/cache`, mounted as an `emptyDir`. If a custom runtime path
   is used, override `cache.mountPath` or

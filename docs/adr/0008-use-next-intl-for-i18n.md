@@ -1,12 +1,12 @@
 # Use next-intl for internationalization
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk serves users in multiple languages, starting with English and French. Every
+Asynchrone Space serves users in multiple languages, starting with English and French. Every
 route must be locale-aware, and users should be able to switch languages without
 losing their place. How should internationalization be implemented across the
 App Router?

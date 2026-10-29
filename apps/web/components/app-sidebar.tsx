@@ -147,7 +147,7 @@ export function AppSidebar({
               render={<Link href={`/${orgSlug}`} prefetch={false} />}
             >
               <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold">Presk</span>
+              <span className="text-base font-semibold">Asynchrone Space</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

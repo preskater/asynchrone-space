@@ -1,7 +1,7 @@
 # Use a chunked upload protocol with UploadSession
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement

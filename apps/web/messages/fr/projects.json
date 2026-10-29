@@ -139,7 +139,7 @@
   "taskDescriptionPlaceholder": "Ajoutez plus de détails sur cette tâche...",
   "labelsHint": "Associez une ou plusieurs étiquettes à cette tâche.",
   "taskCreateIssue": "Créer une issue sur {provider}",
-  "taskCreateIssueHint": "L'issue est liée à cette tâche et reste synchronisée avec elle. Décochez pour garder cette tâche uniquement dans Presk.",
+  "taskCreateIssueHint": "L'issue est liée à cette tâche et reste synchronisée avec elle. Décochez pour garder cette tâche uniquement dans Asynchrone Space.",
   "selectDay": "Sélectionner un jour",
   "tasksDue": "{count, plural, one {# tâche} other {# tâches}} due",
   "noTasksDue": "Aucune tâche due ce jour.",

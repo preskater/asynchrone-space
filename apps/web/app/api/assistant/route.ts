@@ -2,6 +2,9 @@ import { run, type AgentInputItem, type RunStreamEvent } from "@openai/agents"
 import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
+import { rejectCrossOrigin } from "@/lib/core/http"
+import { jsonError } from "@/lib/core/http"
+import { can, upgradeRequired } from "@/lib/organization/entitlements"
 import { rateLimit } from "@/lib/core/rate-limit"
 import { assistantAgent } from "@/lib/assistant/agent"
 
@@ -83,7 +86,13 @@ function toClientEvent(event: RunStreamEvent): AssistantEvent | undefined {
 }
 
 export async function POST(request: Request) {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   const ctx = await getRequestContext({ request })
+
+  if (!(await can(ctx.organizationId, "aiTokensPerMonth"))) {
+    return jsonError(upgradeRequired("aiTokensPerMonth"))
+  }
 
   if (!rateLimit(`assistant:${ctx.userId}`, 20, 5 * 60_000)) {
     return new Response("Too many requests", { status: 429 })

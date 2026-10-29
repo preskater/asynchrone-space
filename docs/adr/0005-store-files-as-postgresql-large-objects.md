@@ -1,12 +1,12 @@
 # Store files as PostgreSQL large objects
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone Space maintainers
 - Date: 2026-10-10
 
 ## Context and Problem Statement
 
-Presk lets users upload, store, download, and attach files. File bytes must be
+Asynchrone Space lets users upload, store, download, and attach files. File bytes must be
 stored somewhere durable with metadata kept queryable and consistent. The
 project previously used Vercel Blob (an external object store) and migrated away
 from it. Where should file bytes live, and how should they be streamed given

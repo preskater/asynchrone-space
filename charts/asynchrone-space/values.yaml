@@ -1,0 +1,165 @@
+# Production values for the Asynchrone Space umbrella chart.
+#
+# Secrets are never stored here. Create the two Secrets first:
+#
+#   asynchrone-space-web-secrets:           DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET,
+#                                           optional OPENAI_API_KEY, RESEND_API_KEY,
+#                                           GITHUB_CLIENT_SECRET, GITLAB_CLIENT_SECRET
+#   asynchrone-space-control-tower-secrets: DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET
+#
+# Install with an immutable image tag shared by all three images:
+#   helm dependency build charts/asynchrone-space
+#   helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space --create-namespace \
+#     --set global.imageTag=sha-abc1234
+
+global:
+  # Required. Use the immutable tag produced by the Docker workflow for a
+  # commit (for example `sha-abc1234`) rather than a branch name.
+  imageTag: ""
+  imagePullSecrets: []
+
+# ---------------------------------------------------------------------------
+# Customer-facing app
+# ---------------------------------------------------------------------------
+asynchrone-space-web:
+  enabled: true
+
+  # Release `asynchrone-space` yields the resources `asynchrone-space-web-*`.
+  nameOverride: web
+  image:
+    repository: ghcr.io/preskater/asynchrone
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  replicaCount: 2
+
+  ingress:
+    enabled: true
+    className: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    hosts:
+      - host: asynchrone.space
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+      # - secretName: asynchrone-space-tls
+      #   hosts:
+      #     - asynchrone.space
+
+  config:
+    BETTER_AUTH_URL: https://asynchrone.space
+    NEXT_PUBLIC_APP_URL: https://asynchrone.space
+    CONTROL_TOWER_URL: https://control-tower.asynchrone.space
+    # Keep replicas x DATABASE_POOL_MAX below the database connection limit.
+    DATABASE_POOL_MAX: "10"
+    MCP_RESOURCE_URL: ""
+    OPENAI_API_URL: ""
+    ASSISTANT_MODEL: gpt-4o-mini
+    EMAIL_FROM: ""
+    REQUIRE_EMAIL_VERIFICATION: "false"
+    GITHUB_CLIENT_ID: ""
+    GITLAB_CLIENT_ID: ""
+
+  secret:
+    existingSecret: asynchrone-space-web-secrets
+
+  # Replace the former Vercel crons.
+  cronjobs:
+    image: curlimages/curl:8.16.0
+    secretName: ""
+    uploadsSweep:
+      enabled: true
+      schedule: "0 3 * * *"
+      path: /api/files/uploads/sweep
+    repositorySync:
+      enabled: true
+      schedule: "0 * * * *"
+      path: /api/cron/repository-sync
+
+# ---------------------------------------------------------------------------
+# Internal control tower
+# ---------------------------------------------------------------------------
+asynchrone-space-control-tower:
+  enabled: true
+
+  # Release `asynchrone-space` yields the resources `asynchrone-space-control-tower-*`.
+  nameOverride: control-tower
+  image:
+    repository: ghcr.io/preskater/asynchrone-control-tower
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  replicaCount: 2
+
+  ingress:
+    enabled: true
+    className: nginx
+    annotations: {}
+      # Restrict at the edge as defense in depth. The app also enforces
+      # PLATFORM_ALLOWED_IPS against X-Forwarded-For / X-Real-IP.
+      # nginx.ingress.kubernetes.io/whitelist-source-range: "203.0.113.0/24"
+    hosts:
+      - host: control-tower.asynchrone.space
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+      # - secretName: control-tower-asynchrone-space-tls
+      #   hosts:
+      #     - control-tower.asynchrone.space
+
+  config:
+    BETTER_AUTH_URL: https://control-tower.asynchrone.space
+    PLATFORM_APP_URL: https://asynchrone.space
+    PLATFORM_ALLOWED_IPS: ""
+    DATABASE_POOL_MAX: "10"
+    DEPLOY_ENV: production
+
+  secret:
+    existingSecret: asynchrone-space-control-tower-secrets
+
+# ---------------------------------------------------------------------------
+# One-shot Prisma migrations, run as a pre-install/pre-upgrade hook before
+# either Deployment is rolled out.
+# ---------------------------------------------------------------------------
+migrate:
+  enabled: true
+  image:
+    repository: ghcr.io/preskater/asynchrone-migrate
+    tag: ""
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  # Defaults to asynchrone-space-web.secret.existingSecret when empty.
+  existingSecret: ""
+  secretKey: DATABASE_URL
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  serviceAccount:
+    create: true
+    name: ""
+    annotations: {}
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  # The migrate image is a plain Prisma CLI image. It only needs its HOME
+  # directory writable; if a future Prisma release writes elsewhere, override
+  # readOnlyRootFilesystem or runAsUser here.
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  resources: {}
+  extraEnv: []
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
