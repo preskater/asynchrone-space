@@ -9,7 +9,7 @@ export const ORG_PLANS: OrgPlan[] = ["free", "team", "enterprise"]
 export type Entitlement =
   | "seats"
   | "storageBytes"
-  | "aiTokensPerMonth"
+  | "aiBudgetMicrosPerSeat"
   | "auditLog"
   | "sso"
   | "scim"
@@ -19,8 +19,8 @@ export type Entitlement =
 export type Entitlements = {
   seats: number
   storageBytes: number
-  // ponytail: only `> 0` is enforced (AI on/off); monthly metering lands with billing.
-  aiTokensPerMonth: number
+  /** Monthly AI spend allowed per workspace seat, in micro-USD (0 = no AI). */
+  aiBudgetMicrosPerSeat: number
   auditLog: boolean
   sso: boolean
   scim: boolean
@@ -29,12 +29,14 @@ export type Entitlements = {
 }
 
 const GB = 1024 * 1024 * 1024
+// ponytail: flat ≈ 12 € (13 USD) per seat on every paid plan until the business model is set.
+const AI_BUDGET_PER_SEAT = 13_000_000
 
 const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
   free: {
     seats: 5,
     storageBytes: 1 * GB,
-    aiTokensPerMonth: 0,
+    aiBudgetMicrosPerSeat: 0,
     auditLog: false,
     sso: false,
     scim: false,
@@ -44,7 +46,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
   team: {
     seats: Infinity,
     storageBytes: 100 * GB,
-    aiTokensPerMonth: 2_000_000,
+    aiBudgetMicrosPerSeat: AI_BUDGET_PER_SEAT,
     auditLog: false,
     sso: false,
     scim: false,
@@ -54,7 +56,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
   enterprise: {
     seats: Infinity,
     storageBytes: 1024 * GB,
-    aiTokensPerMonth: 20_000_000,
+    aiBudgetMicrosPerSeat: AI_BUDGET_PER_SEAT,
     auditLog: true,
     sso: true,
     scim: true,
@@ -87,4 +89,13 @@ export function parsePlan(metadata: string | null | undefined): OrgPlan {
     // Organization metadata also holds appearance settings; ignore bad JSON.
   }
   return "free"
+}
+
+/** AI allowances reset on the first day of each month, UTC. */
+export function monthWindow(now = new Date()) {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+  const resetAt = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1)
+  )
+  return { start, resetAt }
 }

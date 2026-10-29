@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { ExternalLink } from "lucide-react"
 
 import { prisma } from "@workspace/db"
+import { entitlementsFor, monthWindow } from "@workspace/db/plans"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -19,7 +20,7 @@ import { PageHeader } from "@/components/page-header"
 import { OAuthClientToggle } from "@/components/oauth-client-toggle"
 import { PlanForm } from "@/components/plan-form"
 import { StatCard } from "@/components/stat-card"
-import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative } from "@/lib/platform/format"
+import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative, formatUsdMicros } from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
 import { orgQuotaBytes, parsePlan, usagePercent } from "@/lib/platform/plan"
 
@@ -59,8 +60,21 @@ export default async function OrganizationDetailPage({
 
   if (!organization) notFound()
 
-  const [storage, members, repositories, oauthClients, auditLogs, platformEvents] =
-    await Promise.all([
+  const month = monthWindow()
+  const previousMonth = monthWindow(
+    new Date(month.start.getTime() - 24 * 60 * 60 * 1000)
+  )
+  const [
+    storage,
+    members,
+    repositories,
+    oauthClients,
+    auditLogs,
+    platformEvents,
+    aiThisMonth,
+    aiLastMonth,
+    seats,
+  ] = await Promise.all([
       prisma.fileNode.aggregate({
         where: { organizationId: orgId, trashed: false },
         _sum: { sizeBytes: true },
@@ -129,11 +143,30 @@ export default async function OrganizationDetailPage({
           createdAt: true,
         },
       }),
+      prisma.aiUsageEvent.aggregate({
+        where: { organizationId: orgId, createdAt: { gte: month.start } },
+        _sum: { costMicros: true, inputTokens: true, outputTokens: true },
+        _count: true,
+      }),
+      prisma.aiUsageEvent.aggregate({
+        where: {
+          organizationId: orgId,
+          createdAt: { gte: previousMonth.start, lt: month.start },
+        },
+        _sum: { costMicros: true },
+      }),
+      prisma.member.count({ where: { organizationId: orgId, clientId: null } }),
     ])
 
   const used = Number(storage._sum.sizeBytes ?? 0)
   const quota = orgQuotaBytes(organization)
   const percent = usagePercent(used, quota)
+  const aiSpent = aiThisMonth._sum.costMicros ?? 0
+  const aiTokens =
+    (aiThisMonth._sum.inputTokens ?? 0) + (aiThisMonth._sum.outputTokens ?? 0)
+  const aiBudget =
+    entitlementsFor(parsePlan(organization.metadata)).aiBudgetMicrosPerSeat *
+    seats
   const plan = parsePlan(organization.metadata)
 
   return (
@@ -183,6 +216,11 @@ export default async function OrganizationDetailPage({
         <StatCard label="Tasks" value={formatNumber(organization._count.tasks)} />
         <StatCard label="Clients" value={formatNumber(organization._count.clients)} />
         <StatCard label="Deals" value={formatNumber(organization._count.deals)} />
+        <StatCard
+          label="AI spend this month"
+          value={formatUsdMicros(aiSpent)}
+          hint={`${usagePercent(aiSpent, aiBudget)}% of ${formatUsdMicros(aiBudget)} · ${formatNumber(aiTokens)} tokens in ${formatNumber(aiThisMonth._count)} runs · last month ${formatUsdMicros(aiLastMonth._sum.costMicros ?? 0)}`}
+        />
       </div>
 
       <section className="space-y-3">

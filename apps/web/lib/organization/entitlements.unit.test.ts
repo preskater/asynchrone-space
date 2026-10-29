@@ -30,7 +30,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   free: {
     seats: 5,
     storageBytes: 1 * GB,
-    aiTokensPerMonth: 0,
+    aiBudgetMicrosPerSeat: 0,
     auditLog: false,
     sso: false,
     scim: false,
@@ -40,7 +40,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   team: {
     seats: Infinity,
     storageBytes: 100 * GB,
-    aiTokensPerMonth: 2_000_000,
+    aiBudgetMicrosPerSeat: 13_000_000,
     auditLog: false,
     sso: false,
     scim: false,
@@ -50,7 +50,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   enterprise: {
     seats: Infinity,
     storageBytes: 1024 * GB,
-    aiTokensPerMonth: 20_000_000,
+    aiBudgetMicrosPerSeat: 13_000_000,
     auditLog: true,
     sso: true,
     scim: true,
@@ -99,7 +99,7 @@ describe("plan resolution", () => {
 
   it("gates features on the stored plan", async () => {
     withPlan(null)
-    expect(await can("org_1", "aiTokensPerMonth")).toBe(false)
+    expect(await can("org_1", "aiBudgetMicrosPerSeat")).toBe(false)
     await expect(
       requireEntitlement("org_1", "granularPermissions")
     ).rejects.toMatchObject({
@@ -109,7 +109,7 @@ describe("plan resolution", () => {
     })
 
     withPlan('{"plan":"team"}')
-    expect(await can("org_1", "aiTokensPerMonth")).toBe(true)
+    expect(await can("org_1", "aiBudgetMicrosPerSeat")).toBe(true)
     await expect(
       requireEntitlement("org_1", "granularPermissions")
     ).resolves.toBeUndefined()

@@ -74,6 +74,8 @@ export type ServiceErrorCode =
   | "feedback_rate_limited"
   | "feedback_delivery_failed"
   | "upgrade_required"
+  | "quota_exceeded"
+  | "assistant_unavailable"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

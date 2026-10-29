@@ -127,7 +127,17 @@ export function AssistantProvider({ children }: { children: React.ReactNode }) {
       })
 
       if (!response.ok || !response.body) {
-        throw new Error(`Request failed (${response.status})`)
+        // Coded errors (`quota_exceeded`, `upgrade_required`…) carry a
+        // `code` that the workspace translates.
+        const body = (await response.json().catch(() => null)) as {
+          error?: { code?: string; message?: string }
+        } | null
+        throw Object.assign(
+          new Error(
+            body?.error?.message ?? `Request failed (${response.status})`
+          ),
+          { code: body?.error?.code }
+        )
       }
 
       setStatus("streaming")
