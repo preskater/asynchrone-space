@@ -34,13 +34,22 @@ export function quotaExceeded(resetAt: Date) {
   )
 }
 
+/**
+ * Provider token details are `{ [key: string]: number | TokenDetails }`, so a
+ * count is only read when the value is actually a number.
+ */
+function detailCount(details: object, key: string): number {
+  const value = (details as Record<string, unknown>)[key]
+  return typeof value === "number" ? value : 0
+}
+
 /** Sums the run's per-request token details into the fields we store. */
 export function tokenUsage(usage: Usage): TokenUsage {
   return {
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
     cachedTokens: usage.inputTokensDetails.reduce(
-      (sum, details) => sum + (details.cached_tokens ?? 0),
+      (sum, details) => sum + detailCount(details, "cached_tokens"),
       0
     ),
   }
