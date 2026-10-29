@@ -125,13 +125,9 @@ export const auth = betterAuth({
             true
           )
         },
-        beforeAcceptInvitation: async ({ invitation }) => {
-          await assertSeatAvailable(
-            invitation.organizationId,
-            invitation.role,
-            false
-          )
-        },
+        // No seat check when accepting: the invitation reserved its seat when
+        // it was created (pending ones are counted there), so lowering a plan
+        // cap must not strand invitations that were legitimately issued.
         beforeAddMember: async ({ member }) => {
           await assertSeatAvailable(member.organizationId, member.role, false)
         },
