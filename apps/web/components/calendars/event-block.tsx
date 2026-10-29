@@ -60,9 +60,12 @@ export function EventBlock({
   const locale = useLocale()
   const t = useTranslations("Common")
   const styles = EVENT_COLOR_CLASSES[event.color]
+  const range = formatEventRange(event, locale, t("allDay"))
   return (
     <button
       type="button"
+      // Short blocks hide the time range, so screen readers get it from the label.
+      aria-label={`${event.title}, ${range}`}
       onClick={(clickEvent) => {
         clickEvent.stopPropagation()
         onClick(event)
@@ -77,9 +80,7 @@ export function EventBlock({
     >
       <span className="truncate font-medium">{event.title}</span>
       {height > 34 ? (
-        <span className="truncate text-muted-foreground">
-          {formatEventRange(event, locale, t("allDay"))}
-        </span>
+        <span className="truncate text-muted-foreground">{range}</span>
       ) : null}
     </button>
   )

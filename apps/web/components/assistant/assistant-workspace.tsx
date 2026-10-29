@@ -26,6 +26,12 @@ export function AssistantWorkspace() {
 
   const isBusy = status === "submitted" || status === "streaming"
   const isEmpty = messages.length === 0
+  // One polite status instead of announcing every streamed token.
+  const announcement = isBusy
+    ? t("thinking")
+    : messages.at(-1)?.role === "assistant"
+      ? t("responseReady")
+      : ""
 
   function submit(text: string) {
     const value = text.trim()
@@ -90,10 +96,17 @@ export function AssistantWorkspace() {
         )}
 
         {error ? (
-          <div className="mb-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <div
+            role="alert"
+            className="mb-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
             {error.message || t("error")}
           </div>
         ) : null}
+
+        <div role="status" className="sr-only">
+          {announcement}
+        </div>
 
         {isBusy ? (
           <div className="mb-2 flex justify-center">

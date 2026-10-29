@@ -466,14 +466,18 @@ export function LeavePanel({ data }: { data: HrOverviewData }) {
                           </span>
                         </div>
                       </TableCell>
-                      <BalanceCell
-                        remaining={paid?.remainingDays ?? 0}
-                        acquired={paid?.acquiredDays ?? 0}
-                      />
-                      <BalanceCell
-                        remaining={rtt?.remainingDays ?? 0}
-                        acquired={rtt?.acquiredDays ?? 0}
-                      />
+                      <TableCell>
+                        <BalanceCell
+                          remaining={paid?.remainingDays ?? 0}
+                          acquired={paid?.acquiredDays ?? 0}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <BalanceCell
+                          remaining={rtt?.remainingDays ?? 0}
+                          acquired={rtt?.acquiredDays ?? 0}
+                        />
+                      </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         <BalanceCell
                           remaining={recovery?.remainingDays ?? 0}
