@@ -76,6 +76,7 @@ export type ServiceErrorCode =
   | "meeting_provider_not_connected"
   | "meeting_attendee_invalid"
   | "feedback_rate_limited"
+  | "rate_limited"
   | "feedback_delivery_failed"
   | "upgrade_required"
   | "quota_exceeded"
@@ -97,6 +98,8 @@ export interface AppErrorOptions {
   details?: unknown
   params?: Record<string, string | number>
   status?: number
+  /** Seconds, sent as `Retry-After` by `jsonError`. */
+  retryAfter?: number
 }
 
 export class AppError extends Error {
@@ -104,6 +107,7 @@ export class AppError extends Error {
   readonly status: number
   readonly details?: unknown
   readonly params?: Record<string, string | number>
+  readonly retryAfter?: number
 
   constructor(code: ErrorCode, message: string, options: AppErrorOptions = {}) {
     super(message)
@@ -112,6 +116,7 @@ export class AppError extends Error {
     this.status = options.status ?? STATUS_BY_CODE[code as AppErrorCode] ?? 500
     this.details = options.details
     this.params = options.params
+    this.retryAfter = options.retryAfter
   }
 }
 

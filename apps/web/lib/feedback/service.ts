@@ -1,6 +1,6 @@
 import type { RequestContext } from "@/lib/core/context"
 import { AppError, NotFoundError, ValidationError } from "@/lib/core/errors"
-import { rateLimit } from "@/lib/core/rate-limit"
+import { assertRateLimit } from "@/lib/core/rate-limit"
 import { deliverEmail, type EmailDelivery } from "@/lib/email"
 import { prisma } from "@/lib/prisma"
 
@@ -54,19 +54,17 @@ export async function submitFeedback(
   ctx: RequestContext,
   input: SubmitFeedbackParsed
 ): Promise<FeedbackSubmissionResult> {
-  if (
-    !rateLimit(
-      `feedback:${ctx.userId}`,
-      FEEDBACK_RATE_LIMIT,
-      FEEDBACK_RATE_LIMIT_WINDOW_MS
-    )
-  ) {
-    throw new AppError(
-      "feedback_rate_limited",
-      "You are sending feedback too quickly. Try again in a few minutes.",
-      { status: 429 }
-    )
-  }
+  await assertRateLimit(
+    `feedback:${ctx.userId}`,
+    FEEDBACK_RATE_LIMIT,
+    FEEDBACK_RATE_LIMIT_WINDOW_MS,
+    {
+      failOpen: true,
+      code: "feedback_rate_limited",
+      message:
+        "You are sending feedback too quickly. Try again in a few minutes.",
+    }
+  )
 
   if (
     input.attachment &&

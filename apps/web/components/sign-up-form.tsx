@@ -25,14 +25,20 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { Turnstile } from "@/components/turnstile"
 import { authClient } from "@/lib/auth-client"
 import { safeRedirect } from "@/lib/core/redirect"
 
-export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
+export function SignUpForm({
+  captchaSiteKey,
+  ...props
+}: React.ComponentProps<typeof Card> & { captchaSiteKey?: string }) {
   const t = useTranslations("Auth.signUp")
   const router = useRouter()
   const searchParams = useSearchParams()
   const [awaitingVerification, setAwaitingVerification] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaAttempt, setCaptchaAttempt] = useState(0)
 
   const formSchema = z
     .object({
@@ -61,9 +67,15 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       name: data.name,
       email: data.email,
       password: data.password,
+      fetchOptions: captchaToken
+        ? { headers: { "x-captcha-response": captchaToken } }
+        : undefined,
     })
 
     if (error) {
+      // The token is spent either way; fetch a fresh one for the retry.
+      setCaptchaToken(null)
+      setCaptchaAttempt((n) => n + 1)
       form.setError("root", {
         message: error.message ?? t("genericError"),
       })
@@ -211,7 +223,20 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
             />
             <FieldGroup>
               <Field>
-                <Button type="submit" disabled={form.formState.isSubmitting}>
+                {captchaSiteKey && (
+                  <Turnstile
+                    key={captchaAttempt}
+                    siteKey={captchaSiteKey}
+                    onToken={setCaptchaToken}
+                  />
+                )}
+                <Button
+                  type="submit"
+                  disabled={
+                    form.formState.isSubmitting ||
+                    (Boolean(captchaSiteKey) && !captchaToken)
+                  }
+                >
                   {form.formState.isSubmitting ? t("submitting") : t("submit")}
                 </Button>
                 {form.formState.errors.root && (

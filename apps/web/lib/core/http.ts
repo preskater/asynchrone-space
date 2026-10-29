@@ -45,6 +45,11 @@ export function jsonError(error: AppError) {
         details: server ? undefined : error.details,
       },
     },
-    { status: error.status }
+    {
+      status: error.status,
+      headers: error.retryAfter
+        ? { "Retry-After": String(error.retryAfter) }
+        : undefined,
+    }
   )
 }

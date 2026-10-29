@@ -45,3 +45,4 @@ collection.
 | [0019](0019-deploy-on-kubernetes-with-helm.md)            | accepted | Deploy on Kubernetes with Helm                                            |
 | [0020](0020-rename-to-asynchrone-space.md)                | accepted | Rename the product to Asynchrone Space                                     |
 | [0021](0021-team-trial-without-billing.md)                | accepted | Model the Team trial as a time window, not a plan change                   |
+| [0022](0022-shared-rate-limits-in-postgres.md)            | accepted | Share rate limits through PostgreSQL                                       |
