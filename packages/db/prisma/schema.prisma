@@ -107,6 +107,10 @@ model Organization {
   /// Set once by the trial-expiry cron so reminders and expiry never repeat.
   trialReminderSentAt DateTime?
   trialEndedAt        DateTime?
+  /// Owner-requested deletion. The organization-deletion cron removes the
+  /// organization once this date has passed; clearing it cancels the request.
+  deletionScheduledAt   DateTime?
+  deletionRequestedById String?
   teams             Team[]
   members           Member[]
   invitations       Invitation[]

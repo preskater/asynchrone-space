@@ -186,6 +186,9 @@ export const auth = betterAuth({
       // client-portal accounts; this static limit is only a backstop.
       membershipLimit: 10_000,
       creatorRole: "owner",
+      // Deletion goes through the 30-day grace period and the
+      // organization-deletion cron, which also unlinks file large objects.
+      disableOrganizationDeletion: true,
       requireEmailVerificationOnInvitation: false,
       organizationHooks: {
         beforeCreateInvitation: async ({ invitation }) => {
