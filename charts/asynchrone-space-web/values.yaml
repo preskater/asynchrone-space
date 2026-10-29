@@ -121,10 +121,14 @@ config:
   REQUIRE_EMAIL_VERIFICATION: "false"
   GITHUB_CLIENT_ID: ""
   GITLAB_CLIENT_ID: ""
+  TURNSTILE_SITE_KEY: ""
+  SIGNUP_INVITE_ONLY: "false"
+  SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
 
 # Existing Secret containing DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET and
 # any optional API keys (OPENAI_API_KEY, RESEND_API_KEY, GITHUB_CLIENT_SECRET,
-# GITLAB_CLIENT_SECRET). The chart never creates or stores secrets.
+# GITLAB_CLIENT_SECRET, TURNSTILE_SECRET_KEY). The chart never creates or
+# stores secrets.
 secret:
   existingSecret: asynchrone-space-web-secrets
 
@@ -167,6 +171,10 @@ cronjobs:
     enabled: true
     schedule: "0 6 * * *"
     path: /api/cron/trial-expiry
+  organizationDeletion:
+    enabled: true
+    schedule: "30 3 * * *"
+    path: /api/cron/organization-deletion
 
 tests:
   image: busybox:1.37.0

@@ -114,8 +114,15 @@ export async function POST(request: Request) {
     return jsonError(quotaExceeded(quota.resetAt))
   }
 
-  if (!rateLimit(`assistant:${ctx.userId}`, 20, 5 * 60_000)) {
-    return new Response("Too many requests", { status: 429 })
+  // Fail closed: every allowed run spends model tokens.
+  const limited = await rateLimit(`assistant:${ctx.userId}`, 20, 5 * 60_000, {
+    failOpen: false,
+  })
+  if (!limited.allowed) {
+    return new Response("Too many requests", {
+      status: 429,
+      headers: { "Retry-After": String(limited.retryAfter) },
+    })
   }
 
   const raw = await request.json().catch(() => null)

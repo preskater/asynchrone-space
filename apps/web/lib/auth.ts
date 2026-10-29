@@ -5,18 +5,16 @@ import { betterAuth } from "better-auth"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { admin, jwt, organization } from "better-auth/plugins"
-import {
-  adminAc,
-  defaultAc,
-  userAc,
-} from "better-auth/plugins/admin/access"
+import { admin, captcha, jwt, organization } from "better-auth/plugins"
+import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
+import { rateLimit } from "./core/rate-limit"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
 import { seatsFull } from "./organization/entitlements"
 import { parseRoles } from "./organization/utils"
 import { prisma } from "./prisma"
+import { isBlockedEmailDomain, isInviteOnly } from "./signup-policy"
 
 const mcpResource =
   process.env.MCP_RESOURCE_URL || `${process.env.BETTER_AUTH_URL}/mcp`
@@ -32,7 +30,9 @@ function oauthApp(
   clientSecret: string | undefined,
   scope: string[]
 ) {
-  return clientId && clientSecret ? { clientId, clientSecret, scope } : undefined
+  return clientId && clientSecret
+    ? { clientId, clientSecret, scope }
+    : undefined
 }
 
 /** Rejects a new workspace seat once the plan's limit is reached. */
@@ -51,6 +51,50 @@ async function assertSeatAvailable(
     })
   }
 }
+
+/** Caps invitation emails per organization; fails closed since each one sends mail. */
+async function assertInvitationRate(organizationId: string) {
+  const { allowed, retryAfter } = await rateLimit(
+    `invitations:${organizationId}`,
+    50,
+    60 * 60_000,
+    { failOpen: false }
+  )
+  if (!allowed) {
+    throw new APIError(
+      "TOO_MANY_REQUESTS",
+      { message: "Too many invitations. Try again later." },
+      { "Retry-After": String(retryAfter) }
+    )
+  }
+}
+
+/** Rejects throwaway addresses and, in invite-only mode, uninvited ones. */
+async function assertSignupAllowed(email: string) {
+  if (isBlockedEmailDomain(email)) {
+    throw new APIError("FORBIDDEN", {
+      code: "EMAIL_DOMAIN_BLOCKED",
+      message: "Sign-up with this email provider is not allowed.",
+    })
+  }
+  if (!isInviteOnly()) return
+  const invitation = await prisma.invitation.findFirst({
+    where: {
+      email: { equals: email, mode: "insensitive" },
+      status: "pending",
+      expiresAt: { gt: new Date() },
+    },
+    select: { id: true },
+  })
+  if (!invitation) {
+    throw new APIError("FORBIDDEN", {
+      code: "INVITATION_REQUIRED",
+      message: "Sign-up is by invitation only.",
+    })
+  }
+}
+
+const turnstileSecret = process.env.TURNSTILE_SECRET_KEY
 
 const githubOauth = oauthApp(
   process.env.GITHUB_CLIENT_ID,
@@ -89,6 +133,32 @@ export const auth = betterAuth({
       sendVerificationEmail({ to: user.email, url })
     },
   },
+  // Shared across replicas through the `rateLimit` table. Better Auth only
+  // enables it in production; dev keeps working without counters.
+  rateLimit: {
+    storage: "database",
+    customRules: {
+      "/sign-in/*": { window: 5 * 60, max: 10 },
+      "/sign-up/*": { window: 60 * 60, max: 5 },
+      "/request-password-reset": { window: 60 * 60, max: 5 },
+      "/send-verification-email": { window: 60 * 60, max: 5 },
+    },
+  },
+  advanced: {
+    // ingress-nginx sets X-Real-IP to the client address; X-Forwarded-For
+    // alone carries several hops behind a load balancer and is then ignored.
+    ipAddress: { ipAddressHeaders: ["x-real-ip", "x-forwarded-for"] },
+  },
+  databaseHooks: {
+    user: {
+      // Covers every sign-up path, OAuth included.
+      create: {
+        before: async (user) => {
+          await assertSignupAllowed(user.email)
+        },
+      },
+    },
+  },
   socialProviders: {
     ...(githubOauth ? { github: githubOauth } : {}),
     ...(gitlabOauth ? { gitlab: gitlabOauth } : {}),
@@ -116,9 +186,13 @@ export const auth = betterAuth({
       // client-portal accounts; this static limit is only a backstop.
       membershipLimit: 10_000,
       creatorRole: "owner",
+      // Deletion goes through the 30-day grace period and the
+      // organization-deletion cron, which also unlinks file large objects.
+      disableOrganizationDeletion: true,
       requireEmailVerificationOnInvitation: false,
       organizationHooks: {
         beforeCreateInvitation: async ({ invitation }) => {
+          await assertInvitationRate(invitation.organizationId)
           await assertSeatAvailable(
             invitation.organizationId,
             invitation.role,
@@ -219,6 +293,17 @@ export const auth = betterAuth({
       fetchClientMetadataResource,
       metadataProfile: "mcp-2026-07-28",
     }),
+    // Enforced server-side on sign-up and password reset once configured;
+    // the forms render the widget from TURNSTILE_SITE_KEY.
+    ...(turnstileSecret
+      ? [
+          captcha({
+            provider: "cloudflare-turnstile",
+            secretKey: turnstileSecret,
+            endpoints: ["/sign-up/email", "/request-password-reset"],
+          }),
+        ]
+      : []),
     nextCookies(),
   ],
 })

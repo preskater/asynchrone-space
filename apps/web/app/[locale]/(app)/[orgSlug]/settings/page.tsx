@@ -4,6 +4,9 @@ import type { CheckoutReturn } from "@/components/billing/billing-panel"
 import { OrganizationSettings } from "@/components/organization/organization-settings"
 import { TrialCard } from "@/components/trial/trial-card"
 
+import { getOptionalRequestContext } from "@/lib/core/auth-context"
+import { getDeletionScheduledAt } from "@/lib/organization/deletion-service"
+
 function checkoutFrom(
   params: Record<string, string | string[] | undefined>
 ): CheckoutReturn | undefined {
@@ -21,7 +24,10 @@ export default async function SettingsPage({
 }) {
   const t = await getTranslations("AppPages")
   const checkout = checkoutFrom(await searchParams)
-
+  const ctx = await getOptionalRequestContext()
+  const deletionScheduledAt = ctx
+    ? await getDeletionScheduledAt(ctx.organizationId)
+    : null
   return (
     <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:py-6 lg:px-6">
       <div className="flex flex-col gap-1">
@@ -31,7 +37,10 @@ export default async function SettingsPage({
         </p>
       </div>
       <TrialCard />
-      <OrganizationSettings checkout={checkout} />
+      <OrganizationSettings
+        checkout={checkout}
+        deletionScheduledAt={deletionScheduledAt}
+      />
     </div>
   )
 }

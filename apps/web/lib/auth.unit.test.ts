@@ -44,3 +44,20 @@ describe("auth email configuration", () => {
     })
   })
 })
+
+describe("auth rate limiting", () => {
+  it("shares counters through the database and outlives app windows", async () => {
+    const { auth } = await import("./auth")
+    const { MAX_WINDOW_MS } = await import("./core/rate-limit")
+    const rateLimit = auth.options.rateLimit!
+    expect(rateLimit.storage).toBe("database")
+    // Better Auth prunes rows older than its longest window; app rows in the
+    // same table must never outlive it.
+    const longest = Math.max(
+      ...Object.values(rateLimit.customRules ?? {}).map((rule) =>
+        rule && typeof rule === "object" ? rule.window : 0
+      )
+    )
+    expect(longest * 1000).toBeGreaterThanOrEqual(MAX_WINDOW_MS)
+  })
+})

@@ -25,14 +25,18 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import { Turnstile } from "@/components/turnstile"
 import { authClient } from "@/lib/auth-client"
 
 export function ForgotPasswordForm({
+  captchaSiteKey,
   ...props
-}: React.ComponentProps<typeof Card>) {
+}: React.ComponentProps<typeof Card> & { captchaSiteKey?: string }) {
   const t = useTranslations("Auth.forgotPassword")
   const locale = useLocale()
   const [sent, setSent] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaAttempt, setCaptchaAttempt] = useState(0)
 
   const formSchema = z.object({
     email: z.email(t("invalidEmail")),
@@ -47,9 +51,15 @@ export function ForgotPasswordForm({
     const { error } = await authClient.requestPasswordReset({
       email: data.email,
       redirectTo: `${window.location.origin}/${locale}/reset-password`,
+      fetchOptions: captchaToken
+        ? { headers: { "x-captcha-response": captchaToken } }
+        : undefined,
     })
 
     if (error) {
+      // The token is spent either way; fetch a fresh one for the retry.
+      setCaptchaToken(null)
+      setCaptchaAttempt((n) => n + 1)
       toast.error(error.message ?? t("genericError"))
       return
     }
@@ -111,7 +121,20 @@ export function ForgotPasswordForm({
               )}
             />
             <Field>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              {captchaSiteKey && (
+                <Turnstile
+                  key={captchaAttempt}
+                  siteKey={captchaSiteKey}
+                  onToken={setCaptchaToken}
+                />
+              )}
+              <Button
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting ||
+                  (Boolean(captchaSiteKey) && !captchaToken)
+                }
+              >
                 {form.formState.isSubmitting ? t("submitting") : t("submit")}
               </Button>
               <FieldDescription className="text-center">

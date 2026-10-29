@@ -54,8 +54,10 @@ function resolveTab(value: string | null, fallback: TabId): TabId {
 
 export function OrganizationSettings({
   checkout,
+  deletionScheduledAt,
 }: {
   checkout?: CheckoutReturn
+  deletionScheduledAt: Date | null
 }) {
   const t = useTranslations("Org")
   const tAppearance = useTranslations("Appearance")
@@ -219,6 +221,7 @@ export function OrganizationSettings({
           organization={organization}
           isOwner={permissions.isOwner}
           isOnlyOwner={isOnlyOwner}
+          deletionScheduledAt={deletionScheduledAt}
         />
       </TabsContent>
     </Tabs>

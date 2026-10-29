@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { assertRateLimit } from "@/lib/core/rate-limit"
 import {
   appendLargeObject,
   createLargeObject,
@@ -18,6 +19,7 @@ import type { FileNode } from "./types"
 const OPEN = "open"
 const COMPLETE = "complete"
 const ABORTED = "aborted"
+const UPLOAD_SESSIONS_PER_HOUR = 1000
 
 function canWrite(ctx: RequestContext) {
   if (roleRank(ctx.role) >= 2) return
@@ -124,6 +126,13 @@ export async function createUploadSession(
   input: CreateUploadSessionInput
 ): Promise<UploadSessionView> {
   canWrite(ctx)
+  // Generous enough for a large folder drop; stops scripted session floods.
+  await assertRateLimit(
+    `uploads:${ctx.organizationId}`,
+    UPLOAD_SESSIONS_PER_HOUR,
+    60 * 60_000,
+    { failOpen: true }
+  )
   await sweepExpiredUploadSessions()
 
   const [quota, used] = await Promise.all([

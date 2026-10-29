@@ -3,7 +3,7 @@
 Plans are paid through Stripe Checkout and managed in the Stripe Customer
 Portal. Asynchrone Space keeps a local mirror of the subscription and invoices
 so the app can enforce limits without calling the provider. The decision is recorded in
-[ADR 0022](adr/0022-bill-subscriptions-through-stripe.md); the free
+[ADR 0023](adr/0023-bill-subscriptions-through-stripe.md); the free
 Team trial is separate and lives in
 [ADR 0021](adr/0021-team-trial-without-billing.md).
 

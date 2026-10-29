@@ -63,6 +63,10 @@ asynchrone-space-web:
     REQUIRE_EMAIL_VERIFICATION: "false"
     GITHUB_CLIENT_ID: ""
     GITLAB_CLIENT_ID: ""
+    # Pair with TURNSTILE_SECRET_KEY in asynchrone-space-web-secrets.
+    TURNSTILE_SITE_KEY: ""
+    SIGNUP_INVITE_ONLY: "false"
+    SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
 
   secret:
     existingSecret: asynchrone-space-web-secrets
@@ -83,6 +87,10 @@ asynchrone-space-web:
       enabled: true
       schedule: "0 6 * * *"
       path: /api/cron/trial-expiry
+    organizationDeletion:
+      enabled: true
+      schedule: "30 3 * * *"
+      path: /api/cron/organization-deletion
 
 # ---------------------------------------------------------------------------
 # Internal control tower
