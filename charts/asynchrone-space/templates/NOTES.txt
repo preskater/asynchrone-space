@@ -27,11 +27,16 @@ Control tower:
 {{- end }}
 
 Required secrets:
-  - {{ $web.secret.existingSecret }} (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys)
+  - {{ $web.secret.existingSecret }} (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional
+    OPENAI_API_KEY, RESEND_API_KEY, GITHUB_CLIENT_SECRET, GITLAB_CLIENT_SECRET,
+    TURNSTILE_SECRET_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET)
   - {{ $ct.secret.existingSecret }} (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET)
 
 Scheduled jobs (formerly Vercel crons):
-  - uploads-sweep   {{ $web.cronjobs.uploadsSweep.schedule }} -> {{ $web.cronjobs.uploadsSweep.path }}
-  - repository-sync {{ $web.cronjobs.repositorySync.schedule }} -> {{ $web.cronjobs.repositorySync.path }}
+{{- range $job := list (dict "name" "uploads-sweep" "config" $web.cronjobs.uploadsSweep) (dict "name" "repository-sync" "config" $web.cronjobs.repositorySync) (dict "name" "trial-expiry" "config" $web.cronjobs.trialExpiry) (dict "name" "organization-deletion" "config" $web.cronjobs.organizationDeletion) }}
+{{- if $job.config.enabled }}
+  - {{ $job.name }} {{ $job.config.schedule }} -> {{ $job.config.path }}
+{{- end }}
+{{- end }}
 
 Every platform operator must enroll TOTP at /setup-2fa on the control tower.
