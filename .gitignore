@@ -46,9 +46,6 @@ yarn-error.log*
 # prisma generated client
 **/lib/generated/
 
-# helm dependency build output (run `helm dependency build charts/asynchrone-space`)
-charts/asynchrone-space/charts/
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
