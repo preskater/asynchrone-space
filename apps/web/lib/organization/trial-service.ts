@@ -1,11 +1,4 @@
-import type { RequestContext } from "@/lib/core/context"
-import { requirePermission } from "@/lib/core/auth-context"
-import { ConflictError, NotFoundError } from "@/lib/core/errors"
-import { sendTrialEndedEmail, sendTrialReminderEmail } from "@/lib/email"
-import { notificationService } from "@/lib/notifications"
-import { parsePlan } from "@/lib/organization/plans"
-import { prisma } from "@/lib/prisma"
-
+import { parsePlan } from "@workspace/db/plans"
 import {
   isTrialActive,
   trialClaimKeys,
@@ -13,7 +6,14 @@ import {
   trialEndsAtFrom,
   trialRefusal,
   trialStage,
-} from "./trial"
+} from "@workspace/db/trial"
+
+import type { RequestContext } from "@/lib/core/context"
+import { requirePermission } from "@/lib/core/auth-context"
+import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import { sendTrialEndedEmail, sendTrialReminderEmail } from "@/lib/email"
+import { notificationService } from "@/lib/notifications"
+import { prisma } from "@/lib/prisma"
 
 const TRIAL_SELECT = {
   id: true,
@@ -42,7 +42,7 @@ export async function getTrialStatus(
   })
   if (!org) return null
   const plan = parsePlan(org.metadata)
-  if (plan !== null && plan !== "free") return null
+  if (plan !== "free") return null
 
   return {
     state: isTrialActive(org, now)
@@ -196,7 +196,7 @@ export async function processTrials(now = new Date()) {
     const stage = trialStage(org, now)
     if (!stage) continue
     // Paid in the meantime (control tower): close the trial without emails.
-    const paid = !["free", null].includes(parsePlan(org.metadata))
+    const paid = parsePlan(org.metadata) !== "free"
 
     if (stage === "expire") {
       const { count } = await prisma.organization.updateMany({

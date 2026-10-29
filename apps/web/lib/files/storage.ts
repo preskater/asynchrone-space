@@ -1,7 +1,7 @@
 import { entitlementsFor, parsePlan } from "@workspace/db/plans"
+import { effectivePlan } from "@workspace/db/trial"
 
 import { prisma } from "@/lib/prisma"
-import { effectivePlan } from "@/lib/organization/trial"
 
 export async function orgQuotaBytes(organizationId: string): Promise<number> {
   const organization = await prisma.organization.findUnique({

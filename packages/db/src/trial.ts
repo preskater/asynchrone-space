@@ -1,10 +1,12 @@
 /**
- * Team trial rules, kept free of I/O so they can be unit tested.
+ * Team trial rules, kept free of I/O so both apps can resolve the same plan
+ * and the rules can be unit tested.
  *
  * The trial never rewrites `metadata.plan`: a free organization is treated as
  * Team while `trialEndsAt` is in the future, so the downgrade happens on time
  * even if the expiry cron is late, and no data is ever touched.
  */
+import type { OrgPlan } from "./plans"
 
 export const TRIAL_DAYS = 14
 export const TRIAL_REMINDER_DAYS = 3
@@ -26,26 +28,26 @@ export function isTrialActive(
   org: Pick<TrialFields, "trialEndsAt">,
   now = new Date()
 ): boolean {
-  return org.trialEndsAt !== null && org.trialEndsAt > now
+  // `!= null` also covers fields a partial `select` did not load.
+  return org.trialEndsAt != null && org.trialEndsAt > now
 }
 
 export function trialDaysLeft(
   org: Pick<TrialFields, "trialEndsAt">,
   now = new Date()
 ): number {
-  if (!isTrialActive(org, now)) return 0
-  return Math.ceil((org.trialEndsAt!.getTime() - now.getTime()) / DAY_MS)
+  const endsAt = org.trialEndsAt
+  if (endsAt == null || !isTrialActive(org, now)) return 0
+  return Math.ceil((endsAt.getTime() - now.getTime()) / DAY_MS)
 }
 
 /** The plan to enforce: the trial only ever upgrades a free organization. */
 export function effectivePlan(
-  plan: string | null,
+  plan: OrgPlan,
   org: Pick<TrialFields, "trialEndsAt">,
   now = new Date()
-): string | null {
-  if ((plan === null || plan === "free") && isTrialActive(org, now)) {
-    return "team"
-  }
+): OrgPlan {
+  if (plan === "free" && isTrialActive(org, now)) return "team"
   return plan
 }
 
@@ -118,13 +120,13 @@ export type TrialRefusal =
   | "trial_already_claimed"
 
 export function trialRefusal(input: {
-  plan: string | null
+  plan: OrgPlan
   org: Pick<TrialFields, "trialStartedAt">
   emailVerified: boolean
   /** A previous claim matched the email or the (non-public) domain. */
   claimed: boolean
 }): TrialRefusal | null {
-  if (input.plan !== null && input.plan !== "free") return "trial_not_eligible"
+  if (input.plan !== "free") return "trial_not_eligible"
   if (input.org.trialStartedAt) return "trial_already_used"
   if (!input.emailVerified) return "trial_email_unverified"
   if (input.claimed) return "trial_already_claimed"

@@ -8,7 +8,7 @@ import {
   trialRefusal,
   trialStage,
   type TrialFields,
-} from "./trial"
+} from "@workspace/db/trial"
 
 const DAY = 24 * 60 * 60 * 1000
 const now = new Date("2026-11-01T12:00:00Z")
@@ -28,7 +28,7 @@ describe("trial window", () => {
     const endsAt = trialEndsAtFrom(now)
     expect(endsAt.getTime() - now.getTime()).toBe(14 * DAY)
     expect(effectivePlan("free", { trialEndsAt: endsAt }, now)).toBe("team")
-    expect(effectivePlan(null, { trialEndsAt: endsAt }, now)).toBe("team")
+    expect(effectivePlan("free", { trialEndsAt: endsAt }, now)).toBe("team")
     expect(trialDaysLeft({ trialEndsAt: endsAt }, now)).toBe(14)
   })
 
@@ -80,11 +80,15 @@ describe("trialStage", () => {
 
 describe("abuse checks", () => {
   const fresh = { trialStartedAt: null }
-  const ok = { plan: "free", org: fresh, emailVerified: true, claimed: false }
+  const ok = {
+    plan: "free" as const,
+    org: fresh,
+    emailVerified: true,
+    claimed: false,
+  }
 
   it("allows a first trial for a verified free organization", () => {
     expect(trialRefusal(ok)).toBeNull()
-    expect(trialRefusal({ ...ok, plan: null })).toBeNull()
   })
 
   it("allows one trial per organization", () => {
