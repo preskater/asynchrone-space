@@ -6,14 +6,14 @@ Environment:
 
 Required Secret: {{ .Values.secret.existingSecret }}
   It must contain DATABASE_URL, BETTER_AUTH_SECRET and CRON_SECRET (plus any
-  optional provider keys). Missing required keys make the pods fail at boot.
+  optional provider keys: OPENAI_API_KEY, RESEND_API_KEY, GITHUB_CLIENT_SECRET,
+  GITLAB_CLIENT_SECRET, TURNSTILE_SECRET_KEY, STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET). Missing required keys make the pods fail at boot.
 
 The CronJobs use CRON_SECRET from {{ .Values.cronjobs.secretName | default .Values.secret.existingSecret }}:
-{{- range $name := list "uploads-sweep" "repository-sync" "trial-expiry" }}
-{{- $key := ternary "uploadsSweep" (ternary "repositorySync" "trialExpiry" (eq $name "repository-sync")) (eq $name "uploads-sweep") }}
-{{- $job := index $.Values.cronjobs $key }}
-{{- if $job.enabled }}
-  - {{ $name }} ({{ $job.schedule }}) -> {{ $job.path }}
+{{- range $job := list (dict "name" "uploads-sweep" "config" .Values.cronjobs.uploadsSweep) (dict "name" "repository-sync" "config" .Values.cronjobs.repositorySync) (dict "name" "trial-expiry" "config" .Values.cronjobs.trialExpiry) (dict "name" "organization-deletion" "config" .Values.cronjobs.organizationDeletion) }}
+{{- if $job.config.enabled }}
+  - {{ $job.name }} ({{ $job.config.schedule }}) -> {{ $job.config.path }}
 {{- end }}
 {{- end }}
 

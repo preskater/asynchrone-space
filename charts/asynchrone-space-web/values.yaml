@@ -124,10 +124,17 @@ config:
   TURNSTILE_SITE_KEY: ""
   SIGNUP_INVITE_ONLY: "false"
   SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
+  # Billing: prices fall back to the inline Team price when the Price IDs are
+  # empty. Pair with STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET in the Secret.
+  STRIPE_PRICE_TEAM_MONTHLY: ""
+  STRIPE_PRICE_TEAM_YEARLY: ""
+  STRIPE_AUTOMATIC_TAX: ""
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ""
 
 # Existing Secret containing DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET and
 # any optional API keys (OPENAI_API_KEY, RESEND_API_KEY, GITHUB_CLIENT_SECRET,
-# GITLAB_CLIENT_SECRET, TURNSTILE_SECRET_KEY). The chart never creates or
+# GITLAB_CLIENT_SECRET, TURNSTILE_SECRET_KEY, STRIPE_SECRET_KEY,
+# STRIPE_WEBHOOK_SECRET). The chart never creates or
 # stores secrets.
 secret:
   existingSecret: asynchrone-space-web-secrets

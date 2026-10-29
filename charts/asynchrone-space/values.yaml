@@ -67,6 +67,11 @@ asynchrone-space-web:
     TURNSTILE_SITE_KEY: ""
     SIGNUP_INVITE_ONLY: "false"
     SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
+    # Pair with STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET in the Secret.
+    STRIPE_PRICE_TEAM_MONTHLY: ""
+    STRIPE_PRICE_TEAM_YEARLY: ""
+    STRIPE_AUTOMATIC_TAX: ""
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ""
 
   secret:
     existingSecret: asynchrone-space-web-secrets

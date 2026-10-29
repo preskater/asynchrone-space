@@ -35,7 +35,10 @@ organization, so checkout charges the first invoice immediately.
 
 ## Configuration
 
-Set these in `apps/web/.env` (or the `asynchrone-space-web-secrets` Secret in production):
+Set these in `apps/web/.env`. On Kubernetes, `STRIPE_SECRET_KEY` and
+`STRIPE_WEBHOOK_SECRET` belong in the `asynchrone-space-web-secrets` Secret; the
+rest are non-secret and go under `asynchrone-space-web.config` (see
+[deployment/helm.md](deployment/helm.md)):
 
 | Variable                                                 | Purpose                                                                                        |
 | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
