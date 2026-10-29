@@ -74,7 +74,9 @@ export function NavUser({
               variant="ghost"
               size="icon-sm"
               className="rounded-full"
-              aria-label={user.name}
+              // The visible label is the avatar initials, so the accessible
+              // name has to contain them (WCAG 2.5.3, checked by axe).
+              aria-label={`${initials} ${user.name}`}
             />
           }
         >
