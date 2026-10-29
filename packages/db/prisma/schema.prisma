@@ -165,7 +165,7 @@ model TrialClaim {
   organizationId String
   createdAt      DateTime @default(now())
 
-  @@index([domain])
+  @@unique([domain])
   @@map("trialClaim")
 }
 
