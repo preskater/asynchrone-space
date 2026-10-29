@@ -31,33 +31,28 @@ export class HrFetchService extends HrServiceCore {
     toKey: string
   ): Promise<TrackingResult> {
     const access = await this.accessFor(ctx)
-    const [rows, memberInfo] = await Promise.all([
-      this.repo.listAllocationEntries(ctx.organizationId, {
-        from: parseDateKey(fromKey),
-        to: parseDateKey(toKey),
-      }),
-      this.loadMembers(ctx.organizationId),
-    ])
+    const [rows, memberInfo, clientRows, projectRows, activityRows] =
+      await Promise.all([
+        this.repo.listAllocationEntries(ctx.organizationId, {
+          from: parseDateKey(fromKey),
+          to: parseDateKey(toKey),
+        }),
+        this.loadMembers(ctx.organizationId),
+        this.repo.listClients(ctx.organizationId),
+        this.repo.listProjects(ctx.organizationId),
+        this.repo.listActivities(ctx.organizationId),
+      ])
 
     const { members, nameById } = memberInfo
     const memberById = new Map(members.map((member) => [member.id, member]))
     const clientById = new Map(
-      (await this.repo.listClients(ctx.organizationId)).map((client) => [
-        client.id,
-        client.name,
-      ])
+      clientRows.map((client) => [client.id, client.name])
     )
     const projectById = new Map(
-      (await this.repo.listProjects(ctx.organizationId)).map((project) => [
-        project.id,
-        project,
-      ])
+      projectRows.map((project) => [project.id, project])
     )
     const activityById = new Map(
-      (await this.repo.listActivities(ctx.organizationId)).map((activity) => [
-        activity.id,
-        activity,
-      ])
+      activityRows.map((activity) => [activity.id, activity])
     )
 
     const scoped = access.canViewAll

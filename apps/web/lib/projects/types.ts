@@ -134,6 +134,9 @@ export interface Project {
   repositoryProvider?: RepositoryProvider
   memberIds: string[]
   labelIds: string[]
+  /** Shell counters, computed without loading tasks. */
+  taskCount?: number
+  doneTaskCount?: number
   createdAt: string
   dueDate?: string
 }

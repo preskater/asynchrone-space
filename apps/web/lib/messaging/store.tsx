@@ -9,6 +9,7 @@ import {
   createChannelAction,
   deleteMessageAction,
   editMessageAction,
+  listMessagesAction,
   listMessagingAction,
   markReadAction,
   sendMessageAction,
@@ -56,6 +57,10 @@ interface MessagingStore extends MessagingData {
   getConversation: (id?: string) => Conversation | undefined
   messagesFor: (conversationId: string) => Message[]
   repliesFor: (parentId: string) => Message[]
+  ensureMessages: (conversationId: string) => void
+  loadOlderMessages: (conversationId: string) => void
+  hasMoreMessages: (conversationId: string) => boolean
+  messagesLoading: Record<string, boolean>
   lastMessageFor: (conversationId: string) => Message | undefined
   dmPartner: (conversation: Conversation) => string | undefined
   unreadTotal: number
@@ -97,6 +102,13 @@ export function MessagingProvider({
     initialData.conversations
   )
   const [messages, setMessages] = React.useState<Message[]>(initialData.messages)
+  const [cursors, setCursors] = React.useState<Record<string, string | null>>(
+    {}
+  )
+  const [messagesLoading, setMessagesLoading] = React.useState<
+    Record<string, boolean>
+  >({})
+  const activeConversationRef = React.useRef<string | null>(null)
   const [teams, setTeams] = React.useState<Team[]>(initialData.teams)
   const [presence, setPresence] = React.useState<Record<string, Presence>>(
     initialData.presence
@@ -115,6 +127,103 @@ export function MessagingProvider({
     setTypingState(initialData.typing)
   }, [initialData])
 
+  const mergeConversation = React.useCallback(
+    (conversationId: string, fetched: Message[]) => {
+      setMessages((prev) => {
+        const fetchedIds = new Set(fetched.map((message) => message.id))
+        const oldestFetched = fetched.reduce(
+          (oldest, message) =>
+            Math.min(oldest, new Date(message.createdAt).getTime()),
+          Number.POSITIVE_INFINITY
+        )
+        const others = prev.filter(
+          (message) => message.conversationId !== conversationId
+        )
+        // Keep pages loaded through "load earlier" plus pending optimistic
+        // messages; replace the newest page with the server copy.
+        const older = prev.filter(
+          (message) =>
+            message.conversationId === conversationId &&
+            !fetchedIds.has(message.id) &&
+            new Date(message.createdAt).getTime() < oldestFetched
+        )
+        const optimistic = prev.filter(
+          (message) =>
+            message.conversationId === conversationId &&
+            message.id.startsWith("m_") &&
+            !fetchedIds.has(message.id)
+        )
+        return [...others, ...older, ...fetched, ...optimistic]
+      })
+    },
+    []
+  )
+
+  const ensureMessages = React.useCallback(
+    (conversationId: string) => {
+      activeConversationRef.current = conversationId
+      if (
+        cursors[conversationId] !== undefined ||
+        messagesLoading[conversationId]
+      ) {
+        return
+      }
+      setMessagesLoading((prev) => ({ ...prev, [conversationId]: true }))
+      void listMessagesAction(conversationId)
+        .then((result) => {
+          const page = unwrap(result)
+          mergeConversation(conversationId, page.items)
+          setCursors((prev) => ({
+            ...prev,
+            [conversationId]: page.nextCursor,
+          }))
+        })
+        .catch(() => {})
+        .finally(() =>
+          setMessagesLoading((prev) => ({
+            ...prev,
+            [conversationId]: false,
+          }))
+        )
+    },
+    [cursors, messagesLoading, mergeConversation]
+  )
+
+  const loadOlderMessages = React.useCallback(
+    (conversationId: string) => {
+      const cursor = cursors[conversationId]
+      if (!cursor || messagesLoading[conversationId]) return
+      setMessagesLoading((prev) => ({ ...prev, [conversationId]: true }))
+      void listMessagesAction(conversationId, cursor)
+        .then((result) => {
+          const page = unwrap(result)
+          setMessages((prev) => {
+            const existing = new Set(
+              prev
+                .filter((message) => message.conversationId === conversationId)
+                .map((message) => message.id)
+            )
+            const older = page.items.filter(
+              (message) => !existing.has(message.id)
+            )
+            return [...older, ...prev]
+          })
+          setCursors((prev) => ({
+            ...prev,
+            [conversationId]: page.nextCursor,
+          }))
+        })
+        .catch(() => {})
+        .finally(() =>
+          setMessagesLoading((prev) => ({
+            ...prev,
+            [conversationId]: false,
+          }))
+        )
+    },
+    [cursors, messagesLoading]
+  )
+
   React.useEffect(() => {
     let active = true
     const refetch = () => {
@@ -123,12 +232,21 @@ export function MessagingProvider({
           if (!active) return
           const data = unwrap(result)
           setConversations(data.conversations)
-          setMessages(data.messages)
           setTeams(data.teams)
           setPresence(data.presence)
           setTypingState(data.typing)
         })
         .catch(() => {})
+      const conversationId = activeConversationRef.current
+      if (conversationId) {
+        void listMessagesAction(conversationId)
+          .then((result) => {
+            if (!active) return
+            const page = unwrap(result)
+            mergeConversation(conversationId, page.items)
+          })
+          .catch(() => {})
+      }
     }
 
     const onVisible = () => {
@@ -207,7 +325,21 @@ export function MessagingProvider({
         parentId: input.parentId,
         meeting: input.meeting,
       }
-      setMessages((prev) => [...prev, optimistic])
+      setMessages((prev) => {
+        const next = [...prev, optimistic]
+        const inConversation = next.filter(
+          (message) => message.conversationId === input.conversationId
+        )
+        if (inConversation.length <= 200) return next
+        const keep = new Set(
+          inConversation.slice(-200).map((message) => message.id)
+        )
+        return next.filter(
+          (message) =>
+            message.conversationId !== input.conversationId ||
+            keep.has(message.id)
+        )
+      })
       if (!input.parentId) {
         setConversations((prev) =>
           prev.map((conversation) =>
@@ -250,6 +382,10 @@ export function MessagingProvider({
       getConversation,
       messagesFor,
       repliesFor,
+      ensureMessages,
+      loadOlderMessages,
+      hasMoreMessages: (conversationId) => Boolean(cursors[conversationId]),
+      messagesLoading,
       lastMessageFor,
       dmPartner,
       unreadTotal: conversations.reduce(
@@ -441,7 +577,20 @@ export function MessagingProvider({
           .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
-  }, [conversations, messages, teams, presence, typing, members, currentUserId, organizationId])
+  }, [
+    conversations,
+    messages,
+    teams,
+    presence,
+    typing,
+    members,
+    currentUserId,
+    organizationId,
+    cursors,
+    messagesLoading,
+    ensureMessages,
+    loadOlderMessages,
+  ])
 
   return (
     <MessagingContext.Provider value={store}>

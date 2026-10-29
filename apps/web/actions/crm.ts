@@ -38,6 +38,41 @@ async function revalidateCrm(organizationId: string) {
   ])
 }
 
+// --- Keyset-paginated list endpoints -----------------------------------------
+
+export const listCrmClientsAction = withAction(
+  async (cursor?: string | null) => {
+    const ctx = await getRequestContext()
+    return crmService.listClientsPage(ctx, { cursor })
+  }
+)
+
+export const listCrmContactsAction = withAction(
+  async (cursor?: string | null) => {
+    const ctx = await getRequestContext()
+    return crmService.listContactsPage(ctx, { cursor })
+  }
+)
+
+export const listCrmDealsAction = withAction(
+  async (cursor?: string | null) => {
+    const ctx = await getRequestContext()
+    return crmService.listDealsPage(ctx, { cursor })
+  }
+)
+
+export const listCrmActivitiesAction = withAction(
+  async (input?: {
+    cursor?: string | null
+    clientId?: string
+    contactId?: string
+    dealId?: string
+  }) => {
+    const ctx = await getRequestContext()
+    return crmService.listActivitiesPage(ctx, input ?? {})
+  }
+)
+
 // --- Companies (clients) -----------------------------------------------------
 
 export const saveClientAction = withAction(async (input: unknown) => {

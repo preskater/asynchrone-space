@@ -40,6 +40,7 @@ import {
 import {
   archiveContactAction,
   exportCrmAction,
+  listCrmContactsAction,
   restoreContactAction,
 } from "@/actions/crm"
 import { Link, useRouter } from "@/i18n/navigation"
@@ -68,18 +69,34 @@ export function ContactsPanel({
   const [archiveTarget, setArchiveTarget] =
     React.useState<CrmContactData | null>(null)
   const [exporting, setExporting] = React.useState(false)
+  const [contacts, setContacts] = React.useState(data.contacts)
+  const [cursor, setCursor] = React.useState(data.pagination.contacts)
+  const [loadingMore, setLoadingMore] = React.useState(false)
 
-  const clientOptions = React.useMemo(
-    () =>
-      data.clients
-        .filter((client) => !client.archivedAt)
-        .map((client) => ({ id: client.id, name: client.name })),
-    [data.clients]
-  )
+  const clientOptions = data.clientOptions
+
+  React.useEffect(() => {
+    setContacts(data.contacts)
+    setCursor(data.pagination.contacts)
+  }, [data])
+
+  async function loadMore() {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = unwrapActionResult(await listCrmContactsAction(cursor))
+      setContacts((prev) => [...prev, ...page.items])
+      setCursor(page.nextCursor)
+    } catch (error) {
+      toast.error(te(error, "internal"))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const visible = React.useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return data.contacts.filter((contact) => {
+    return contacts.filter((contact) => {
       if (!showArchived && contact.archivedAt) return false
       if (
         needle &&
@@ -93,9 +110,9 @@ export function ContactsPanel({
       }
       return true
     })
-  }, [data.contacts, query, showArchived])
+  }, [contacts, query, showArchived])
 
-  const hasActive = data.contacts.some((contact) => !contact.archivedAt)
+  const hasActive = contacts.some((contact) => !contact.archivedAt)
 
   async function handleExport() {
     setExporting(true)
@@ -319,6 +336,20 @@ export function ContactsPanel({
               </Table>
             </div>
           )}
+          {cursor ? (
+            <div className="flex justify-center pb-4">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={loadingMore}
+                onClick={() => void loadMore()}
+              >
+                {loadingMore ? <Spinner className="size-4" /> : null}
+                {t("common.loadMore")}
+              </Button>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 

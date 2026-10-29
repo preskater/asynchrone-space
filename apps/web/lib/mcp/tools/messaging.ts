@@ -14,7 +14,7 @@ export const messagingTools: McpTool[] = [
     name: "list_conversations",
     title: "List conversations",
     description:
-      "List the workspace conversations (channels and direct messages) with their messages.",
+      "List the workspace conversations (channels and direct messages). Each conversation includes its latest message preview; use list_messages for history.",
     inputSchema: {},
     readOnly: true,
     run: (ctx) => messagingService.list(ctx),
@@ -22,11 +22,21 @@ export const messagingTools: McpTool[] = [
   {
     name: "list_messages",
     title: "List messages",
-    description: "List the top-level messages in a conversation.",
-    inputSchema: { conversationId: z.string() },
+    description:
+      "List one page of top-level messages in a conversation (newest page first, replies included). Pass the previous `cursor` to load older messages.",
+    inputSchema: {
+      conversationId: z.string(),
+      cursor: z.string().optional(),
+    },
     readOnly: true,
-    run: (ctx, input) =>
-      messagingService.messagesFor(ctx, String(input.conversationId)),
+    run: async (ctx, input) => {
+      const page = await messagingService.listMessages(
+        ctx,
+        String(input.conversationId),
+        { cursor: input.cursor as string | undefined }
+      )
+      return page.items
+    },
   },
   {
     name: "send_message",

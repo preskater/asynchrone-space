@@ -254,15 +254,43 @@ export interface CrmFileOptionData {
   modifiedAt: string
 }
 
+export interface CrmOverviewStats {
+  clients: {
+    total: number
+    active: number
+    prospects: number
+    openValue: number
+  }
+  deals: {
+    openCount: number
+    openValue: number
+    weighted: number
+    won30: number
+  }
+}
+
+/** Keyset cursors for the next page of each overview list. */
+export interface CrmOverviewPagination {
+  clients: string | null
+  contacts: string | null
+  deals: string | null
+  recentActivities: string | null
+}
+
 export interface CrmOverviewData {
   todayKey: string
   access: CrmAccessData
   members: CrmMemberOptionData[]
   fieldDefinitions: CrmFieldDefinitionData[]
+  /** Light option lists so forms do not depend on the paginated rows. */
+  clientOptions: CrmClientOptionData[]
+  contactOptions: CrmContactOptionData[]
   clients: CrmClientData[]
   contacts: CrmContactData[]
   pipelines: CrmPipelineData[]
   deals: CrmDealData[]
+  pagination: CrmOverviewPagination
+  stats: CrmOverviewStats
   /** Latest activity across all records (desk feed). */
   recentActivities: CrmActivityData[]
 }

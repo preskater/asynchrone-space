@@ -33,6 +33,7 @@
     "archiveFailed": "Impossible d'archiver l'enregistrement.",
     "restoreFailed": "Impossible de restaurer l'enregistrement.",
     "saving": "Enregistrement…",
+    "loadMore": "Charger plus",
     "close": "Fermer"
   },
   "clients": {

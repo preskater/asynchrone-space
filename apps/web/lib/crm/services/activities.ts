@@ -1,5 +1,13 @@
 import type { RequestContext } from "@/lib/core/context"
 import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import type { ActivityInput } from "../schemas"
 import type { CrmActivityData } from "../types"
 import { CrmServiceCore, requireEdit } from "./core"
@@ -47,5 +55,41 @@ export class CrmActivitiesService extends CrmServiceCore {
       dealId: input.dealId ?? null,
     })
     return this.mapActivity(row, new Map([[ctx.userId, ctx.userName]]))
+  }
+
+  async listActivitiesPage(
+    ctx: RequestContext,
+    input: PageInput & {
+      clientId?: string
+      contactId?: string
+      dealId?: string
+    } = {}
+  ): Promise<Page<CrmActivityData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { occurredAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const [rows, memberRows] = await Promise.all([
+      this.repo.listActivitiesFor(
+        ctx.organizationId,
+        {
+          clientId: input.clientId,
+          contactId: input.contactId,
+          dealId: input.dealId,
+        },
+        { after, take: limit + 1 }
+      ),
+      this.repo.listMembers(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.occurredAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) => this.mapActivity(row, nameById)),
+      nextCursor: page.nextCursor,
+    }
   }
 }

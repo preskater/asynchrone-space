@@ -53,23 +53,18 @@ export type FieldRow = Awaited<
 export type AuditRow = Awaited<
   ReturnType<CrmRepository["listAuditForEntity"]>
 >[number]
-export type ProjectOptionRow = Awaited<
-  ReturnType<CrmRepository["listProjectOptions"]>
+export type StageStatRow = Awaited<
+  ReturnType<CrmRepository["stageDealStats"]>
 >[number]
+
+export interface ClientStatMaps {
+  contacts: Map<string, number>
+  deals: Map<string, { count: number; value: number }>
+  projects: Map<string, number>
+}
 export type DocumentRow = Awaited<
   ReturnType<CrmRepository["listDocuments"]>
 >[number]
-
-interface WorkspaceRows {
-  memberRows: MemberRow[]
-  clientRows: ClientRow[]
-  contactRows: ContactRow[]
-  pipelineRows: PipelineRow[]
-  dealRows: DealRow[]
-  activityRows: ActivityRow[]
-  fieldRows: FieldRow[]
-  projectRows: ProjectOptionRow[]
-}
 
 export function requireEdit(access: CrmAccess) {
   if (access.canEdit) return
@@ -363,26 +358,37 @@ export class CrmServiceCore {
     }
   }
 
-  protected mapPipeline(row: PipelineRow): CrmPipelineData {
-    const deals = row.deals ?? []
+  protected mapPipeline(
+    row: PipelineRow,
+    stageStats: Map<string, { count: number; value: number }>
+  ): CrmPipelineData {
     const stages = [...row.stages].sort((a, b) => a.position - b.position)
     return {
       id: row.id,
       name: row.name,
       isDefault: row.isDefault,
       stages: stages.map((stage) => {
-        const stageDeals = deals.filter((deal) => deal.stageId === stage.id)
+        const stats = stageStats.get(stage.id)
         return {
           id: stage.id,
           name: stage.name,
           position: stage.position,
           type: stage.type as CrmPipelineData["stages"][number]["type"],
           color: text(stage.color),
-          dealCount: stageDeals.length,
-          totalValue: stageDeals.reduce((sum, deal) => sum + deal.amount, 0),
+          dealCount: stats?.count ?? 0,
+          totalValue: stats?.value ?? 0,
         }
       }),
     }
+  }
+
+  protected stageStatsMap(rows: StageStatRow[]) {
+    return new Map(
+      rows.map((row) => [
+        row.stageId ?? "",
+        { count: row._count._all, value: row._sum.amount ?? 0 },
+      ])
+    )
   }
 
   protected mapActivity(
@@ -451,60 +457,42 @@ export class CrmServiceCore {
     })
   }
 
-  protected async loadWorkspace(
+  /** Counters shared by the list and detail pages, computed in the database. */
+  protected async loadClientStatMaps(
     organizationId: string
-  ): Promise<WorkspaceRows> {
-    const [
-      memberRows,
-      clientRows,
-      contactRows,
-      pipelineRows,
-      dealRows,
-      activityRows,
-      fieldRows,
-      projectRows,
-    ] = await Promise.all([
-      this.repo.listMembers(organizationId),
-      this.repo.listClients(organizationId),
-      this.repo.listContacts(organizationId),
-      this.repo.listPipelines(organizationId),
-      this.repo.listDeals(organizationId),
-      this.repo.listActivities(organizationId, 100),
-      this.repo.listFieldDefinitions(organizationId),
-      this.repo.listProjectOptions(organizationId),
+  ): Promise<ClientStatMaps> {
+    const [contactCounts, dealCounts, projectCounts] = await Promise.all([
+      this.repo.contactCountsByClient(organizationId),
+      this.repo.openDealCountsByClient(organizationId),
+      this.repo.projectCountsByClient(organizationId),
     ])
     return {
-      memberRows,
-      clientRows,
-      contactRows,
-      pipelineRows,
-      dealRows,
-      activityRows,
-      fieldRows,
-      projectRows,
+      contacts: new Map(
+        contactCounts.map((row) => [row.clientId, row._count._all])
+      ),
+      deals: new Map(
+        dealCounts.map((row) => [
+          row.clientId ?? "",
+          { count: row._count._all, value: row._sum.amount ?? 0 },
+        ])
+      ),
+      projects: new Map(
+        projectCounts.map((row) => [row.clientId ?? "", row._count._all])
+      ),
     }
   }
-}
 
-export function buildClientStats(
-  clientId: string,
-  contactRows: ContactRow[],
-  dealRows: DealRow[],
-  projectRows: ProjectOptionRow[]
-) {
-  const openDeals = dealRows.filter(
-    (deal) =>
-      deal.clientId === clientId && deal.status === "open" && !deal.deletedAt
-  )
-  return {
-    contactCount: contactRows.filter(
-      (contact) =>
-        !contact.deletedAt &&
-        contact.companies.some((link) => link.clientId === clientId)
-    ).length,
-    openDealCount: openDeals.length,
-    openDealValue: openDeals.reduce((sum, deal) => sum + deal.amount, 0),
-    projectCount: projectRows.filter((project) => project.clientId === clientId)
-      .length,
+  protected async loadContactDealCounts(organizationId: string) {
+    const rows = await this.repo.openDealCountsByContact(organizationId)
+    return new Map(rows.map((row) => [row.contactId, row._count._all] as const))
+  }
+
+  protected clientStatsFrom(clientId: string, maps: ClientStatMaps) {
+    return {
+      contactCount: maps.contacts.get(clientId) ?? 0,
+      openDealCount: maps.deals.get(clientId)?.count ?? 0,
+      openDealValue: maps.deals.get(clientId)?.value ?? 0,
+      projectCount: maps.projects.get(clientId) ?? 0,
+    }
   }
 }

@@ -39,6 +39,14 @@ export function WorkspaceNavProvider({
   const [messagesActiveId, setMessagesActiveId] = React.useState<
     string | undefined
   >(() => conversations[0]?.id)
+
+  // The shell hydrates conversations after mount; select the first one once
+  // they are available instead of staying on an empty screen.
+  React.useEffect(() => {
+    if (!messagesActiveId && conversations[0]) {
+      setMessagesActiveId(conversations[0].id)
+    }
+  }, [conversations, messagesActiveId])
   const [messagesSearchOpen, setMessagesSearchOpen] = React.useState(false)
   const [filesLocation, setFilesLocation] =
     React.useState<FileLocation>("my-files")

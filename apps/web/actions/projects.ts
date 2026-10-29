@@ -25,6 +25,19 @@ export const listProjectsAction = withAction(async () => {
   return projectService.list(ctx)
 })
 
+/** Tasks and the latest activity feed for the projects/calendar features. */
+export const loadProjectWorkspaceAction = withAction(async () => {
+  const ctx = await getRequestContext()
+  return projectService.listWorkspace(ctx)
+})
+
+export const listProjectActivitiesAction = withAction(
+  async (input?: { cursor?: string | null; projectId?: string }) => {
+    const ctx = await getRequestContext()
+    return projectService.listActivities(ctx, input)
+  }
+)
+
 export const createProjectAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(createProjectSchema, input)
@@ -119,6 +132,13 @@ export const listMembersAction = withAction(async () => {
   const ctx = await getRequestContext()
   return projectService.listMembers(ctx)
 })
+
+export const listMembersPageAction = withAction(
+  async (cursor?: string | null) => {
+    const ctx = await getRequestContext()
+    return projectService.listMembersPage(ctx, { cursor })
+  }
+)
 
 export const addMemberAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()

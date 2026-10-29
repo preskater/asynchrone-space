@@ -1,11 +1,18 @@
 import type { RequestContext } from "@/lib/core/context"
 import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  toPage,
+  type Page,
+  type PageInput,
+} from "@/lib/core/pagination"
 import type { ClientInput } from "../schemas"
 import type { CrmClientData } from "../types"
 import {
   CrmServiceCore,
   requireEdit,
-  buildClientStats,
   type ClientRow,
   type FieldRow,
 } from "./core"
@@ -31,8 +38,10 @@ export class CrmClientsService extends CrmServiceCore {
     fieldRows: FieldRow[],
     input: ClientInput
   ) {
-    const memberRows = await this.repo.listMembers(ctx.organizationId)
-    if (input.ownerId && !memberRows.some((m) => m.user.id === input.ownerId)) {
+    if (
+      input.ownerId &&
+      !(await this.repo.memberExists(ctx.organizationId, input.ownerId))
+    ) {
       throw new NotFoundError("Member")
     }
     return {
@@ -59,21 +68,58 @@ export class CrmClientsService extends CrmServiceCore {
     ctx: RequestContext,
     id: string
   ): Promise<CrmClientData> {
-    const [row, memberRows, contactRows, dealRows, projectRows] =
+    const [row, memberRows, contactCount, dealStats, projectCount] =
       await Promise.all([
         this.repo.findClient(ctx.organizationId, id),
         this.repo.listMembers(ctx.organizationId),
-        this.repo.listContacts(ctx.organizationId),
-        this.repo.listDeals(ctx.organizationId),
-        this.repo.listProjectOptions(ctx.organizationId),
+        this.repo.clientContactCount(ctx.organizationId, id),
+        this.repo.clientOpenDealStats(ctx.organizationId, id),
+        this.repo.clientProjectCount(ctx.organizationId, id),
       ])
     if (!row) throw new NotFoundError("Client")
     const nameById = this.nameById(memberRows)
     return this.mapClient(
       row,
-      buildClientStats(id, contactRows, dealRows, projectRows),
+      {
+        contactCount,
+        openDealCount: dealStats._count._all,
+        openDealValue: dealStats._sum.amount ?? 0,
+        projectCount,
+      },
       row.ownerId ? nameById.get(row.ownerId) : undefined
     )
+  }
+
+  async listClientsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<CrmClientData>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { name: decoded[0], id: decoded[1] }
+        : null
+    const [rows, memberRows, statMaps] = await Promise.all([
+      this.repo.listClientsPage(ctx.organizationId, {
+        after,
+        take: limit + 1,
+      }),
+      this.repo.listMembers(ctx.organizationId),
+      this.loadClientStatMaps(ctx.organizationId),
+    ])
+    const nameById = this.nameById(memberRows)
+    const page = toPage(rows, limit, (row) => encodeCursor([row.name, row.id]))
+    return {
+      items: page.items.map((row) =>
+        this.mapClient(
+          row,
+          this.clientStatsFrom(row.id, statMaps),
+          row.ownerId ? nameById.get(row.ownerId) : undefined
+        )
+      ),
+      nextCursor: page.nextCursor,
+    }
   }
 
   async saveClient(

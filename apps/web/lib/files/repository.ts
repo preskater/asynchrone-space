@@ -1,16 +1,22 @@
 import type { PrismaClient } from "@workspace/db"
 
+/**
+ * Only the most recent versions/activity entries are needed by the file
+ * panel; unbounded history made the layout payload grow with every edit.
+ */
+const FILE_INCLUDE = {
+  shares: true,
+  versions: { orderBy: { at: "desc" as const }, take: 20 },
+  activities: { orderBy: { at: "desc" as const }, take: 20 },
+}
+
 export class FileRepository {
   constructor(private readonly db: PrismaClient) {}
 
   list(organizationId: string) {
     return this.db.fileNode.findMany({
       where: { organizationId },
-      include: {
-        shares: true,
-        versions: { orderBy: { at: "desc" } },
-        activities: { orderBy: { at: "desc" } },
-      },
+      include: FILE_INCLUDE,
       orderBy: { name: "asc" },
     })
   }
@@ -18,11 +24,7 @@ export class FileRepository {
   findById(organizationId: string, id: string) {
     return this.db.fileNode.findFirst({
       where: { id, organizationId },
-      include: {
-        shares: true,
-        versions: { orderBy: { at: "desc" } },
-        activities: { orderBy: { at: "desc" } },
-      },
+      include: FILE_INCLUDE,
     })
   }
 
@@ -87,11 +89,7 @@ export class FileRepository {
         shared: data.shared,
         shares: data.shares?.length ? { create: data.shares } : undefined,
       },
-      include: {
-        shares: true,
-        versions: { orderBy: { at: "desc" } },
-        activities: { orderBy: { at: "desc" } },
-      },
+      include: FILE_INCLUDE,
     })
   }
 
@@ -135,11 +133,7 @@ export class FileRepository {
     return this.db.fileNode.update({
       where: { id },
       data,
-      include: {
-        shares: true,
-        versions: { orderBy: { at: "desc" } },
-        activities: { orderBy: { at: "desc" } },
-      },
+      include: FILE_INCLUDE,
     })
   }
 

@@ -52,12 +52,16 @@ function ProjectCard({ project }: { project: Project }) {
   const locale = useLocale()
   const L = useEnumLabel()
   const orgSlug = useOrgSlug()
-  const { tasksForProject, getMember, deleteProject } = useProjectStore()
+  const { tasksForProject, getMember, deleteProject, tasksLoaded } =
+    useProjectStore()
   const [editOpen, setEditOpen] = React.useState(false)
   const [deleteOpen, setDeleteOpen] = React.useState(false)
   const tasks = tasksForProject(project.id)
-  const done = tasks.filter((task) => task.status === "done").length
-  const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0
+  const total = tasksLoaded ? tasks.length : (project.taskCount ?? 0)
+  const done = tasksLoaded
+    ? tasks.filter((task) => task.status === "done").length
+    : (project.doneTaskCount ?? 0)
+  const progress = total ? Math.round((done / total) * 100) : 0
   const members = project.memberIds
     .map((id) => getMember(id))
     .filter((member) => member !== undefined)
@@ -113,7 +117,7 @@ function ProjectCard({ project }: { project: Project }) {
         <div className="flex items-center justify-between gap-2">
           <Badge variant="outline">{L.projectStatus(project.status)}</Badge>
           <span className="text-xs text-muted-foreground">
-            {t("tasksDone", { done, total: tasks.length })}
+            {t("tasksDone", { done, total })}
           </span>
         </div>
         <Progress value={progress} />
@@ -146,7 +150,7 @@ function ProjectCard({ project }: { project: Project }) {
             <AlertDialogDescription>
               {t("deleteProjectTasksDescription", {
                 name: project.name,
-                count: tasks.length,
+                count: total,
               })}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -167,7 +171,11 @@ function ProjectCard({ project }: { project: Project }) {
 
 export function ProjectsGrid() {
   const t = useTranslations("Projects")
-  const { projects } = useProjectStore()
+  const { projects, ensureProjectData } = useProjectStore()
+
+  React.useEffect(() => {
+    ensureProjectData()
+  }, [ensureProjectData])
 
   if (projects.length === 0) {
     return (

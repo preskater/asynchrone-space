@@ -62,6 +62,7 @@ import {
 import {
   archiveDealAction,
   exportCrmAction,
+  listCrmDealsAction,
   moveDealAction,
   restoreDealAction,
 } from "@/actions/crm"
@@ -116,41 +117,47 @@ export function DealsWorkspace({
   } | null>(null)
   const [lossReason, setLossReason] = React.useState("")
   const [moving, setMoving] = React.useState(false)
+  const [deals, setDeals] = React.useState(data.deals)
+  const [cursor, setCursor] = React.useState(data.pagination.deals)
+  const [loadingMore, setLoadingMore] = React.useState(false)
+
+  React.useEffect(() => {
+    setDeals(data.deals)
+    setCursor(data.pagination.deals)
+  }, [data])
+
+  async function loadMore() {
+    if (!cursor || loadingMore) return
+    setLoadingMore(true)
+    try {
+      const page = unwrapActionResult(await listCrmDealsAction(cursor))
+      setDeals((prev) => [...prev, ...page.items])
+      setCursor(page.nextCursor)
+    } catch (error) {
+      toast.error(te(error, "internal"))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const pipeline =
     data.pipelines.find((item) => item.id === pipelineId) ??
     data.pipelines[0] ??
     null
 
-  const clientOptions = React.useMemo(
-    () =>
-      data.clients
-        .filter((client) => !client.archivedAt)
-        .map((client) => ({ id: client.id, name: client.name })),
-    [data.clients]
-  )
-  const contactOptions = React.useMemo(
-    () =>
-      data.contacts
-        .filter((contact) => !contact.archivedAt)
-        .map((contact) => ({
-          id: contact.id,
-          name: contact.fullName,
-          email: contact.email,
-        })),
-    [data.contacts]
-  )
+  const clientOptions = data.clientOptions
+  const contactOptions = data.contactOptions
 
   const activeDeals = React.useMemo(
-    () => data.deals.filter((deal) => !deal.archivedAt),
-    [data.deals]
+    () => deals.filter((deal) => !deal.archivedAt),
+    [deals]
   )
 
   const visibleList = React.useMemo(() => {
     const needle = query.trim().toLowerCase()
     return (showArchived
-      ? data.deals
-      : data.deals.filter((deal) => !deal.archivedAt)
+      ? deals
+      : deals.filter((deal) => !deal.archivedAt)
     ).filter((deal) => {
       if (
         needle &&
@@ -162,28 +169,9 @@ export function DealsWorkspace({
       }
       return true
     })
-  }, [data.deals, query, showArchived])
+  }, [deals, query, showArchived])
 
-  const stats = React.useMemo(() => {
-    const open = activeDeals.filter((deal) => deal.status === "open")
-    const threshold = Date.now() - 30 * 24 * 60 * 60 * 1000
-    return {
-      openCount: open.length,
-      openValue: open.reduce((sum, deal) => sum + deal.amount, 0),
-      weighted: open.reduce(
-        (sum, deal) => sum + (deal.amount * deal.probability) / 100,
-        0
-      ),
-      won30: activeDeals
-        .filter(
-          (deal) =>
-            deal.status === "won" &&
-            deal.actualCloseDate &&
-            new Date(`${deal.actualCloseDate}T00:00:00`).getTime() >= threshold
-        )
-        .reduce((sum, deal) => sum + deal.amount, 0),
-    }
-  }, [activeDeals])
+  const stats = data.stats.deals
 
   async function handleMove(deal: CrmDealData, stageId: string, position: number) {
     const stage = pipeline?.stages.find((item) => item.id === stageId)
@@ -540,6 +528,21 @@ export function DealsWorkspace({
           </CardContent>
         </Card>
       )}
+
+      {cursor ? (
+        <div className="flex justify-center">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            disabled={loadingMore}
+            onClick={() => void loadMore()}
+          >
+            {loadingMore ? <Spinner className="size-4" /> : null}
+            {t("common.loadMore")}
+          </Button>
+        </div>
+      ) : null}
 
       <AlertDialog
         open={archiveTarget !== null}

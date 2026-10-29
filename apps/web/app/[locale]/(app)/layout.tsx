@@ -16,7 +16,7 @@ import { getOrganizationAppearance } from "@/lib/appearance/service"
 import { AssistantProvider } from "@/lib/assistant/use-assistant"
 import { calendarService } from "@/lib/calendars"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
-import { fileService } from "@/lib/files"
+import type { FilesData } from "@/lib/files/types"
 import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
@@ -30,6 +30,14 @@ import { MessagingProvider } from "@/lib/messaging/store"
 import { ProjectStoreProvider } from "@/lib/projects/store"
 import { RecentsProvider } from "@/lib/recents/store"
 import { WorkspaceNavProvider } from "@/lib/workspace-nav/store"
+
+/** Files are hydrated by the files screen, not by the app shell. */
+const EMPTY_FILES_DATA: FilesData = {
+  files: [],
+  shares: {},
+  versions: {},
+  activities: {},
+}
 
 export default async function AppLayout({
   children,
@@ -78,22 +86,23 @@ export default async function AppLayout({
   const [
     projectData,
     calendarData,
-    filesData,
     messagingData,
     storageQuotaBytes,
     notificationData,
     appearance,
     entitlements,
   ] = await Promise.all([
-    projectService.list(ctx),
-    calendarService.list(ctx),
-    fileService.list(ctx),
+    // Shell-level only: project metadata, calendar sources and conversation
+    // metadata. Tasks, events, files and messages load per feature.
+    projectService.listShell(ctx),
+    calendarService.listShell(ctx),
     messagingService.list(ctx),
     orgQuotaBytes(organization.id),
     notificationService.list(ctx),
     getOrganizationAppearance(organization.id),
     getOrganizationEntitlements(organization.id),
   ])
+  const filesData = EMPTY_FILES_DATA
 
   return (
     <TooltipProvider>
