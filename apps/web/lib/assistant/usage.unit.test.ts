@@ -55,7 +55,7 @@ describe("getAiQuota", () => {
     })
     const now = new Date("2026-10-29T12:00:00Z")
     expect(await getAiQuota("org_1", now)).toEqual({
-      budgetMicros: 4 * 13_000_000,
+      budgetMicros: 4 * 8_000_000,
       usedMicros: 5_000,
       resetAt: new Date("2026-11-01T00:00:00Z"),
     })
