@@ -18,6 +18,9 @@ vi.mock("@/lib/large-object", () => ({
 }))
 
 vi.mock("./storage", () => ({ orgQuotaBytes, orgUsedBytes }))
+vi.mock("@/lib/organization/entitlements", () => ({
+  requireEntitlement: vi.fn(),
+}))
 
 import type { RequestContext } from "@/lib/core/context"
 

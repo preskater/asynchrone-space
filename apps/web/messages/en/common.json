@@ -12,5 +12,12 @@
   "hoursShort": "{count}h",
   "daysShort": "{count}d",
   "toggleTheme": "Toggle theme",
-  "skipToContent": "Skip to content"
+  "skipToContent": "Skip to content",
+  "upgrade": {
+    "title": "Upgrade to unlock this",
+    "cta": "See plans",
+    "ai": "AI assistants are included in the Team and Enterprise plans.",
+    "granularPermissions": "Per-file sharing and restricted access are included in the Team and Enterprise plans.",
+    "seats": "Your plan includes up to {seats} members, pending invitations included. Upgrade to add more."
+  }
 }
