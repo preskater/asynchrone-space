@@ -110,8 +110,18 @@ helm upgrade --install asynchrone-space charts/asynchrone-space \
 ```
 
 `helm dependency build` writes packaged copies to `charts/asynchrone-space/charts/`
-(git-ignored) and creates `Chart.lock`. Run it again after changing either
-subchart.
+and creates `Chart.lock`. Those archives **are committed**, so a chart source
+that clones the repository (Rancher, Fleet) or a packaged `.tgz` works without
+running a dependency step first. After changing either subchart, rebuild and
+commit the archives:
+
+```bash
+helm dependency build charts/asynchrone-space
+git add charts/asynchrone-space/charts
+```
+
+CI fails when a vendored archive no longer matches its subchart sources
+(`.github/workflows/helm.yml`, "Check vendored subcharts are up to date").
 
 Use `-f my-values.yaml` for production overrides instead of long `--set`
 lists. The defaults already target `asynchrone.space` and
