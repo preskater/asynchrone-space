@@ -64,6 +64,7 @@
   "meetingProviderNotConnected": "{provider} n'est pas connecté. Connectez l'application de réunion dans les paramètres.",
   "meetingAttendeeInvalid": "Un des participants sélectionnés n'est pas membre de cette organisation.",
   "feedbackRateLimited": "Vous envoyez des retours trop rapidement. Réessayez dans quelques minutes.",
+  "rateLimited": "Trop de requêtes. Réessayez dans quelques minutes.",
   "feedbackDeliveryFailed": "Votre retour n'a pas pu être envoyé. Veuillez réessayer.",
   "validationMessages": {
     "required": "Ce champ est obligatoire.",

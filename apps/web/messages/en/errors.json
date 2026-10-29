@@ -64,6 +64,7 @@
   "meetingProviderNotConnected": "{provider} is not connected. Connect the meeting app in settings first.",
   "meetingAttendeeInvalid": "One of the selected attendees is not a member of this organization.",
   "feedbackRateLimited": "You are sending feedback too quickly. Try again in a few minutes.",
+  "rateLimited": "Too many requests. Try again in a few minutes.",
   "feedbackDeliveryFailed": "Your feedback could not be sent. Please try again.",
   "validationMessages": {
     "required": "This field is required.",

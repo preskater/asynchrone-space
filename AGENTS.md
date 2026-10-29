@@ -81,6 +81,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Path aliases: `@/*` → `apps/web/*`, `@workspace/ui/*` → `packages/ui/src/*`. UI imports require `transpilePackages` (already set in `next.config.ts`).
 - UI is shadcn/ui on **Base UI** primitives (not Radix) with Tailwind. Owned components live in `packages/ui/src/components`.
 - `pg` and `pg-large-object` are listed in `serverExternalPackages`; keep them out of client code.
+- Rate limits are shared across replicas through the `rateLimit` table (ADR 0022): use `rateLimit`/`assertRateLimit` from `apps/web/lib/core/rate-limit.ts` and choose `failOpen` per call site. Better Auth limits auth endpoints through the same table.
 - i18n uses next-intl with `localePrefix: "always"` (en default, fr). Add every user-facing string to both `apps/web/messages/en` and `apps/web/messages/fr`; blog/content MDX is mirrored under `apps/web/content/<type>/<locale>`.
 - The assistant/MCP endpoint is at `apps/web/app/mcp/route.ts` (not under `/api`) and is excluded from the i18n middleware in `apps/web/proxy.ts`. Other API routes are under `apps/web/app/api/*`.
 - ESLint is flat-config per workspace (`eslint.config.js`); the root `.eslintrc.js` only holds ignores. Prettier config is `.prettierrc` (with Tailwind class sorting); root `format` only covers `**/*.{ts,tsx}`.

@@ -69,6 +69,7 @@ const CODE_KEYS: Record<string, string> = {
   meeting_provider_not_connected: "meetingProviderNotConnected",
   meeting_attendee_invalid: "meetingAttendeeInvalid",
   feedback_rate_limited: "feedbackRateLimited",
+  rate_limited: "rateLimited",
   feedback_delivery_failed: "feedbackDeliveryFailed",
   upgrade_required: "upgradeRequired",
   quota_exceeded: "quotaExceeded",

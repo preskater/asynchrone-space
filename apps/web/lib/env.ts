@@ -53,6 +53,17 @@ if (process.env.REQUIRE_EMAIL_VERIFICATION === "true") {
   }
 }
 
+// The widget and the server check must be configured together, or every
+// sign-up either skips the captcha or fails it.
+if (
+  Boolean(process.env.TURNSTILE_SITE_KEY) !==
+  Boolean(process.env.TURNSTILE_SECRET_KEY)
+) {
+  problems.push(
+    "TURNSTILE_SITE_KEY and TURNSTILE_SECRET_KEY must be set together"
+  )
+}
+
 if (problems.length > 0) {
   throw new Error(
     `Invalid environment configuration:\n${problems
