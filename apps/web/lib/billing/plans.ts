@@ -27,14 +27,16 @@ export const PAID_PLAN: OrgPlan = "team"
 
 /**
  * Team pricing in the smallest currency unit. Yearly is 10 × months, matching
- * the "€12 monthly / €10 billed yearly" copy on the pricing page.
+ * the "€12 monthly / €10 billed yearly" copy on the pricing page. The client
+ * renders these through `BillingOverviewData.prices`, so this is the only place
+ * the amount is written down.
  */
 export const TEAM_PRICE: Record<
   BillingInterval,
-  { amount: number; currency: string; label: string }
+  { amount: number; currency: string }
 > = {
-  month: { amount: 1200, currency: "eur", label: "€12 / month" },
-  year: { amount: 12000, currency: "eur", label: "€120 / year" },
+  month: { amount: 1200, currency: "eur" },
+  year: { amount: 12000, currency: "eur" },
 }
 
 const PROVIDER_STATUS_ALIASES: Record<string, SubscriptionStatus> = {

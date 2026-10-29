@@ -67,6 +67,9 @@ export async function updateOrganizationPlan(
 
     const status = plan === "free" ? "inactive" : "active"
 
+    // A control-tower save is a manual override whatever the plan: webhooks
+    // must not put a manually downgraded organization back on its Stripe plan.
+    // "Release override" is the only way back to provider-driven state.
     await prisma.$transaction([
       prisma.organization.update({
         where: { id: organizationId },
@@ -82,13 +85,13 @@ export async function updateOrganizationPlan(
           plan,
           status,
           provider: "manual",
-          manualOverride: plan !== "free",
+          manualOverride: true,
         },
         update: {
           plan,
           status,
           provider: "manual",
-          manualOverride: plan !== "free",
+          manualOverride: true,
           cancelAtPeriodEnd: false,
         },
       }),
@@ -116,7 +119,7 @@ export async function updateOrganizationPlan(
         plan,
         status,
         provider: "manual",
-        manualOverride: plan !== "free",
+        manualOverride: true,
         storageQuotaBytes: quotaBytes,
       },
     })

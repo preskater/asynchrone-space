@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { ForbiddenError } from "@/lib/core/errors"
+
 import { BillingService } from "./service"
 import type {
   BillingNotifierPort,
@@ -548,5 +550,104 @@ describe("billing overview", () => {
 
     expect(provider.listInvoices).not.toHaveBeenCalled()
     expect(overview.invoices).toHaveLength(1)
+  })
+
+  it("exposes the server price catalog", async () => {
+    const { service } = setup()
+
+    const overview = await service.getOverview(ctx)
+
+    expect(overview.prices).toEqual({
+      month: { amount: 1200, currency: "eur" },
+      year: { amount: 12000, currency: "eur" },
+    })
+  })
+
+  it("hides invoices from roles that cannot manage billing", async () => {
+    const { service, repo, provider } = setup({
+      invoices: [
+        {
+          id: "in_secret",
+          number: "INV-0009",
+          status: "paid",
+          amountDue: 12000,
+          amountPaid: 12000,
+          currency: "eur",
+          hostedInvoiceUrl: "https://invoice.stripe.test/in_secret",
+          invoicePdf: null,
+          periodStart: null,
+          periodEnd: null,
+          paidAt: null,
+        },
+      ],
+    })
+    // A provider customer exists, so a manager would also backfill invoices.
+    await repo.setCustomerId(ORGANIZATION_ID, CUSTOMER_ID)
+
+    const overview = await service.getOverview({ ...ctx, role: "member" })
+
+    expect(provider.listInvoices).not.toHaveBeenCalled()
+    expect(overview.invoices).toEqual([])
+    expect(overview.canSubscribe).toBe(false)
+    expect(overview.canManagePayment).toBe(false)
+    expect(overview.usage.storageQuotaBytes).toBeGreaterThan(0)
+  })
+})
+
+describe("checkout sync", () => {
+  const ctx = {
+    userId: "user_1",
+    userName: "Owner",
+    userEmail: "owner@acme.test",
+    organizationId: ORGANIZATION_ID,
+    role: "owner" as const,
+  }
+
+  function checkoutSession(organizationId: string | null) {
+    return {
+      id: "cs_sync",
+      customerId: CUSTOMER_ID,
+      subscriptionId: SUBSCRIPTION_ID,
+      organizationId,
+      customerEmail: "owner@acme.test",
+    }
+  }
+
+  it("applies the subscription of the caller's own session", async () => {
+    const { service, repo, provider } = setup()
+    provider.retrieveCheckoutSession.mockResolvedValue(
+      checkoutSession(ORGANIZATION_ID)
+    )
+
+    const overview = await service.syncCheckout(ctx, "cs_sync")
+
+    expect(provider.retrieveSubscription).toHaveBeenCalledWith(SUBSCRIPTION_ID)
+    expect(repo.subscription).toMatchObject({ plan: "team", status: "active" })
+    expect(overview.plan).toBe("team")
+  })
+
+  it("refuses a session that belongs to another organization", async () => {
+    const { service, provider, repo } = setup()
+    provider.retrieveCheckoutSession.mockResolvedValue(
+      checkoutSession("org_other")
+    )
+
+    await expect(service.syncCheckout(ctx, "cs_sync")).rejects.toBeInstanceOf(
+      ForbiddenError
+    )
+    expect(provider.retrieveSubscription).not.toHaveBeenCalled()
+    expect(repo.subscription).toBeNull()
+  })
+
+  it("refuses a session that carries no organization", async () => {
+    const { service, provider, repo } = setup()
+    // e.g. a session created by hand in the Stripe dashboard
+    provider.retrieveCheckoutSession.mockResolvedValue(checkoutSession(null))
+
+    await expect(service.syncCheckout(ctx, "cs_sync")).rejects.toBeInstanceOf(
+      ForbiddenError
+    )
+    expect(provider.retrieveSubscription).not.toHaveBeenCalled()
+    expect(repo.subscription).toBeNull()
   })
 })

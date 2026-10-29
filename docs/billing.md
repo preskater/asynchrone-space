@@ -154,10 +154,10 @@ boot (`lib/env.ts`).
 ## Manual overrides and Enterprise
 
 The control tower can grant any plan (Plan & quota card on an organization).
-Saving writes `Subscription` with `provider = "manual"` and, for paid plans,
-`manualOverride = true`; webhooks then leave the plan alone so a contract does
-not get overwritten by Stripe state. Each change appends a `PlatformAuditEvent`
-(`organization.plan.update`).
+Saving writes `Subscription` with `provider = "manual"` and
+`manualOverride = true` — for every plan, so a manual downgrade to Starter is
+not undone by the next webhook. Webhooks then leave the plan alone; each change
+appends a `PlatformAuditEvent` (`organization.plan.update`).
 
 **Release override** clears the flag and hands the plan back to the provider on
 the next webhook without changing the current plan in the meantime. Releasing

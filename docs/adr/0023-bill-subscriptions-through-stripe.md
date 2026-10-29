@@ -70,10 +70,11 @@ syncs the checkout session as a fallback when the webhook is delayed; both
 paths are idempotent.
 
 A platform admin can still grant any plan from the control tower. That writes
-the `Subscription` row with `provider = "manual"` and, for paid plans,
-`manualOverride = true`; webhooks then leave the plan untouched until an admin
-chooses "Release override". Every change — grant or release — appends a
-`PlatformAuditEvent` with before/after state.
+the `Subscription` row with `provider = "manual"` and `manualOverride = true`
+(whatever the plan, so a manual downgrade to Starter also sticks); webhooks then
+leave the plan untouched until an admin chooses "Release override". Every
+change — grant or release — appends a `PlatformAuditEvent` with before/after
+state.
 
 Organizations with no `Subscription` row keep reading `metadata.plan`, so the
 migration needs no backfill.

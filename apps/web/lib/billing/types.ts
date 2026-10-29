@@ -49,6 +49,8 @@ export interface BillingOverviewData {
   plan: BillingPlan
   status: SubscriptionStatus
   provider: BillingProviderId
+  /** Team prices in the smallest currency unit, from the server catalog. */
+  prices: Record<BillingInterval, { amount: number; currency: string }>
   interval: BillingInterval | null
   currentPeriodEnd: string | null
   cancelAtPeriodEnd: boolean
@@ -59,6 +61,7 @@ export interface BillingOverviewData {
   /** Checkout is offered only when a provider key is configured. */
   canSubscribe: boolean
   usage: BillingUsageData
+  /** Empty for roles that cannot manage billing. */
   invoices: InvoiceSummaryData[]
 }
 

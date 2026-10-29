@@ -218,6 +218,14 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
           Math.round((usage.storageUsedBytes / usage.storageQuotaBytes) * 100)
         )
       : 0
+  // Amounts come from the server catalog so the copy can never drift from the
+  // charge; the yearly fallback covers a manually granted plan with no interval.
+  const priceFor = (interval: BillingInterval) =>
+    formatAmount(
+      overview.prices[interval].amount,
+      overview.prices[interval].currency,
+      locale
+    )
 
   const periodNote = overview.cancelAtPeriodEnd
     ? t("cancelsOn", { date: formatDate(overview.currentPeriodEnd, locale) })
@@ -226,7 +234,7 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
       : overview.currentPeriodEnd
         ? t("renewsOn", {
             date: formatDate(overview.currentPeriodEnd, locale),
-            price: overview.interval === "year" ? "€120" : "€12",
+            price: priceFor(overview.interval ?? "month"),
           })
         : t("noRenewal")
 
@@ -277,7 +285,7 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
                   <CreditCardIcon />
                   {pending === "checkout:month"
                     ? t("redirecting")
-                    : t("upgradeMonthly", { price: "€12" })}
+                    : t("upgradeMonthly", { price: priceFor("month") })}
                 </Button>
                 <Button
                   type="button"
@@ -287,7 +295,7 @@ export function BillingPanel({ checkout }: { checkout?: CheckoutReturn }) {
                 >
                   {pending === "checkout:year"
                     ? t("redirecting")
-                    : t("upgradeYearly", { price: "€120" })}
+                    : t("upgradeYearly", { price: priceFor("year") })}
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">{t("yearlyHint")}</p>
