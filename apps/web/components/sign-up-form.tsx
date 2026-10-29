@@ -115,9 +115,15 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     placeholder={t("namePlaceholder")}
                     autoComplete="name"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}
@@ -135,10 +141,16 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     placeholder="m@example.com"
                     autoComplete="email"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   <FieldDescription>{t("emailHint")}</FieldDescription>
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}
@@ -155,10 +167,16 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     type="password"
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   <FieldDescription>{t("passwordHint")}</FieldDescription>
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}
@@ -177,10 +195,16 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     type="password"
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
+                    aria-describedby={
+                      fieldState.invalid ? `${field.name}-error` : undefined
+                    }
                   />
                   <FieldDescription>{t("confirmHint")}</FieldDescription>
                   {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
+                    <FieldError
+                      id={`${field.name}-error`}
+                      errors={[fieldState.error]}
+                    />
                   )}
                 </Field>
               )}

@@ -227,8 +227,15 @@ export function RequestLeaveDialog({
                   onChange={setStartDate}
                   placeholder={t("leave.pickStart")}
                   invalid={startInvalid}
+                  aria-describedby={
+                    startInvalid ? "leave-start-error" : undefined
+                  }
                 />
-                {startInvalid ? <FieldError>{tV("required")}</FieldError> : null}
+                {startInvalid ? (
+                  <FieldError id="leave-start-error">
+                    {tV("required")}
+                  </FieldError>
+                ) : null}
               </Field>
               <Field data-invalid={endMissing || endBeforeStart || noWorkingHalves}>
                 <FieldLabel htmlFor="leave-end">{t("leave.endDate")}</FieldLabel>
@@ -239,13 +246,20 @@ export function RequestLeaveDialog({
                   placeholder={t("leave.pickEnd")}
                   disabledBefore={startDate || undefined}
                   invalid={endMissing || endBeforeStart || noWorkingHalves}
+                  aria-describedby={
+                    endMissing || endBeforeStart || noWorkingHalves
+                      ? "leave-end-error"
+                      : undefined
+                  }
                 />
-                {endMissing ? <FieldError>{tV("required")}</FieldError> : null}
-                {endBeforeStart ? (
-                  <FieldError>{t("leave.endBeforeStart")}</FieldError>
-                ) : null}
-                {noWorkingHalves ? (
-                  <FieldError>{t("leave.noWorkingHalves")}</FieldError>
+                {endMissing || endBeforeStart || noWorkingHalves ? (
+                  <FieldError id="leave-end-error">
+                    {endMissing ? <p>{tV("required")}</p> : null}
+                    {endBeforeStart ? <p>{t("leave.endBeforeStart")}</p> : null}
+                    {noWorkingHalves ? (
+                      <p>{t("leave.noWorkingHalves")}</p>
+                    ) : null}
+                  </FieldError>
                 ) : null}
               </Field>
             </div>
