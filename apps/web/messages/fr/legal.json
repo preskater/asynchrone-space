@@ -17,28 +17,28 @@
   "terms": {
     "title": "Conditions d'utilisation",
     "description": "L'accord qui régit votre utilisation de Asynchrone Space.",
-    "updated": "1 octobre 2026",
+    "updated": "29 octobre 2026",
     "s1h": "Acceptation des conditions",
     "s1b1": "En accédant à Asynchrone Space ou en l'utilisant, vous acceptez d'être lié par ces conditions. Si vous utilisez le service pour le compte d'une organisation, vous déclarez avoir l'autorité pour engager cette organisation.",
     "s2h": "Utilisation acceptable",
     "s2b1": "Vous acceptez de ne pas détourner le service, notamment en tentant d'y accéder par d'autres moyens que les interfaces que nous fournissons, ou en l'utilisant pour stocker ou partager du contenu illicite.",
     "s3h": "Abonnements et facturation",
-    "s3b1": "Les offres payantes se renouvellent automatiquement sauf annulation. Les frais ne sont pas remboursables, sauf lorsque la loi l'exige. Vous êtes responsable des taxes liées à votre abonnement.",
+    "s3b1": "Les offres payantes ne sont pas encore disponibles. Les conditions de facturation, y compris le renouvellement et les remboursements, seront publiées ici avant toute offre payante. Vous serez responsable des taxes liées à un futur abonnement.",
     "s4h": "Résiliation",
     "s4b1": "Vous pouvez cesser d'utiliser le service à tout moment. Nous pouvons suspendre ou résilier l'accès si vous enfreignez ces conditions ou si cela est nécessaire pour protéger le service ou les autres utilisateurs."
   },
   "security": {
     "title": "Sécurité",
     "description": "Comment Asynchrone Space protège votre espace de travail et vos données.",
-    "updated": "1 octobre 2026",
+    "updated": "29 octobre 2026",
     "s1h": "Chiffrement",
     "s1b1": "Toutes les données sont chiffrées en transit via TLS et au repos avec un chiffrement standard du secteur. Les identifiants sont hachés, jamais stockés en clair.",
     "s1b2": "Nous faisons tourner les clés régulièrement et appliquons le moindre privilège pour les systèmes internes.",
     "s2h": "Contrôle d'accès",
     "s2b1": "Les organisations incluent un contrôle d'accès basé sur les rôles avec les rôles propriétaire, administrateur, membre et lecteur. Les permissions de fichiers peuvent être définies par personne et par fichier.",
-    "s2b2": "Les offres Enterprise ajoutent le SSO, le provisionnement SCIM et une journalisation d'audit détaillée.",
+    "s2b2": "Le SSO, le provisionnement SCIM et un journal d'audit accessible aux clients sont prévus pour les offres Enterprise.",
     "s3h": "Conformité et signalement",
-    "s3b1": "Nous effectuons des sauvegardes régulières et surveillons les anomalies. Si vous pensez avoir découvert une vulnérabilité, contactez security@asynchrone.space.",
+    "s3b1": "Nous surveillons les anomalies. Si vous pensez avoir découvert une vulnérabilité, contactez security@asynchrone.space.",
     "s3b2": "Nous divulguons les incidents rapidement et en toute transparence aux organisations concernées."
   },
   "cookies": {

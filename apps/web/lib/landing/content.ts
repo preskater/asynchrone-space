@@ -195,7 +195,6 @@ export const pricingTiers: PricingTier[] = [
     yearly: 0,
     description: "For individuals and small teams getting started.",
     features: [
-      "Up to 5 members",
       "Projects and tasks",
       "Messaging and threads",
       "1 GB of file storage",
@@ -208,14 +207,14 @@ export const pricingTiers: PricingTier[] = [
     yearly: 10,
     description: "For growing teams that need it all.",
     features: [
-      "Unlimited members",
+      "Up to 100 members",
       "Calendars and availability",
       "AI assistants",
       "100 GB of file storage",
       "Granular permissions",
     ],
     featured: true,
-    cta: "Start 14-day trial",
+    cta: "Get started",
   },
   {
     name: "Enterprise",
@@ -224,9 +223,9 @@ export const pricingTiers: PricingTier[] = [
     description: "For organizations with advanced needs.",
     features: [
       "Everything in Team",
-      "SSO and SCIM",
-      "Audit log and retention",
-      "Unlimited storage",
+      "SSO and SCIM (coming soon)",
+      "Audit log and retention (coming soon)",
+      "1 TB of file storage",
       "Dedicated support",
     ],
     cta: "Contact sales",
@@ -244,13 +243,7 @@ export const faqs: FaqItem[] = [
     value: "free",
     question: "How does the free plan work?",
     answer:
-      "The Starter plan is free forever for up to 5 members and includes projects, tasks, messaging and 1 GB of storage. No credit card required.",
-  },
-  {
-    value: "trial",
-    question: "What happens after the trial?",
-    answer:
-      "Your Team trial lasts 14 days. When it ends you can pick a plan or drop back to Starter — your data stays intact either way.",
+      "The Starter plan is free forever and includes projects, tasks, messaging and 1 GB of storage. No credit card required.",
   },
   {
     value: "ai",
@@ -262,13 +255,13 @@ export const faqs: FaqItem[] = [
     value: "security",
     question: "Is my data secure?",
     answer:
-      "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. Enterprise adds SSO, SCIM and audit logging.",
+      "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. SSO, SCIM and a customer-facing audit log are coming to Enterprise.",
   },
   {
     value: "migrate",
     question: "Can I import from other tools?",
     answer:
-      "You can bring your team over quickly — invite members by email and import projects, files and calendars from common tools.",
+      "You can bring your team over quickly — invite members by email and import your CRM clients and contacts from a CSV file.",
   },
 ]
 

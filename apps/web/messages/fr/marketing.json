@@ -34,15 +34,13 @@
     "sectionDescription": "Tout ce qu'il faut savoir avant de commencer.",
     "contact": "Nous contacter",
     "q1": "Comment fonctionne l'offre gratuite ?",
-    "a1": "L'offre Starter est gratuite à vie pour 5 membres maximum et inclut les projets, les tâches, la messagerie et 1 Go de stockage. Aucune carte bancaire requise.",
-    "q2": "Que se passe-t-il après l'essai ?",
-    "a2": "Votre essai Team dure 14 jours. À la fin, vous pouvez choisir une offre ou revenir à Starter — vos données restent intactes dans les deux cas.",
-    "q3": "Comment s'intègrent les assistants IA ?",
-    "a3": "Les assistants vivent dans votre espace de travail. Ils peuvent résumer des fils, rédiger des mises à jour de tâches et répondre à des questions sur vos projets, fichiers et calendrier.",
-    "q4": "Mes données sont-elles sécurisées ?",
-    "a4": "Oui. Les données sont chiffrées en transit et au repos, et les organisations incluent un contrôle d'accès basé sur les rôles. L'offre Enterprise ajoute le SSO, SCIM et la journalisation d'audit.",
-    "q5": "Puis-je importer depuis d'autres outils ?",
-    "a5": "Vous pouvez transférer votre équipe rapidement — invitez les membres par e-mail et importez projets, fichiers et calendriers depuis les outils courants."
+    "a1": "L'offre Starter est gratuite à vie et inclut les projets, les tâches, la messagerie et 1 Go de stockage. Aucune carte bancaire requise.",
+    "q2": "Comment s'intègrent les assistants IA ?",
+    "a2": "Les assistants vivent dans votre espace de travail. Ils peuvent résumer des fils, rédiger des mises à jour de tâches et répondre à des questions sur vos projets, fichiers et calendrier.",
+    "q3": "Mes données sont-elles sécurisées ?",
+    "a3": "Oui. Les données sont chiffrées en transit et au repos, et les organisations incluent un contrôle d'accès basé sur les rôles. Le SSO, SCIM et un journal d'audit accessible aux clients arrivent bientôt sur l'offre Enterprise.",
+    "q4": "Puis-je importer depuis d'autres outils ?",
+    "a4": "Vous pouvez transférer votre équipe rapidement — invitez les membres par e-mail et importez vos clients et contacts CRM depuis un fichier CSV."
   },
   "features": {
     "metadataTitle": "Fonctionnalités",

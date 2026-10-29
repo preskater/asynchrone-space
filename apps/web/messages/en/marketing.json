@@ -34,15 +34,13 @@
     "sectionDescription": "Everything you need to know before getting started.",
     "contact": "Contact us",
     "q1": "How does the free plan work?",
-    "a1": "The Starter plan is free forever for up to 5 members and includes projects, tasks, messaging and 1 GB of storage. No credit card required.",
-    "q2": "What happens after the trial?",
-    "a2": "Your Team trial lasts 14 days. When it ends you can pick a plan or drop back to Starter — your data stays intact either way.",
-    "q3": "How do the AI assistants fit in?",
-    "a3": "Assistants live inside your workspace. They can summarize threads, draft task updates and answer questions about your projects, files and calendar.",
-    "q4": "Is my data secure?",
-    "a4": "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. Enterprise adds SSO, SCIM and audit logging.",
-    "q5": "Can I import from other tools?",
-    "a5": "You can bring your team over quickly — invite members by email and import projects, files and calendars from common tools."
+    "a1": "The Starter plan is free forever and includes projects, tasks, messaging and 1 GB of storage. No credit card required.",
+    "q2": "How do the AI assistants fit in?",
+    "a2": "Assistants live inside your workspace. They can summarize threads, draft task updates and answer questions about your projects, files and calendar.",
+    "q3": "Is my data secure?",
+    "a3": "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. SSO, SCIM and a customer-facing audit log are coming to Enterprise.",
+    "q4": "Can I import from other tools?",
+    "a4": "You can bring your team over quickly — invite members by email and import your CRM clients and contacts from a CSV file."
   },
   "features": {
     "metadataTitle": "Features",
