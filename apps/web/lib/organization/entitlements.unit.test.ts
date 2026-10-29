@@ -16,6 +16,7 @@ import {
 import {
   can,
   entitlementsFor,
+  getOrganizationEntitlements,
   getOrganizationPlan,
   requireEntitlement,
   seatLimitReached,
@@ -59,8 +60,8 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
   },
 }
 
-function withPlan(metadata: string | null) {
-  prisma.organization.findUnique.mockResolvedValue({ metadata })
+function withPlan(metadata: string | null, trialEndsAt: Date | null = null) {
+  prisma.organization.findUnique.mockResolvedValue({ metadata, trialEndsAt })
 }
 
 beforeEach(() => vi.clearAllMocks())
@@ -113,6 +114,27 @@ describe("plan resolution", () => {
     await expect(
       requireEntitlement("org_1", "granularPermissions")
     ).resolves.toBeUndefined()
+  })
+
+  it("enforces Team for a free organization inside its trial window", async () => {
+    withPlan(null, new Date(Date.now() + 60 * 60 * 1000))
+    expect(await getOrganizationPlan("org_1")).toBe("team")
+    expect(await getOrganizationEntitlements("org_1")).toEqual(
+      entitlementsFor("team")
+    )
+  })
+
+  it("falls back to the stored plan once the trial window closes", async () => {
+    withPlan(null, new Date(Date.now() - 1000))
+    expect(await getOrganizationPlan("org_1")).toBe("free")
+    expect(await getOrganizationEntitlements("org_1")).toEqual(
+      entitlementsFor("free")
+    )
+  })
+
+  it("never downgrades a paid plan during a trial", async () => {
+    withPlan('{"plan":"enterprise"}', new Date(Date.now() + 1000))
+    expect(await getOrganizationPlan("org_1")).toBe("enterprise")
   })
 })
 

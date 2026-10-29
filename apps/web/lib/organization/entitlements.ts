@@ -6,6 +6,7 @@ import {
   type Entitlements,
   type OrgPlan,
 } from "@workspace/db/plans"
+import { effectivePlan } from "@workspace/db/trial"
 
 import { ForbiddenError } from "@/lib/core/errors"
 import { prisma } from "@/lib/prisma"
@@ -17,15 +18,25 @@ export {
   type OrgPlan,
 } from "@workspace/db/plans"
 
-// ponytail: reads `metadata.plan`; switch to the Subscription table once billing lands.
+/**
+ * The plan actually enforced: the stored `metadata.plan`, upgraded to Team
+ * while an active trial window is open (see `@workspace/db/trial`). Every
+ * entitlement — storage, seats, AI budget, permissions — reads through here,
+ * so a trial cannot grant some limits but not others.
+ *
+ * ponytail: reads `metadata.plan`; switch to the Subscription table once
+ * billing lands.
+ */
 export async function getOrganizationPlan(
   organizationId: string
 ): Promise<OrgPlan> {
   const organization = await prisma.organization.findUnique({
     where: { id: organizationId },
-    select: { metadata: true },
+    select: { metadata: true, trialEndsAt: true },
   })
-  return parsePlan(organization?.metadata)
+  return effectivePlan(parsePlan(organization?.metadata), {
+    trialEndsAt: organization?.trialEndsAt ?? null,
+  })
 }
 
 export async function getOrganizationEntitlements(
