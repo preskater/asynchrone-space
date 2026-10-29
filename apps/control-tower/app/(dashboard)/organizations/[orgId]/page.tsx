@@ -22,7 +22,13 @@ import { PlanForm } from "@/components/plan-form"
 import { StatCard } from "@/components/stat-card"
 import { formatBytes, formatDate, formatDateTime, formatNumber, formatRelative, formatUsdMicros } from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
-import { orgQuotaBytes, parsePlan, usagePercent } from "@/lib/platform/plan"
+import {
+  enforcedPlan,
+  orgQuotaBytes,
+  parsePlan,
+  trialSummary,
+  usagePercent,
+} from "@/lib/platform/plan"
 
 export const metadata = { title: "Organization" }
 
@@ -43,6 +49,8 @@ export default async function OrganizationDetailPage({
       slug: true,
       metadata: true,
       storageQuotaBytes: true,
+      trialStartedAt: true,
+      trialEndsAt: true,
       createdAt: true,
       _count: {
         select: {
@@ -164,10 +172,13 @@ export default async function OrganizationDetailPage({
   const aiSpent = aiThisMonth._sum.costMicros ?? 0
   const aiTokens =
     (aiThisMonth._sum.inputTokens ?? 0) + (aiThisMonth._sum.outputTokens ?? 0)
-  const aiBudget =
-    entitlementsFor(parsePlan(organization.metadata)).aiBudgetMicrosPerSeat *
-    seats
-  const plan = parsePlan(organization.metadata)
+  const plan = enforcedPlan(organization)
+  const storedPlan = parsePlan(organization.metadata)
+  const trial = trialSummary(organization)
+  // Back on the stored plan after a trial that is no longer running.
+  const trialEnded =
+    !trial && organization.trialStartedAt !== null && storedPlan === "free"
+  const aiBudget = entitlementsFor(plan).aiBudgetMicrosPerSeat * seats
 
   return (
     <div className="space-y-6">
@@ -179,6 +190,19 @@ export default async function OrganizationDetailPage({
             <Badge variant={plan === "free" ? "outline" : "secondary"} className="capitalize">
               {plan}
             </Badge>
+            {trial ? (
+              <Badge variant="outline">
+                trial · {trial.daysLeft}{" "}
+                {trial.daysLeft === 1 ? "day" : "days"} left
+              </Badge>
+            ) : trialEnded ? (
+              <Badge variant="outline">trial ended</Badge>
+            ) : null}
+            {trial ? (
+              <span className="text-xs text-muted-foreground">
+                · ends {formatDate(trial.endsAt)}
+              </span>
+            ) : null}
             <span>· created {formatDate(organization.createdAt)}</span>
             <span className="font-mono text-xs">· {organization.id}</span>
           </span>
@@ -228,7 +252,7 @@ export default async function OrganizationDetailPage({
         <div className="rounded-xl border bg-card p-4">
           <PlanForm
             organizationId={organization.id}
-            plan={plan}
+            plan={storedPlan}
             quotaBytes={
               organization.storageQuotaBytes === null
                 ? null

@@ -17,7 +17,11 @@ import { PageHeader } from "@/components/page-header"
 import { Pagination } from "@/components/pagination"
 import { formatBytes, formatDate, formatNumber } from "@/lib/platform/format"
 import { PAGE_SIZE, readPage, readString, type SearchParams } from "@/lib/platform/params"
-import { orgQuotaBytes, parsePlan, usagePercent } from "@/lib/platform/plan"
+import {
+  enforcedPlan,
+  orgQuotaBytes,
+  usagePercent,
+} from "@/lib/platform/plan"
 import { requirePlatformContext } from "@/lib/platform/guard"
 
 export const metadata = { title: "Organizations" }
@@ -56,6 +60,7 @@ export default async function OrganizationsPage({
         createdAt: true,
         storageQuotaBytes: true,
         metadata: true,
+        trialEndsAt: true,
         _count: { select: { members: true, projects: true, tasks: true } },
       },
     }),
@@ -143,13 +148,13 @@ export default async function OrganizationsPage({
                     <TableCell>
                       <Badge
                         variant={
-                          parsePlan(organization.metadata) === "free"
+                          enforcedPlan(organization) === "free"
                             ? "outline"
                             : "secondary"
                         }
                         className="capitalize"
                       >
-                        {parsePlan(organization.metadata)}
+                        {enforcedPlan(organization)}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-end tabular-nums">
