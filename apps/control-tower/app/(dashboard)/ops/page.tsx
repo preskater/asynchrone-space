@@ -17,6 +17,7 @@ import {
   formatDateTime,
   formatNumber,
   formatRelative,
+  formatUsdMicros,
 } from "@/lib/platform/format"
 import { requirePlatformContext } from "@/lib/platform/guard"
 
@@ -24,6 +25,7 @@ export const metadata = { title: "Operations" }
 
 const OPEN = "open"
 const PENDING = "pending"
+const DAY_MS = 24 * 60 * 60 * 1000
 
 export default async function OperationsPage() {
   await requirePlatformContext()
@@ -44,6 +46,7 @@ export default async function OperationsPage() {
     jwks,
     oauthClients,
     disabledOauthClients,
+    aiSpend,
   ] = await Promise.all([
     prisma.session.count({ where: { expiresAt: { gt: now } } }),
     prisma.session.count({ where: { expiresAt: { lte: now } } }),
@@ -82,6 +85,11 @@ export default async function OperationsPage() {
     }),
     prisma.oauthClient.count(),
     prisma.oauthClient.count({ where: { disabled: true } }),
+    prisma.aiUsageEvent.aggregate({
+      where: { createdAt: { gte: new Date(now.getTime() - 30 * DAY_MS) } },
+      _sum: { costMicros: true, inputTokens: true, outputTokens: true },
+      _count: true,
+    }),
   ])
 
   const neverSynced = await prisma.repositoryConnection.count({
@@ -139,6 +147,11 @@ export default async function OperationsPage() {
           }
         />
         <StatCard
+          label="AI spend (30 days)"
+          value={formatUsdMicros(aiSpend._sum.costMicros ?? 0)}
+          hint={`${formatNumber((aiSpend._sum.inputTokens ?? 0) + (aiSpend._sum.outputTokens ?? 0))} tokens in ${formatNumber(aiSpend._count)} runs`}
+        />
+        <StatCard
           label="MCP / OAuth clients"
           value={formatNumber(oauthClients)}
           hint={`${formatNumber(disabledOauthClients)} disabled`}
@@ -178,7 +191,7 @@ export default async function OperationsPage() {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="tabular-nums text-muted-foreground">
+                      <TableCell className="text-muted-foreground tabular-nums">
                         {formatNumber(upload.receivedBytes)}
                         {upload.expectedSize
                           ? ` / ${formatNumber(upload.expectedSize)}`
@@ -254,7 +267,8 @@ export default async function OperationsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold">Signing keys</h2>
         <p className="text-xs text-muted-foreground">
-          Shared JWKS rows used by MCP tokens. Only public metadata is read here.
+          Shared JWKS rows used by MCP tokens. Only public metadata is read
+          here.
         </p>
         <div className="overflow-hidden rounded-xl border bg-card">
           <Table>
@@ -276,7 +290,9 @@ export default async function OperationsPage() {
               ) : (
                 jwks.map((key) => (
                   <TableRow key={key.id}>
-                    <TableCell className="font-mono text-xs">{key.id}</TableCell>
+                    <TableCell className="font-mono text-xs">
+                      {key.id}
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">{key.alg}</Badge>
                     </TableCell>
@@ -295,7 +311,8 @@ export default async function OperationsPage() {
       </section>
 
       <p className="text-xs text-muted-foreground">
-        Environment {process.env.DEPLOY_ENV ?? process.env.NODE_ENV ?? "unknown"}
+        Environment{" "}
+        {process.env.DEPLOY_ENV ?? process.env.NODE_ENV ?? "unknown"}
         {process.env.GIT_COMMIT_SHA
           ? ` · commit ${process.env.GIT_COMMIT_SHA.slice(0, 7)}`
           : ""}

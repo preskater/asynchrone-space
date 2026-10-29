@@ -94,5 +94,7 @@
   "commentFailed": "Comment failed.",
   "addMemberFailed": "Could not add member.",
   "addLabelFailed": "Could not add label.",
-  "upgradeRequired": "This feature is not included in your plan. Upgrade to use it."
+  "upgradeRequired": "This feature is not included in your plan. Upgrade to use it.",
+  "quotaExceeded": "Your workspace has used its AI allowance for this month. It resets on the 1st of next month.",
+  "assistantUnavailable": "The assistant is not configured on this server."
 }

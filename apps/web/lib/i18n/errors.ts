@@ -71,6 +71,8 @@ const CODE_KEYS: Record<string, string> = {
   feedback_rate_limited: "feedbackRateLimited",
   feedback_delivery_failed: "feedbackDeliveryFailed",
   upgrade_required: "upgradeRequired",
+  quota_exceeded: "quotaExceeded",
+  assistant_unavailable: "assistantUnavailable",
 }
 
 export function useErrorTranslator() {

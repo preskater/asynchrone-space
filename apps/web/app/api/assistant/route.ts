@@ -1,12 +1,18 @@
-import { run, type AgentInputItem, type RunStreamEvent } from "@openai/agents"
+import {
+  getDefaultModel,
+  run,
+  type AgentInputItem,
+  type RunStreamEvent,
+} from "@openai/agents"
 import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
-import { rejectCrossOrigin } from "@/lib/core/http"
-import { jsonError } from "@/lib/core/http"
-import { can, upgradeRequired } from "@/lib/organization/entitlements"
+import { AppError } from "@/lib/core/errors"
+import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
+import { upgradeRequired } from "@/lib/organization/entitlements"
 import { rateLimit } from "@/lib/core/rate-limit"
 import { assistantAgent } from "@/lib/assistant/agent"
+import { getAiQuota, quotaExceeded, recordAiUsage } from "@/lib/assistant/usage"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -90,8 +96,22 @@ export async function POST(request: Request) {
   if (blocked) return blocked
   const ctx = await getRequestContext({ request })
 
-  if (!(await can(ctx.organizationId, "aiTokensPerMonth"))) {
-    return jsonError(upgradeRequired("aiTokensPerMonth"))
+  // A custom OpenAI-compatible endpoint (OPENAI_API_URL) may not need a key.
+  if (!process.env.OPENAI_API_KEY && !process.env.OPENAI_API_URL) {
+    return jsonError(
+      new AppError("assistant_unavailable", "OPENAI_API_KEY is not set.", {
+        status: 503,
+      })
+    )
+  }
+
+  // Checked before the run so an organization over its allowance makes no model call.
+  const quota = await getAiQuota(ctx.organizationId)
+  if (quota.budgetMicros === 0) {
+    return jsonError(upgradeRequired("aiBudgetMicrosPerSeat"))
+  }
+  if (quota.usedMicros >= quota.budgetMicros) {
+    return jsonError(quotaExceeded(quota.resetAt))
   }
 
   if (!rateLimit(`assistant:${ctx.userId}`, 20, 5 * 60_000)) {
@@ -107,6 +127,11 @@ export async function POST(request: Request) {
     return new Response("Request too large", { status: 413 })
   }
 
+  // Stop spending tokens as soon as the client goes away.
+  const abort = new AbortController()
+  request.signal.addEventListener("abort", () => abort.abort())
+
+  const model = process.env.ASSISTANT_MODEL || getDefaultModel()
   const stream = await run(
     assistantAgent,
     parsed.data.messages as AgentInputItem[],
@@ -114,6 +139,7 @@ export async function POST(request: Request) {
       stream: true,
       context: ctx,
       maxTurns: MAX_TURNS,
+      signal: abort.signal,
     }
   )
 
@@ -131,11 +157,26 @@ export async function POST(request: Request) {
         await stream.completed
         send({ type: "done" })
       } catch (error) {
-        console.error("[assistant] stream error", error)
-        send({ type: "error", message: STREAM_ERROR_MESSAGE })
+        if (!abort.signal.aborted) {
+          console.error("[assistant] stream error", error)
+          send({ type: "error", message: STREAM_ERROR_MESSAGE })
+        }
       } finally {
-        controller.close()
+        try {
+          controller.close()
+        } catch {
+          // Already closed by the client disconnecting.
+        }
+        // Exactly one row per run, aborted runs included; written after the
+        // response is closed so it adds nothing to the user's wait.
+        // ponytail: tokens of a model call cut off mid-stream are not reported by the API, so aborts undercount slightly.
+        await recordAiUsage(ctx, model, stream.state.usage).catch((error) =>
+          console.error("[assistant] usage write failed", error)
+        )
       }
+    },
+    cancel() {
+      abort.abort()
     },
   })
 

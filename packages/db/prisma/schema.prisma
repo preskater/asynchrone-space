@@ -141,6 +141,8 @@ model Organization {
   meetingSettings MeetingSettings?
   meetingRequests MeetingRequest[]
 
+  aiUsageEvents AiUsageEvent[]
+
   @@unique([slug])
   @@map("organization")
 }
@@ -1590,3 +1592,29 @@ model TwoFactor {
   @@map("twoFactor")
 }
 
+
+// ---------------------------------------------------------------------------
+// AI usage
+// ---------------------------------------------------------------------------
+
+/// One row per assistant run. Cost is computed at write time so historical
+/// rows keep the price that applied when the tokens were spent.
+model AiUsageEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Kept without a relation so usage survives the user's deletion.
+  userId         String
+  model          String
+  requests       Int
+  inputTokens    Int
+  outputTokens   Int
+  cachedTokens   Int
+  /// Micro-USD (1e-6 USD).
+  costMicros     Int
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+  @@map("ai_usage_event")
+}

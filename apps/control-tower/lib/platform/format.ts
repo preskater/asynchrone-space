@@ -16,6 +16,13 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat("en").format(value)
 }
 
+export function formatUsdMicros(micros: number): string {
+  return new Intl.NumberFormat("en", {
+    style: "currency",
+    currency: "USD",
+  }).format(micros / 1_000_000)
+}
+
 export function formatDate(value: Date | null | undefined): string {
   if (!value) return "—"
   return new Intl.DateTimeFormat("en", {

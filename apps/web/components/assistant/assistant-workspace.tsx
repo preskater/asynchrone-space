@@ -19,13 +19,17 @@ import {
 
 import { suggestions } from "@/lib/assistant/suggestions"
 import { useAssistant } from "@/lib/assistant/use-assistant"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 export function AssistantWorkspace() {
   const t = useTranslations("Assistant")
   const { messages, sendMessage, status, error } = useAssistant()
   const [input, setInput] = React.useState("")
-  const aiEnabled = useEntitlements().can("aiTokensPerMonth")
+  const aiEnabled = useEntitlements().can("aiBudgetMicrosPerSeat")
+  const te = useErrorTranslator()
+  const quotaReached =
+    (error as { code?: string } | null)?.code === "quota_exceeded"
 
   const isBusy = status === "submitted" || status === "streaming"
   const isEmpty = messages.length === 0
@@ -107,8 +111,11 @@ export function AssistantWorkspace() {
             role="alert"
             className="mb-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
           >
-            {error.message || t("error")}
+            {te(error)}
           </div>
+        ) : null}
+        {quotaReached ? (
+          <PlanUpgradePrompt feature="aiQuota" className="mb-3" />
         ) : null}
 
         <div role="status" className="sr-only">
