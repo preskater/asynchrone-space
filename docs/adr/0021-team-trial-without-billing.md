@@ -9,7 +9,8 @@
 Pricing advertises a 14-day Team trial ("Start 14-day trial") but nothing
 backed it (issue #84). There is no billing provider or checkout yet: the plan
 lives in `organization.metadata.plan` and only the control tower changes it.
-The only Team entitlement today is the storage quota.
+Plans now grant several limits (seats, storage, AI budget, granular
+permissions), so a trial has to move all of them together.
 
 How do we start, remind about, and end a trial so that a late or repeated
 cron can never strand data, double-downgrade, or re-notify?
@@ -37,8 +38,11 @@ Chosen option: **Trial window**, because the downgrade then happens exactly at
 `trialEndsAt` without the cron, and the cron cannot overwrite a plan an
 operator set in the meantime.
 
-- `effectivePlan()` (`apps/web/lib/organization/trial.ts`) is the single place
-  that resolves the enforced plan; the storage quota goes through it.
+- `effectivePlan()` (`packages/db/src/trial.ts`) is the single place that
+  resolves the enforced plan. `getOrganizationPlan()` applies it, so every
+  entitlement the app enforces — seats, storage, the per-seat AI budget and
+  granular permissions — follows the trial window. The control tower resolves
+  the same helper, so it shows the plan customers actually get.
 - The trial starts from an explicit "Start 14-day trial" action in workspace
   settings (owners/admins only), since there is no checkout.
 - `GET /api/cron/trial-expiry` runs daily (`trial-expiry` CronJob). It sends
@@ -47,15 +51,15 @@ operator set in the meantime.
   at most once. A cron that missed D-3 skips straight to expiry.
 - `TrialClaim` records the normalized email and company domain of every
   trial. It has no foreign key, so deleting a workspace does not free them.
-  Public mailbox domains (gmail.com…) are not blocked by domain.
+  Both columns are unique: two colleagues on the same company domain cannot
+  start trials concurrently, while public mailbox domains (gmail.com…) stay
+  unblocked by domain.
 
 ## Consequences
 
 - Good: no data is touched at expiry; a missed cron run only delays emails.
 - Good: organizations moved to a paid plan during the trial keep it and get
   no "trial ended" email.
-- Bad: the control tower still shows the stored plan (`free`) for an
-  organization on trial.
 - Bad: "optional payment method" from #84 is out of scope until billing exists.
 - Neutral: once billing exists, a Team checkout can start the trial through
   the same `startTeamTrial()` service.
