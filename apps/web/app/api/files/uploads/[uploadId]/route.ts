@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
 import { toAppError } from "@/lib/core/errors"
-import { jsonError } from "@/lib/core/http"
+import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
 import {
   abortUploadSession,
   appendUploadChunk,
@@ -16,6 +16,8 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ uploadId: string }> }
 ): Promise<NextResponse> {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   try {
     const ctx = await getRequestContext({ request })
     const { uploadId } = await params
@@ -61,6 +63,8 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ uploadId: string }> }
 ): Promise<NextResponse> {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   try {
     const ctx = await getRequestContext({ request })
     const { uploadId } = await params

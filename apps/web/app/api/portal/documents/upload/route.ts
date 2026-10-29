@@ -3,7 +3,7 @@ import { Readable } from "node:stream"
 import { NextResponse } from "next/server"
 
 import { toAppError } from "@/lib/core/errors"
-import { jsonError } from "@/lib/core/http"
+import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
 import { MAX_PORTAL_UPLOAD_BYTES, portalService } from "@/lib/portal"
 import { getPortalContext } from "@/lib/portal/context"
 
@@ -16,6 +16,8 @@ export const maxDuration = 60
  * document (visible to the team and the client).
  */
 export async function POST(request: Request): Promise<NextResponse> {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   try {
     const ctx = await getPortalContext()
     if (!ctx) {

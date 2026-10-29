@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
+import { rejectCrossOrigin } from "@/lib/core/http"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -11,7 +12,10 @@ export const dynamic = "force-dynamic"
  * Ends an impersonated session and returns the operator to the control tower.
  * The operator's control-tower session is a separate cookie and is untouched.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
+
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session || !session.session.impersonatedBy) {

@@ -2,6 +2,7 @@ import { run, type AgentInputItem, type RunStreamEvent } from "@openai/agents"
 import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
+import { rejectCrossOrigin } from "@/lib/core/http"
 import { jsonError } from "@/lib/core/http"
 import { can, upgradeRequired } from "@/lib/organization/entitlements"
 import { rateLimit } from "@/lib/core/rate-limit"
@@ -85,6 +86,8 @@ function toClientEvent(event: RunStreamEvent): AssistantEvent | undefined {
 }
 
 export async function POST(request: Request) {
+  const blocked = rejectCrossOrigin(request)
+  if (blocked) return blocked
   const ctx = await getRequestContext({ request })
 
   if (!(await can(ctx.organizationId, "aiTokensPerMonth"))) {
