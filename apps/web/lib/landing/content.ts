@@ -195,6 +195,7 @@ export const pricingTiers: PricingTier[] = [
     yearly: 0,
     description: "For individuals and small teams getting started.",
     features: [
+      "Up to 5 members",
       "Projects and tasks",
       "Messaging and threads",
       "1 GB of file storage",
