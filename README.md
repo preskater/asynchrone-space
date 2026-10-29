@@ -10,7 +10,7 @@ Asynchrone Space is an AI‑first workspace that automates your workflow, centra
 
 - **Calendars** – Schedule meetings, set reminders, and manage events across teams.  
 - **Projects** – Create projects, assign tasks, track progress, and manage deadlines.  
-- **Files** – Create, edit, and co‑author documents in real time with your team and AI.  
+- **Files** – Upload, version, preview, and share files with per‑person permissions.  
 - **Messages** – Chat with teammates and AI assistants in shared channels and threads.  
 - **Dashboard** – See all your tasks, projects, and team activity in a single, customizable view.
 
@@ -18,7 +18,7 @@ Asynchrone Space is an AI‑first workspace that automates your workflow, centra
 
 - **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.  
 - **Unified workspace**: No more switching between tools; everything you need lives in one platform.  
-- **Team‑first**: Built for collaboration, with real‑time editing, shared context, and clear ownership.
+- **Team‑first**: Built for collaboration, with shared context, threaded discussions, and clear ownership.
 
 ## Tech stack
 

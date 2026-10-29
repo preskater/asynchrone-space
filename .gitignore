@@ -52,3 +52,6 @@ charts/asynchrone-space/charts/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# graphify
+graphify-out
