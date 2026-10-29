@@ -96,5 +96,9 @@
   "addLabelFailed": "Could not add label.",
   "upgradeRequired": "This feature is not included in your plan. Upgrade to use it.",
   "quotaExceeded": "Your workspace has used its AI allowance for this month. It resets on the 1st of next month.",
-  "assistantUnavailable": "The assistant is not configured on this server."
+  "assistantUnavailable": "The assistant is not configured on this server.",
+  "trialNotEligible": "This workspace is already on a paid plan.",
+  "trialAlreadyUsed": "This workspace has already used its Team trial.",
+  "trialEmailUnverified": "Verify your email address before starting a trial.",
+  "trialAlreadyClaimed": "A Team trial was already used with this email or company domain."
 }

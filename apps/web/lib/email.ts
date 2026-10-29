@@ -108,6 +108,15 @@ export function sendEmail(email: Email) {
   }
 }
 
+export function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;")
+}
+
 function layout({
   heading,
   body,
@@ -179,6 +188,51 @@ export function sendResetPasswordEmail({
       body: "We received a request to reset the password for your account. This link expires in one hour. If you didn't ask for this, you can ignore this email.",
       cta: "Reset password",
       url: link,
+    }),
+  })
+}
+
+export function sendTrialReminderEmail({
+  to,
+  organizationName,
+  daysLeft,
+  url,
+}: {
+  to: string
+  organizationName: string
+  daysLeft: number
+  url: string
+}) {
+  const days = daysLeft === 1 ? "1 day" : `${daysLeft} days`
+  sendEmail({
+    to,
+    subject: `Your Team trial ends in ${days}`,
+    html: layout({
+      heading: `Your Team trial ends in ${days}`,
+      body: `The Team trial of ${escapeHtml(organizationName)} ends soon. Pick a plan to keep Team features, or do nothing to drop back to Starter — your data stays intact either way.`,
+      cta: "Choose a plan",
+      url: publicUrl(url),
+    }),
+  })
+}
+
+export function sendTrialEndedEmail({
+  to,
+  organizationName,
+  url,
+}: {
+  to: string
+  organizationName: string
+  url: string
+}) {
+  sendEmail({
+    to,
+    subject: "Your Team trial has ended",
+    html: layout({
+      heading: "Your Team trial has ended",
+      body: `${escapeHtml(organizationName)} is back on Starter. All your projects, files and messages are intact. Pick a plan any time to get Team features back.`,
+      cta: "Choose a plan",
+      url: publicUrl(url),
     }),
   })
 }

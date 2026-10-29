@@ -1,0 +1,12 @@
+{
+  "bannerActive": "Il reste {days, plural, one {# jour} other {# jours}} à votre essai Team.",
+  "bannerDescription": "À la fin, vous repassez sur Starter — vos données restent intactes.",
+  "choosePlan": "Choisir un forfait",
+  "cardTitle": "Essai Team",
+  "availableDescription": "Essayez toutes les fonctionnalités Team gratuitement pendant 14 jours, sans moyen de paiement. À la fin, choisissez un forfait ou repassez sur Starter — vos données restent intactes dans tous les cas.",
+  "activeDescription": "Il reste {days, plural, one {# jour} other {# jours}}. Votre essai se termine le {date}.",
+  "endedDescription": "Votre essai Team est terminé et cet espace de travail est repassé sur Starter. Vos données sont intactes.",
+  "start": "Démarrer l’essai de 14 jours",
+  "started": "Votre essai Team a démarré.",
+  "adminOnly": "Seuls les propriétaires et administrateurs de l’espace peuvent démarrer l’essai."
+}

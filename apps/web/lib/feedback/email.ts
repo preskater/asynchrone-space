@@ -1,3 +1,5 @@
+import { escapeHtml } from "@/lib/email"
+
 import type { SubmitFeedbackInput } from "./types"
 
 /**
@@ -7,15 +9,6 @@ import type { SubmitFeedbackInput } from "./types"
  * English like the other transactional emails. Every value is escaped: the
  * report is user-generated content.
  */
-
-function escapeHtml(value: string) {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;")
-}
 
 function row(label: string, value: string) {
   return `<tr>

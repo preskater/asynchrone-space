@@ -11,5 +11,7 @@
   "portalMessage": "{actor} sent a client message in {project}",
   "portalDocument": "{actor} shared a document on {client}",
   "portalComment": "{actor} commented on {identifier} · {title}",
-  "meetingRequested": "{actor} requested a meeting for {client} · {title}"
+  "meetingRequested": "{actor} requested a meeting for {client} · {title}",
+  "trialReminder": "Your Team trial for {organization} ends in {days, plural, one {# day} other {# days}}",
+  "trialEnded": "Your Team trial for {organization} has ended — you're back on Starter"
 }

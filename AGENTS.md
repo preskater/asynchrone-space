@@ -13,6 +13,7 @@
 - The Turbo `generate` task (`prisma generate` → `packages/db/lib/generated/prisma`) is a dependency of `build`/`typecheck`/`dev`. After editing `schema.prisma`, run `npm run generate --workspace=@workspace/db`.
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
+- Manual Team trial check (needs a live DB; start, abuse checks, D-3 reminder, idempotent expiry): `npm run verify:trial --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
 - Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
 - Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
