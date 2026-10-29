@@ -44,3 +44,4 @@ collection.
 | [0018](0018-control-tower-on-shared-database-package.md)  | accepted | Add a separate control-tower app on a shared `packages/db`               |
 | [0019](0019-deploy-on-kubernetes-with-helm.md)            | accepted | Deploy on Kubernetes with Helm                                            |
 | [0020](0020-rename-to-asynchrone-space.md)                | accepted | Rename the product to Asynchrone Space                                     |
+| [0021](0021-team-trial-without-billing.md)                | accepted | Model the Team trial as a time window, not a plan change                   |

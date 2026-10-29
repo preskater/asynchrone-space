@@ -100,6 +100,13 @@ model Organization {
   createdAt         DateTime
   metadata          String?
   storageQuotaBytes BigInt?
+  /// Team trial window. The trial grants Team while `trialEndsAt` is in the
+  /// future; `metadata.plan` is never changed by it.
+  trialStartedAt      DateTime?
+  trialEndsAt         DateTime?
+  /// Set once by the trial-expiry cron so reminders and expiry never repeat.
+  trialReminderSentAt DateTime?
+  trialEndedAt        DateTime?
   teams             Team[]
   members           Member[]
   invitations       Invitation[]
@@ -145,6 +152,21 @@ model Organization {
 
   @@unique([slug])
   @@map("organization")
+}
+
+/// One row per Team trial ever started. Deliberately not related to
+/// Organization so deleting a workspace does not free its email/domain for a
+/// new trial.
+model TrialClaim {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  /// Null for public mailbox providers (gmail.com…), which are not blocked.
+  domain         String?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  @@index([domain])
+  @@map("trialClaim")
 }
 
 model Team {

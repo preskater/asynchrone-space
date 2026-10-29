@@ -128,6 +128,7 @@ lists. The defaults already target `asynchrone.space` and
 | ConfigMap | `asynchrone-space-web`, `asynchrone-space-control-tower` | Non-secret runtime config |
 | CronJob | `asynchrone-space-web-uploads-sweep` | `0 3 * * *` |
 | CronJob | `asynchrone-space-web-repository-sync` | `0 * * * *` |
+| CronJob | `asynchrone-space-web-trial-expiry` | `0 6 * * *` |
 | Job (hook) | `asynchrone-space-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled |
 | PDB | `asynchrone-space-web`, `asynchrone-space-control-tower` | `minAvailable: 1` |
@@ -242,8 +243,9 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 
 ## Scheduled jobs
 
-The two CronJobs replace the former Vercel crons and call the in-cluster
-Service. Both send `Authorization: Bearer $CRON_SECRET`, read from
+The uploads-sweep and repository-sync CronJobs replace the former Vercel crons;
+trial-expiry runs the daily Team trial reminders and expiry (ADR 0021). They
+call the in-cluster Service and send `Authorization: Bearer $CRON_SECRET`, read from
 `asynchrone-space-web-secrets`; the corresponding route rejects a missing/incorrect token
 when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
 runs. Change schedules through `asynchrone-space-web.cronjobs.<job>.schedule`.

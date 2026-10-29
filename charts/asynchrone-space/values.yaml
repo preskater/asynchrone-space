@@ -79,6 +79,10 @@ asynchrone-space-web:
       enabled: true
       schedule: "0 * * * *"
       path: /api/cron/repository-sync
+    trialExpiry:
+      enabled: true
+      schedule: "0 6 * * *"
+      path: /api/cron/trial-expiry
 
 # ---------------------------------------------------------------------------
 # Internal control tower

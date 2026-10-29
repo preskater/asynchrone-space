@@ -16,7 +16,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import {
+  ToggleGroup,
+  ToggleGroupItem,
+} from "@workspace/ui/components/toggle-group"
 import { pricingTiers, type PricingTier } from "@/lib/landing/content"
 
 const TIER_KEYS = ["starter", "team", "enterprise"] as const
@@ -43,13 +46,21 @@ function PricingCard({
   const key = tierKey(index)
   const isEnterprise = key === "enterprise"
   const amount = yearly ? tier.yearly : tier.monthly
-  const price = isEnterprise ? t("custom") : amount === 0 ? t("free") : `$${amount}`
+  const price = isEnterprise
+    ? t("custom")
+    : amount === 0
+      ? t("free")
+      : `$${amount}`
+  // Signed-in users start the Team trial from their workspace settings.
+  const trialHref =
+    key === "team" && isAuthenticated && dashboardHref !== "/onboarding"
+      ? `${dashboardHref}/settings`
+      : null
   const ctaHref = isEnterprise
     ? "/contact"
-    : isAuthenticated
-      ? dashboardHref
-      : "/sign-up"
-  const ctaLabel = isAuthenticated ? tCta("dashboard") : t(`${key}Cta` as never)
+    : (trialHref ?? (isAuthenticated ? dashboardHref : "/sign-up"))
+  const ctaLabel =
+    isAuthenticated && !trialHref ? tCta("dashboard") : t(`${key}Cta` as never)
 
   return (
     <Card
@@ -60,7 +71,7 @@ function PricingCard({
       }
     >
       {tier.featured ? (
-        <Badge className="absolute -top-2.5 start-6">{t("mostPopular")}</Badge>
+        <Badge className="absolute start-6 -top-2.5">{t("mostPopular")}</Badge>
       ) : null}
       <CardHeader>
         <CardTitle>{t(key)}</CardTitle>

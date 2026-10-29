@@ -138,6 +138,15 @@ export function NotificationBell({
           client: String(data.clientName ?? ""),
           title: String(data.title ?? ""),
         })
+      case "trial.reminder":
+        return t("trialReminder", {
+          organization: String(data.organizationName ?? ""),
+          days: Number(data.daysLeft ?? 0),
+        })
+      case "trial.ended":
+        return t("trialEnded", {
+          organization: String(data.organizationName ?? ""),
+        })
       default:
         return item.type
     }
@@ -173,6 +182,9 @@ export function NotificationBell({
     }
     if (item.type === "meeting.requested") {
       return `/${orgSlug}/calendars`
+    }
+    if (item.type.startsWith("trial.")) {
+      return `/${orgSlug}/settings`
     }
     return null
   }

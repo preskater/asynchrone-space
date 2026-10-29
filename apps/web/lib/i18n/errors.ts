@@ -73,6 +73,10 @@ const CODE_KEYS: Record<string, string> = {
   upgrade_required: "upgradeRequired",
   quota_exceeded: "quotaExceeded",
   assistant_unavailable: "assistantUnavailable",
+  trial_not_eligible: "trialNotEligible",
+  trial_already_used: "trialAlreadyUsed",
+  trial_email_unverified: "trialEmailUnverified",
+  trial_already_claimed: "trialAlreadyClaimed",
 }
 
 export function useErrorTranslator() {
