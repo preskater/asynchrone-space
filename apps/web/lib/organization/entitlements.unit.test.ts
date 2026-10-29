@@ -38,7 +38,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     apiAccess: true,
   },
   team: {
-    seats: Infinity,
+    seats: 100,
     storageBytes: 100 * GB,
     aiBudgetMicrosPerSeat: 13_000_000,
     auditLog: false,
@@ -155,8 +155,21 @@ describe("seats", () => {
     })
   })
 
-  it("never counts seats on unlimited plans", async () => {
+  it("caps Team at the 100 members the pricing page sells", async () => {
     withPlan('{"plan":"team"}')
+    prisma.member.count.mockResolvedValue(99)
+    prisma.invitation.count.mockResolvedValue(0)
+    expect(await seatsFull("org_1", { countPending: true })).toEqual({
+      full: false,
+      seats: 100,
+    })
+
+    prisma.member.count.mockResolvedValue(100)
+    expect((await seatsFull("org_1", { countPending: true })).full).toBe(true)
+  })
+
+  it("never counts seats on unlimited plans", async () => {
+    withPlan('{"plan":"enterprise"}')
     expect((await seatsFull("org_1", { countPending: true })).full).toBe(false)
     expect(prisma.member.count).not.toHaveBeenCalled()
   })

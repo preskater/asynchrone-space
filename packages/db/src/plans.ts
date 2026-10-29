@@ -44,7 +44,8 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     apiAccess: true,
   },
   team: {
-    seats: Infinity,
+    // Mirrors the "Up to 100 members" the pricing page sells.
+    seats: 100,
     storageBytes: 100 * GB,
     aiBudgetMicrosPerSeat: AI_BUDGET_PER_SEAT,
     auditLog: false,
