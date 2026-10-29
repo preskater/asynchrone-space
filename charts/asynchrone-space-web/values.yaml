@@ -124,6 +124,9 @@ config:
   TURNSTILE_SITE_KEY: ""
   SIGNUP_INVITE_ONLY: "false"
   SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
+  # Headers a proxy overwrites; required for per-IP auth rate limits to mean
+  # anything. Never expose the pods without the ingress.
+  TRUSTED_IP_HEADERS: "x-real-ip,x-forwarded-for"
   # Billing: prices fall back to the inline Team price when the Price IDs are
   # empty. Pair with STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET in the Secret.
   STRIPE_PRICE_TEAM_MONTHLY: ""

@@ -56,3 +56,7 @@ set), a disposable-domain blocklist and an optional invitation-only mode in a
   revisit with Redis if limiter writes show up in database load.
 - Bad: if the database is down, fail-closed limits deny requests — but those
   requests could not have been served without the database anyway.
+- Bad: the per-path auth limits key on a proxied client IP (`TRUSTED_IP_HEADERS`,
+  default `x-real-ip,x-forwarded-for`). They are only meaningful behind a proxy
+  that overwrites those headers (ingress-nginx does); a deployment that exposes
+  the app directly lets a client choose the value and dodge the limits.

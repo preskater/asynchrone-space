@@ -37,6 +37,7 @@ export function ForgotPasswordForm({
   const [sent, setSent] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaAttempt, setCaptchaAttempt] = useState(0)
+  const [captchaUnavailable, setCaptchaUnavailable] = useState(false)
 
   const formSchema = z.object({
     email: z.email(t("invalidEmail")),
@@ -125,8 +126,17 @@ export function ForgotPasswordForm({
                 <Turnstile
                   key={captchaAttempt}
                   siteKey={captchaSiteKey}
-                  onToken={setCaptchaToken}
+                  onToken={(token) => {
+                    setCaptchaToken(token)
+                    if (token) setCaptchaUnavailable(false)
+                  }}
+                  onUnavailable={() => setCaptchaUnavailable(true)}
                 />
+              )}
+              {captchaUnavailable && (
+                <p role="alert" className="text-xs text-destructive">
+                  {t("captchaUnavailable")}
+                </p>
               )}
               <Button
                 type="submit"

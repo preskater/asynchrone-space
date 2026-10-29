@@ -67,6 +67,8 @@ asynchrone-space-web:
     TURNSTILE_SITE_KEY: ""
     SIGNUP_INVITE_ONLY: "false"
     SIGNUP_BLOCKED_EMAIL_DOMAINS: ""
+    # Headers a proxy overwrites; never expose the pods without the ingress.
+    TRUSTED_IP_HEADERS: "x-real-ip,x-forwarded-for"
     # Pair with STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET in the Secret.
     STRIPE_PRICE_TEAM_MONTHLY: ""
     STRIPE_PRICE_TEAM_YEARLY: ""
