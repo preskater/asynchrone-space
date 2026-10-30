@@ -128,6 +128,9 @@
       "audit_retention": {
         "updated": "Audit retention changed"
       },
+      "two_factor_policy": {
+        "update": "Two-factor requirement changed"
+      },
       "export": {
         "request": "Workspace export requested"
       },
@@ -140,6 +143,10 @@
         "cancel": "Deletion cancelled"
       },
       "deleted": "Workspace deleted"
+    },
+    "member": {
+      "two_factor_enabled": "Two-factor authentication turned on",
+      "two_factor_disabled": "Two-factor authentication turned off"
     },
     "client": {
       "created": "Client created",
@@ -215,6 +222,7 @@
   "entities": {
     "organization": "Workspace",
     "member": "Member",
+    "user": "User",
     "invitation": "Invitation",
     "project": "Project",
     "task": "Task",

@@ -62,7 +62,11 @@ async function main() {
           emailVerified: true,
           image: "https://example.test/avatar.png",
           role: key === "operator" ? "platform_support" : "user",
+          customerTwoFactorEnabled: true,
         },
+      })
+      await prisma.customerTwoFactor.create({
+        data: { userId: id, secret: "secret", backupCodes: "codes" },
       })
       await prisma.account.create({
         data: {
@@ -175,7 +179,8 @@ async function main() {
       deleted?.name === DELETED_USER_NAME &&
         deleted.email === `deleted-${users.leaver.id}@deleted.invalid` &&
         deleted.image === null &&
-        deleted.banned === true,
+        deleted.banned === true &&
+        deleted.customerTwoFactorEnabled === false,
       "the user row is anonymized and banned"
     )
     const counts = await Promise.all([
@@ -184,10 +189,11 @@ async function main() {
       prisma.member.count({ where: { userId: users.leaver.id } }),
       prisma.verification.count({ where: { value: users.leaver.id } }),
       prisma.notification.count({ where: { userId: users.leaver.id } }),
+      prisma.customerTwoFactor.count({ where: { userId: users.leaver.id } }),
     ])
     check(
       counts.every((count) => count === 0),
-      `sessions, sign-in methods, memberships, reset tokens and notifications are gone (${counts.join("/")})`
+      `sessions, sign-in methods, memberships, reset tokens, notifications and two-factor secrets are gone (${counts.join("/")})`
     )
     check(
       (await prisma.message.count({ where: { id: message.id } })) === 1,

@@ -17,6 +17,7 @@ export function PlanUpgradePrompt({
     | "aiQuota"
     | "auditLog"
     | "granularPermissions"
+    | "requireTwoFactor"
     | "seats"
   className?: string
 }) {

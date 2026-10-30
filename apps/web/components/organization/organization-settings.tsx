@@ -19,6 +19,10 @@ import { InviteMemberDialog } from "@/components/organization/invite-member-dial
 import { MembersTable } from "@/components/organization/members-table"
 import { OrganizationGeneralForm } from "@/components/organization/organization-general-form"
 import {
+  TwoFactorPolicyCard,
+  type TwoFactorPolicy,
+} from "@/components/organization/two-factor-policy-card"
+import {
   Card,
   CardContent,
   CardDescription,
@@ -58,10 +62,13 @@ function resolveTab(value: string | null, fallback: TabId): TabId {
 export function OrganizationSettings({
   checkout,
   deletionScheduledAt,
+  twoFactorPolicy,
   exportCard,
 }: {
   checkout?: CheckoutReturn
   deletionScheduledAt: Date | null
+  /** Owners and admins only; null hides the card. */
+  twoFactorPolicy: TwoFactorPolicy | null
   /** Server-rendered, owner-only data export card for the General tab. */
   exportCard?: React.ReactNode
 }) {
@@ -173,7 +180,10 @@ export function OrganizationSettings({
         <MeetingSettingsForm />
       </TabsContent>
 
-      <TabsContent value="members">
+      <TabsContent value="members" className="flex flex-col gap-4">
+        {twoFactorPolicy ? (
+          <TwoFactorPolicyCard policy={twoFactorPolicy} />
+        ) : null}
         <Card>
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">

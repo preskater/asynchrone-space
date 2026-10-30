@@ -19,7 +19,8 @@ const ORIGIN = E2E_BASE_URL
  */
 export async function signUp(page: Page): Promise<string> {
   const email = uniqueEmail()
-  const password = "Password123!"
+  // Random so the breached-password check (HIBP) never rejects it.
+  const password = `e2e-${crypto.randomUUID()}`
   const name = "E2E User"
 
   const signUpRes = await page.request.post("/api/auth/sign-up/email", {

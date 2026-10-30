@@ -26,6 +26,10 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { Turnstile } from "@/components/turnstile"
+import {
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_COMPROMISED,
+} from "@/lib/account/password-policy"
 import { authClient } from "@/lib/auth-client"
 import { safeRedirect } from "@/lib/core/redirect"
 
@@ -45,7 +49,12 @@ export function SignUpForm({
     .object({
       name: z.string().min(1, t("nameRequired")),
       email: z.email(t("invalidEmail")),
-      password: z.string().min(8, t("passwordLength")),
+      password: z
+        .string()
+        .min(
+          MIN_PASSWORD_LENGTH,
+          t("passwordLength", { min: MIN_PASSWORD_LENGTH })
+        ),
       confirmPassword: z.string(),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -78,7 +87,10 @@ export function SignUpForm({
       setCaptchaToken(null)
       setCaptchaAttempt((n) => n + 1)
       form.setError("root", {
-        message: error.message ?? t("genericError"),
+        message:
+          error.code === PASSWORD_COMPROMISED
+            ? t("passwordCompromised")
+            : (error.message ?? t("genericError")),
       })
       return
     }
@@ -184,7 +196,9 @@ export function SignUpForm({
                       fieldState.invalid ? `${field.name}-error` : undefined
                     }
                   />
-                  <FieldDescription>{t("passwordHint")}</FieldDescription>
+                  <FieldDescription>
+                    {t("passwordHint", { min: MIN_PASSWORD_LENGTH })}
+                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError
                       id={`${field.name}-error`}

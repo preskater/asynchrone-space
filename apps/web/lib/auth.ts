@@ -5,10 +5,19 @@ import { betterAuth } from "better-auth"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { admin, captcha, jwt, organization } from "better-auth/plugins"
+import {
+  admin,
+  captcha,
+  haveIBeenPwned,
+  jwt,
+  organization,
+  twoFactor,
+} from "better-auth/plugins"
 import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
+import { MIN_PASSWORD_LENGTH } from "./account/password-policy"
 import { recordSessionRevocation } from "./account/session-audit"
+import { recordTwoFactorChange } from "./account/two-factor-audit"
 import { rateLimit } from "./core/rate-limit"
 import { parseTrustedIpHeaders } from "./core/trusted-ip"
 import { recordAuthAuditEvent } from "./audit/auth-audit"
@@ -116,6 +125,7 @@ export const auth = betterAuth({
   }),
   emailAndPassword: {
     enabled: true,
+    minPasswordLength: MIN_PASSWORD_LENGTH,
     // Flipped on at GA; `lib/env.ts` refuses to boot if it is enabled without
     // an email provider, which would otherwise lock every new user out.
     requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === "true",
@@ -164,6 +174,11 @@ export const auth = betterAuth({
           await assertSignupAllowed(user.email)
         },
       },
+      update: {
+        after: async (user, ctx) => {
+          await recordTwoFactorChange(user.id, ctx?.path)
+        },
+      },
     },
   },
   socialProviders: {
@@ -197,6 +212,10 @@ export const auth = betterAuth({
     }),
   },
   plugins: [
+    // Rejects breached passwords on sign-up, change and reset through the HIBP
+    // k-anonymity range API: only the first 5 characters of the SHA-1 leave.
+    // Fails closed: if the API is down, the request fails and can be retried.
+    haveIBeenPwned(),
     organization({
       teams: { enabled: true },
       ac,
@@ -258,6 +277,16 @@ export const auth = betterAuth({
           session: ["list"],
         }),
         user: userAc,
+      },
+    }),
+    // Customer TOTP. Mapped to its own table and user column: the control
+    // tower's `twoFactor` rows are encrypted with a different secret (ADR 0018).
+    twoFactor({
+      issuer: "Asynchrone Space",
+      trustDeviceMaxAge: 30 * 24 * 60 * 60,
+      schema: {
+        user: { fields: { twoFactorEnabled: "customerTwoFactorEnabled" } },
+        twoFactor: { modelName: "customerTwoFactor" },
       },
     }),
     jwt(),

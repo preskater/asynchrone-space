@@ -55,7 +55,7 @@ export function SignInForm({
 
   async function onSubmit(data: z.infer<typeof formSchema>) {
     setUnverifiedEmail(null)
-    const { error } = await authClient.signIn.email(data)
+    const { data: result, error } = await authClient.signIn.email(data)
 
     if (error) {
       if (error.status === 403) {
@@ -70,6 +70,10 @@ export function SignInForm({
     }
 
     const redirectTo = safeRedirect(searchParams.get("redirect"))
+    if (result && "twoFactorRedirect" in result) {
+      router.push(`/two-factor?redirect=${encodeURIComponent(redirectTo)}`)
+      return
+    }
     router.push(redirectTo)
     router.refresh()
   }

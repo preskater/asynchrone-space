@@ -13,6 +13,8 @@ export interface OrganizationShell {
   storageQuotaBytes: number
   /** Set while the organization is scheduled for deletion. */
   deletionScheduledAt: Date | null
+  /** Stored two-factor policy; the plan decides whether it is enforced. */
+  requireTwoFactor: boolean
 }
 
 /**
@@ -30,6 +32,7 @@ export async function getOrganizationShell(
       trialEndsAt: true,
       storageQuotaBytes: true,
       deletionScheduledAt: true,
+      requireTwoFactor: true,
       subscription: { select: { plan: true } },
     },
   })
@@ -51,5 +54,6 @@ export async function getOrganizationShell(
         ? Number(organization.storageQuotaBytes)
         : entitlements.storageBytes,
     deletionScheduledAt: organization.deletionScheduledAt,
+    requireTwoFactor: organization.requireTwoFactor,
   }
 }

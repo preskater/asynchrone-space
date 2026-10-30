@@ -20,6 +20,7 @@ model User {
   banReason     String?
   banExpires    DateTime?
   twoFactorEnabled Boolean?  @default(false)
+  customerTwoFactorEnabled Boolean? @default(false)
   lastSeenAt    DateTime?
   sessions      Session[]
   accounts      Account[]
@@ -27,6 +28,7 @@ model User {
   members       Member[]
   invitations   Invitation[]
   twoFactor     TwoFactor[]
+  customerTwoFactor CustomerTwoFactor[]
 
   oauthClients       OauthClient[]
   oauthRefreshTokens OauthRefreshToken[]
@@ -111,6 +113,8 @@ model Organization {
   /// organization once this date has passed; clearing it cancels the request.
   deletionScheduledAt   DateTime?
   deletionRequestedById String?
+  /// Members must enroll TOTP before reaching the workspace (Team/Enterprise).
+  requireTwoFactor      Boolean   @default(false)
   teams             Team[]
   members           Member[]
   invitations       Invitation[]
@@ -1618,8 +1622,8 @@ model PlatformHandoff {
 }
 
 /// TOTP secret and backup codes for platform staff. Required for every account
-/// holding a platform role; the web app does not register the plugin, so this
-/// table stays control-tower-only.
+/// holding a platform role. Control-tower-only: customer accounts use
+/// `CustomerTwoFactor`.
 model TwoFactor {
   id                     String    @id @default(cuid())
   secret                 String
@@ -1632,6 +1636,22 @@ model TwoFactor {
 
   @@index([userId])
   @@map("twoFactor")
+}
+
+/// TOTP secret and backup codes for customer accounts (web app). Kept apart
+/// from `TwoFactor` because each auth instance encrypts with its own secret.
+model CustomerTwoFactor {
+  id                     String    @id @default(cuid())
+  secret                 String
+  backupCodes            String
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified               Boolean?  @default(true)
+  failedVerificationCount Int      @default(0)
+  lockedUntil            DateTime?
+
+  @@index([userId])
+  @@map("customerTwoFactor")
 }
 
 

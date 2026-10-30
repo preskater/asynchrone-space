@@ -88,6 +88,7 @@ export async function deleteAccount(userId: string, confirmEmail: string) {
         emailVerified: false,
         image: null,
         twoFactorEnabled: false,
+        customerTwoFactorEnabled: false,
         lastSeenAt: null,
         // Belt and braces: nothing can sign in to the anonymized row.
         banned: true,
@@ -97,6 +98,7 @@ export async function deleteAccount(userId: string, confirmEmail: string) {
     await tx.session.deleteMany({ where: { userId } })
     await tx.account.deleteMany({ where: { userId } })
     await tx.twoFactor.deleteMany({ where: { userId } })
+    await tx.customerTwoFactor.deleteMany({ where: { userId } })
     // A pending reset token would otherwise recreate a credential account.
     await tx.verification.deleteMany({ where: { value: userId } })
     await tx.teamMember.deleteMany({ where: { userId } })

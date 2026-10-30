@@ -25,6 +25,10 @@ import {
 } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 
+import {
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_COMPROMISED,
+} from "@/lib/account/password-policy"
 import { authClient } from "@/lib/auth-client"
 
 export function ResetPasswordForm({
@@ -38,7 +42,12 @@ export function ResetPasswordForm({
 
   const formSchema = z
     .object({
-      password: z.string().min(8, t("passwordLength")),
+      password: z
+        .string()
+        .min(
+          MIN_PASSWORD_LENGTH,
+          t("passwordLength", { min: MIN_PASSWORD_LENGTH })
+        ),
       confirmPassword: z.string(),
     })
     .refine((data) => data.password === data.confirmPassword, {
@@ -62,9 +71,11 @@ export function ResetPasswordForm({
     if (error) {
       form.setError("root", {
         message:
-          error.status === 400
-            ? t("invalidLink")
-            : (error.message ?? t("genericError")),
+          error.code === PASSWORD_COMPROMISED
+            ? t("passwordCompromised")
+            : error.status === 400
+              ? t("invalidLink")
+              : (error.message ?? t("genericError")),
       })
       return
     }
@@ -114,7 +125,9 @@ export function ResetPasswordForm({
                       fieldState.invalid ? `${field.name}-error` : undefined
                     }
                   />
-                  <FieldDescription>{t("passwordHint")}</FieldDescription>
+                  <FieldDescription>
+                    {t("passwordHint", { min: MIN_PASSWORD_LENGTH })}
+                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError
                       id={`${field.name}-error`}

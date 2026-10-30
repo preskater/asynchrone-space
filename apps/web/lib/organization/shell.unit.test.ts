@@ -16,6 +16,7 @@ function organization(overrides: Record<string, unknown> = {}) {
     trialEndsAt: null,
     storageQuotaBytes: null,
     deletionScheduledAt: null,
+    requireTwoFactor: false,
     subscription: null,
     ...overrides,
   }
@@ -46,6 +47,7 @@ describe("getOrganizationShell", () => {
     expect(shell?.entitlements).toEqual(entitlementsFor("team"))
     expect(shell?.storageQuotaBytes).toBe(entitlementsFor("team").storageBytes)
     expect(shell?.deletionScheduledAt).toEqual(DELETION_DATE)
+    expect(shell?.requireTwoFactor).toBe(false)
   })
 
   it("lets the per-organization quota override win", async () => {

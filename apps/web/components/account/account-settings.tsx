@@ -27,9 +27,14 @@ import {
   removeUserRepositoryTokenAction,
   setUserRepositoryTokenAction,
 } from "@/actions/integrations"
+import { TwoFactorCard } from "@/components/account/two-factor-card"
 import { DeleteAccountCard } from "@/components/account/delete-account-card"
 import { SessionsCard } from "@/components/account/sessions-card"
 import { UserAppearanceCard } from "@/components/appearance/user-appearance-card"
+import {
+  MIN_PASSWORD_LENGTH,
+  PASSWORD_COMPROMISED,
+} from "@/lib/account/password-policy"
 import { authClient } from "@/lib/auth-client"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
@@ -134,8 +139,8 @@ function SecurityCard() {
 
   async function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (newPassword.length < 8) {
-      setError(t("passwordTooShort"))
+    if (newPassword.length < MIN_PASSWORD_LENGTH) {
+      setError(t("passwordTooShort", { min: MIN_PASSWORD_LENGTH }))
       return
     }
     if (newPassword !== confirmPassword) {
@@ -152,7 +157,11 @@ function SecurityCard() {
     })
     setSaving(false)
     if (error) {
-      setError(error.message ?? t("unableToUpdatePassword"))
+      setError(
+        error.code === PASSWORD_COMPROMISED
+          ? t("passwordCompromised")
+          : (error.message ?? t("unableToUpdatePassword"))
+      )
       return
     }
     toast.success(t("passwordUpdated"))
@@ -508,6 +517,7 @@ export function AccountSettings({
         <ProfileCard />
         <UserAppearanceCard />
         <SecurityCard />
+        <TwoFactorCard />
         <SessionsCard />
         <RepositoryTokensCard />
         {socialProviders.length > 0 ? (
