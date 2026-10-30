@@ -43,5 +43,29 @@
   "saveToken": "Enregistrer",
   "replaceToken": "Remplacer",
   "removeToken": "Retirer",
-  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés."
+  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés.",
+  "twoFactor": {
+    "title": "Double authentification",
+    "on": "Activée",
+    "off": "Désactivée",
+    "description": "Demander un code d'une application d'authentification lors de la connexion par mot de passe.",
+    "password": "Mot de passe actuel",
+    "passwordHint": "Confirmez votre mot de passe pour configurer une application d'authentification.",
+    "passwordHintEnabled": "Confirmez votre mot de passe pour obtenir de nouveaux codes de secours ou désactiver la double authentification.",
+    "start": "Configurer",
+    "scan": "1. Scannez ce QR code avec votre application d'authentification",
+    "manualKey": "Ou saisissez cette clé manuellement :",
+    "backupCodes": "2. Enregistrez vos codes de secours",
+    "backupCodesHint": "Chaque code ne fonctionne qu'une fois. Utilisez-en un si vous perdez l'accès à votre application.",
+    "downloadBackupCodes": "Télécharger les codes",
+    "confirmCode": "3. Saisissez le code affiché dans l'application",
+    "enable": "Activer",
+    "cancel": "Annuler",
+    "regenerate": "Nouveaux codes de secours",
+    "disable": "Désactiver",
+    "invalidPassword": "Mot de passe incorrect.",
+    "invalidCode": "Ce code n'est pas valide. Réessayez.",
+    "enabledToast": "La double authentification est activée.",
+    "disabledToast": "La double authentification est désactivée."
+  }
 }

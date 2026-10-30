@@ -28,6 +28,7 @@ import {
   removeUserRepositoryTokenAction,
   setUserRepositoryTokenAction,
 } from "@/actions/integrations"
+import { TwoFactorCard } from "@/components/account/two-factor-card"
 import { UserAppearanceCard } from "@/components/appearance/user-appearance-card"
 import { authClient } from "@/lib/auth-client"
 import { unwrapActionResult } from "@/lib/core/action"
@@ -520,6 +521,7 @@ export function AccountSettings({
         <ProfileCard />
         <UserAppearanceCard />
         <SecurityCard />
+        <TwoFactorCard />
         <RepositoryTokensCard />
         {socialProviders.length > 0 ? (
           <ConnectedAccountsCard providers={socialProviders} />

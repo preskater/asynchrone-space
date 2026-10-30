@@ -5,9 +5,16 @@ import { betterAuth } from "better-auth"
 import { APIError, createAuthMiddleware } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
-import { admin, captcha, jwt, organization } from "better-auth/plugins"
+import {
+  admin,
+  captcha,
+  jwt,
+  organization,
+  twoFactor,
+} from "better-auth/plugins"
 import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
+import { recordTwoFactorChange } from "./account/two-factor-audit"
 import { rateLimit } from "./core/rate-limit"
 import { parseTrustedIpHeaders } from "./core/trusted-ip"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
@@ -162,6 +169,11 @@ export const auth = betterAuth({
           await assertSignupAllowed(user.email)
         },
       },
+      update: {
+        after: async (user, ctx) => {
+          await recordTwoFactorChange(user.id, ctx?.path)
+        },
+      },
     },
   },
   socialProviders: {
@@ -236,6 +248,16 @@ export const auth = betterAuth({
           session: ["list"],
         }),
         user: userAc,
+      },
+    }),
+    // Customer TOTP. Mapped to its own table and user column: the control
+    // tower's `twoFactor` rows are encrypted with a different secret (ADR 0018).
+    twoFactor({
+      issuer: "Asynchrone Space",
+      trustDeviceMaxAge: 30 * 24 * 60 * 60,
+      schema: {
+        user: { fields: { twoFactorEnabled: "customerTwoFactorEnabled" } },
+        twoFactor: { modelName: "customerTwoFactor" },
       },
     }),
     jwt(),

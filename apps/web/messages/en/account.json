@@ -43,5 +43,29 @@
   "saveToken": "Save",
   "replaceToken": "Replace",
   "removeToken": "Remove",
-  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects."
+  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects.",
+  "twoFactor": {
+    "title": "Two-factor authentication",
+    "on": "On",
+    "off": "Off",
+    "description": "Ask for a code from an authenticator app when you sign in with your password.",
+    "password": "Current password",
+    "passwordHint": "Confirm your password to set up an authenticator app.",
+    "passwordHintEnabled": "Confirm your password to get new backup codes or turn two-factor authentication off.",
+    "start": "Set up",
+    "scan": "1. Scan this QR code with your authenticator app",
+    "manualKey": "Or enter this key manually:",
+    "backupCodes": "2. Save your backup codes",
+    "backupCodesHint": "Each code works once. Use one if you lose access to your authenticator app.",
+    "downloadBackupCodes": "Download codes",
+    "confirmCode": "3. Enter the code shown in your app",
+    "enable": "Turn on",
+    "cancel": "Cancel",
+    "regenerate": "New backup codes",
+    "disable": "Turn off",
+    "invalidPassword": "Incorrect password.",
+    "invalidCode": "This code is not valid. Try again.",
+    "enabledToast": "Two-factor authentication is on.",
+    "disabledToast": "Two-factor authentication is off."
+  }
 }
