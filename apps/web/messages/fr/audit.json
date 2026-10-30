@@ -128,6 +128,9 @@
       "audit_retention": {
         "updated": "Durée de conservation modifiée"
       },
+      "export": {
+        "request": "Export de l’espace de travail demandé"
+      },
       "trial": {
         "start": "Essai démarré",
         "end": "Essai terminé"
@@ -232,6 +235,7 @@
     "leaveRequest": "Demande de congé",
     "leaveBalance": "Solde de congés",
     "leaveAdjustment": "Ajustement de congés",
-    "attendance": "Pointage"
+    "attendance": "Pointage",
+    "dataExport": "Export de données"
   }
 }

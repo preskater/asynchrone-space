@@ -1,6 +1,6 @@
 # Asynchrone Space
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![License: Elastic 2.0](https://img.shields.io/badge/License-Elastic%202.0-blue.svg)](./LICENSE)
 
 **AI‑Native Productivity Platform**
 
@@ -272,4 +272,18 @@ setup instructions and our workflow, and note our
 
 ## License
 
-Released under the [MIT License](./LICENSE).
+Asynchrone Space is **source-available**, not open source. It is licensed under
+the [Elastic License 2.0](./LICENSE) (SPDX: `Elastic-2.0`) from 2026-10-30.
+
+In short, you may use, copy, distribute and modify the software — including
+running it for your own organization — but you may **not** provide it to third
+parties as a hosted or managed service, and you may not remove or obscure
+licensing, copyright or attribution notices.
+
+Releases published before 2026-10-30 remain available under the MIT License;
+the new terms apply prospectively. See
+[ADR 0025](./docs/adr/0025-license-under-elastic-license-2.0.md) for the
+rationale and [THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md) for the
+licences of the dependencies we distribute.
+
+Contributions are accepted under the [CLA](./CLA.md).

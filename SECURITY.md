@@ -38,3 +38,32 @@ Please include as much of the following as possible:
 
 Please give us a reasonable amount of time to address the issue before any
 public disclosure.
+
+## Other contacts
+
+| Topic | Contact | Response |
+| --- | --- | --- |
+| Vulnerability reports | **security@asynchrone.space** | Acknowledged within 3 business days |
+| Privacy, access, export and deletion requests | **privacy@asynchrone.space** | Answered within 30 days |
+| Signed DPAs and security questionnaires | **privacy@asynchrone.space** | Countersigned within 5 business days |
+
+Both mailboxes are monitored by the maintainers. Prefer the private advisory form
+above for anything that must stay confidential on GitHub.
+
+## Legal and security documents
+
+What procurement and security reviewers ask for is published, so a questionnaire
+rarely needs to start from scratch:
+
+- Data processing agreement (controller/processor, sub-processing, breach
+  notification, deletion on termination, audit rights):
+  [asynchrone.space/legal/dpa](https://asynchrone.space/legal/dpa)
+- Sub-processors, with purpose, location and transfer mechanism:
+  [asynchrone.space/legal/subprocessors](https://asynchrone.space/legal/subprocessors)
+- Security overview, including what is **not** shipped yet:
+  [asynchrone.space/legal/security](https://asynchrone.space/legal/security)
+- Privacy policy and retention schedule:
+  [asynchrone.space/legal/privacy](https://asynchrone.space/legal/privacy)
+
+Printable PDFs live in `apps/web/public/downloads/legal` and are regenerated with
+`npm run legal:pdfs --workspace=web`.

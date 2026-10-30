@@ -152,6 +152,8 @@ model Organization {
   meetingSettings MeetingSettings?
   meetingRequests MeetingRequest[]
 
+  dataExports DataExport[]
+
   subscription Subscription?
   invoices     Invoice[]
   aiUsageEvents AiUsageEvent[]
@@ -1756,4 +1758,27 @@ model RateLimit {
 
   @@index([lastRequest])
   @@map("rateLimit")
+}
+
+/// Owner-requested archive of an organization's data (issue #88). The
+/// data-exports cron builds the ZIP into a large object, then unlinks it once
+/// `expiresAt` has passed.
+model DataExport {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedById  String
+  /// pending | processing | ready | failed | expired
+  status         String       @default("pending")
+  oid            BigInt?
+  sizeBytes      BigInt?
+  error          String?
+  createdAt      DateTime     @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  expiresAt      DateTime?
+
+  @@index([organizationId, createdAt])
+  @@index([status])
+  @@map("dataExport")
 }

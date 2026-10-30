@@ -128,6 +128,9 @@
       "audit_retention": {
         "updated": "Audit retention changed"
       },
+      "export": {
+        "request": "Workspace export requested"
+      },
       "trial": {
         "start": "Trial started",
         "end": "Trial ended"
@@ -232,6 +235,7 @@
     "leaveRequest": "Leave request",
     "leaveBalance": "Leave balance",
     "leaveAdjustment": "Leave adjustment",
-    "attendance": "Attendance"
+    "attendance": "Attendance",
+    "dataExport": "Data export"
   }
 }

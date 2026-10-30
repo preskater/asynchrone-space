@@ -191,6 +191,10 @@ cronjobs:
     enabled: true
     schedule: "45 3 * * *"
     path: /api/cron/audit-retention
+  dataExports:
+    enabled: true
+    schedule: "*/15 * * * *"
+    path: /api/cron/data-exports
 
 tests:
   image: busybox:1.37.0

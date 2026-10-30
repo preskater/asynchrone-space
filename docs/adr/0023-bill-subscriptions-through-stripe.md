@@ -1,7 +1,7 @@
 # Bill subscriptions through Stripe with a local plan state
 
 - Status: accepted
-- Deciders: Presk maintainers
+- Deciders: Asynchrone maintainers
 - Date: 2026-10-29
 
 ## Context and Problem Statement
@@ -19,7 +19,7 @@ without storing card data or writing accounting software.
 ## Decision Drivers
 
 - Ship self-serve Team billing quickly, including VAT-compliant invoices.
-- Never let card data touch Presk's database.
+- Never let card data touch Asynchrone's database.
 - Keep plan enforcement local, so a provider outage does not lock anyone out.
 - Make webhook handling idempotent: providers retry, and a replayed delivery
   must not double-apply anything.
@@ -39,7 +39,7 @@ without storing card data or writing accounting software.
 ## Decision Outcome
 
 Chosen option: "Stripe Checkout + Customer Portal with a local plan state",
-because it removes all card handling from Presk, delegates tax and invoices to
+because it removes all card handling from Asynchrone, delegates tax and invoices to
 the provider, and still leaves a plan column the app can enforce instantly.
 
 `Subscription` (one row per organization) holds `plan`, `status`, provider
@@ -82,7 +82,7 @@ migration needs no backfill.
 ### Positive Consequences
 
 - Card data, SCA, dunning, proration, VAT and invoice PDFs are the provider's
-  problem; Presk stores only ids, amounts and links.
+  problem; Asynchrone stores only ids, amounts and links.
 - Plan enforcement is a local database read, not a network call.
 - Webhook replays, duplicate deliveries and the checkout redirect racing the
   webhook are all safe.
@@ -104,7 +104,7 @@ migration needs no backfill.
 
 ### Stripe Checkout + Customer Portal
 
-- Good, because no card data reaches Presk and SCA is handled.
+- Good, because no card data reaches Asynchrone and SCA is handled.
 - Good, because invoices, VAT and the billing portal are maintained by Stripe.
 - Bad, because upgrade/downgrade UI is Stripe's branding, not ours.
 

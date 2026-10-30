@@ -53,6 +53,7 @@ export const AUDIT_ACTIONS = {
   organizationInvitationRejected: "organization.invitation.rejected",
   organizationPlanChanged: "organization.plan.changed",
   organizationAuditRetentionUpdated: "organization.audit_retention.updated",
+  organizationExportRequested: "organization.export.request",
 
   // Written by earlier releases; listed so the filter and labels still know
   // them.
@@ -137,4 +138,5 @@ export const AUDIT_ENTITY_TYPES = [
   "leaveBalance",
   "leaveAdjustment",
   "attendance",
+  "dataExport",
 ] as const

@@ -83,6 +83,12 @@ const CODE_KEYS: Record<string, string> = {
   billing_manual_contract: "billingManualContract",
   billing_subscription_exists: "billingSubscriptionExists",
   billing_no_payment_account: "billingNoPaymentAccount",
+  export_in_progress: "exportInProgress",
+  account_confirmation_mismatch: "accountConfirmationMismatch",
+  account_password_invalid: "accountPasswordInvalid",
+  account_platform_operator: "accountPlatformOperator",
+  account_sole_owner: "accountSoleOwner",
+  account_impersonated: "accountImpersonated",
 }
 
 export function useErrorTranslator() {

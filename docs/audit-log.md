@@ -3,7 +3,7 @@
 Organization owners and admins get a first-class audit trail of everything
 sensitive that happened in their workspace: who did it, on what, from which
 address, and what changed. The decision is recorded in
-[ADR 0025](adr/0025-customer-facing-audit-log.md).
+[ADR 0027](adr/0027-customer-facing-audit-log.md).
 
 ## Where things live
 
