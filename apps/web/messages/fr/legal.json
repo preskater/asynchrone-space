@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Politique de confidentialité",
     "description": "Comment Asynchrone Space collecte, utilise et protège vos données.",
-    "updated": "29 octobre 2026",
+    "updated": "30 octobre 2026",
     "s1h": "Informations que nous collectons",
     "s1b1": "Nous collectons les informations que vous fournissez lorsque vous créez un compte, notamment votre nom, votre adresse e-mail et les détails de votre organisation.",
     "s1b2": "Nous enregistrons également les données techniques nécessaires à l’exploitation et à la sécurisation du service : adresses IP, informations sur le navigateur et horodatage de chaque connexion, ainsi qu’une piste d’audit des modifications effectuées dans un espace de travail.",
@@ -48,7 +48,7 @@
     },
     "s3b2": "Les enregistrements des utilisateurs que vous avez invités sont supprimés avec l’espace de travail. Si vous avez besoin d’une copie de ce qui a été supprimé, demandez-la avant l’expiration des 30 jours.",
     "s4h": "Vos droits",
-    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d’accéder à vos données personnelles, de les rectifier, de les exporter ou de les supprimer. Les enregistrements CRM et RH peuvent être exportés au format CSV depuis le produit. Un export complet de l’ensemble d’un espace de travail n’est pas encore en libre-service : demandez-le à privacy@asynchrone.space et nous vous le fournirons sous 30 jours.",
+    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d’accéder à vos données personnelles, de les rectifier, de les exporter ou de les supprimer. Les enregistrements CRM et RH peuvent être exportés au format CSV depuis le produit. Les propriétaires d’un espace de travail peuvent aussi télécharger à tout moment un export complet de son contenu depuis ses paramètres.",
     "s4b2": "Les propriétaires d’un espace de travail programment la suppression depuis les paramètres et peuvent l’annuler jusqu’à la fin du délai de 30 jours. Nous pouvons vous demander de confirmer votre identité avant de traiter une demande.",
     "s5h": "Sous-traitants",
     "s5b1": "Nous faisons appel à un petit nombre de prestataires pour exploiter Asynchrone Space : hébergement cloud et PostgreSQL dans l’Union européenne, e-mail transactionnel, l’assistant IA lorsqu’il est activé, la synchronisation de dépôts, le traitement des paiements et un captcha à l’inscription lorsque le déploiement l’active. Chacun ne reçoit que les données nécessaires à sa tâche et est lié par un accord de sous-traitance.",

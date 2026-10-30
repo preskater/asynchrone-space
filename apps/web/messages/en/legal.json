@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "description": "How Asynchrone Space collects, uses and protects your data.",
-    "updated": "October 29, 2026",
+    "updated": "October 30, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
     "s1b2": "We also record the technical data needed to operate and secure the service: IP addresses, browser details and timestamps for each sign-in, and an audit trail of changes made inside a workspace.",
@@ -48,7 +48,7 @@
     },
     "s3b2": "Records of users you invited are deleted with the workspace. If you need a copy of what was deleted, ask us before the 30 days elapse.",
     "s4h": "Your rights",
-    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. CRM and HR records can be exported as CSV from the product. A complete export of everything in a workspace is not self-service yet: request it from privacy@asynchrone.space and we will provide it within 30 days.",
+    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. CRM and HR records can be exported as CSV from the product. Workspace owners can also download a complete export of everything in a workspace from its settings at any time.",
     "s4b2": "Workspace owners schedule deletion from the workspace settings, and can cancel it until the 30-day grace period ends. We may ask you to confirm your identity before acting on a request.",
     "s5h": "Sub-processors",
     "s5b1": "We use a small set of service providers to run Asynchrone Space: cloud hosting and PostgreSQL in the European Union, transactional email, the AI assistant when it is enabled, repository sync, payment processing, and a sign-up captcha when the deployment enables it. Each one receives only the data needed for its task and is bound by a data-processing agreement.",

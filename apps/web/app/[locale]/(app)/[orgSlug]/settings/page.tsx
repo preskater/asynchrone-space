@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server"
 
 import type { CheckoutReturn } from "@/components/billing/billing-panel"
+import { DataExportCard } from "@/components/organization/data-export-card"
 import { OrganizationSettings } from "@/components/organization/organization-settings"
 import { TrialCard } from "@/components/trial/trial-card"
 
@@ -40,6 +41,7 @@ export default async function SettingsPage({
       <OrganizationSettings
         checkout={checkout}
         deletionScheduledAt={deletionScheduledAt}
+        exportCard={<DataExportCard />}
       />
     </div>
   )

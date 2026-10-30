@@ -120,7 +120,7 @@ export async function deleteOrganization(
   })
   if (!org) return false
 
-  const [files, versions, uploads, attachments, owners, memberCount] =
+  const [files, versions, uploads, attachments, exports, owners, memberCount] =
     await Promise.all([
       prisma.fileNode.findMany({
         where: { organizationId, oid: { not: null } },
@@ -141,6 +141,10 @@ export async function deleteOrganization(
         },
         select: { oid: true },
       }),
+      prisma.dataExport.findMany({
+        where: { organizationId, oid: { not: null } },
+        select: { oid: true },
+      }),
       prisma.member.findMany({
         where: { organizationId, role: { contains: "owner" } },
         select: { user: { select: { email: true } } },
@@ -149,8 +153,8 @@ export async function deleteOrganization(
     ])
   const oids = [
     ...new Set(
-      [...files, ...versions, ...uploads, ...attachments].map(({ oid }) =>
-        Number(oid)
+      [...files, ...versions, ...uploads, ...attachments, ...exports].map(
+        ({ oid }) => Number(oid)
       )
     ),
   ]
