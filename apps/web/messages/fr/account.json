@@ -15,11 +15,10 @@
   "nameRequired": "Le nom est requis",
   "unableToUpdateProfile": "Impossible de mettre à jour votre profil.",
   "security": "Sécurité",
-  "securityDescription": "Changez votre mot de passe. Vous resterez connecté sur cet appareil.",
+  "securityDescription": "Changez votre mot de passe. Vous resterez connecté sur cet appareil ; tous les autres appareils seront déconnectés.",
   "currentPassword": "Mot de passe actuel",
   "newPassword": "Nouveau mot de passe",
   "confirmPassword": "Confirmer le nouveau mot de passe",
-  "revokeOtherSessions": "Déconnecter les autres appareils",
   "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
   "passwordTooShort": "Le mot de passe doit contenir au moins {min} caractères.",
   "updatePassword": "Mettre à jour le mot de passe",
@@ -68,5 +67,27 @@
     "enabledToast": "La double authentification est activée.",
     "disabledToast": "La double authentification est désactivée."
   },
-  "passwordCompromised": "Ce mot de passe figure dans une fuite de données connue. Choisissez-en un autre."
+  "passwordCompromised": "Ce mot de passe figure dans une fuite de données connue. Choisissez-en un autre.",
+  "sessions": {
+    "title": "Sessions actives",
+    "description": "Appareils connectés à votre compte. La déconnexion d'un appareil prend effet à sa prochaine requête.",
+    "current": "Cet appareil",
+    "unknownDevice": "Appareil inconnu",
+    "unknownIp": "IP inconnue",
+    "lastActive": "Dernière activité {time}",
+    "revoke": "Déconnecter",
+    "revokeOthers": "Déconnecter tous les autres appareils",
+    "revoked": "Appareil déconnecté.",
+    "othersRevoked": "Tous les autres appareils ont été déconnectés.",
+    "revokeError": "Impossible de déconnecter cet appareil.",
+    "loadError": "Impossible de charger vos sessions.",
+    "stale": "Par sécurité, la liste des appareils demande une connexion récente.",
+    "signInAgain": "Se reconnecter"
+  },
+  "deleteAccount": "Supprimer le compte",
+  "deleteAccountDescription": "Supprimer définitivement votre compte. Vous quittez toutes les organisations ; le contenu que vous avez créé y reste, affiché comme écrit par un utilisateur supprimé.",
+  "deleteAccountConfirmTitle": "Supprimer votre compte ?",
+  "deleteAccountConfirmDescription": "Cette action est irréversible. Votre profil, vos méthodes de connexion, vos sessions et vos adhésions sont supprimés immédiatement. Vous pourrez vous réinscrire plus tard avec la même adresse e-mail.",
+  "deleteAccountTypeEmail": "Tapez {email} pour confirmer",
+  "cancel": "Annuler"
 }

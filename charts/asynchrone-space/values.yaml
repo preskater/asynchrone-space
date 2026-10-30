@@ -98,6 +98,10 @@ asynchrone-space-web:
       enabled: true
       schedule: "30 3 * * *"
       path: /api/cron/organization-deletion
+    dataExports:
+      enabled: true
+      schedule: "*/15 * * * *"
+      path: /api/cron/data-exports
 
 # ---------------------------------------------------------------------------
 # Internal control tower

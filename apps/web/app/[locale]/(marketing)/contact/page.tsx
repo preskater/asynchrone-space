@@ -1,12 +1,19 @@
 import type { Metadata } from "next"
-import { getTranslations } from "next-intl/server"
+import { getLocale, getTranslations } from "next-intl/server"
+import { DownloadIcon } from "lucide-react"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { Section } from "@/components/landing/section"
 import { ContactForm } from "@/components/forms/contact-form"
-import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@workspace/ui/components/card"
 
 import { contactChannels } from "@/lib/landing/content"
+import { legalPdfPath } from "@/lib/landing/legal"
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("Marketing.contact")
@@ -22,8 +29,24 @@ const channelKeys = [
   { title: "careers", description: "careersDescription" },
 ] as const
 
+const legalPack = [
+  { label: "legalPackDpa", hint: "legalPackDpaHint", slug: "dpa" },
+  {
+    label: "legalPackSubprocessors",
+    hint: "legalPackSubprocessorsHint",
+    slug: "subprocessors",
+  },
+  {
+    label: "legalPackSecurity",
+    hint: "legalPackSecurityHint",
+    slug: "security",
+  },
+  { label: "legalPackPrivacy", hint: "legalPackPrivacyHint", slug: "privacy" },
+] as const
+
 export default async function ContactPage() {
   const t = await getTranslations("Marketing.contact")
+  const locale = await getLocale()
 
   return (
     <>
@@ -64,6 +87,37 @@ export default async function ContactPage() {
             })}
           </div>
         </div>
+      </Section>
+      <Section className="pt-0">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t("legalPackTitle")}</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              {t("legalPackDescription")}
+            </p>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-1">
+            {legalPack.map((entry) => (
+              <a
+                key={entry.slug}
+                href={legalPdfPath(entry.slug, locale)}
+                download
+                className="flex items-start gap-3 rounded-lg p-3 transition-colors hover:bg-muted/60"
+              >
+                <DownloadIcon className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium">{t(entry.label)}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {t(entry.hint)}
+                  </span>
+                </span>
+              </a>
+            ))}
+            <p className="mt-2 px-3 text-sm text-muted-foreground">
+              {t("legalPackContact")}
+            </p>
+          </CardContent>
+        </Card>
       </Section>
     </>
   )

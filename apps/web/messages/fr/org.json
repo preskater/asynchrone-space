@@ -126,5 +126,17 @@
     "disabled": "La double authentification n'est plus obligatoire.",
     "missingTitle": "{count, plural, =0 {Tous les membres l'ont activée} one {# membre ne l'a pas activée} other {# membres ne l'ont pas activée}}",
     "allEnrolled": "Personne n'a encore à l'activer."
+  },
+  "exportTitle": "Exporter les données",
+  "exportDescription": "Téléchargez une archive ZIP de tout le contenu de cette organisation : projets, tâches, messages, calendriers, CRM, dossiers RH, membres et fichiers. Elle est préparée en arrière-plan et reste disponible {days} jours.",
+  "exportRequest": "Demander un export",
+  "exportRequested": "Export demandé. Nous vous enverrons un e-mail quand il sera prêt.",
+  "exportReady": "Prêt · {size} · disponible jusqu'au {date}",
+  "exportDownload": "Télécharger",
+  "exportStatus": {
+    "pending": "En attente…",
+    "processing": "Préparation en cours…",
+    "failed": "Échec. Demandez un nouvel export.",
+    "expired": "Expiré"
   }
 }

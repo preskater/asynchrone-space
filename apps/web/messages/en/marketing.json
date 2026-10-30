@@ -61,7 +61,18 @@
     "support": "Support",
     "supportDescription": "Get help from a product specialist.",
     "careers": "Careers",
-    "careersDescription": "Questions about working at Asynchrone Space."
+    "careersDescription": "Questions about working at Asynchrone Space.",
+    "legalPackTitle": "Legal and security pack",
+    "legalPackDescription": "What procurement and security reviewers usually ask for first. Each document is a PDF you can forward internally, and every slug is also published on this site.",
+    "legalPackDpa": "Data processing agreement",
+    "legalPackDpaHint": "The template we sign, with breach notification, sub-processing and audit rights.",
+    "legalPackSubprocessors": "Sub-processors",
+    "legalPackSubprocessorsHint": "Purpose, location and transfer mechanism for every provider.",
+    "legalPackSecurity": "Security overview",
+    "legalPackSecurityHint": "What is implemented today, and what is explicitly not shipped yet.",
+    "legalPackPrivacy": "Privacy policy and retention schedule",
+    "legalPackPrivacyHint": "How long each category of data is kept, mapped to what the product does.",
+    "legalPackContact": "Send a signed DPA or a data-protection request to privacy@asynchrone.space. Security questions and vulnerability reports: security@asynchrone.space."
   },
   "careers": {
     "metadataTitle": "Careers",
@@ -108,7 +119,8 @@
   "legal": {
     "lastUpdated": "Last updated {date}",
     "notFoundTitle": "Document not found",
-    "notFoundDescription": "This legal document doesn't exist or may have been moved."
+    "notFoundDescription": "This legal document doesn't exist or may have been moved.",
+    "downloadPdf": "Download PDF"
   },
   "notFound": {
     "title": "Page not found",

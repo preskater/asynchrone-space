@@ -15,7 +15,10 @@
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
 - Manual Team trial check (needs a live DB; start, abuse checks, D-3 reminder, idempotent expiry): `npm run verify:trial --workspace=web`.
 - Manual organization-deletion check (needs a live DB; request/cancel rules, the 30-day grace period, no orphan rows, every large object unlinked): `npm run verify:organization-deletion --workspace=web`.
+- Manual data-export check (needs a live DB; owner-only requests, archive contents against the database, no secrets, expiry and cleanup on organization deletion): `npm run verify:data-export --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
+- Legal copy parity (no DB needed): `npm run verify:legal-copy --workspace=web`. It fails when the `en` and `fr` legal documents disagree on a key, or when a table or list in `legal.json` is malformed.
+- Legal PDFs: `npm run legal:pdfs --workspace=web` regenerates `apps/web/public/downloads/legal` from the same copy (needs Chromium; `npx playwright install chromium` once). Commit the PDFs with the copy that produced them — see `docs/legal/README.md`.
 - Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
 - Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
 
@@ -34,7 +37,7 @@
 - `.github/workflows/docker.yml` publishes three GHCR images: `asynchrone-space` (web runner), `asynchrone-space-control-tower` (control-tower runner) and `asynchrone-space-migrate` (Dockerfile `migrate` stage).
 - Helm charts live in `charts/`: `asynchrone-space` is the umbrella (migration hook and production values), `asynchrone-space-web` and `asynchrone-space-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/asynchrone-space` then `helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space --set global.imageTag=sha-…`. The packaged subcharts under `charts/asynchrone-space/charts/` are committed (Git-based chart sources such as Rancher never run `helm dependency build`); after editing a subchart, run `helm dependency build` and commit the archives — CI verifies they match the sources.
 - The chart requires the existing Secrets `asynchrone-space-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `asynchrone-space-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
-- The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the four CronJobs (`uploads-sweep`, `repository-sync`, `trial-expiry`, `organization-deletion`) that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
+- The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the five CronJobs (`uploads-sweep`, `repository-sync`, `trial-expiry`, `organization-deletion`, `data-exports`) that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
 - Verify chart changes with `helm dependency build charts/asynchrone-space && helm lint --strict charts/asynchrone-space --set global.imageTag=test && helm template asynchrone-space charts/asynchrone-space --set global.imageTag=test`.
 
 <!-- BEGIN:turborepo-agent-rules -->
@@ -88,11 +91,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Customer 2FA uses the same `twoFactor` plugin mapped to its own `customerTwoFactor` table and `user.customerTwoFactorEnabled` column; never point it at the control tower's `twoFactor` table (different encryption secret). See `docs/two-factor.md`.
 - Organization deletion is a two-step flow: an owner schedules it (`lib/organization/deletion-service.ts`, `organization.deletionScheduledAt`), every member sees a banner, and the daily `organization-deletion` cron deletes overdue organizations, their large objects and the FK-less rows (`uploadSession`, `platformHandoff`). Better Auth's own `organization.delete` is disabled so nothing bypasses the grace period.
 - i18n uses next-intl with `localePrefix: "always"` (en default, fr). Add every user-facing string to both `apps/web/messages/en` and `apps/web/messages/fr`; blog/content MDX is mirrored under `apps/web/content/<type>/<locale>`.
+- Legal documents are data, not JSX: sections live in `apps/web/lib/landing/legal.ts`, copy in `apps/web/messages/{en,fr}/legal.json`, printable versions in `apps/web/public/downloads/legal`. See `docs/legal/README.md` before adding a document or a sub-processor.
 - The assistant/MCP endpoint is at `apps/web/app/mcp/route.ts` (not under `/api`) and is excluded from the i18n middleware in `apps/web/proxy.ts`. Other API routes are under `apps/web/app/api/*`.
 - ESLint is flat-config per workspace (`eslint.config.js`); the root `.eslintrc.js` only holds ignores. Prettier config is `.prettierrc` (with Tailwind class sorting); root `format` only covers `**/*.{ts,tsx}`.
 
 ## Decisions & process
 
 - Architecture decisions are recorded in `docs/adr/` using MADR. Add a new record instead of editing an accepted one, and update the index in `docs/adr/README.md`.
+- The project is source-available under the Elastic License 2.0 (ADR 0025), not open source. Do not describe it as "open source" or add an OSI licence badge, keep `license: "Elastic-2.0"` in every `package.json`, and expect a signed [CLA](./CLA.md) on external pull requests.
 - Commits use Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`), matching the existing history.
 - The Next.js and Turborepo blocks at the top of this file are regenerated by the tools; keep them committed rather than deleting them in cleanup.

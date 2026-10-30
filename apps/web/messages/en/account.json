@@ -15,11 +15,10 @@
   "nameRequired": "Name is required",
   "unableToUpdateProfile": "Unable to update your profile.",
   "security": "Security",
-  "securityDescription": "Change your password. You'll stay signed in on this device.",
+  "securityDescription": "Change your password. You'll stay signed in on this device; every other device is signed out.",
   "currentPassword": "Current password",
   "newPassword": "New password",
   "confirmPassword": "Confirm new password",
-  "revokeOtherSessions": "Sign out of other devices",
   "passwordsDoNotMatch": "The passwords do not match.",
   "passwordTooShort": "The password must be at least {min} characters.",
   "updatePassword": "Update password",
@@ -68,5 +67,27 @@
     "enabledToast": "Two-factor authentication is on.",
     "disabledToast": "Two-factor authentication is off."
   },
-  "passwordCompromised": "This password appears in a known data breach. Choose a different one."
+  "passwordCompromised": "This password appears in a known data breach. Choose a different one.",
+  "sessions": {
+    "title": "Active sessions",
+    "description": "Devices signed in to your account. Signing a device out takes effect on its next request.",
+    "current": "This device",
+    "unknownDevice": "Unknown device",
+    "unknownIp": "Unknown IP",
+    "lastActive": "Last active {time}",
+    "revoke": "Sign out",
+    "revokeOthers": "Sign out of all other devices",
+    "revoked": "Device signed out.",
+    "othersRevoked": "All other devices signed out.",
+    "revokeError": "Unable to sign this device out.",
+    "loadError": "Unable to load your sessions.",
+    "stale": "For your security, the device list needs a recent sign-in.",
+    "signInAgain": "Sign in again"
+  },
+  "deleteAccount": "Delete account",
+  "deleteAccountDescription": "Permanently delete your account. You leave every organization; content you created stays there, shown as written by a deleted user.",
+  "deleteAccountConfirmTitle": "Delete your account?",
+  "deleteAccountConfirmDescription": "This cannot be undone. Your profile, sign-in methods, sessions and memberships are deleted immediately. You can sign up again later with the same email address.",
+  "deleteAccountTypeEmail": "Type {email} to confirm",
+  "cancel": "Cancel"
 }

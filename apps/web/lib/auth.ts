@@ -16,6 +16,7 @@ import {
 import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
 import { MIN_PASSWORD_LENGTH } from "./account/password-policy"
+import { recordSessionRevocation } from "./account/session-audit"
 import { recordTwoFactorChange } from "./account/two-factor-audit"
 import { rateLimit } from "./core/rate-limit"
 import { parseTrustedIpHeaders } from "./core/trusted-ip"
@@ -194,6 +195,11 @@ export const auth = betterAuth({
         body.application_type = "native"
       }
     }),
+    after: createAuthMiddleware(async (ctx) => {
+      const userId = ctx.context.session?.user.id
+      if (!userId || ctx.context.returned instanceof APIError) return
+      await recordSessionRevocation(userId, ctx.path)
+    }),
   },
   plugins: [
     // Rejects breached passwords on sign-up, change and reset through the HIBP
@@ -228,6 +234,12 @@ export const auth = betterAuth({
         // cap must not strand invitations that were legitimately issued.
         beforeAddMember: async ({ member }) => {
           await assertSeatAvailable(member.organizationId, member.role, false)
+        },
+        // A new role must not ride on sessions opened under the old one, so
+        // the member signs in again everywhere.
+        afterUpdateMemberRole: async ({ member, previousRole }) => {
+          if (member.role === previousRole) return
+          await prisma.session.deleteMany({ where: { userId: member.userId } })
         },
         afterCreateOrganization: async ({ organization, user }) => {
           await prisma.calendar.create({

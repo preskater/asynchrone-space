@@ -65,6 +65,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             APP=${{ matrix.app }}
+            SENTRY_DSN=${{ vars.SENTRY_DSN }}
           cache-from: type=gha,scope=${{ matrix.cacheScope }}
           cache-to: type=gha,mode=max,scope=${{ matrix.cacheScope }}
           # Uncomment to enable Turborepo remote caching
