@@ -55,9 +55,12 @@ function resolveTab(value: string | null, fallback: TabId): TabId {
 export function OrganizationSettings({
   checkout,
   deletionScheduledAt,
+  exportCard,
 }: {
   checkout?: CheckoutReturn
   deletionScheduledAt: Date | null
+  /** Server-rendered, owner-only data export card for the General tab. */
+  exportCard?: React.ReactNode
 }) {
   const t = useTranslations("Org")
   const tAppearance = useTranslations("Appearance")
@@ -145,6 +148,7 @@ export function OrganizationSettings({
           canEdit={permissions.canUpdateOrganization}
           onSaved={refetch}
         />
+        {exportCard ? <div className="mt-4">{exportCard}</div> : null}
       </TabsContent>
 
       <TabsContent value="billing">

@@ -117,5 +117,17 @@
   "cancelDeletion": "Annuler la suppression",
   "deletionBanner": "Cette organisation sera supprimée le {date}.",
   "deletionBannerDescription": "Toutes ses données et tous ses fichiers seront définitivement effacés. Un propriétaire peut annuler dans les paramètres.",
-  "deletionBannerAction": "Ouvrir les paramètres"
+  "deletionBannerAction": "Ouvrir les paramètres",
+  "exportTitle": "Exporter les données",
+  "exportDescription": "Téléchargez une archive ZIP de tout le contenu de cette organisation : projets, tâches, messages, calendriers, CRM, dossiers RH, membres et fichiers. Elle est préparée en arrière-plan et reste disponible {days} jours.",
+  "exportRequest": "Demander un export",
+  "exportRequested": "Export demandé. Nous vous enverrons un e-mail quand il sera prêt.",
+  "exportReady": "Prêt · {size} · disponible jusqu'au {date}",
+  "exportDownload": "Télécharger",
+  "exportStatus": {
+    "pending": "En attente…",
+    "processing": "Préparation en cours…",
+    "failed": "Échec. Demandez un nouvel export.",
+    "expired": "Expiré"
+  }
 }

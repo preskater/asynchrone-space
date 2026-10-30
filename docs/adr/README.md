@@ -48,3 +48,4 @@ collection.
 | [0022](0022-shared-rate-limits-in-postgres.md)            | accepted | Share rate limits through PostgreSQL                                       |
 | [0023](0023-bill-subscriptions-through-stripe.md)         | accepted | Bill subscriptions through Stripe with a local plan state                  |
 | [0024](0024-delete-organizations-after-a-grace-period.md) | accepted | Delete organizations after a 30-day grace period                          |
+| [0025](0025-export-organization-data-asynchronously.md)    | accepted | Export organization data asynchronously                                   |

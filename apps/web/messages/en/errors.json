@@ -106,5 +106,6 @@
   "billingNotConfigured": "Billing is not configured on this deployment.",
   "billingManualContract": "This organization is billed through a manual contract.",
   "billingSubscriptionExists": "This organization already has a subscription. Manage it from the customer portal.",
-  "billingNoPaymentAccount": "There is no payment method to manage yet."
+  "billingNoPaymentAccount": "There is no payment method to manage yet.",
+  "exportInProgress": "An export is already being prepared."
 }

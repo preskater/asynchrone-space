@@ -288,3 +288,26 @@ export function sendOrganizationDeletedEmail({
     }),
   })
 }
+
+export function sendDataExportReadyEmail({
+  to,
+  organizationName,
+  url,
+  days,
+}: {
+  to: string
+  organizationName: string
+  url: string
+  days: number
+}) {
+  sendEmail({
+    to,
+    subject: "Your data export is ready",
+    html: layout({
+      heading: "Your data export is ready",
+      body: `The export of ${escapeHtml(organizationName)} is ready to download from the organization settings. The link expires in ${days} days.`,
+      cta: "Open settings",
+      url: publicUrl(url),
+    }),
+  })
+}

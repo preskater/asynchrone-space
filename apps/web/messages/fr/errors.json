@@ -106,5 +106,6 @@
   "billingNotConfigured": "La facturation n'est pas configurée sur ce déploiement.",
   "billingManualContract": "Cette organisation est facturée via un contrat manuel.",
   "billingSubscriptionExists": "Cette organisation a déjà un abonnement. Gérez-le depuis le portail client.",
-  "billingNoPaymentAccount": "Aucun moyen de paiement à gérer pour le moment."
+  "billingNoPaymentAccount": "Aucun moyen de paiement à gérer pour le moment.",
+  "exportInProgress": "Un export est déjà en cours de préparation."
 }

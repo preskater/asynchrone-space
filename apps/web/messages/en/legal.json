@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "description": "How Asynchrone Space collects, uses and protects your data.",
-    "updated": "October 29, 2026",
+    "updated": "October 30, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
     "s1b2": "We also collect usage data — such as the features you interact with — to operate, secure and improve the service.",
@@ -10,9 +10,9 @@
     "s2b1": "We use your information to provide the service, authenticate users, respond to support requests and send product updates you have opted into.",
     "s2b2": "We never sell your personal data.",
     "s3h": "Data retention",
-    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again.",
+    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again. When you delete your personal account, it is anonymized immediately: your name, email address and sign-in methods are removed, and content or HR records you created in an organization stay with that organization, attributed to a deleted user.",
     "s4h": "Your rights",
-    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@asynchrone.space to exercise these rights.",
+    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@asynchrone.space to exercise these rights. Organization owners can also download a complete export of their organization's data from its settings at any time.",
     "s5h": "Sub-processors",
     "s5b1": "We use a small set of service providers to run Asynchrone Space. Stripe processes payments, subscriptions and invoices for paid plans; card details are entered on Stripe and never reach our servers. Resend delivers transactional email, and OpenAI powers the AI assistant when it is enabled. Each provider is bound by a data-processing agreement and only receives the data needed for its task. Contact privacy@asynchrone.space for the current list."
   },

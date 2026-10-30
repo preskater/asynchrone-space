@@ -83,6 +83,7 @@ const CODE_KEYS: Record<string, string> = {
   billing_manual_contract: "billingManualContract",
   billing_subscription_exists: "billingSubscriptionExists",
   billing_no_payment_account: "billingNoPaymentAccount",
+  export_in_progress: "exportInProgress",
 }
 
 export function useErrorTranslator() {

@@ -86,6 +86,7 @@ export type ServiceErrorCode =
   | "billing_manual_contract"
   | "billing_subscription_exists"
   | "billing_no_payment_account"
+  | "export_in_progress"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

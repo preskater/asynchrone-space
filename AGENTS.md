@@ -15,6 +15,7 @@
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
 - Manual Team trial check (needs a live DB; start, abuse checks, D-3 reminder, idempotent expiry): `npm run verify:trial --workspace=web`.
 - Manual organization-deletion check (needs a live DB; request/cancel rules, the 30-day grace period, no orphan rows, every large object unlinked): `npm run verify:organization-deletion --workspace=web`.
+- Manual data-export check (needs a live DB; owner-only requests, archive contents against the database, no secrets, expiry and cleanup on organization deletion): `npm run verify:data-export --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
 - Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
 - Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
@@ -34,7 +35,7 @@
 - `.github/workflows/docker.yml` publishes three GHCR images: `asynchrone-space` (web runner), `asynchrone-space-control-tower` (control-tower runner) and `asynchrone-space-migrate` (Dockerfile `migrate` stage).
 - Helm charts live in `charts/`: `asynchrone-space` is the umbrella (migration hook and production values), `asynchrone-space-web` and `asynchrone-space-control-tower` are the app subcharts. Install/upgrade from the root with `helm dependency build charts/asynchrone-space` then `helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-space --set global.imageTag=sha-…`. The packaged subcharts under `charts/asynchrone-space/charts/` are committed (Git-based chart sources such as Rancher never run `helm dependency build`); after editing a subchart, run `helm dependency build` and commit the archives — CI verifies they match the sources.
 - The chart requires the existing Secrets `asynchrone-space-web-secrets` (DATABASE_URL, BETTER_AUTH_SECRET, CRON_SECRET, optional provider keys) and `asynchrone-space-control-tower-secrets` (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET). Never put secrets in values or templates.
-- The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the four CronJobs (`uploads-sweep`, `repository-sync`, `trial-expiry`, `organization-deletion`) that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
+- The pre-install/pre-upgrade `asynchrone-space-migrate` Job runs `prisma migrate deploy`; the web subchart owns the five CronJobs (`uploads-sweep`, `repository-sync`, `trial-expiry`, `organization-deletion`, `data-exports`) that replaced the former Vercel crons. See `docs/deployment/helm.md` and ADR 0019.
 - Verify chart changes with `helm dependency build charts/asynchrone-space && helm lint --strict charts/asynchrone-space --set global.imageTag=test && helm template asynchrone-space charts/asynchrone-space --set global.imageTag=test`.
 
 <!-- BEGIN:turborepo-agent-rules -->

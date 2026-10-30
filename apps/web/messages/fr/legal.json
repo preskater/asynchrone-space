@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Politique de confidentialité",
     "description": "Comment Asynchrone Space collecte, utilise et protège vos données.",
-    "updated": "29 octobre 2026",
+    "updated": "30 octobre 2026",
     "s1h": "Informations que nous collectons",
     "s1b1": "Nous collectons les informations que vous fournissez lorsque vous créez un compte, notamment votre nom, votre adresse e-mail et les détails de votre organisation.",
     "s1b2": "Nous collectons aussi des données d'usage — comme les fonctionnalités que vous utilisez — pour exploiter, sécuriser et améliorer le service.",
@@ -10,9 +10,9 @@
     "s2b1": "Nous utilisons vos informations pour fournir le service, authentifier les utilisateurs, répondre aux demandes d'assistance et envoyer les nouveautés produit auxquelles vous avez souscrit.",
     "s2b2": "Nous ne vendons jamais vos données personnelles.",
     "s3h": "Conservation des données",
-    "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez un compte ou une organisation, nous retirons ou anonymisons ses données sous 30 jours, sauf lorsque la loi nous oblige à les conserver. Deux enregistrements subsistent après la suppression d'une organisation : les événements d'audit de la plateforme, et l'adresse e-mail et le domaine d'entreprise utilisés pour réclamer un essai Team, que nous conservons afin d'éviter qu'un même essai soit réclamé à nouveau.",
+    "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez un compte ou une organisation, nous retirons ou anonymisons ses données sous 30 jours, sauf lorsque la loi nous oblige à les conserver. Deux enregistrements subsistent après la suppression d'une organisation : les événements d'audit de la plateforme, et l'adresse e-mail et le domaine d'entreprise utilisés pour réclamer un essai Team, que nous conservons afin d'éviter qu'un même essai soit réclamé à nouveau. Lorsque vous supprimez votre compte personnel, il est anonymisé immédiatement : votre nom, votre adresse e-mail et vos méthodes de connexion sont supprimés, et le contenu ou les dossiers RH que vous avez créés dans une organisation y restent, attribués à un utilisateur supprimé.",
     "s4h": "Vos droits",
-    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@asynchrone.space pour exercer ces droits.",
+    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@asynchrone.space pour exercer ces droits. Les propriétaires d'une organisation peuvent aussi télécharger à tout moment un export complet de ses données depuis ses paramètres.",
     "s5h": "Sous-traitants",
     "s5b1": "Nous faisons appel à un nombre limité de prestataires pour opérer Asynchrone Space. Stripe traite les paiements, les abonnements et les factures des offres payantes ; les données de carte sont saisies chez Stripe et n'atteignent jamais nos serveurs. Resend achemine les e-mails transactionnels et OpenAI alimente l'assistant IA lorsqu'il est activé. Chaque prestataire est lié par un accord de sous-traitance et ne reçoit que les données nécessaires à sa mission. Contactez privacy@asynchrone.space pour obtenir la liste à jour."
   },
