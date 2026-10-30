@@ -113,6 +113,8 @@ model Organization {
   /// organization once this date has passed; clearing it cancels the request.
   deletionScheduledAt   DateTime?
   deletionRequestedById String?
+  /// Members must enroll TOTP before reaching the workspace (Team/Enterprise).
+  requireTwoFactor      Boolean   @default(false)
   teams             Team[]
   members           Member[]
   invitations       Invitation[]

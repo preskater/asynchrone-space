@@ -71,3 +71,16 @@ describe("auth client ip headers", () => {
     ])
   })
 })
+
+describe("auth password policy", () => {
+  it("enforces the shared minimum length and the breached-password check", async () => {
+    const { auth } = await import("./auth")
+    const { MIN_PASSWORD_LENGTH } = await import("./account/password-policy")
+    expect(auth.options.emailAndPassword?.minPasswordLength).toBe(
+      MIN_PASSWORD_LENGTH
+    )
+    expect(auth.options.plugins?.map((plugin) => plugin.id)).toContain(
+      "have-i-been-pwned"
+    )
+  })
+})

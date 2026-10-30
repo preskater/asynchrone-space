@@ -21,7 +21,7 @@
   "confirmPassword": "Confirm new password",
   "revokeOtherSessions": "Sign out of other devices",
   "passwordsDoNotMatch": "The passwords do not match.",
-  "passwordTooShort": "The password must be at least 8 characters.",
+  "passwordTooShort": "The password must be at least {min} characters.",
   "updatePassword": "Update password",
   "updating": "Updating...",
   "passwordUpdated": "Password updated",
@@ -67,5 +67,6 @@
     "invalidCode": "This code is not valid. Try again.",
     "enabledToast": "Two-factor authentication is on.",
     "disabledToast": "Two-factor authentication is off."
-  }
+  },
+  "passwordCompromised": "This password appears in a known data breach. Choose a different one."
 }

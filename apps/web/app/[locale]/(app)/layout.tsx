@@ -23,6 +23,7 @@ import { messagingService } from "@/lib/messaging"
 import { notificationService } from "@/lib/notifications"
 import { getTrialStatus } from "@/lib/organization/trial-service"
 import { getOrganizationShell } from "@/lib/organization/shell"
+import { mustEnrollTwoFactor } from "@/lib/organization/two-factor-policy"
 import { EntitlementsProvider } from "@/lib/organization/use-entitlements"
 import { isPortalMember } from "@/lib/portal/context"
 import { projectService } from "@/lib/projects"
@@ -110,6 +111,16 @@ export default async function AppLayout({
     redirect("/onboarding")
   }
   const { entitlements, storageQuotaBytes, deletionScheduledAt } = shell
+  if (
+    mustEnrollTwoFactor({
+      required: shell.requireTwoFactor,
+      entitled: entitlements.requireTwoFactor,
+      enrolled: Boolean(session.user.twoFactorEnabled),
+      impersonated: Boolean(session.session.impersonatedBy),
+    })
+  ) {
+    redirect("/two-factor/setup")
+  }
   const filesData = EMPTY_FILES_DATA
 
   return (

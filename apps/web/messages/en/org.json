@@ -117,5 +117,14 @@
   "cancelDeletion": "Cancel deletion",
   "deletionBanner": "This organization will be deleted on {date}.",
   "deletionBannerDescription": "All of its data and files will be permanently removed. An owner can cancel in settings.",
-  "deletionBannerAction": "Open settings"
+  "deletionBannerAction": "Open settings",
+  "twoFactorPolicy": {
+    "title": "Two-factor authentication",
+    "description": "Require every member to protect their account with an authenticator app.",
+    "require": "Require two-factor authentication for all members",
+    "enabled": "Members without two-factor authentication must set it up before reaching the workspace.",
+    "disabled": "Two-factor authentication is no longer required.",
+    "missingTitle": "{count, plural, =0 {Every member has turned it on} one {# member has not turned it on} other {# members have not turned it on}}",
+    "allEnrolled": "Nobody is waiting to set it up."
+  }
 }

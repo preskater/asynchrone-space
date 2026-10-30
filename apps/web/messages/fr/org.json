@@ -117,5 +117,14 @@
   "cancelDeletion": "Annuler la suppression",
   "deletionBanner": "Cette organisation sera supprimée le {date}.",
   "deletionBannerDescription": "Toutes ses données et tous ses fichiers seront définitivement effacés. Un propriétaire peut annuler dans les paramètres.",
-  "deletionBannerAction": "Ouvrir les paramètres"
+  "deletionBannerAction": "Ouvrir les paramètres",
+  "twoFactorPolicy": {
+    "title": "Double authentification",
+    "description": "Imposer à chaque membre de protéger son compte avec une application d'authentification.",
+    "require": "Rendre la double authentification obligatoire pour tous les membres",
+    "enabled": "Les membres sans double authentification devront l'activer avant d'accéder à l'espace.",
+    "disabled": "La double authentification n'est plus obligatoire.",
+    "missingTitle": "{count, plural, =0 {Tous les membres l'ont activée} one {# membre ne l'a pas activée} other {# membres ne l'ont pas activée}}",
+    "allEnrolled": "Personne n'a encore à l'activer."
+  }
 }

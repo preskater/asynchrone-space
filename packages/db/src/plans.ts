@@ -15,6 +15,7 @@ export type Entitlement =
   | "scim"
   | "granularPermissions"
   | "apiAccess"
+  | "requireTwoFactor"
 
 export type Entitlements = {
   seats: number
@@ -26,6 +27,8 @@ export type Entitlements = {
   scim: boolean
   granularPermissions: boolean
   apiAccess: boolean
+  /** Owners and admins may make two-factor authentication mandatory. */
+  requireTwoFactor: boolean
 }
 
 const GB = 1024 * 1024 * 1024
@@ -44,6 +47,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: false,
     granularPermissions: false,
     apiAccess: true,
+    requireTwoFactor: false,
   },
   team: {
     // Mirrors the "Up to 100 members" the pricing page sells.
@@ -55,6 +59,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: false,
     granularPermissions: true,
     apiAccess: true,
+    requireTwoFactor: true,
   },
   enterprise: {
     seats: Infinity,
@@ -65,6 +70,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: true,
     granularPermissions: true,
     apiAccess: true,
+    requireTwoFactor: true,
   },
 }
 

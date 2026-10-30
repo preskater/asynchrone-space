@@ -26,6 +26,25 @@ provider's own second factor.
 Enabling and disabling write an `AuditLog` row (`member.two_factor_enabled` /
 `member.two_factor_disabled`) in every organization the user belongs to.
 
+## Organization policy (Team and Enterprise)
+
+Owners and admins can require 2FA for every member under **Settings →
+Members**. The same card lists members who have not turned it on (client-portal
+accounts are left out: they never reach the workspace).
+
+- The `(app)` layout sends an unenrolled member to `/two-factor/setup` before
+  rendering the workspace (`mustEnrollTwoFactor` in
+  `lib/organization/two-factor-policy.ts`).
+- The setting is stored in `organization.requireTwoFactor`; the
+  `requireTwoFactor` entitlement decides whether it is enforced, so a downgrade
+  to Free lifts it without rewriting the setting. Turning it off is always
+  allowed.
+- Impersonating platform staff are let through, since they cannot enroll on the
+  user's behalf.
+- Changes write `organization.two_factor_policy.update` to the audit log.
+- The gate covers the workspace pages. Server actions, the REST API and MCP
+  tokens are not gated by it.
+
 ## Lost device and backup codes (support)
 
 A user who still has a backup code signs in with it, then sets 2FA up again.
