@@ -82,6 +82,7 @@ export const legalStructure: Record<LegalSlug, LegalSection[]> = {
     section("s2", [
       { kind: "p", key: "s2b1" },
       { kind: "p", key: "s2b2" },
+      { kind: "p", key: "s2b3" },
     ]),
     section("s3", [
       { kind: "p", key: "s3b1" },

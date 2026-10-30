@@ -33,7 +33,7 @@ Required secrets:
   - {{ $ct.secret.existingSecret }} (DATABASE_URL, CONTROL_TOWER_BETTER_AUTH_SECRET)
 
 Scheduled jobs (formerly Vercel crons):
-{{- range $job := list (dict "name" "uploads-sweep" "config" $web.cronjobs.uploadsSweep) (dict "name" "repository-sync" "config" $web.cronjobs.repositorySync) (dict "name" "trial-expiry" "config" $web.cronjobs.trialExpiry) (dict "name" "organization-deletion" "config" $web.cronjobs.organizationDeletion) (dict "name" "data-exports" "config" $web.cronjobs.dataExports) }}
+{{- range $job := list (dict "name" "uploads-sweep" "config" $web.cronjobs.uploadsSweep) (dict "name" "repository-sync" "config" $web.cronjobs.repositorySync) (dict "name" "trial-expiry" "config" $web.cronjobs.trialExpiry) (dict "name" "organization-deletion" "config" $web.cronjobs.organizationDeletion) (dict "name" "audit-retention" "config" $web.cronjobs.auditRetention) (dict "name" "data-exports" "config" $web.cronjobs.dataExports) }}
 {{- if $job.config.enabled }}
   - {{ $job.name }} {{ $job.config.schedule }} -> {{ $job.config.path }}
 {{- end }}

@@ -185,6 +185,12 @@ cronjobs:
     enabled: true
     schedule: "30 3 * * *"
     path: /api/cron/organization-deletion
+  # Prunes audit rows past each organization's plan retention window. Never
+  # touches the control tower's PlatformAuditEvent table.
+  auditRetention:
+    enabled: true
+    schedule: "45 3 * * *"
+    path: /api/cron/audit-retention
   dataExports:
     enabled: true
     schedule: "*/15 * * * *"

@@ -11,6 +11,7 @@ import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 import { recordSessionRevocation } from "./account/session-audit"
 import { rateLimit } from "./core/rate-limit"
 import { parseTrustedIpHeaders } from "./core/trusted-ip"
+import { recordAuthAuditEvent } from "./audit/auth-audit"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
 import { seatsFull } from "./organization/entitlements"
@@ -180,7 +181,16 @@ export const auth = betterAuth({
         body.application_type = "native"
       }
     }),
+    // Member, role and invitation changes made through the auth endpoints are
+    // audited here; server-action mutations record their own rows. The hook
+    // context does not expose the resolved session, so it is looked up again
+    // from the request headers (only for the handled paths).
     after: createAuthMiddleware(async (ctx) => {
+      await recordAuthAuditEvent(ctx, async (requestHeaders) => {
+        const result = await auth.api.getSession({ headers: requestHeaders })
+        return result ? { user: result.user, session: result.session } : null
+      })
+
       const userId = ctx.context.session?.user.id
       if (!userId || ctx.context.returned instanceof APIError) return
       await recordSessionRevocation(userId, ctx.path)

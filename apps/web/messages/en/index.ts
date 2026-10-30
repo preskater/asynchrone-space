@@ -1,5 +1,6 @@
 import account from "./account.json"
 import activity from "./activity.json"
+import audit from "./audit.json"
 import announcement from "./announcement.json"
 import appPages from "./appPages.json"
 import appearance from "./appearance.json"
@@ -42,6 +43,7 @@ import userMenu from "./userMenu.json"
 export default {
   Account: account,
   Activity: activity,
+  Audit: audit,
   Announcement: announcement,
   AppPages: appPages,
   Appearance: appearance,

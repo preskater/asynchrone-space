@@ -1,0 +1,241 @@
+{
+  "title": "Audit log",
+  "tab": "Audit log",
+  "description": "Every sensitive change in {name}: who did it, on what, and from where.",
+  "retentionTitle": "Retention",
+  "retentionSummary": "Your plan keeps {days} days of history.",
+  "retentionEditable": "Enterprise workspaces choose their own window, between {min} and {max} days.",
+  "retentionFixed": "Upgrade to Enterprise to keep a longer window.",
+  "retentionDays": "{count, plural, one {# day} other {# days}}",
+  "retentionInputLabel": "Retention (days)",
+  "retentionSave": "Save",
+  "retentionSaving": "Saving…",
+  "retentionSaved": "Retention updated.",
+  "retentionReset": "Use the plan default",
+  "total": "{count, plural, =0 {No events} one {# event} other {# events}}",
+  "totalFiltered": "{count, plural, =0 {No matching event} one {# matching event} other {# matching events}}",
+  "emptyTitle": "No events yet",
+  "emptyDescription": "Changes to projects, tasks, files, members and billing show up here.",
+  "emptyFilteredTitle": "No event matches these filters",
+  "emptyFilteredDescription": "Widen the date range or clear a filter to see more.",
+  "loadMore": "Load more",
+  "loading": "Loading…",
+  "clearFilters": "Clear filters",
+  "filters": {
+    "actor": "Actor",
+    "action": "Action",
+    "entityType": "Target type",
+    "from": "From",
+    "to": "To",
+    "all": "All",
+    "anyActor": "Anyone",
+    "anyAction": "Any action",
+    "anyEntity": "Any target"
+  },
+  "columns": {
+    "when": "When",
+    "actor": "Actor",
+    "action": "Action",
+    "target": "Target",
+    "changes": "Changes"
+  },
+  "system": "System",
+  "unknownActor": "Removed member",
+  "noChanges": "—",
+  "moreChanges": "+{count} more",
+  "export": {
+    "csv": "Export CSV",
+    "json": "Export JSON",
+    "exporting": "Exporting…",
+    "ready": "Export ready.",
+    "truncated": "The export was capped at {limit} events. Narrow the date range to export the rest.",
+    "empty": "Nothing to export for this filter."
+  },
+  "userAgent": "{userAgent}",
+  "actions": {
+    "project": {
+      "created": "Project created",
+      "updated": "Project updated",
+      "deleted": "Project deleted",
+      "client_settings": {
+        "updated": "Client portal settings changed"
+      },
+      "member": {
+        "added": "Project member added",
+        "removed": "Project member removed",
+        "role_changed": "Project member role changed"
+      },
+      "label": {
+        "added": "Label created",
+        "removed": "Label deleted"
+      },
+      "template": {
+        "created": "Task template created",
+        "updated": "Task template updated",
+        "deleted": "Task template deleted"
+      },
+      "update": "HR project updated"
+    },
+    "task": {
+      "created": "Task created",
+      "updated": "Task updated",
+      "moved": "Task moved",
+      "deleted": "Task deleted",
+      "subtask": {
+        "toggled": "Subtask completed or reopened"
+      },
+      "comment": {
+        "added": "Comment added"
+      }
+    },
+    "file": {
+      "created": "File uploaded",
+      "folder": {
+        "created": "Folder created"
+      },
+      "renamed": "File renamed",
+      "moved": "File moved",
+      "duplicated": "File duplicated",
+      "trashed": "File moved to trash",
+      "restored": "File restored",
+      "deleted": "File deleted",
+      "access": {
+        "updated": "File access changed"
+      },
+      "share": {
+        "added": "Share added",
+        "updated": "Share changed",
+        "removed": "Share removed"
+      }
+    },
+    "organization": {
+      "updated": "Workspace updated",
+      "member": {
+        "added": "Member added",
+        "removed": "Member removed",
+        "role_changed": "Role changed",
+        "left": "Member left the workspace"
+      },
+      "invitation": {
+        "created": "Invitation sent",
+        "cancelled": "Invitation cancelled",
+        "accepted": "Invitation accepted",
+        "rejected": "Invitation declined"
+      },
+      "plan": {
+        "changed": "Plan changed"
+      },
+      "audit_retention": {
+        "updated": "Audit retention changed"
+      },
+      "export": {
+        "request": "Workspace export requested"
+      },
+      "trial": {
+        "start": "Trial started",
+        "end": "Trial ended"
+      },
+      "deletion": {
+        "request": "Deletion requested",
+        "cancel": "Deletion cancelled"
+      },
+      "deleted": "Workspace deleted"
+    },
+    "client": {
+      "created": "Client created",
+      "updated": "Client updated",
+      "archived": "Client archived",
+      "restored": "Client restored",
+      "import": "Clients imported",
+      "create": "HR client created",
+      "update": "HR client updated",
+      "project": {
+        "linked": "Project linked to client",
+        "unlinked": "Project unlinked from client"
+      },
+      "document": {
+        "linked": "Document shared with client"
+      }
+    },
+    "contact": {
+      "created": "Contact created",
+      "updated": "Contact updated",
+      "archived": "Contact archived",
+      "restored": "Contact restored",
+      "import": "Contacts imported"
+    },
+    "deal": {
+      "created": "Deal created",
+      "stage_changed": "Deal stage changed",
+      "reopened": "Deal reopened",
+      "archived": "Deal archived",
+      "restored": "Deal restored"
+    },
+    "pipeline": {
+      "created": "Pipeline created",
+      "updated": "Pipeline updated",
+      "deleted": "Pipeline deleted",
+      "default": "Default pipeline changed"
+    },
+    "stage": {
+      "created": "Stage created",
+      "updated": "Stage updated",
+      "deleted": "Stage deleted"
+    },
+    "crmField": {
+      "created": "Custom field created",
+      "updated": "Custom field updated",
+      "deleted": "Custom field deleted"
+    },
+    "activity": {
+      "create": "Internal activity created",
+      "update": "Internal activity updated"
+    },
+    "settings": {
+      "update": "HR settings updated"
+    },
+    "salary": {
+      "update": "Salary updated"
+    },
+    "profile": {
+      "update": "HR profile updated"
+    },
+    "balance": {
+      "set": "Leave balance set",
+      "adjust": "Leave balance adjusted"
+    },
+    "attendance": {
+      "clear": "Attendance cleared"
+    },
+    "leave": {
+      "create": "Leave request created",
+      "cancel": "Leave request cancelled"
+    }
+  },
+  "entities": {
+    "organization": "Workspace",
+    "member": "Member",
+    "invitation": "Invitation",
+    "project": "Project",
+    "task": "Task",
+    "file": "File",
+    "label": "Label",
+    "taskTemplate": "Task template",
+    "client": "Client",
+    "contact": "Contact",
+    "deal": "Deal",
+    "pipeline": "Pipeline",
+    "stage": "Stage",
+    "crmField": "Custom field",
+    "activity": "Internal activity",
+    "internalActivity": "Internal activity",
+    "hrSettings": "HR settings",
+    "hrProfile": "HR profile",
+    "salaryProfile": "Salary",
+    "leaveRequest": "Leave request",
+    "leaveBalance": "Leave balance",
+    "leaveAdjustment": "Leave adjustment",
+    "attendance": "Attendance",
+    "dataExport": "Data export"
+  }
+}

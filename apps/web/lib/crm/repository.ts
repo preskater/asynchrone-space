@@ -1,5 +1,7 @@
 import type { PrismaClient } from "@workspace/db"
 
+import { recordAuditMany, withActorIdentity } from "@/lib/audit/record"
+
 /** Columns selecting the company fields shared by every CRM query. */
 const CLIENT_SELECT = {
   id: true,
@@ -1022,7 +1024,11 @@ export class CrmRepository {
 
   // --- Audit ----------------------------------------------------------------------
 
-  createAudit(
+  /**
+   * Audit rows for this module. Goes through the shared audit helper so every
+   * write lands in one table with the same actor snapshot.
+   */
+  async createAudit(
     entries: {
       organizationId: string
       actorId: string
@@ -1032,19 +1038,10 @@ export class CrmRepository {
       before?: unknown
       after?: unknown
     }[]
-  ) {
-    if (entries.length === 0) return Promise.resolve({ count: 0 })
-    return this.db.auditLog.createMany({
-      data: entries.map((entry) => ({
-        organizationId: entry.organizationId,
-        actorId: entry.actorId,
-        action: entry.action,
-        entityType: entry.entityType,
-        entityId: entry.entityId,
-        before: (entry.before ?? undefined) as never,
-        after: (entry.after ?? undefined) as never,
-      })),
-    })
+  ): Promise<{ count: number }> {
+    if (entries.length === 0) return { count: 0 }
+    await recordAuditMany(await withActorIdentity(entries, this.db), this.db)
+    return { count: entries.length }
   }
 
   listAuditForEntity(

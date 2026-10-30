@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "description": "How Asynchrone Space collects, uses and protects your data.",
-    "updated": "October 30, 2026",
+    "updated": "October 31, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
     "s1b2": "We also record the technical data needed to operate and secure the service: IP addresses, browser details and timestamps for each sign-in, and an audit trail of changes made inside a workspace.",
@@ -43,6 +43,11 @@
           "Platform audit events — operator actions on your workspace",
           "Retained after the workspace is deleted",
           "Kept as the record of platform staff access, including the deletion itself."
+        ],
+        [
+          "Workspace audit log — who changed what, and from where",
+          "Pruned after 30 days on Starter, 12 months on Team, or the window an Enterprise workspace configures; deleted with the workspace",
+          "Enterprise workspaces can read and export it from the workspace settings while it exists. Nothing about it outlives the workspace."
         ]
       ]
     },
@@ -75,13 +80,14 @@
   "security": {
     "title": "Security",
     "description": "How Asynchrone Space protects your workspace and data, and what is not shipped yet.",
-    "updated": "October 29, 2026",
+    "updated": "October 31, 2026",
     "s1h": "Encryption",
     "s1b1": "All traffic between your browser and Asynchrone Space uses TLS. Repository and integration tokens are encrypted with AES-256-GCM before they are stored, and passwords are hashed with scrypt; we never store them in plain text.",
     "s1b2": "Data at rest sits on encrypted storage volumes in our hosting environment. Beyond the integration tokens above, we do not encrypt individual database columns.",
     "s2h": "Access control",
     "s2b1": "Organizations include role-based access control with owner, admin, member and viewer roles, and file access can be restricted per person and per file.",
     "s2b2": "Our own staff reach customer workspaces only through a separate internal control tower that requires a password and a TOTP authenticator. Every action taken there is written to a platform audit trail, and support impersonation is a single-use handoff valid for one minute that opens a one-hour session — never a shared session cookie. The workspace sees an impersonation banner and can end the session at any time.",
+    "s2b3": "Enterprise workspaces also include a customer-facing audit log of member, role, invitation and settings changes, with CSV export and a configurable retention window. Owners and admins read it from the workspace settings.",
     "s3h": "Data location and backups",
     "s3b1": "The application and the PostgreSQL database that holds your workspace, including uploaded files, run on OVHcloud infrastructure in Gravelines, France, inside the European Union. No customer data is stored outside the EU except where a sub-processor listed at asynchrone.space/legal/subprocessors receives it.",
     "s3b2": "Backups and point-in-time recovery are configured by the operator of each deployment at the database level; they are not a self-service feature. If your contract requires documented backup and restore objectives, confirm the current runbook with security@asynchrone.space before signing.",
@@ -89,7 +95,6 @@
     "s4b1": "We would rather list what is missing than let a questionnaire discover it. The following are not shipped today:",
     "s4l1": [
       "SAML single sign-on and SCIM provisioning.",
-      "A product-wide, customer-facing audit log export — the HR and CRM modules keep their own audit trails today.",
       "Third-party certifications such as SOC 2 or ISO 27001.",
       "Self-service restore from a backup."
     ],

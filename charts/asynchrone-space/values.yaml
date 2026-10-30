@@ -98,6 +98,10 @@ asynchrone-space-web:
       enabled: true
       schedule: "30 3 * * *"
       path: /api/cron/organization-deletion
+    auditRetention:
+      enabled: true
+      schedule: "45 3 * * *"
+      path: /api/cron/audit-retention
     dataExports:
       enabled: true
       schedule: "*/15 * * * *"

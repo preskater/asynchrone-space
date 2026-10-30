@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
+import { AuditLogPanel } from "@/components/audit/audit-log-panel"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import {
   BillingPanel,
@@ -33,6 +34,7 @@ import {
 } from "@workspace/ui/components/tabs"
 
 import { authClient } from "@/lib/auth-client"
+import { roleRank } from "@/lib/organization/roles"
 import { parseRoles } from "@/lib/organization/utils"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
@@ -44,6 +46,7 @@ const TAB_IDS = [
   "meetings",
   "members",
   "invitations",
+  "audit",
   "danger",
 ] as const
 type TabId = (typeof TAB_IDS)[number]
@@ -63,6 +66,7 @@ export function OrganizationSettings({
   exportCard?: React.ReactNode
 }) {
   const t = useTranslations("Org")
+  const tAudit = useTranslations("Audit")
   const tAppearance = useTranslations("Appearance")
   const tMeetings = useTranslations("MeetingRequests")
   const permissions = useOrgPermissions()
@@ -125,6 +129,9 @@ export function OrganizationSettings({
   const isOnlyOwner =
     owners.length <= 1 &&
     owners.some((member) => member.userId === currentUserId)
+  // The audit trail is read by whoever can change the workspace: members and
+  // viewers never see it, and the server action re-checks the role.
+  const canReadAudit = roleRank(permissions.role) >= 3
 
   return (
     <Tabs
@@ -139,6 +146,9 @@ export function OrganizationSettings({
         <TabsTrigger value="meetings">{tMeetings("settingsTitle")}</TabsTrigger>
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
         <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
+        {canReadAudit ? (
+          <TabsTrigger value="audit">{tAudit("tab")}</TabsTrigger>
+        ) : null}
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
       </TabsList>
 
@@ -219,6 +229,15 @@ export function OrganizationSettings({
           </CardContent>
         </Card>
       </TabsContent>
+
+      {canReadAudit ? (
+        <TabsContent value="audit">
+          <AuditLogPanel
+            organizationName={organization.name}
+            isOwner={permissions.isOwner}
+          />
+        </TabsContent>
+      ) : null}
 
       <TabsContent value="danger">
         <OrganizationDangerZone
