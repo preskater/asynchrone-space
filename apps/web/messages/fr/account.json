@@ -15,11 +15,10 @@
   "nameRequired": "Le nom est requis",
   "unableToUpdateProfile": "Impossible de mettre à jour votre profil.",
   "security": "Sécurité",
-  "securityDescription": "Changez votre mot de passe. Vous resterez connecté sur cet appareil.",
+  "securityDescription": "Changez votre mot de passe. Vous resterez connecté sur cet appareil ; tous les autres appareils seront déconnectés.",
   "currentPassword": "Mot de passe actuel",
   "newPassword": "Nouveau mot de passe",
   "confirmPassword": "Confirmer le nouveau mot de passe",
-  "revokeOtherSessions": "Déconnecter les autres appareils",
   "passwordsDoNotMatch": "Les mots de passe ne correspondent pas.",
   "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères.",
   "updatePassword": "Mettre à jour le mot de passe",
@@ -43,5 +42,21 @@
   "saveToken": "Enregistrer",
   "replaceToken": "Remplacer",
   "removeToken": "Retirer",
-  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés."
+  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés.",
+  "sessions": {
+    "title": "Sessions actives",
+    "description": "Appareils connectés à votre compte. La déconnexion d'un appareil prend effet à sa prochaine requête.",
+    "current": "Cet appareil",
+    "unknownDevice": "Appareil inconnu",
+    "unknownIp": "IP inconnue",
+    "lastActive": "Dernière activité {time}",
+    "revoke": "Déconnecter",
+    "revokeOthers": "Déconnecter tous les autres appareils",
+    "revoked": "Appareil déconnecté.",
+    "othersRevoked": "Tous les autres appareils ont été déconnectés.",
+    "revokeError": "Impossible de déconnecter cet appareil.",
+    "loadError": "Impossible de charger vos sessions.",
+    "stale": "Par sécurité, la liste des appareils demande une connexion récente.",
+    "signInAgain": "Se reconnecter"
+  }
 }

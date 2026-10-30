@@ -15,11 +15,10 @@
   "nameRequired": "Name is required",
   "unableToUpdateProfile": "Unable to update your profile.",
   "security": "Security",
-  "securityDescription": "Change your password. You'll stay signed in on this device.",
+  "securityDescription": "Change your password. You'll stay signed in on this device; every other device is signed out.",
   "currentPassword": "Current password",
   "newPassword": "New password",
   "confirmPassword": "Confirm new password",
-  "revokeOtherSessions": "Sign out of other devices",
   "passwordsDoNotMatch": "The passwords do not match.",
   "passwordTooShort": "The password must be at least 8 characters.",
   "updatePassword": "Update password",
@@ -43,5 +42,21 @@
   "saveToken": "Save",
   "replaceToken": "Replace",
   "removeToken": "Remove",
-  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects."
+  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects.",
+  "sessions": {
+    "title": "Active sessions",
+    "description": "Devices signed in to your account. Signing a device out takes effect on its next request.",
+    "current": "This device",
+    "unknownDevice": "Unknown device",
+    "unknownIp": "Unknown IP",
+    "lastActive": "Last active {time}",
+    "revoke": "Sign out",
+    "revokeOthers": "Sign out of all other devices",
+    "revoked": "Device signed out.",
+    "othersRevoked": "All other devices signed out.",
+    "revokeError": "Unable to sign this device out.",
+    "loadError": "Unable to load your sessions.",
+    "stale": "For your security, the device list needs a recent sign-in.",
+    "signInAgain": "Sign in again"
+  }
 }
