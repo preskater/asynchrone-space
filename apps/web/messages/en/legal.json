@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Privacy Policy",
     "description": "How Asynchrone Space collects, uses and protects your data.",
-    "updated": "October 29, 2026",
+    "updated": "October 31, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
     "s1b2": "We also collect usage data — such as the features you interact with — to operate, secure and improve the service.",
@@ -10,7 +10,7 @@
     "s2b1": "We use your information to provide the service, authenticate users, respond to support requests and send product updates you have opted into.",
     "s2b2": "We never sell your personal data.",
     "s3h": "Data retention",
-    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again.",
+    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again. A workspace's audit log is deleted with the workspace; while it exists, it is pruned after the retention window of your plan (30 days on Starter, 12 months on Team, and a configurable window on Enterprise).",
     "s4h": "Your rights",
     "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@asynchrone.space to exercise these rights.",
     "s5h": "Sub-processors",
@@ -32,13 +32,13 @@
   "security": {
     "title": "Security",
     "description": "How Asynchrone Space protects your workspace and data.",
-    "updated": "October 29, 2026",
+    "updated": "October 31, 2026",
     "s1h": "Encryption",
     "s1b1": "All data is encrypted in transit using TLS and at rest using industry-standard encryption. Credentials are hashed, never stored in plain text.",
     "s1b2": "We rotate keys regularly and follow least-privilege access for internal systems.",
     "s2h": "Access control",
     "s2b1": "Organizations include role-based access control with owner, admin, member and viewer roles. File permissions can be set per person and per file.",
-    "s2b2": "SSO, SCIM provisioning and a customer-facing audit log are planned for Enterprise plans.",
+    "s2b2": "SSO and SCIM provisioning are planned for Enterprise plans. Enterprise workspaces also include a customer-facing audit log with export and a configurable retention window.",
     "s3h": "Compliance and reporting",
     "s3b1": "We monitor for anomalies. If you believe you have found a vulnerability, contact security@asynchrone.space.",
     "s3b2": "We disclose incidents promptly and transparently to affected organizations."

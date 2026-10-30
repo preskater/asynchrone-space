@@ -18,6 +18,11 @@ vi.mock("@/lib/large-object", () => ({
 }))
 
 vi.mock("./storage", () => ({ orgQuotaBytes, orgUsedBytes }))
+// Audit rows are written through the shared Prisma client; this test only
+// exercises the copy itself, so the client is replaced by a no-op.
+vi.mock("@/lib/prisma", () => ({
+  prisma: { auditLog: { create: vi.fn(), createMany: vi.fn() } },
+}))
 vi.mock("@/lib/organization/entitlements", () => ({
   requireEntitlement: vi.fn(),
 }))

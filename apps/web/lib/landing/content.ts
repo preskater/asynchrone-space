@@ -225,7 +225,7 @@ export const pricingTiers: PricingTier[] = [
     features: [
       "Everything in Team",
       "SSO and SCIM (coming soon)",
-      "Audit log and retention (coming soon)",
+      "Audit log, export and configurable retention",
       "1 TB of file storage",
       "Dedicated support",
     ],
@@ -256,7 +256,7 @@ export const faqs: FaqItem[] = [
     value: "security",
     question: "Is my data secure?",
     answer:
-      "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. SSO, SCIM and a customer-facing audit log are coming to Enterprise.",
+      "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. SSO, SCIM, a customer-facing audit log and configurable retention are Enterprise features.",
   },
   {
     value: "migrate",

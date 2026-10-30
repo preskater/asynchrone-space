@@ -1,0 +1,140 @@
+/**
+ * The audit actions the customer app writes, plus the entity types they point
+ * at.
+ *
+ * `AuditLog.action` stays a plain string in the database so rows written by
+ * older releases keep rendering; new code should take its value from
+ * {@link AUDIT_ACTIONS} so the settings filter and the translated labels cover
+ * it. The action doubles as the message key: `project.created` is rendered with
+ * `Audit.actions.project.created`.
+ */
+export const AUDIT_ACTIONS = {
+  projectCreated: "project.created",
+  projectUpdated: "project.updated",
+  projectDeleted: "project.deleted",
+  projectClientSettingsUpdated: "project.client_settings.updated",
+  projectMemberAdded: "project.member.added",
+  projectMemberRemoved: "project.member.removed",
+  projectMemberRoleChanged: "project.member.role_changed",
+  projectLabelAdded: "project.label.added",
+  projectLabelRemoved: "project.label.removed",
+  projectTemplateCreated: "project.template.created",
+  projectTemplateUpdated: "project.template.updated",
+  projectTemplateDeleted: "project.template.deleted",
+
+  taskCreated: "task.created",
+  taskUpdated: "task.updated",
+  taskMoved: "task.moved",
+  taskDeleted: "task.deleted",
+  taskSubtaskToggled: "task.subtask.toggled",
+  taskCommentAdded: "task.comment.added",
+
+  fileCreated: "file.created",
+  fileFolderCreated: "file.folder.created",
+  fileRenamed: "file.renamed",
+  fileMoved: "file.moved",
+  fileDuplicated: "file.duplicated",
+  fileTrashed: "file.trashed",
+  fileRestored: "file.restored",
+  fileDeleted: "file.deleted",
+  fileAccessUpdated: "file.access.updated",
+  fileShareAdded: "file.share.added",
+  fileShareUpdated: "file.share.updated",
+  fileShareRemoved: "file.share.removed",
+
+  organizationUpdated: "organization.updated",
+  organizationMemberAdded: "organization.member.added",
+  organizationMemberRemoved: "organization.member.removed",
+  organizationMemberRoleChanged: "organization.member.role_changed",
+  organizationMemberLeft: "organization.member.left",
+  organizationInvitationCreated: "organization.invitation.created",
+  organizationInvitationCancelled: "organization.invitation.cancelled",
+  organizationInvitationAccepted: "organization.invitation.accepted",
+  organizationInvitationRejected: "organization.invitation.rejected",
+  organizationPlanChanged: "organization.plan.changed",
+  organizationAuditRetentionUpdated: "organization.audit_retention.updated",
+
+  // Written by earlier releases; listed so the filter and labels still know
+  // them.
+  organizationTrialStart: "organization.trial.start",
+  organizationTrialEnd: "organization.trial.end",
+  organizationDeletionRequest: "organization.deletion.request",
+  organizationDeletionCancel: "organization.deletion.cancel",
+  organizationDeleted: "organization.deleted",
+  clientCreated: "client.created",
+  clientUpdated: "client.updated",
+  clientArchived: "client.archived",
+  clientRestored: "client.restored",
+  clientImported: "client.import",
+  clientProjectLinked: "client.project.linked",
+  clientProjectUnlinked: "client.project.unlinked",
+  clientDocumentLinked: "client.document.linked",
+  contactCreated: "contact.created",
+  contactUpdated: "contact.updated",
+  contactArchived: "contact.archived",
+  contactRestored: "contact.restored",
+  contactImported: "contact.import",
+  dealCreated: "deal.created",
+  dealStageChanged: "deal.stage_changed",
+  dealReopened: "deal.reopened",
+  dealArchived: "deal.archived",
+  dealRestored: "deal.restored",
+  pipelineCreated: "pipeline.created",
+  pipelineUpdated: "pipeline.updated",
+  pipelineDeleted: "pipeline.deleted",
+  pipelineDefault: "pipeline.default",
+  stageCreated: "stage.created",
+  stageUpdated: "stage.updated",
+  stageDeleted: "stage.deleted",
+  crmFieldCreated: "crmField.created",
+  crmFieldUpdated: "crmField.updated",
+  crmFieldDeleted: "crmField.deleted",
+  activityCreated: "activity.create",
+  activityUpdated: "activity.update",
+  hrClientCreated: "client.create",
+  hrClientUpdated: "client.update",
+  hrProjectUpdated: "project.update",
+  hrSettingsUpdated: "settings.update",
+  salaryUpdated: "salary.update",
+  profileUpdated: "profile.update",
+  leaveBalanceSet: "balance.set",
+  leaveBalanceAdjusted: "balance.adjust",
+  attendanceCleared: "attendance.clear",
+  leaveCreated: "leave.create",
+  leaveCancelled: "leave.cancel",
+} as const
+
+export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS]
+
+/** Actor id used by scheduled jobs and provider webhooks. */
+export const SYSTEM_ACTOR_ID = "system"
+
+/**
+ * Target types written to `AuditLog.entityType`. Not a closed set: the column
+ * is a plain string so rows from older releases keep rendering.
+ */
+export const AUDIT_ENTITY_TYPES = [
+  "organization",
+  "member",
+  "invitation",
+  "project",
+  "task",
+  "file",
+  "label",
+  "taskTemplate",
+  "client",
+  "contact",
+  "deal",
+  "pipeline",
+  "stage",
+  "crmField",
+  "activity",
+  "internalActivity",
+  "hrSettings",
+  "hrProfile",
+  "salaryProfile",
+  "leaveRequest",
+  "leaveBalance",
+  "leaveAdjustment",
+  "attendance",
+] as const

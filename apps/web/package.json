@@ -17,7 +17,8 @@
     "verify:large-object": "tsx scripts/verify-large-object.ts",
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts",
     "verify:organization-deletion": "tsx scripts/verify-organization-deletion.ts",
-    "verify:trial": "tsx scripts/verify-trial.ts"
+    "verify:trial": "tsx scripts/verify-trial.ts",
+    "verify:audit-log": "tsx scripts/verify-audit-log.ts"
   },
   "dependencies": {
     "@better-auth/cimd": "^1.7.13",

@@ -1,3 +1,5 @@
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit } from "@/lib/audit/record"
 import {
   ConflictError,
   ForbiddenError,
@@ -59,6 +61,32 @@ function iso(date: Date | null | undefined) {
 
 function requiredIso(date: Date) {
   return date.toISOString()
+}
+
+/** The project fields a change is judged on. */
+function projectSnapshot(project: Project) {
+  return {
+    name: project.name,
+    description: project.description ?? null,
+    status: project.status,
+    dueDate: project.dueDate ?? null,
+    memberIds: project.memberIds,
+    labelIds: project.labelIds,
+  }
+}
+
+/** The task fields a change is judged on. */
+function taskSnapshot(task: Task) {
+  return {
+    title: task.title,
+    description: task.description ?? null,
+    status: task.status,
+    priority: task.priority,
+    assigneeId: task.assigneeId ?? null,
+    dueDate: task.dueDate ?? null,
+    endDate: task.endDate ?? null,
+    labelIds: task.labelIds,
+  }
 }
 
 type ProjectRow = NonNullable<
@@ -423,7 +451,19 @@ export class ProjectService {
       memberIds: input.memberIds?.length ? input.memberIds : [ctx.userId],
       labelIds: input.labelIds ?? [],
     })
-    return this.mapProject(row)
+    const project = this.mapProject(row)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectCreated,
+        entityType: "project",
+        entityId: project.id,
+        entityLabel: project.name,
+        after: projectSnapshot(project),
+      },
+      this.db
+    )
+    return project
   }
 
   async update(
@@ -432,7 +472,7 @@ export class ProjectService {
     input: UpdateProjectInput
   ): Promise<Project> {
     this.canWrite(ctx)
-    await this.get(ctx, id)
+    const before = await this.get(ctx, id)
     await this.repo.update(id, {
       name: input.name,
       description: input.description,
@@ -448,13 +488,37 @@ export class ProjectService {
     if (input.labelIds) await this.repo.setLabels(id, input.labelIds)
     const fresh = await this.repo.findById(ctx.organizationId, id)
     if (!fresh) throw new NotFoundError("Project")
-    return this.mapProject(fresh)
+    const project = this.mapProject(fresh)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectUpdated,
+        entityType: "project",
+        entityId: id,
+        entityLabel: project.name,
+        before: projectSnapshot(before),
+        after: projectSnapshot(project),
+      },
+      this.db
+    )
+    return project
   }
 
   async remove(ctx: RequestContext, id: string): Promise<{ id: string }> {
     this.canWrite(ctx)
-    await this.get(ctx, id)
+    const project = await this.get(ctx, id)
     await this.repo.delete(id)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectDeleted,
+        entityType: "project",
+        entityId: id,
+        entityLabel: project.name,
+        before: projectSnapshot(project),
+      },
+      this.db
+    )
     return { id }
   }
 
@@ -464,7 +528,7 @@ export class ProjectService {
     input: UpdateProjectClientSettingsInput
   ): Promise<Project> {
     this.canManage(ctx)
-    await this.get(ctx, input.projectId)
+    const before = await this.get(ctx, input.projectId)
     await this.repo.update(input.projectId, {
       clientVisible: input.clientVisible,
       clientDiscussion: input.clientDiscussion,
@@ -472,7 +536,25 @@ export class ProjectService {
     })
     const fresh = await this.repo.findById(ctx.organizationId, input.projectId)
     if (!fresh) throw new NotFoundError("Project")
-    return this.mapProject(fresh)
+    const project = this.mapProject(fresh)
+    const policies = (value: Project) => ({
+      clientVisible: value.clientVisible,
+      clientDiscussion: value.clientDiscussion,
+      clientTaskComments: value.clientTaskComments,
+    })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectClientSettingsUpdated,
+        entityType: "project",
+        entityId: project.id,
+        entityLabel: project.name,
+        before: policies(before),
+        after: policies(project),
+      },
+      this.db
+    )
+    return project
   }
 
   async listTasks(ctx: RequestContext, projectId: string): Promise<Task[]> {
@@ -574,7 +656,19 @@ export class ProjectService {
         actorName: ctx.userName,
       },
     })
-    return this.mapTask(row)
+    const task = this.mapTask(row)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.taskCreated,
+        entityType: "task",
+        entityId: task.id,
+        entityLabel: task.identifier,
+        after: { projectId: task.projectId, ...taskSnapshot(task) },
+      },
+      this.db
+    )
+    return task
   }
 
   async updateTask(
@@ -657,7 +751,21 @@ export class ProjectService {
       repositoryIntegrationService.scheduleContentPush(ctx.userId, id)
     }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
-    return this.mapTask(fresh ?? existing)
+    const task = this.mapTask(fresh ?? existing)
+    const before = this.mapTask(existing)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.taskUpdated,
+        entityType: "task",
+        entityId: id,
+        entityLabel: task.identifier,
+        before: taskSnapshot(before),
+        after: taskSnapshot(task),
+      },
+      this.db
+    )
+    return task
   }
 
   async moveTask(
@@ -679,6 +787,18 @@ export class ProjectService {
         action: "moved",
         target: `${existing.identifier}${ACTIVITY_STATUS_SENTINEL}${input.status}`,
       })
+      await recordUserAudit(
+        ctx,
+        {
+          action: AUDIT_ACTIONS.taskMoved,
+          entityType: "task",
+          entityId: id,
+          entityLabel: existing.identifier,
+          before: { status: existing.status },
+          after: { status: input.status },
+        },
+        this.db
+      )
     }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
     return this.mapTask(fresh ?? existing)
@@ -698,6 +818,21 @@ export class ProjectService {
       action: "deleted",
       target: existing.identifier,
     })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.taskDeleted,
+        entityType: "task",
+        entityId: id,
+        entityLabel: existing.identifier,
+        before: {
+          projectId: existing.projectId,
+          title: existing.title,
+          status: existing.status,
+        },
+      },
+      this.db
+    )
     return { id }
   }
 
@@ -712,6 +847,18 @@ export class ProjectService {
     const toggled = await this.repo.toggleSubtask(taskId, subtaskId)
     if (!toggled) throw new NotFoundError("Subtask")
     const fresh = await this.repo.findTask(ctx.organizationId, taskId)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.taskSubtaskToggled,
+        entityType: "task",
+        entityId: taskId,
+        entityLabel: existing.identifier,
+        before: { subtaskId, done: !toggled.done },
+        after: { subtaskId, done: toggled.done },
+      },
+      this.db
+    )
     return this.mapTask(fresh ?? existing)
   }
 
@@ -807,6 +954,17 @@ export class ProjectService {
         createdAt: new Date(),
       },
     })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationMemberAdded,
+        entityType: "member",
+        entityId: user.id,
+        entityLabel: user.email,
+        after: { email: user.email, name: user.name, role: input.role },
+      },
+      this.db
+    )
     return toMemberView({
       userId: user.id,
       role: input.role,
@@ -852,6 +1010,18 @@ export class ProjectService {
       where: { id: member.id },
       data: { role: input.role },
     })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationMemberRoleChanged,
+        entityType: "member",
+        entityId: member.userId,
+        entityLabel: member.user.email,
+        before: { role: member.role },
+        after: { role: input.role },
+      },
+      this.db
+    )
     return toMemberView({ ...member, role: input.role })
   }
 
@@ -862,6 +1032,7 @@ export class ProjectService {
     this.canManage(ctx)
     const member = await this.db.member.findFirst({
       where: { organizationId: ctx.organizationId, userId: memberId },
+      include: { user: { select: { email: true, name: true } } },
     })
     if (!member) throw new NotFoundError("Member")
 
@@ -885,6 +1056,17 @@ export class ProjectService {
     }
 
     await this.db.member.delete({ where: { id: member.id } })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationMemberRemoved,
+        entityType: "member",
+        entityId: member.userId,
+        entityLabel: member.user.email,
+        before: { role: member.role, email: member.user.email },
+      },
+      this.db
+    )
     return { id: memberId }
   }
 
@@ -913,12 +1095,34 @@ export class ProjectService {
       input.name,
       input.color
     )
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectLabelAdded,
+        entityType: "label",
+        entityId: label.id,
+        entityLabel: label.name,
+        after: { name: label.name, color: label.color },
+      },
+      this.db
+    )
     return { id: label.id, name: label.name, color: label.color }
   }
 
   async removeLabel(ctx: RequestContext, id: string): Promise<{ id: string }> {
     this.canWrite(ctx)
-    await this.repo.deleteLabel(id)
+    const removed = await this.repo.deleteLabel(id)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectLabelRemoved,
+        entityType: "label",
+        entityId: id,
+        entityLabel: removed.name,
+        before: { name: removed.name, color: removed.color },
+      },
+      this.db
+    )
     return { id }
   }
 
@@ -943,6 +1147,17 @@ export class ProjectService {
       labelIds: input.labelIds ?? [],
       fields: input.fields ?? [],
     })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectTemplateCreated,
+        entityType: "taskTemplate",
+        entityId: row.id,
+        entityLabel: row.name,
+        after: { projectId: row.projectId, name: row.name },
+      },
+      this.db
+    )
     return this.mapTemplate(row)
   }
 
@@ -962,6 +1177,18 @@ export class ProjectService {
       labelIds: input.labelIds,
       fields: input.fields,
     })
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectTemplateUpdated,
+        entityType: "taskTemplate",
+        entityId: id,
+        entityLabel: row.name,
+        before: { name: existing.name, description: existing.description },
+        after: { name: row.name, description: row.description },
+      },
+      this.db
+    )
     return this.mapTemplate(row)
   }
 
@@ -973,6 +1200,17 @@ export class ProjectService {
     const existing = await this.repo.findTemplate(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task template")
     await this.repo.deleteTemplate(id)
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.projectTemplateDeleted,
+        entityType: "taskTemplate",
+        entityId: id,
+        entityLabel: existing.name,
+        before: { projectId: existing.projectId, name: existing.name },
+      },
+      this.db
+    )
     return { id }
   }
 }

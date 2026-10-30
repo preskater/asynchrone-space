@@ -17,6 +17,7 @@
 - Manual organization-deletion check (needs a live DB; request/cancel rules, the 30-day grace period, no orphan rows, every large object unlinked): `npm run verify:organization-deletion --workspace=web`.
 - Manual authorization check (needs a live DB; replays the issue #40 cross-org/impersonation attacks): `npx tsx scripts/verify-authorization.ts` (from `apps/web`).
 - Control-tower auth invariant (no DB needed): `npm run verify:auth-config --workspace=control-tower`. It fails if cross-subdomain cookies are enabled, sign-up is opened, the web secret is reused, or the 2FA plugin is missing.
+- Manual audit-log check (needs a live DB; creates and deletes throwaway organizations): `npm run verify:audit-log --workspace=web`. It checks one-row-per-mutation coverage, role/entitlement gating, filters, the export cap, the Enterprise retention override and the cleanup job. The cleanup job walks every organization, so run it against a development database.
 - Manual platform-authorization check (needs a live DB): `npm run verify:platform-authorization --workspace=control-tower`. It covers role resolution, the IP allowlist and single-use handoff claims.
 
 ## Environment & data
@@ -64,6 +65,14 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Schema and migrations live in `packages/db/prisma`; apply with `cd packages/db && npx prisma migrate deploy`. Create migrations from `packages/db`.
 - `@workspace/db` validates only database env (`DATABASE_URL`, `DATABASE_POOL_MAX`). App-specific requirements stay in each app's own `lib/env.ts`.
 - File bytes are stored as PostgreSQL large objects in the same DB as metadata — no external object store (Vercel Blob was removed). See `apps/web/lib/large-object.ts`.
+
+## Audit log
+
+- `AuditLog` is the customer-facing trail (Settings → Audit log). Write it only through `apps/web/lib/audit/record.ts` (`recordUserAudit` for server actions, `recordSystemAudit` for jobs/webhooks), never with `prisma.auditLog.create` — that is what keeps the page, the export and the retention job consistent.
+- The mutation that performs a change records the row itself (one row per changed entity), snapshots `entityLabel`, and lets a failed audit write fail the action.
+- New actions go into `AUDIT_ACTIONS` and get `Audit.actions.<action>` labels in `apps/web/messages/{en,fr}/audit.json`; unknown actions fall back to their raw value.
+- Member, role and invitation changes go through Better Auth, so they are audited from the `after` hook in `apps/web/lib/auth.ts` (`apps/web/lib/audit/auth-audit.ts`).
+- Reads and exports are gated by `roleRank >= admin` and the `auditLog` entitlement (Enterprise). Retention is 30 / 365 / 730 days (Free / Team / Enterprise, overridable on Enterprise) and is pruned by the `audit-retention` CronJob, which must never touch `PlatformAuditEvent`. See `docs/audit-log.md` and ADR 0025.
 
 ## Control tower
 

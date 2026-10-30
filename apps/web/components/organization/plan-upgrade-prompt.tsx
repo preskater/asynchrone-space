@@ -12,7 +12,12 @@ export function PlanUpgradePrompt({
   feature,
   className,
 }: {
-  feature: "ai" | "aiQuota" | "granularPermissions" | "seats"
+  feature:
+    | "ai"
+    | "aiQuota"
+    | "auditLog"
+    | "granularPermissions"
+    | "seats"
   className?: string
 }) {
   const t = useTranslations("Common.upgrade")

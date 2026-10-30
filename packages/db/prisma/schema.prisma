@@ -1314,21 +1314,33 @@ model InternalActivity {
   @@map("internalActivity")
 }
 
-/// Audit trail for sensitive HR actions: who did what, on which entity, with
-/// before/after snapshots.
+/// Customer-facing audit trail: who did what, on which entity, with
+/// before/after snapshots. Rows survive the deletion of their actor and target,
+/// so the display label of each is snapshotted at write time.
 model AuditLog {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
   actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
   action         String
   entityType     String
   entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
   before         Json?
   after          Json?
   createdAt      DateTime     @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
   @@map("auditLog")
 }
 

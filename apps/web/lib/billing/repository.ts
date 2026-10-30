@@ -1,5 +1,8 @@
 import { Prisma, prisma } from "@workspace/db"
 
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordSystemAudit } from "@/lib/audit/record"
+
 import type { BillingRepositoryPort } from "./types"
 
 function isUniqueViolation(error: unknown): boolean {
@@ -169,6 +172,22 @@ export class BillingRepository implements BillingRepositoryPort {
         paidAt: true,
         createdAt: true,
       },
+    })
+  }
+
+  async recordPlanChange(input: {
+    organizationId: string
+    beforePlan: string | null
+    plan: string
+    status: string
+  }): Promise<void> {
+    await recordSystemAudit({
+      organizationId: input.organizationId,
+      action: AUDIT_ACTIONS.organizationPlanChanged,
+      entityType: "organization",
+      entityId: input.organizationId,
+      before: input.beforePlan ? { plan: input.beforePlan } : undefined,
+      after: { plan: input.plan, status: input.status, provider: "stripe" },
     })
   }
 
