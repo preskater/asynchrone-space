@@ -14,6 +14,7 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "generate": "npm run generate --workspace=@workspace/db",
+    "verify:account-deletion": "tsx scripts/verify-account-deletion.ts",
     "verify:large-object": "tsx scripts/verify-large-object.ts",
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts",
     "verify:organization-deletion": "tsx scripts/verify-organization-deletion.ts",

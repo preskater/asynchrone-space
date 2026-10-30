@@ -43,5 +43,11 @@
   "saveToken": "Save",
   "replaceToken": "Replace",
   "removeToken": "Remove",
-  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects."
+  "repositoryTokensHint": "A personal access token with issue and pull request access (GitHub: repo scope; GitLab: api scope). Stored encrypted — without one you cannot create issues in connected projects.",
+  "deleteAccount": "Delete account",
+  "deleteAccountDescription": "Permanently delete your account. You leave every organization; content you created stays there, shown as written by a deleted user.",
+  "deleteAccountConfirmTitle": "Delete your account?",
+  "deleteAccountConfirmDescription": "This cannot be undone. Your profile, sign-in methods, sessions and memberships are deleted immediately. You can sign up again later with the same email address.",
+  "deleteAccountTypeEmail": "Type {email} to confirm",
+  "cancel": "Cancel"
 }
