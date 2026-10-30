@@ -86,6 +86,11 @@ export type ServiceErrorCode =
   | "billing_manual_contract"
   | "billing_subscription_exists"
   | "billing_no_payment_account"
+  | "account_confirmation_mismatch"
+  | "account_password_invalid"
+  | "account_platform_operator"
+  | "account_sole_owner"
+  | "account_impersonated"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
