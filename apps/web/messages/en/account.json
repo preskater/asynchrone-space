@@ -58,5 +58,11 @@
     "loadError": "Unable to load your sessions.",
     "stale": "For your security, the device list needs a recent sign-in.",
     "signInAgain": "Sign in again"
-  }
+  },
+  "deleteAccount": "Delete account",
+  "deleteAccountDescription": "Permanently delete your account. You leave every organization; content you created stays there, shown as written by a deleted user.",
+  "deleteAccountConfirmTitle": "Delete your account?",
+  "deleteAccountConfirmDescription": "This cannot be undone. Your profile, sign-in methods, sessions and memberships are deleted immediately. You can sign up again later with the same email address.",
+  "deleteAccountTypeEmail": "Type {email} to confirm",
+  "cancel": "Cancel"
 }
