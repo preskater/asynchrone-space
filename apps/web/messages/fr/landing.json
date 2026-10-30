@@ -52,7 +52,9 @@
     "privacy": "Confidentialité",
     "terms": "Conditions",
     "security": "Sécurité",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "dpa": "Sous-traitance (DPA)",
+    "subprocessors": "Sous-traitants"
   },
   "hero": {
     "badge": "Nouveau : les workflows propulsés par l'IA",
@@ -76,7 +78,7 @@
     "onePlace": "Tout au même endroit",
     "onePlaceDescription": "Projets, messagerie, calendriers et fichiers partagent les mêmes personnes, le même contexte et les mêmes permissions.",
     "security": "Sécurité de niveau entreprise",
-    "securityDescription": "Organisations, rôles et permissions granulaires intégrés — avec authentification prête pour le SSO.",
+    "securityDescription": "Organisations, rôles et permissions granulaires intégrés, avec contrôle d’accès par fichier.",
     "scheduling": "Une planification qui fonctionne",
     "schedulingDescription": "Consultez les disponibilités, planifiez des réunions et synchronisez les événements dans toutes les vues du calendrier.",
     "filePermissions": "Des fichiers avec de vraies permissions",

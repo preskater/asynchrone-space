@@ -6,7 +6,7 @@
 
 ## Context and Problem Statement
 
-The product was built and shipped as **Presk** on `presk.re` (with `presk.app`
+The product was built and shipped as **Asynchrone** on `asynchrone.re` (with `asynchrone.app`
 used in marketing, legal and workspace URLs). Every technical identifier followed
 that name: the npm package, Helm charts, Kubernetes resources, GHCR images,
 Better Auth cookies, browser storage keys, repository branch prefixes and
@@ -15,7 +15,7 @@ generated export filenames.
 The product is now branded **Asynchrone Space** on `asynchrone.space`. The
 legal entity and GitHub owner remain **Preskater**. Leaving the old name in
 identifiers would keep two vocabularies alive: operators, docs and users would
-have to translate between "Presk" and "Asynchrone Space" on every surface.
+have to translate between "Asynchrone" and "Asynchrone Space" on every surface.
 
 Which identifiers change, which stay, and what happens to existing state?
 
@@ -35,7 +35,7 @@ Which identifiers change, which stay, and what happens to existing state?
   prefixes and storage keys while renaming everything else, adding
   compatibility for old values.
 - **Branding only.** Change copy, docs and domains but leave all technical
-  identifiers as `presk*`.
+  identifiers as `asynchrone*`.
 
 ## Decision Outcome
 
@@ -46,8 +46,8 @@ account.
 - Product name: **Asynchrone Space** (prose and UI).
 - Technical slug: **`asynchrone-space`** (package, charts, Kubernetes resources,
   images, cookies, storage keys, exports).
-- Domains and mailboxes: `presk.re`, `presk.app` and
-  `control-tower.presk.re` become `asynchrone.space`,
+- Domains and mailboxes: `asynchrone.re`, `asynchrone.app` and
+  `control-tower.asynchrone.re` become `asynchrone.space`,
   `control-tower.asynchrone.space` and `@asynchrone.space`.
 - Legal structure: **Preskater** stays in `LICENSE`, `.github/CODEOWNERS` and
   the `ghcr.io/preskater/...` image namespace.
@@ -69,7 +69,7 @@ account.
 - Per-user appearance and recent-item preferences reset once.
 - Previously auto-created pull/merge requests still resolve through the
   `Closes #<n>` fallback in their body; branches matched only by the old
-  `presk/<n>` prefix are no longer recognized.
+  `asynchrone/<n>` prefix are no longer recognized.
 - Kubernetes cannot upgrade the renamed chart in place: deploy a fresh
   `asynchrone-space` namespace and Secrets, cut DNS over, then remove the old
   release. GHCR publishes new `asynchrone*` images on the next `main`

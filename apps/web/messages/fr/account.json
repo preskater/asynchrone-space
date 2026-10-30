@@ -43,5 +43,11 @@
   "saveToken": "Enregistrer",
   "replaceToken": "Remplacer",
   "removeToken": "Retirer",
-  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés."
+  "repositoryTokensHint": "Un jeton d'accès personnel avec accès aux issues et pull requests (GitHub : portée repo ; GitLab : portée api). Stocké chiffré — sans jeton, impossible de créer des issues dans les projets connectés.",
+  "deleteAccount": "Supprimer le compte",
+  "deleteAccountDescription": "Supprimer définitivement votre compte. Vous quittez toutes les organisations ; le contenu que vous avez créé y reste, affiché comme écrit par un utilisateur supprimé.",
+  "deleteAccountConfirmTitle": "Supprimer votre compte ?",
+  "deleteAccountConfirmDescription": "Cette action est irréversible. Votre profil, vos méthodes de connexion, vos sessions et vos adhésions sont supprimés immédiatement. Vous pourrez vous réinscrire plus tard avec la même adresse e-mail.",
+  "deleteAccountTypeEmail": "Tapez {email} pour confirmer",
+  "cancel": "Annuler"
 }

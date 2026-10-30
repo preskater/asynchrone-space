@@ -5,16 +5,58 @@
     "updated": "October 30, 2026",
     "s1h": "Information we collect",
     "s1b1": "We collect the information you provide when you create an account, including your name, email address and organization details.",
-    "s1b2": "We also collect usage data — such as the features you interact with — to operate, secure and improve the service.",
+    "s1b2": "We also record the technical data needed to operate and secure the service: IP addresses, browser details and timestamps for each sign-in, and an audit trail of changes made inside a workspace.",
     "s2h": "How we use information",
     "s2b1": "We use your information to provide the service, authenticate users, respond to support requests and send product updates you have opted into.",
     "s2b2": "We never sell your personal data.",
     "s3h": "Data retention",
-    "s3b1": "We retain personal data for as long as your account is active. When you delete an account or organization, we remove or anonymize its data within 30 days, except where we are required to retain it by law. Two records outlive a deleted organization: platform audit events, and the email address and company domain used to claim a Team trial, which we keep to prevent the same trial from being claimed again. When you delete your personal account, it is anonymized immediately: your name, email address and sign-in methods are removed, and content or HR records you created in an organization stay with that organization, attributed to a deleted user.",
+    "s3b1": "We keep personal data for as long as your workspace exists. When an owner deletes a workspace it stays recoverable for 30 days and is then permanently deleted, which is the schedule below. Data we must keep by law, and the two records marked as retained, outlive a deleted workspace.",
+    "s3t1": {
+      "columns": ["Data", "Retention", "What happens"],
+      "rows": [
+        [
+          "Workspace content — projects, tasks, messages, calendars, CRM and HR records, uploaded files",
+          "30 days after an owner requests deletion",
+          "The workspace keeps working during those 30 days so a mistaken deletion can be cancelled. A daily job then deletes the rows and the stored file bytes."
+        ],
+        [
+          "Unfinished uploads",
+          "1 hour",
+          "Upload sessions that never complete expire, and their stored bytes are removed by an hourly sweep."
+        ],
+        [
+          "Sign-in sessions",
+          "7 days; 4 hours in the control tower",
+          "Sessions expire automatically, and signing out deletes them immediately."
+        ],
+        [
+          "Sign-in and API rate-limit counters",
+          "1 hour at most",
+          "Counters are overwritten per window and pruned once the window has passed."
+        ],
+        [
+          "Trial claim record — email address and company domain",
+          "Retained after the workspace is deleted",
+          "Kept so the same trial cannot be claimed twice. Disclosed here because it outlives the workspace."
+        ],
+        [
+          "Platform audit events — operator actions on your workspace",
+          "Retained after the workspace is deleted",
+          "Kept as the record of platform staff access, including the deletion itself."
+        ]
+      ]
+    },
+    "s3b2": "Records of users you invited are deleted with the workspace. If you need a copy of what was deleted, ask us before the 30 days elapse.",
     "s4h": "Your rights",
-    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. Contact privacy@asynchrone.space to exercise these rights. Organization owners can also download a complete export of their organization's data from its settings at any time.",
+    "s4b1": "Depending on your location, you may have the right to access, correct, export or delete your personal data. CRM and HR records can be exported as CSV from the product. Workspace owners can also download a complete export of everything in a workspace from its settings at any time.",
+    "s4b2": "Workspace owners schedule deletion from the workspace settings, and can cancel it until the 30-day grace period ends. We may ask you to confirm your identity before acting on a request.",
     "s5h": "Sub-processors",
-    "s5b1": "We use a small set of service providers to run Asynchrone Space. Stripe processes payments, subscriptions and invoices for paid plans; card details are entered on Stripe and never reach our servers. Resend delivers transactional email, and OpenAI powers the AI assistant when it is enabled. Each provider is bound by a data-processing agreement and only receives the data needed for its task. Contact privacy@asynchrone.space for the current list."
+    "s5b1": "We use a small set of service providers to run Asynchrone Space: cloud hosting and PostgreSQL in the European Union, transactional email, the AI assistant when it is enabled, repository sync, payment processing, and a sign-up captcha when the deployment enables it. Each one receives only the data needed for its task and is bound by a data-processing agreement.",
+    "s5b2": "The current list, with each provider's purpose, location and transfer mechanism, is published at asynchrone.space/legal/subprocessors. We announce changes there and by email to workspace owners at least 30 days before a new sub-processor starts processing personal data.",
+    "s6h": "Where your data is stored",
+    "s6b1": "The application and the PostgreSQL database that holds workspace data and uploaded files run on OVHcloud infrastructure in Gravelines, France, inside the European Union. Some sub-processors are established in the United States; transfers to them rely on the European Commission's Standard Contractual Clauses and, where the provider is certified, the EU-US Data Privacy Framework.",
+    "s7h": "Contact",
+    "s7b1": "Privacy questions and data-protection requests: privacy@asynchrone.space. Security reports: security@asynchrone.space. The data processing agreement we offer customers is published at asynchrone.space/legal/dpa."
   },
   "terms": {
     "title": "Terms of Service",
@@ -27,32 +69,231 @@
     "s3h": "Subscriptions and billing",
     "s3b1": "Paid plans are billed through Stripe Checkout. A subscription renews automatically at the interval and price shown before you pay, until you cancel it; you can cancel or change the payment method at any time from the billing settings, and access continues until the end of the paid period. Taxes are calculated by Stripe from your billing address and shown before you pay. Except where the law requires otherwise, amounts already paid are not refunded.",
     "s4h": "Termination",
-    "s4b1": "You may stop using the service at any time. We may suspend or terminate access if you violate these terms or if required to protect the service or other users."
+    "s4b1": "You may stop using the service at any time. We may suspend or terminate access if you violate these terms or if required to protect the service or other users.",
+    "s4b2": "When an agreement ends, the data processing agreement at asynchrone.space/legal/dpa governs how personal data is returned and deleted. A workspace owner can also delete a workspace from the settings, after a 30-day grace period during which the deletion can be cancelled."
   },
   "security": {
     "title": "Security",
-    "description": "How Asynchrone Space protects your workspace and data.",
+    "description": "How Asynchrone Space protects your workspace and data, and what is not shipped yet.",
     "updated": "October 29, 2026",
     "s1h": "Encryption",
-    "s1b1": "All data is encrypted in transit using TLS and at rest using industry-standard encryption. Credentials are hashed, never stored in plain text.",
-    "s1b2": "We rotate keys regularly and follow least-privilege access for internal systems.",
+    "s1b1": "All traffic between your browser and Asynchrone Space uses TLS. Repository and integration tokens are encrypted with AES-256-GCM before they are stored, and passwords are hashed with scrypt; we never store them in plain text.",
+    "s1b2": "Data at rest sits on encrypted storage volumes in our hosting environment. Beyond the integration tokens above, we do not encrypt individual database columns.",
     "s2h": "Access control",
-    "s2b1": "Organizations include role-based access control with owner, admin, member and viewer roles. File permissions can be set per person and per file.",
-    "s2b2": "SSO, SCIM provisioning and a customer-facing audit log are planned for Enterprise plans.",
-    "s3h": "Compliance and reporting",
-    "s3b1": "We monitor for anomalies. If you believe you have found a vulnerability, contact security@asynchrone.space.",
-    "s3b2": "We disclose incidents promptly and transparently to affected organizations."
+    "s2b1": "Organizations include role-based access control with owner, admin, member and viewer roles, and file access can be restricted per person and per file.",
+    "s2b2": "Our own staff reach customer workspaces only through a separate internal control tower that requires a password and a TOTP authenticator. Every action taken there is written to a platform audit trail, and support impersonation is a single-use handoff valid for one minute that opens a one-hour session — never a shared session cookie. The workspace sees an impersonation banner and can end the session at any time.",
+    "s3h": "Data location and backups",
+    "s3b1": "The application and the PostgreSQL database that holds your workspace, including uploaded files, run on OVHcloud infrastructure in Gravelines, France, inside the European Union. No customer data is stored outside the EU except where a sub-processor listed at asynchrone.space/legal/subprocessors receives it.",
+    "s3b2": "Backups and point-in-time recovery are configured by the operator of each deployment at the database level; they are not a self-service feature. If your contract requires documented backup and restore objectives, confirm the current runbook with security@asynchrone.space before signing.",
+    "s4h": "What is not available yet",
+    "s4b1": "We would rather list what is missing than let a questionnaire discover it. The following are not shipped today:",
+    "s4l1": [
+      "SAML single sign-on and SCIM provisioning.",
+      "A product-wide, customer-facing audit log export — the HR and CRM modules keep their own audit trails today.",
+      "Third-party certifications such as SOC 2 or ISO 27001.",
+      "Self-service restore from a backup."
+    ],
+    "s5h": "Reporting a vulnerability",
+    "s5b1": "We monitor for anomalies and act on reports. If you believe you have found a vulnerability, email security@asynchrone.space — we acknowledge reports within 3 business days and tell you what we found and when we expect to fix it. Please do not open a public issue.",
+    "s5b2": "We disclose incidents promptly and transparently to affected organizations. Our data processing agreement commits us to notifying customers within 24 hours of becoming aware of a personal data breach."
   },
   "cookies": {
     "title": "Cookie Policy",
-    "description": "How Asynchrone Space uses cookies and similar technologies.",
-    "updated": "October 1, 2026",
-    "s1h": "What we use cookies for",
-    "s1b1": "We use cookies to keep you signed in, remember your preferences such as language and theme, and understand how the product is used so we can improve it.",
-    "s2h": "Types of cookies",
-    "s2b1": "Essential cookies are required for the service to work. Preference cookies remember settings you choose. Analytics cookies help us measure usage in aggregate.",
-    "s2b2": "We do not use cookies to sell your data or to show third-party advertising.",
-    "s3h": "Managing cookies",
-    "s3b1": "You can control or delete cookies through your browser settings. Disabling essential cookies may prevent parts of the service from working."
+    "description": "Every cookie Asynchrone Space sets, and why no consent banner is shown today.",
+    "updated": "October 29, 2026",
+    "s1h": "What this policy covers",
+    "s1b1": "Asynchrone Space sets a small number of first-party cookies, all of them strictly necessary to sign you in or to remember a display setting you chose. None of them follow you across other sites, and we set no third-party cookies.",
+    "s2h": "The cookies we set",
+    "s2b1": "This table lists every cookie the product currently sets.",
+    "s2t1": {
+      "columns": ["Cookie", "Set by", "Purpose", "Type", "Duration"],
+      "rows": [
+        [
+          "__Secure-better-auth.session_token (better-auth.session_token outside production)",
+          "Customer app",
+          "Keeps you signed in. Signed and httpOnly, so scripts cannot read it.",
+          "Essential",
+          "7 days"
+        ],
+        [
+          "asynchrone-space-control-tower.session_token",
+          "Control tower (internal staff only)",
+          "Keeps an operator signed in. Host-only: it is never sent to the customer app.",
+          "Essential",
+          "4 hours"
+        ],
+        [
+          "NEXT_LOCALE",
+          "Customer app",
+          "Remembers the language you picked so the next page opens in it.",
+          "Preference",
+          "Until you close the browser"
+        ],
+        [
+          "sidebar_state",
+          "Customer app",
+          "Remembers whether the navigation sidebar is expanded.",
+          "Preference",
+          "7 days"
+        ]
+      ]
+    },
+    "s2b2": "During a GitHub or GitLab sign-in the app may also set short-lived cookies to carry the OAuth state and protect the callback against cross-site request forgery. They are deleted when the sign-in completes.",
+    "s3h": "Browser storage that is not a cookie",
+    "s3b1": "Your appearance settings — theme, text size, motion and contrast — and your recently opened items are kept in your browser's local storage under keys beginning asynchrone-space.appearance and asynchrone-space.recents. They never leave your device and are removed when you clear site data.",
+    "s3b2": "We do not use fingerprinting, and we do not write to local storage for advertising purposes.",
+    "s4h": "No analytics and no advertising",
+    "s4b1": "There are no analytics, advertising, A/B testing or third-party tracking cookies in Asynchrone Space today. We do not embed pixels or tags from advertising networks.",
+    "s4b2": "Because every cookie we set is strictly necessary or a display preference you chose, we do not show a consent banner. If we add analytics or any other non-essential cookie, we will publish the consent banner and update this policy first, and the cookie will not run until you agree to it.",
+    "s5h": "Managing cookies",
+    "s5b1": "You can control or delete cookies through your browser settings. Blocking the session cookie prevents sign-in, and clearing site data resets your appearance settings and recent items."
+  },
+  "dpa": {
+    "title": "Data Processing Agreement",
+    "description": "The processor terms that apply when your workspace holds personal data. Available as a template to sign.",
+    "updated": "October 29, 2026",
+    "s1h": "Parties and scope",
+    "s1b1": "This data processing agreement (the “DPA”) is a template for customers of Asynchrone Space. It is entered into between the customer named in the signature block (the “Customer”, acting as controller) and Preskater, which operates Asynchrone Space (the “Processor”). Bracketed fields are completed when it is signed.",
+    "s1b2": "It applies to the personal data that Customer and its users submit to the service described in the agreement between the parties (the “Agreement”). If Customer has accepted this DPA in an order form or in a signed copy, that copy prevails over this page. If a term here conflicts with the Agreement on data protection, this DPA prevails; otherwise the Agreement prevails.",
+    "s2h": "Roles and instructions",
+    "s2b1": "Customer determines the purposes and means of the processing and is responsible for its lawfulness, including having a legal basis for the personal data of its users, clients and candidates that it puts into the service. The Processor processes that data only as a processor and only on Customer's documented instructions: the Agreement, this DPA, the configuration Customer chooses in the product, and Customer's use of its features. The Processor does not sell personal data, does not use it for advertising, and does not use it to train models for other customers.",
+    "s3h": "Processor obligations",
+    "s3b1": "The Processor will:",
+    "s3l1": [
+      "Process personal data only on documented instructions, including for transfers to a third country, unless required by EU or Member State law — in which case it informs Customer before processing, unless the law forbids it.",
+      "Ensure that personnel authorised to process personal data are bound by confidentiality and reach it only where their role requires it.",
+      "Implement and maintain the measures described in section 4.",
+      "Assist Customer in responding to data subject requests and in meeting its obligations under Articles 32 to 36 of the GDPR, taking into account the nature of the processing.",
+      "Notify Customer of a personal data breach within the time set out in section 7.",
+      "Make available the information needed to demonstrate compliance and allow the audits in section 9.",
+      "Return or delete personal data at the end of the provision of services, as set out in section 10."
+    ],
+    "s4h": "Security measures",
+    "s4b1": "The Processor implements the measures below, describes them in the same terms on the security page, and reviews them as the service changes:",
+    "s4l1": [
+      "TLS for all traffic between browsers, the applications and the database.",
+      "AES-256-GCM encryption of repository and integration tokens before they are stored; scrypt hashing of passwords.",
+      "Role-based access control inside every workspace (owner, admin, member, viewer) plus per-file permissions.",
+      "Per-IP rate limiting on authentication endpoints, shared across replicas through the database.",
+      "Platform staff access only through a separate internal application protected by password and TOTP, with every action written to a platform audit trail; support impersonation is a single-use handoff valid for one minute that opens a one-hour session the workspace can see and end.",
+      "Least-privilege access to production systems, with credentials held in Kubernetes Secrets rather than in the repository.",
+      "Application and dependency updates on every change to the main branch, checked by CI before release."
+    ],
+    "s5h": "Sub-processors",
+    "s5b1": "Customer authorises the Processor to engage the sub-processors listed at asynchrone.space/legal/subprocessors: hosting and PostgreSQL, transactional email, the AI assistant, repository sync, payment processing, and a sign-up captcha. That page states each provider's purpose, location and transfer mechanism and is incorporated into this DPA.",
+    "s5b2": "The Processor notifies Customer at least 30 days before a new sub-processor starts processing personal data, by email to the workspace billing contact and by updating that page. Customer may object within those 30 days on reasonable data-protection grounds. If the objection cannot be resolved, Customer may terminate the affected part of the service and receive a pro-rata refund of prepaid fees.",
+    "s5b3": "The Processor imposes data-protection obligations on each sub-processor that are no less protective than this DPA, remains liable to Customer for their performance, and discloses the identity and location of each one.",
+    "s6h": "International transfers",
+    "s6b1": "Personal data is hosted in the European Union, on OVHcloud infrastructure in Gravelines, France. Where a sub-processor processes personal data outside the EEA, the transfer relies on the Standard Contractual Clauses of Commission Decision 2021/914 (module two, controller to processor) and, where the provider is certified under the EU-US Data Privacy Framework, on that framework. The Processor completes any additional documentation Customer reasonably needs to evidence the transfer.",
+    "s7h": "Security incidents",
+    "s7b1": "The Processor notifies Customer of a personal data breach without undue delay and in any event within 24 hours of becoming aware of it, by email to the workspace owners and to the security contact Customer has registered. The notification states, to the extent known at the time:",
+    "s7l1": [
+      "what happened, with the date, time and duration (or an estimate);",
+      "the categories and approximate number of data subjects and records concerned;",
+      "the likely consequences;",
+      "the measures taken or proposed to address the breach and mitigate its effects;",
+      "a contact point for follow-up."
+    ],
+    "s7b2": "Where the information is not all available at once, it is delivered in phases without further delay. The Processor supports Customer's own notification duties, but Customer remains responsible for notifying supervisory authorities and data subjects. A notification is not an admission of fault.",
+    "s8h": "Data subject requests and assistance",
+    "s8b1": "The product lets users access and correct their own profile data, lets workspace owners restrict or revoke access, and exports CRM and HR records as CSV. A complete export of all workspace data is not self-service today: Customer may request one from privacy@asynchrone.space and receives it within 30 days, in a structured, commonly used format. Deletion is scheduled by a workspace owner and completes automatically 30 days later.",
+    "s8b2": "If a data subject contacts the Processor directly, it redirects them to Customer unless the law requires it to respond itself. For data protection impact assessments and prior consultations with a supervisory authority, the Processor provides the information in this DPA and on the security page free of charge; where a request needs substantial additional work, it agrees the scope and cost with Customer in advance.",
+    "s9h": "Audit rights",
+    "s9b1": "The Processor makes available to Customer:",
+    "s9l1": [
+      "this DPA, the security page and the current sub-processor list;",
+      "on request, and at most once a year, a completed security questionnaire;",
+      "on request, a summary of the most recent penetration test or security assessment, with findings that concern other customers removed."
+    ],
+    "s9b2": "Customer may audit the Processor's processing facilities only where a supervisory authority requires it or after a confirmed personal data breach attributable to the Processor, with at least 30 days' written notice, during business hours, under confidentiality, and without access to other customers' data. Customer bears the cost, unless the audit reveals material non-compliance, in which case the Processor reimburses the reasonable cost of the audit.",
+    "s10h": "Return and deletion on termination",
+    "s10b1": "While the Agreement is in force, Customer can export records from the modules that support export at any time. On termination, Customer may request a complete export within 30 days, and the Processor provides it in a structured, commonly used format.",
+    "s10b2": "After that window, the Processor deletes the personal data — including uploaded file bytes, which are stored as PostgreSQL large objects — within 30 days, unless EU or Member State law requires it to be retained. Retained records are limited to platform audit events and trial claim records, both disclosed in the privacy policy. On written request, the Processor confirms the deletion in writing.",
+    "s11h": "Liability",
+    "s11b1": "Each party's liability under this DPA is subject to the limitations and exclusions in the Agreement. Nothing in this DPA limits the rights of data subjects under the GDPR.",
+    "s12h": "Term, changes and governing law",
+    "s12b1": "This DPA takes effect when it is signed, or when Customer accepts it in an order form, and remains in force for as long as the Processor processes personal data for Customer. It is governed by the law and jurisdiction stated in the Agreement.",
+    "s12b2": "The Processor may update this DPA to reflect a change in the service, a change of sub-processor under section 5, or a change in law. Updates are published on this page with a new date and do not reduce the protections in force when Customer signed.",
+    "s13h": "Signing",
+    "s13b1": "To execute this DPA, complete the block below, sign it and return it to privacy@asynchrone.space. We countersign and return a copy, usually within five business days.",
+    "s13b2": "Customer\nLegal name: [legal name]\nRegistered address: [address]\nName and role: [name, role]\nSignature: ______________________________\nDate: [date]\n\nAsynchrone Space (Preskater)\nName and role: [name, role]\nSignature: ______________________________\nDate: [date]"
+  },
+  "subprocessors": {
+    "title": "Sub-processors",
+    "description": "Every company that processes customer data for Asynchrone Space, with its purpose, location and transfer mechanism.",
+    "updated": "October 29, 2026",
+    "s1h": "What a sub-processor is",
+    "s1b1": "A sub-processor is a company we engage to process personal data on your behalf as part of the service. We keep the list short: every entry below is a provider whose systems can see customer data while the product runs.",
+    "s1b2": "This list forms part of our data processing agreement with customers (asynchrone.space/legal/dpa). It applies to every workspace; optional features send data only to the provider that powers them.",
+    "s2h": "Current sub-processors",
+    "s2t1": {
+      "columns": [
+        "Sub-processor",
+        "Purpose",
+        "Data",
+        "Location",
+        "Transfer mechanism"
+      ],
+      "rows": [
+        [
+          "OVHcloud",
+          "Hosting of the application and of the PostgreSQL database that stores workspace data and uploaded files",
+          "All customer data",
+          "France, European Union (Gravelines)",
+          "No transfer outside the EEA"
+        ],
+        [
+          "Resend",
+          "Transactional email: address verification, password reset, workspace notifications",
+          "Name, email address, message content",
+          "United States",
+          "Standard Contractual Clauses; EU-US Data Privacy Framework where certified"
+        ],
+        [
+          "OpenAI",
+          "AI assistant responses and tool use, only when a workspace enables the assistant",
+          "The prompts and content you include in a request",
+          "United States",
+          "Standard Contractual Clauses; EU-US Data Privacy Framework where certified"
+        ],
+        [
+          "GitHub",
+          "Repository sync and optional OAuth sign-in",
+          "Issues and pull requests you sync, your GitHub identity",
+          "United States",
+          "Standard Contractual Clauses; EU-US Data Privacy Framework where certified"
+        ],
+        [
+          "GitLab",
+          "Repository sync and optional OAuth sign-in",
+          "Issues and merge requests you sync, your GitLab identity",
+          "United States",
+          "Standard Contractual Clauses; EU-US Data Privacy Framework where certified"
+        ],
+        [
+          "Stripe",
+          "Plan subscriptions, invoices and tax",
+          "Billing contact, address and tax identifiers; card details go straight to Stripe and never reach our servers",
+          "Ireland, European Union (Stripe Payments Europe); United States for group support functions",
+          "EU/EEA processing; Standard Contractual Clauses where a US entity is involved"
+        ],
+        [
+          "Cloudflare",
+          "Turnstile captcha on sign-up and password reset, only when the deployment enables it",
+          "IP address and browser signals",
+          "Global edge network; United States",
+          "Standard Contractual Clauses; EU-US Data Privacy Framework where certified"
+        ]
+      ]
+    },
+    "s2b1": "Last reviewed October 29, 2026. OpenAI, GitHub, GitLab and Cloudflare only receive data when the corresponding feature is used, and Resend and Stripe only when email or billing is configured.",
+    "s3h": "Changes to this list",
+    "s3b1": "We tell workspace owners by email at least 30 days before a new sub-processor starts processing personal data, and update this page at the same time. The review date above tells you how current the list is.",
+    "s3b2": "If you object within those 30 days on reasonable data-protection grounds and we cannot resolve it, you may terminate the affected part of the service and receive a pro-rata refund of prepaid fees.",
+    "s4h": "Safeguards",
+    "s4b1": "Each provider is bound by a data-processing agreement with terms no less protective than our customer DPA: confidentiality, security measures, breach notification, deletion on termination and audit rights.",
+    "s4b2": "Where a provider processes data outside the EEA, we rely on the Standard Contractual Clauses (module two) and, where the provider is certified, the EU-US Data Privacy Framework. Hosting and the PostgreSQL database stay in the European Union.",
+    "s5h": "Contact",
+    "s5b1": "Questions about a provider, or a request for the signed agreements behind this list: privacy@asynchrone.space."
   }
 }

@@ -5,54 +5,295 @@
     "updated": "30 octobre 2026",
     "s1h": "Informations que nous collectons",
     "s1b1": "Nous collectons les informations que vous fournissez lorsque vous créez un compte, notamment votre nom, votre adresse e-mail et les détails de votre organisation.",
-    "s1b2": "Nous collectons aussi des données d'usage — comme les fonctionnalités que vous utilisez — pour exploiter, sécuriser et améliorer le service.",
-    "s2h": "Comment nous utilisons les informations",
-    "s2b1": "Nous utilisons vos informations pour fournir le service, authentifier les utilisateurs, répondre aux demandes d'assistance et envoyer les nouveautés produit auxquelles vous avez souscrit.",
+    "s1b2": "Nous enregistrons également les données techniques nécessaires à l’exploitation et à la sécurisation du service : adresses IP, informations sur le navigateur et horodatage de chaque connexion, ainsi qu’une piste d’audit des modifications effectuées dans un espace de travail.",
+    "s2h": "Comment nous utilisons ces informations",
+    "s2b1": "Nous utilisons vos informations pour fournir le service, authentifier les utilisateurs, répondre aux demandes d’assistance et envoyer les nouveautés produit auxquelles vous avez souscrit.",
     "s2b2": "Nous ne vendons jamais vos données personnelles.",
-    "s3h": "Conservation des données",
-    "s3b1": "Nous conservons les données personnelles tant que votre compte est actif. Lorsque vous supprimez un compte ou une organisation, nous retirons ou anonymisons ses données sous 30 jours, sauf lorsque la loi nous oblige à les conserver. Deux enregistrements subsistent après la suppression d'une organisation : les événements d'audit de la plateforme, et l'adresse e-mail et le domaine d'entreprise utilisés pour réclamer un essai Team, que nous conservons afin d'éviter qu'un même essai soit réclamé à nouveau. Lorsque vous supprimez votre compte personnel, il est anonymisé immédiatement : votre nom, votre adresse e-mail et vos méthodes de connexion sont supprimés, et le contenu ou les dossiers RH que vous avez créés dans une organisation y restent, attribués à un utilisateur supprimé.",
+    "s3h": "Durée de conservation",
+    "s3b1": "Nous conservons les données personnelles aussi longtemps que votre espace de travail existe. Lorsqu’un propriétaire supprime un espace de travail, celui-ci reste récupérable pendant 30 jours puis est définitivement supprimé, conformément au tableau ci-dessous. Les données que la loi nous oblige à conserver, ainsi que les deux enregistrements signalés comme conservés, survivent à la suppression de l’espace de travail.",
+    "s3t1": {
+      "columns": ["Données", "Conservation", "Traitement"],
+      "rows": [
+        [
+          "Contenu de l’espace de travail — projets, tâches, messages, calendriers, enregistrements CRM et RH, fichiers importés",
+          "30 jours après la demande de suppression d’un propriétaire",
+          "L’espace de travail reste utilisable pendant ces 30 jours afin qu’une suppression accidentelle puisse être annulée. Une tâche quotidienne supprime ensuite les lignes et les octets de fichiers stockés."
+        ],
+        [
+          "Imports inachevés",
+          "1 heure",
+          "Les sessions d’import qui n’aboutissent jamais expirent, et leurs octets stockés sont supprimés lors d’un balayage horaire."
+        ],
+        [
+          "Sessions de connexion",
+          "7 jours ; 4 heures dans la tour de contrôle",
+          "Les sessions expirent automatiquement, et la déconnexion les supprime immédiatement."
+        ],
+        [
+          "Compteurs de limitation de débit (connexion et API)",
+          "1 heure au maximum",
+          "Les compteurs sont écrasés à chaque fenêtre et purgés une fois la fenêtre écoulée."
+        ],
+        [
+          "Enregistrement de réclamation d’essai — adresse e-mail et domaine de l’entreprise",
+          "Conservé après la suppression de l’espace de travail",
+          "Conservé pour empêcher qu’un même essai soit réclamé deux fois. Mentionné ici car il survit à l’espace de travail."
+        ],
+        [
+          "Événements d’audit de la plateforme — actions des opérateurs sur votre espace de travail",
+          "Conservé après la suppression de l’espace de travail",
+          "Conservé comme trace des accès du personnel de la plateforme, y compris la suppression elle-même."
+        ]
+      ]
+    },
+    "s3b2": "Les enregistrements des utilisateurs que vous avez invités sont supprimés avec l’espace de travail. Si vous avez besoin d’une copie de ce qui a été supprimé, demandez-la avant l’expiration des 30 jours.",
     "s4h": "Vos droits",
-    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d'accéder à vos données personnelles, de les corriger, de les exporter ou de les supprimer. Contactez privacy@asynchrone.space pour exercer ces droits. Les propriétaires d'une organisation peuvent aussi télécharger à tout moment un export complet de ses données depuis ses paramètres.",
+    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d’accéder à vos données personnelles, de les rectifier, de les exporter ou de les supprimer. Les enregistrements CRM et RH peuvent être exportés au format CSV depuis le produit. Les propriétaires d’un espace de travail peuvent aussi télécharger à tout moment un export complet de son contenu depuis ses paramètres.",
+    "s4b2": "Les propriétaires d’un espace de travail programment la suppression depuis les paramètres et peuvent l’annuler jusqu’à la fin du délai de 30 jours. Nous pouvons vous demander de confirmer votre identité avant de traiter une demande.",
     "s5h": "Sous-traitants",
-    "s5b1": "Nous faisons appel à un nombre limité de prestataires pour opérer Asynchrone Space. Stripe traite les paiements, les abonnements et les factures des offres payantes ; les données de carte sont saisies chez Stripe et n'atteignent jamais nos serveurs. Resend achemine les e-mails transactionnels et OpenAI alimente l'assistant IA lorsqu'il est activé. Chaque prestataire est lié par un accord de sous-traitance et ne reçoit que les données nécessaires à sa mission. Contactez privacy@asynchrone.space pour obtenir la liste à jour."
+    "s5b1": "Nous faisons appel à un petit nombre de prestataires pour exploiter Asynchrone Space : hébergement cloud et PostgreSQL dans l’Union européenne, e-mail transactionnel, l’assistant IA lorsqu’il est activé, la synchronisation de dépôts, le traitement des paiements et un captcha à l’inscription lorsque le déploiement l’active. Chacun ne reçoit que les données nécessaires à sa tâche et est lié par un accord de sous-traitance.",
+    "s5b2": "La liste à jour, avec l’objet, la localisation et le mécanisme de transfert de chaque prestataire, est publiée sur asynchrone.space/legal/subprocessors. Nous annonçons les changements à cet endroit et par e-mail aux propriétaires d’espaces de travail au moins 30 jours avant qu’un nouveau sous-traitant ne commence à traiter des données personnelles.",
+    "s6h": "Où vos données sont stockées",
+    "s6b1": "L’application et la base de données PostgreSQL qui contient les données de l’espace de travail et les fichiers importés fonctionnent sur l’infrastructure OVHcloud à Gravelines, en France, au sein de l’Union européenne. Certains sous-traitants sont établis aux États-Unis ; les transferts vers ceux-ci reposent sur les clauses contractuelles types de la Commission européenne et, lorsque le prestataire est certifié, sur le cadre de protection des données UE–États-Unis.",
+    "s7h": "Contact",
+    "s7b1": "Questions de confidentialité et demandes relatives à la protection des données : privacy@asynchrone.space. Signalements de sécurité : security@asynchrone.space. L’accord de sous-traitance que nous proposons aux clients est publié sur asynchrone.space/legal/dpa."
   },
   "terms": {
-    "title": "Conditions d'utilisation",
-    "description": "L'accord qui régit votre utilisation de Asynchrone Space.",
+    "title": "Conditions d’utilisation",
+    "description": "L’accord qui régit votre utilisation d’Asynchrone Space.",
     "updated": "29 octobre 2026",
     "s1h": "Acceptation des conditions",
-    "s1b1": "En accédant à Asynchrone Space ou en l'utilisant, vous acceptez d'être lié par ces conditions. Si vous utilisez le service pour le compte d'une organisation, vous déclarez avoir l'autorité pour engager cette organisation.",
+    "s1b1": "En accédant à Asynchrone Space ou en l’utilisant, vous acceptez d’être lié par les présentes conditions. Si vous utilisez le service pour le compte d’une organisation, vous déclarez être habilité à engager celle-ci.",
     "s2h": "Utilisation acceptable",
-    "s2b1": "Vous acceptez de ne pas détourner le service, notamment en tentant d'y accéder par d'autres moyens que les interfaces que nous fournissons, ou en l'utilisant pour stocker ou partager du contenu illicite.",
+    "s2b1": "Vous acceptez de ne pas faire un usage abusif du service, notamment en tentant d’y accéder par d’autres moyens que les interfaces que nous fournissons, ou en l’utilisant pour stocker ou partager des contenus illicites.",
     "s3h": "Abonnements et facturation",
-    "s3b1": "Les offres payantes sont facturées via Stripe Checkout. Un abonnement se renouvelle automatiquement selon la périodicité et le prix affichés avant le paiement, jusqu'à son annulation ; vous pouvez l'annuler ou modifier le moyen de paiement à tout moment depuis les paramètres de facturation, et l'accès se poursuit jusqu'à la fin de la période payée. Les taxes sont calculées par Stripe à partir de votre adresse de facturation et affichées avant le paiement. Sauf obligation légale contraire, les sommes déjà versées ne sont pas remboursées.",
+    "s3b1": "Les offres payantes sont facturées via Stripe Checkout. Un abonnement se renouvelle automatiquement à l’intervalle et au prix indiqués avant le paiement, jusqu’à son annulation ; vous pouvez l’annuler ou changer de moyen de paiement à tout moment depuis les paramètres de facturation, et l’accès se poursuit jusqu’à la fin de la période payée. Les taxes sont calculées par Stripe à partir de votre adresse de facturation et affichées avant le paiement. Sauf disposition légale contraire, les sommes déjà versées ne sont pas remboursées.",
     "s4h": "Résiliation",
-    "s4b1": "Vous pouvez cesser d'utiliser le service à tout moment. Nous pouvons suspendre ou résilier l'accès si vous enfreignez ces conditions ou si cela est nécessaire pour protéger le service ou les autres utilisateurs."
+    "s4b1": "Vous pouvez cesser d’utiliser le service à tout moment. Nous pouvons suspendre ou résilier l’accès en cas de violation des présentes conditions ou si cela est nécessaire pour protéger le service ou les autres utilisateurs.",
+    "s4b2": "Lorsqu’un accord prend fin, l’accord de sous-traitance disponible sur asynchrone.space/legal/dpa régit la restitution et la suppression des données personnelles. Un propriétaire peut également supprimer un espace de travail depuis les paramètres, après un délai de 30 jours pendant lequel la suppression peut être annulée."
   },
   "security": {
     "title": "Sécurité",
-    "description": "Comment Asynchrone Space protège votre espace de travail et vos données.",
+    "description": "Comment Asynchrone Space protège votre espace de travail et vos données, et ce qui n’est pas encore disponible.",
     "updated": "29 octobre 2026",
     "s1h": "Chiffrement",
-    "s1b1": "Toutes les données sont chiffrées en transit via TLS et au repos avec un chiffrement standard du secteur. Les identifiants sont hachés, jamais stockés en clair.",
-    "s1b2": "Nous faisons tourner les clés régulièrement et appliquons le moindre privilège pour les systèmes internes.",
-    "s2h": "Contrôle d'accès",
-    "s2b1": "Les organisations incluent un contrôle d'accès basé sur les rôles avec les rôles propriétaire, administrateur, membre et lecteur. Les permissions de fichiers peuvent être définies par personne et par fichier.",
-    "s2b2": "Le SSO, le provisionnement SCIM et un journal d'audit accessible aux clients sont prévus pour les offres Enterprise.",
-    "s3h": "Conformité et signalement",
-    "s3b1": "Nous surveillons les anomalies. Si vous pensez avoir découvert une vulnérabilité, contactez security@asynchrone.space.",
-    "s3b2": "Nous divulguons les incidents rapidement et en toute transparence aux organisations concernées."
+    "s1b1": "Toutes les communications entre votre navigateur et Asynchrone Space utilisent TLS. Les jetons de dépôt et d’intégration sont chiffrés en AES-256-GCM avant stockage, et les mots de passe sont hachés avec scrypt ; nous ne les stockons jamais en clair.",
+    "s1b2": "Les données au repos se trouvent sur des volumes de stockage chiffrés dans notre environnement d’hébergement. Au-delà des jetons d’intégration mentionnés ci-dessus, nous ne chiffrons pas les colonnes individuelles de la base de données.",
+    "s2h": "Contrôle d’accès",
+    "s2b1": "Les organisations disposent d’un contrôle d’accès basé sur les rôles (propriétaire, administrateur, membre et lecteur), et l’accès aux fichiers peut être restreint par personne et par fichier.",
+    "s2b2": "Notre personnel n’accède aux espaces de travail des clients que par une application interne distincte, protégée par mot de passe et par un code TOTP. Chaque action y est consignée dans une piste d’audit de la plateforme, et l’usurpation d’identité pour l’assistance est un jeton à usage unique valable une minute qui ouvre une session d’une heure — jamais un cookie de session partagé. L’espace de travail affiche une bannière d’usurpation et peut mettre fin à la session à tout moment.",
+    "s3h": "Localisation des données et sauvegardes",
+    "s3b1": "L’application et la base de données PostgreSQL qui contient votre espace de travail, fichiers importés compris, fonctionnent sur l’infrastructure OVHcloud à Gravelines, en France, au sein de l’Union européenne. Aucune donnée client n’est stockée hors de l’UE, sauf lorsqu’un sous-traitant listé sur asynchrone.space/legal/subprocessors la reçoit.",
+    "s3b2": "Les sauvegardes et la restauration à un instant donné sont configurées par l’exploitant de chaque déploiement, au niveau de la base de données ; elles ne sont pas une fonctionnalité en libre-service. Si votre contrat exige des objectifs documentés de sauvegarde et de restauration, confirmez la procédure en vigueur auprès de security@asynchrone.space avant de signer.",
+    "s4h": "Ce qui n’est pas encore disponible",
+    "s4b1": "Nous préférons indiquer ce qui manque plutôt que de laisser un questionnaire le découvrir. Les éléments suivants ne sont pas encore livrés :",
+    "s4l1": [
+      "L’authentification unique SAML et le provisionnement SCIM.",
+      "Un export de journal d’audit à l’échelle du produit pour les clients — les modules RH et CRM tiennent aujourd’hui leurs propres pistes d’audit.",
+      "Les certifications tierces telles que SOC 2 ou ISO 27001.",
+      "La restauration d’une sauvegarde en libre-service."
+    ],
+    "s5h": "Signaler une vulnérabilité",
+    "s5b1": "Nous surveillons les anomalies et donnons suite aux signalements. Si vous pensez avoir découvert une vulnérabilité, écrivez à security@asynchrone.space — nous accusons réception sous 3 jours ouvrés et vous indiquons ce que nous avons constaté et quand nous prévoyons de corriger. Merci de ne pas ouvrir de ticket public.",
+    "s5b2": "Nous informons les organisations concernées rapidement et de manière transparente. Notre accord de sous-traitance nous engage à notifier les clients dans les 24 heures suivant la prise de connaissance d’une violation de données personnelles."
   },
   "cookies": {
-    "title": "Politique de cookies",
-    "description": "Comment Asynchrone Space utilise les cookies et technologies similaires.",
-    "updated": "1 octobre 2026",
-    "s1h": "À quoi servent les cookies",
-    "s1b1": "Nous utilisons des cookies pour vous garder connecté, mémoriser vos préférences telles que la langue et le thème, et comprendre comment le produit est utilisé afin de l'améliorer.",
-    "s2h": "Types de cookies",
-    "s2b1": "Les cookies essentiels sont nécessaires au fonctionnement du service. Les cookies de préférence mémorisent les réglages que vous choisissez. Les cookies d'analyse nous aident à mesurer l'usage de façon agrégée.",
-    "s2b2": "Nous n'utilisons pas de cookies pour vendre vos données ni pour afficher de la publicité tierce.",
-    "s3h": "Gérer les cookies",
-    "s3b1": "Vous pouvez contrôler ou supprimer les cookies dans les réglages de votre navigateur. Désactiver les cookies essentiels peut empêcher certaines parties du service de fonctionner."
+    "title": "Politique relative aux cookies",
+    "description": "Tous les cookies déposés par Asynchrone Space, et pourquoi aucune bannière de consentement n’est affichée aujourd’hui.",
+    "updated": "29 octobre 2026",
+    "s1h": "Objet de cette politique",
+    "s1b1": "Asynchrone Space dépose un petit nombre de cookies propres au site, tous strictement nécessaires pour vous connecter ou pour mémoriser un réglage d’affichage que vous avez choisi. Aucun ne vous suit sur d’autres sites, et nous ne déposons aucun cookie tiers.",
+    "s2h": "Les cookies que nous déposons",
+    "s2b1": "Ce tableau recense tous les cookies actuellement déposés par le produit.",
+    "s2t1": {
+      "columns": ["Cookie", "Déposé par", "Finalité", "Type", "Durée"],
+      "rows": [
+        [
+          "__Secure-better-auth.session_token (better-auth.session_token hors production)",
+          "Application client",
+          "Vous garde connecté. Signé et httpOnly : les scripts ne peuvent pas le lire.",
+          "Essentiel",
+          "7 jours"
+        ],
+        [
+          "asynchrone-space-control-tower.session_token",
+          "Tour de contrôle (personnel interne uniquement)",
+          "Garde un opérateur connecté. Limité à son hôte : il n’est jamais envoyé à l’application client.",
+          "Essentiel",
+          "4 heures"
+        ],
+        [
+          "NEXT_LOCALE",
+          "Application client",
+          "Mémorise la langue choisie pour que la page suivante s’ouvre dans celle-ci.",
+          "Préférence",
+          "Jusqu’à la fermeture du navigateur"
+        ],
+        [
+          "sidebar_state",
+          "Application client",
+          "Mémorise si la barre de navigation latérale est déployée.",
+          "Préférence",
+          "7 jours"
+        ]
+      ]
+    },
+    "s2b2": "Lors d’une connexion GitHub ou GitLab, l’application peut également déposer des cookies de courte durée pour transporter l’état OAuth et protéger le retour de connexion contre la falsification de requête inter-sites. Ils sont supprimés à la fin de la connexion.",
+    "s3h": "Le stockage navigateur qui n’est pas un cookie",
+    "s3b1": "Vos réglages d’apparence — thème, taille du texte, animations et contraste — ainsi que vos éléments récemment ouverts sont conservés dans le stockage local de votre navigateur, sous des clés commençant par asynchrone-space.appearance et asynchrone-space.recents. Ils ne quittent jamais votre appareil et disparaissent lorsque vous effacez les données du site.",
+    "s3b2": "Nous n’utilisons pas de prise d’empreinte numérique et n’écrivons pas dans le stockage local à des fins publicitaires.",
+    "s4h": "Aucune mesure d’audience, aucune publicité",
+    "s4b1": "Asynchrone Space n’utilise aujourd’hui aucun cookie de mesure d’audience, de publicité, de test A/B ou de suivi tiers. Nous n’intégrons ni pixel ni balise de réseaux publicitaires.",
+    "s4b2": "Comme chaque cookie que nous déposons est strictement nécessaire ou correspond à une préférence d’affichage que vous avez choisie, nous n’affichons pas de bannière de consentement. Si nous ajoutons une mesure d’audience ou tout autre cookie non essentiel, nous publierons d’abord la bannière de consentement et mettrons à jour cette politique, et le cookie ne sera pas déposé avant votre accord.",
+    "s5h": "Gérer les cookies",
+    "s5b1": "Vous pouvez contrôler ou supprimer les cookies dans les paramètres de votre navigateur. Bloquer le cookie de session empêche la connexion, et effacer les données du site réinitialise vos réglages d’apparence et vos éléments récents."
+  },
+  "dpa": {
+    "title": "Accord de sous-traitance des données",
+    "description": "Les conditions applicables au traitement lorsque votre espace de travail contient des données personnelles. Disponible sous forme de modèle à signer.",
+    "updated": "29 octobre 2026",
+    "s1h": "Parties et champ d’application",
+    "s1b1": "Le présent accord de sous-traitance des données (l’« Accord ») est un modèle destiné aux clients d’Asynchrone Space. Il est conclu entre le client désigné dans le bloc de signature (le « Client », agissant en qualité de responsable du traitement) et Preskater, qui exploite Asynchrone Space (le « Sous-traitant »). Les champs entre crochets sont complétés lors de la signature.",
+    "s1b2": "Il s’applique aux données personnelles que le Client et ses utilisateurs soumettent au service décrit dans l’accord conclu entre les parties (le « Contrat »). Si le Client a accepté cet Accord dans un bon de commande ou dans un exemplaire signé, cet exemplaire prévaut sur la présente page. En cas de contradiction entre une clause du présent Accord et le Contrat en matière de protection des données, le présent Accord prévaut ; dans les autres cas, le Contrat prévaut.",
+    "s2h": "Rôles et instructions",
+    "s2b1": "Le Client détermine les finalités et les moyens du traitement et répond de sa licéité, y compris de l’existence d’une base légale pour les données personnelles de ses utilisateurs, clients et candidats qu’il place dans le service. Le Sous-traitant traite ces données uniquement en qualité de sous-traitant et uniquement sur instructions documentées du Client : le Contrat, le présent Accord, la configuration choisie par le Client dans le produit et l’usage qu’il fait de ses fonctionnalités. Le Sous-traitant ne vend pas de données personnelles, ne les utilise pas à des fins publicitaires et ne les utilise pas pour entraîner des modèles destinés à d’autres clients.",
+    "s3h": "Obligations du sous-traitant",
+    "s3b1": "Le Sous-traitant s’engage à :",
+    "s3l1": [
+      "Ne traiter les données personnelles que sur instructions documentées, y compris pour les transferts vers un pays tiers, sauf obligation du droit de l’Union ou d’un État membre — auquel cas il informe le Client avant le traitement, sauf si la loi l’interdit.",
+      "Veiller à ce que le personnel autorisé à traiter les données personnelles soit tenu à la confidentialité et n’y accède que lorsque ses fonctions l’exigent.",
+      "Mettre en œuvre et maintenir les mesures décrites à la section 4.",
+      "Aider le Client à répondre aux demandes des personnes concernées et à respecter ses obligations au titre des articles 32 à 36 du RGPD, compte tenu de la nature du traitement.",
+      "Notifier au Client toute violation de données personnelles dans le délai prévu à la section 7.",
+      "Mettre à disposition les informations nécessaires pour démontrer la conformité et permettre les audits prévus à la section 9.",
+      "Restituer ou supprimer les données personnelles à la fin de la prestation, comme prévu à la section 10."
+    ],
+    "s4h": "Mesures de sécurité",
+    "s4b1": "Le Sous-traitant met en œuvre les mesures ci-dessous, les décrit dans les mêmes termes sur la page Sécurité et les révise à mesure que le service évolue :",
+    "s4l1": [
+      "TLS pour toutes les communications entre les navigateurs, les applications et la base de données.",
+      "Chiffrement AES-256-GCM des jetons de dépôt et d’intégration avant stockage ; hachage des mots de passe avec scrypt.",
+      "Contrôle d’accès basé sur les rôles dans chaque espace de travail (propriétaire, administrateur, membre, lecteur) et permissions par fichier.",
+      "Limitation de débit par adresse IP sur les points d’entrée d’authentification, partagée entre les réplicas via la base de données.",
+      "Accès du personnel de la plateforme uniquement via une application interne distincte protégée par mot de passe et TOTP, chaque action étant consignée dans une piste d’audit de la plateforme ; l’usurpation d’identité pour l’assistance est un jeton à usage unique valable une minute qui ouvre une session d’une heure, visible et interruptible par l’espace de travail.",
+      "Accès aux systèmes de production selon le moindre privilège, avec des identifiants conservés dans des Secrets Kubernetes et non dans le dépôt.",
+      "Mises à jour applicatives et de dépendances à chaque modification de la branche principale, vérifiées par l’intégration continue avant publication."
+    ],
+    "s5h": "Sous-traitants ultérieurs",
+    "s5b1": "Le Client autorise le Sous-traitant à faire appel aux sous-traitants listés sur asynchrone.space/legal/subprocessors : hébergement et PostgreSQL, e-mail transactionnel, assistant IA, synchronisation de dépôts, traitement des paiements et captcha à l’inscription. Cette page indique l’objet, la localisation et le mécanisme de transfert de chaque prestataire et fait partie intégrante du présent Accord.",
+    "s5b2": "Le Sous-traitant informe le Client au moins 30 jours avant qu’un nouveau sous-traitant ne commence à traiter des données personnelles, par e-mail au contact de facturation de l’espace de travail et par la mise à jour de cette page. Le Client peut s’y opposer pendant ces 30 jours pour des motifs raisonnables liés à la protection des données. Si l’opposition ne peut être résolue, le Client peut résilier la partie concernée du service et obtenir le remboursement au prorata des sommes prépayées.",
+    "s5b3": "Le Sous-traitant impose à chaque sous-traitant ultérieur des obligations de protection des données au moins aussi protectrices que celles du présent Accord, reste responsable devant le Client de leur exécution et communique l’identité et la localisation de chacun d’eux.",
+    "s6h": "Transferts internationaux",
+    "s6b1": "Les données personnelles sont hébergées dans l’Union européenne, sur l’infrastructure OVHcloud à Gravelines, en France. Lorsqu’un sous-traitant traite des données personnelles hors de l’EEE, le transfert repose sur les clauses contractuelles types de la décision 2021/914 de la Commission (module deux, responsable vers sous-traitant) et, lorsque le prestataire est certifié au titre du cadre de protection des données UE–États-Unis, sur ce cadre. Le Sous-traitant établit toute documentation complémentaire raisonnablement nécessaire au Client pour justifier le transfert.",
+    "s7h": "Incidents de sécurité",
+    "s7b1": "Le Sous-traitant notifie au Client toute violation de données personnelles sans retard injustifié et en tout état de cause dans les 24 heures suivant sa prise de connaissance, par e-mail aux propriétaires de l’espace de travail et au contact sécurité enregistré par le Client. La notification précise, dans la mesure des informations alors disponibles :",
+    "s7l1": [
+      "ce qui s’est produit, avec la date, l’heure et la durée (ou une estimation) ;",
+      "les catégories et le nombre approximatif de personnes concernées et d’enregistrements en cause ;",
+      "les conséquences probables ;",
+      "les mesures prises ou proposées pour remédier à la violation et en limiter les effets ;",
+      "un point de contact pour le suivi."
+    ],
+    "s7b2": "Lorsque les informations ne sont pas toutes disponibles immédiatement, elles sont communiquées par étapes sans délai supplémentaire. Le Sous-traitant aide le Client dans ses propres obligations de notification, mais le Client reste responsable de la notification aux autorités de contrôle et aux personnes concernées. Une notification ne vaut pas reconnaissance de responsabilité.",
+    "s8h": "Demandes des personnes concernées et assistance",
+    "s8b1": "Le produit permet aux utilisateurs d’accéder à leurs données de profil et de les rectifier, aux propriétaires d’espaces de travail de restreindre ou de révoquer les accès, et exporte les enregistrements CRM et RH au format CSV. Un export complet de toutes les données d’un espace de travail n’est pas encore en libre-service : le Client peut en faire la demande à privacy@asynchrone.space et le reçoit sous 30 jours, dans un format structuré et couramment utilisé. La suppression est programmée par un propriétaire de l’espace de travail et s’exécute automatiquement 30 jours plus tard.",
+    "s8b2": "Si une personne concernée s’adresse directement au Sous-traitant, celui-ci la réoriente vers le Client, sauf obligation légale d’y répondre lui-même. Pour les analyses d’impact et les consultations préalables d’une autorité de contrôle, le Sous-traitant fournit gratuitement les informations figurant dans le présent Accord et sur la page Sécurité ; lorsqu’une demande exige un travail supplémentaire substantiel, il convient au préalable de son périmètre et de son coût avec le Client.",
+    "s9h": "Droits d’audit",
+    "s9b1": "Le Sous-traitant met à la disposition du Client :",
+    "s9l1": [
+      "le présent Accord, la page Sécurité et la liste à jour des sous-traitants ;",
+      "sur demande, et au plus une fois par an, un questionnaire de sécurité complété ;",
+      "sur demande, une synthèse du plus récent test d’intrusion ou audit de sécurité, les constats concernant d’autres clients étant retirés."
+    ],
+    "s9b2": "Le Client ne peut auditer les installations de traitement du Sous-traitant que si une autorité de contrôle l’exige ou après une violation de données personnelles confirmée et imputable au Sous-traitant, avec un préavis écrit d’au moins 30 jours, pendant les heures ouvrées, sous accord de confidentialité et sans accès aux données d’autres clients. Le coût est supporté par le Client, sauf si l’audit révèle un manquement substantiel, auquel cas le Sous-traitant rembourse le coût raisonnable de l’audit.",
+    "s10h": "Restitution et suppression en fin de contrat",
+    "s10b1": "Pendant la durée du Contrat, le Client peut exporter à tout moment les enregistrements des modules qui le permettent. En cas de résiliation, le Client peut demander un export complet dans les 30 jours, et le Sous-traitant le fournit dans un format structuré et couramment utilisé.",
+    "s10b2": "Passé ce délai, le Sous-traitant supprime les données personnelles — y compris les octets des fichiers importés, stockés sous forme de grands objets PostgreSQL — dans les 30 jours, sauf obligation de conservation du droit de l’Union ou d’un État membre. Les enregistrements conservés se limitent aux événements d’audit de la plateforme et aux enregistrements de réclamation d’essai, tous deux mentionnés dans la politique de confidentialité. Sur demande écrite, le Sous-traitant confirme la suppression par écrit.",
+    "s11h": "Responsabilité",
+    "s11b1": "La responsabilité de chaque partie au titre du présent Accord est soumise aux limitations et exclusions prévues par le Contrat. Aucune disposition du présent Accord ne limite les droits des personnes concernées au titre du RGPD.",
+    "s12h": "Durée, modifications et droit applicable",
+    "s12b1": "Le présent Accord prend effet à sa signature, ou lorsque le Client l’accepte dans un bon de commande, et demeure en vigueur aussi longtemps que le Sous-traitant traite des données personnelles pour le Client. Il est régi par le droit et la juridiction indiqués dans le Contrat.",
+    "s12b2": "Le Sous-traitant peut mettre à jour le présent Accord pour refléter une évolution du service, un changement de sous-traitant au titre de la section 5 ou une évolution législative. Les mises à jour sont publiées sur cette page avec une nouvelle date et ne réduisent pas les protections en vigueur au moment de la signature du Client.",
+    "s13h": "Signature",
+    "s13b1": "Pour exécuter le présent Accord, complétez le bloc ci-dessous, signez-le et renvoyez-le à privacy@asynchrone.space. Nous le contresignons et vous en retournons un exemplaire, généralement sous cinq jours ouvrés.",
+    "s13b2": "Client\nRaison sociale : [raison sociale]\nAdresse du siège : [adresse]\nNom et fonction : [nom, fonction]\nSignature : ______________________________\nDate : [date]\n\nAsynchrone Space (Preskater)\nNom et fonction : [nom, fonction]\nSignature : ______________________________\nDate : [date]"
+  },
+  "subprocessors": {
+    "title": "Sous-traitants",
+    "description": "Toutes les sociétés qui traitent des données clients pour Asynchrone Space, avec leur objet, leur localisation et leur mécanisme de transfert.",
+    "updated": "29 octobre 2026",
+    "s1h": "Qu’est-ce qu’un sous-traitant",
+    "s1b1": "Un sous-traitant est une société à laquelle nous confions le traitement de données personnelles pour votre compte dans le cadre du service. Nous gardons la liste courte : chaque entrée ci-dessous correspond à un prestataire dont les systèmes peuvent voir des données clients pendant le fonctionnement du produit.",
+    "s1b2": "Cette liste fait partie de notre accord de sous-traitance avec les clients (asynchrone.space/legal/dpa). Elle s’applique à tous les espaces de travail ; les fonctionnalités optionnelles n’envoient des données qu’au prestataire qui les alimente.",
+    "s2h": "Sous-traitants actuels",
+    "s2t1": {
+      "columns": [
+        "Sous-traitant",
+        "Objet",
+        "Données",
+        "Localisation",
+        "Mécanisme de transfert"
+      ],
+      "rows": [
+        [
+          "OVHcloud",
+          "Hébergement de l’application et de la base PostgreSQL qui stocke les données de l’espace de travail et les fichiers importés",
+          "Toutes les données clients",
+          "France, Union européenne (Gravelines)",
+          "Aucun transfert hors de l’EEE"
+        ],
+        [
+          "Resend",
+          "E-mail transactionnel : vérification d’adresse, réinitialisation de mot de passe, notifications d’espace de travail",
+          "Nom, adresse e-mail, contenu des messages",
+          "États-Unis",
+          "Clauses contractuelles types ; cadre de protection des données UE–États-Unis lorsque le prestataire est certifié"
+        ],
+        [
+          "OpenAI",
+          "Réponses et appels d’outils de l’assistant IA, uniquement lorsqu’un espace de travail active l’assistant",
+          "Les invites et le contenu que vous incluez dans une requête",
+          "États-Unis",
+          "Clauses contractuelles types ; cadre de protection des données UE–États-Unis lorsque le prestataire est certifié"
+        ],
+        [
+          "GitHub",
+          "Synchronisation de dépôts et connexion OAuth facultative",
+          "Tickets et pull requests synchronisés, votre identité GitHub",
+          "États-Unis",
+          "Clauses contractuelles types ; cadre de protection des données UE–États-Unis lorsque le prestataire est certifié"
+        ],
+        [
+          "GitLab",
+          "Synchronisation de dépôts et connexion OAuth facultative",
+          "Tickets et merge requests synchronisés, votre identité GitLab",
+          "États-Unis",
+          "Clauses contractuelles types ; cadre de protection des données UE–États-Unis lorsque le prestataire est certifié"
+        ],
+        [
+          "Stripe",
+          "Abonnements, factures et taxes",
+          "Contact de facturation, adresse et identifiants fiscaux ; les données de carte vont directement à Stripe et ne passent jamais par nos serveurs",
+          "Irlande, Union européenne (Stripe Payments Europe) ; États-Unis pour certaines fonctions de groupe",
+          "Traitement dans l’UE/EEE ; clauses contractuelles types lorsqu’une entité américaine intervient"
+        ],
+        [
+          "Cloudflare",
+          "Captcha Turnstile à l’inscription et à la réinitialisation de mot de passe, uniquement lorsque le déploiement l’active",
+          "Adresse IP et signaux du navigateur",
+          "Réseau de périphérie mondial ; États-Unis",
+          "Clauses contractuelles types ; cadre de protection des données UE–États-Unis lorsque le prestataire est certifié"
+        ]
+      ]
+    },
+    "s2b1": "Dernière révision : 29 octobre 2026. OpenAI, GitHub, GitLab et Cloudflare ne reçoivent des données que lorsque la fonctionnalité correspondante est utilisée, et Resend et Stripe uniquement lorsque l’e-mail ou la facturation sont configurés.",
+    "s3h": "Modifications de cette liste",
+    "s3b1": "Nous informons les propriétaires d’espaces de travail par e-mail au moins 30 jours avant qu’un nouveau sous-traitant ne commence à traiter des données personnelles, et mettons cette page à jour au même moment. La date de révision ci-dessus indique l’actualité de la liste.",
+    "s3b2": "Si vous vous y opposez pendant ces 30 jours pour des motifs raisonnables liés à la protection des données et qu’aucune solution n’est trouvée, vous pouvez résilier la partie concernée du service et obtenir le remboursement au prorata des sommes prépayées.",
+    "s4h": "Garanties",
+    "s4b1": "Chaque prestataire est lié par un accord de sous-traitance dont les clauses ne sont pas moins protectrices que notre accord client : confidentialité, mesures de sécurité, notification des violations, suppression en fin de contrat et droits d’audit.",
+    "s4b2": "Lorsqu’un prestataire traite des données hors de l’EEE, nous nous appuyons sur les clauses contractuelles types (module deux) et, lorsque le prestataire est certifié, sur le cadre de protection des données UE–États-Unis. L’hébergement et la base PostgreSQL restent dans l’Union européenne.",
+    "s5h": "Contact",
+    "s5b1": "Questions sur un prestataire, ou demande des accords signés correspondant à cette liste : privacy@asynchrone.space."
   }
 }

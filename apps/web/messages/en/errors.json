@@ -107,5 +107,10 @@
   "billingManualContract": "This organization is billed through a manual contract.",
   "billingSubscriptionExists": "This organization already has a subscription. Manage it from the customer portal.",
   "billingNoPaymentAccount": "There is no payment method to manage yet.",
-  "exportInProgress": "An export is already being prepared."
+  "exportInProgress": "An export is already being prepared.",
+  "accountConfirmationMismatch": "The email address does not match your account.",
+  "accountPasswordInvalid": "The password is incorrect.",
+  "accountPlatformOperator": "Platform operator accounts cannot be deleted here. Ask another platform admin to remove your platform role first.",
+  "accountSoleOwner": "You are the only owner of {organizations}. Transfer ownership or delete the organization first.",
+  "accountImpersonated": "This account cannot be deleted from a session opened by the control tower."
 }

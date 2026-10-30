@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "type": "module",
   "private": true,
-  "license": "MIT",
+  "license": "Elastic-2.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,10 +15,13 @@
     "test:e2e": "playwright test",
     "generate": "npm run generate --workspace=@workspace/db",
     "verify:data-export": "tsx scripts/verify-data-export.ts",
+    "verify:account-deletion": "tsx scripts/verify-account-deletion.ts",
     "verify:large-object": "tsx scripts/verify-large-object.ts",
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts",
     "verify:organization-deletion": "tsx scripts/verify-organization-deletion.ts",
-    "verify:trial": "tsx scripts/verify-trial.ts"
+    "verify:trial": "tsx scripts/verify-trial.ts",
+    "verify:legal-copy": "tsx scripts/verify-legal-copy.ts",
+    "legal:pdfs": "tsx scripts/build-legal-pdfs.ts"
   },
   "dependencies": {
     "@better-auth/cimd": "^1.7.13",

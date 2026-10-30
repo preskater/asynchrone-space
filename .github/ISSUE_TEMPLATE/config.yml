@@ -6,6 +6,15 @@ contact_links:
   - name: Security vulnerability
     url: https://github.com/preskater/asynchrone/security/advisories/new
     about: Please report security issues privately — do not open a public issue.
+  - name: Security contact
+    url: mailto:security@asynchrone.space
+    about: Email the security team if you cannot use the private advisory form. Acknowledged within 3 business days.
+  - name: Privacy and data requests
+    url: mailto:privacy@asynchrone.space
+    about: Access, export, deletion, DPA and sub-processor requests.
+  - name: Legal and security pack
+    url: https://asynchrone.space/legal/dpa
+    about: DPA, sub-processors, security overview and retention schedule for procurement reviews.
   - name: Website
     url: https://asynchrone.space
     about: Learn more about Asynchrone Space.

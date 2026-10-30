@@ -107,5 +107,10 @@
   "billingManualContract": "Cette organisation est facturée via un contrat manuel.",
   "billingSubscriptionExists": "Cette organisation a déjà un abonnement. Gérez-le depuis le portail client.",
   "billingNoPaymentAccount": "Aucun moyen de paiement à gérer pour le moment.",
-  "exportInProgress": "Un export est déjà en cours de préparation."
+  "exportInProgress": "Un export est déjà en cours de préparation.",
+  "accountConfirmationMismatch": "L'adresse e-mail ne correspond pas à votre compte.",
+  "accountPasswordInvalid": "Le mot de passe est incorrect.",
+  "accountPlatformOperator": "Les comptes d'opérateur de la plateforme ne peuvent pas être supprimés ici. Demandez d'abord à un autre administrateur de retirer votre rôle plateforme.",
+  "accountSoleOwner": "Vous êtes le seul propriétaire de {organizations}. Transférez la propriété ou supprimez l'organisation d'abord.",
+  "accountImpersonated": "Impossible de supprimer ce compte depuis une session ouverte par la tour de contrôle."
 }

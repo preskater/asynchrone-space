@@ -61,7 +61,18 @@
     "support": "Assistance",
     "supportDescription": "Obtenez de l'aide d'un spécialiste produit.",
     "careers": "Carrières",
-    "careersDescription": "Des questions sur le fait de travailler chez Asynchrone Space."
+    "careersDescription": "Des questions sur le fait de travailler chez Asynchrone Space.",
+    "legalPackTitle": "Dossier juridique et sécurité",
+    "legalPackDescription": "Ce que les équipes achats et sécurité demandent en premier. Chaque document est un PDF que vous pouvez transmettre en interne, et chaque page est également publiée sur ce site.",
+    "legalPackDpa": "Accord de sous-traitance des données",
+    "legalPackDpaHint": "Le modèle que nous signons, avec notification des violations, sous-traitance ultérieure et droits d’audit.",
+    "legalPackSubprocessors": "Sous-traitants",
+    "legalPackSubprocessorsHint": "Objet, localisation et mécanisme de transfert pour chaque prestataire.",
+    "legalPackSecurity": "Synthèse sécurité",
+    "legalPackSecurityHint": "Ce qui est en place aujourd’hui, et ce qui n’est explicitement pas encore disponible.",
+    "legalPackPrivacy": "Politique de confidentialité et durées de conservation",
+    "legalPackPrivacyHint": "Combien de temps chaque catégorie de données est conservée, en regard du comportement réel du produit.",
+    "legalPackContact": "Envoyez un accord signé ou une demande de protection des données à privacy@asynchrone.space. Questions de sécurité et signalements de vulnérabilités : security@asynchrone.space."
   },
   "careers": {
     "metadataTitle": "Carrières",
@@ -108,7 +119,8 @@
   "legal": {
     "lastUpdated": "Dernière mise à jour le {date}",
     "notFoundTitle": "Document introuvable",
-    "notFoundDescription": "Ce document juridique n'existe pas ou a peut-être été déplacé."
+    "notFoundDescription": "Ce document juridique n'existe pas ou a peut-être été déplacé.",
+    "downloadPdf": "Télécharger le PDF"
   },
   "notFound": {
     "title": "Page introuvable",

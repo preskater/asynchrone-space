@@ -281,7 +281,7 @@ has passed, including their file large objects
 ([ADR 0024](../adr/0024-delete-organizations-after-a-grace-period.md));
 data-exports builds owner-requested organization exports every 15 minutes and
 unlinks archives older than 7 days
-([ADR 0025](../adr/0025-export-organization-data-asynchronously.md)). They
+([ADR 0026](../adr/0026-export-organization-data-asynchronously.md)). They
 call the in-cluster Service and send the same `CRON_SECRET` bearer token read
 from `asynchrone-space-web-secrets`; the corresponding route rejects a missing
 or incorrect token when `CRON_SECRET` is set. `concurrencyPolicy: Forbid`
