@@ -1,5 +1,7 @@
 import type { RequestContext } from "@/lib/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit } from "@/lib/audit/record"
 import { requireEntitlement } from "@/lib/organization/entitlements"
 import { prisma } from "@/lib/prisma"
 
@@ -63,23 +65,24 @@ export async function setTwoFactorRequired(
   await prisma.$transaction(async (tx) => {
     const before = await tx.organization.findUniqueOrThrow({
       where: { id: ctx.organizationId },
-      select: { requireTwoFactor: true },
+      select: { name: true, requireTwoFactor: true },
     })
     if (before.requireTwoFactor === required) return
     await tx.organization.update({
       where: { id: ctx.organizationId },
       data: { requireTwoFactor: required },
     })
-    await tx.auditLog.create({
-      data: {
-        organizationId: ctx.organizationId,
-        actorId: ctx.userId,
-        action: "organization.two_factor_policy.update",
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationTwoFactorPolicyUpdated,
         entityType: "organization",
         entityId: ctx.organizationId,
+        entityLabel: before.name,
         before: { requireTwoFactor: before.requireTwoFactor },
         after: { requireTwoFactor: required },
       },
-    })
+      tx
+    )
   })
 }

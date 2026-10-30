@@ -53,7 +53,10 @@ export const AUDIT_ACTIONS = {
   organizationInvitationRejected: "organization.invitation.rejected",
   organizationPlanChanged: "organization.plan.changed",
   organizationAuditRetentionUpdated: "organization.audit_retention.updated",
+  organizationTwoFactorPolicyUpdated: "organization.two_factor_policy.update",
   organizationExportRequested: "organization.export.request",
+  memberTwoFactorEnabled: "member.two_factor_enabled",
+  memberTwoFactorDisabled: "member.two_factor_disabled",
 
   // Written by earlier releases; listed so the filter and labels still know
   // them.
@@ -117,6 +120,7 @@ export const SYSTEM_ACTOR_ID = "system"
 export const AUDIT_ENTITY_TYPES = [
   "organization",
   "member",
+  "user",
   "invitation",
   "project",
   "task",

@@ -1,3 +1,5 @@
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordAuditMany } from "@/lib/audit/record"
 import { prisma } from "@/lib/prisma"
 
 /**
@@ -6,8 +8,10 @@ import { prisma } from "@/lib/prisma"
  * (profile, sign-in challenge) is not a 2FA change.
  */
 export function twoFactorAuditAction(path: string | undefined) {
-  if (path === "/two-factor/verify-totp") return "member.two_factor_enabled"
-  if (path === "/two-factor/disable") return "member.two_factor_disabled"
+  if (path === "/two-factor/verify-totp")
+    return AUDIT_ACTIONS.memberTwoFactorEnabled
+  if (path === "/two-factor/disable")
+    return AUDIT_ACTIONS.memberTwoFactorDisabled
   return null
 }
 
@@ -18,18 +22,32 @@ export async function recordTwoFactorChange(
 ) {
   const action = twoFactorAuditAction(path)
   if (!action) return
-  const memberships = await prisma.member.findMany({
-    where: { userId },
-    select: { organizationId: true },
-  })
+  const enabled = action === AUDIT_ACTIONS.memberTwoFactorEnabled
+  const [memberships, user] = await Promise.all([
+    prisma.member.findMany({
+      where: { userId },
+      select: { organizationId: true },
+    }),
+    prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
+    }),
+  ])
   if (memberships.length === 0) return
-  await prisma.auditLog.createMany({
-    data: memberships.map(({ organizationId }) => ({
+  // The actor is the member themselves; identity is snapshotted so the row
+  // stays readable once the account is gone.
+  await recordAuditMany(
+    memberships.map(({ organizationId }) => ({
       organizationId,
       actorId: userId,
+      actorName: user?.name ?? null,
+      actorEmail: user?.email ?? null,
       action,
       entityType: "user",
       entityId: userId,
-    })),
-  })
+      entityLabel: user?.email ?? null,
+      before: { twoFactorEnabled: !enabled },
+      after: { twoFactorEnabled: enabled },
+    }))
+  )
 }
