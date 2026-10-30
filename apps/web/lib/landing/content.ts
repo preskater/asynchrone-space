@@ -306,6 +306,8 @@ export const footerColumns: FooterColumn[] = [
       { key: "terms", href: "/legal/terms" },
       { key: "security", href: "/legal/security" },
       { key: "cookies", href: "/legal/cookies" },
+      { key: "dpa", href: "/legal/dpa" },
+      { key: "subprocessors", href: "/legal/subprocessors" },
     ],
   },
 ]

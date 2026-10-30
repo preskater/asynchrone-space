@@ -52,7 +52,9 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "security": "Security",
-    "cookies": "Cookies"
+    "cookies": "Cookies",
+    "dpa": "DPA",
+    "subprocessors": "Sub-processors"
   },
   "hero": {
     "badge": "New: AI-powered workflows",
@@ -76,7 +78,7 @@
     "onePlace": "Everything in one place",
     "onePlaceDescription": "Projects, messaging, calendars and files share the same people, context and permissions.",
     "security": "Enterprise-grade security",
-    "securityDescription": "Organizations, roles and granular permissions built in — with SSO-ready authentication.",
+    "securityDescription": "Organizations, roles and granular permissions built in, with per-file access control.",
     "scheduling": "Scheduling that just works",
     "schedulingDescription": "See team availability, schedule meetings and sync events across every calendar view.",
     "filePermissions": "Files with real permissions",

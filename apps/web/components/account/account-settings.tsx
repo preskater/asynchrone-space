@@ -28,6 +28,7 @@ import {
   removeUserRepositoryTokenAction,
   setUserRepositoryTokenAction,
 } from "@/actions/integrations"
+import { DeleteAccountCard } from "@/components/account/delete-account-card"
 import { TwoFactorCard } from "@/components/account/two-factor-card"
 import { UserAppearanceCard } from "@/components/appearance/user-appearance-card"
 import { authClient } from "@/lib/auth-client"
@@ -526,6 +527,7 @@ export function AccountSettings({
         {socialProviders.length > 0 ? (
           <ConnectedAccountsCard providers={socialProviders} />
         ) : null}
+        <DeleteAccountCard />
       </div>
     </div>
   )

@@ -288,3 +288,16 @@ export function sendOrganizationDeletedEmail({
     }),
   })
 }
+
+export function sendAccountDeletedEmail({ to }: { to: string }) {
+  sendEmail({
+    to,
+    subject: "Your account has been deleted",
+    html: layout({
+      heading: "Your account has been deleted",
+      body: "Your Asynchrone Space account has been deleted as you requested. You have been removed from every organization and can no longer sign in. Content you created in an organization stays there, shown as written by a deleted user.",
+      cta: "Open Asynchrone Space",
+      url: publicUrl(new URL("/", process.env.BETTER_AUTH_URL).toString()),
+    }),
+  })
+}

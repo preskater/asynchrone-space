@@ -120,7 +120,18 @@ changes land through pull requests once CI passes.
 Please **do not** open a public issue for security vulnerabilities. See
 [SECURITY.md](./SECURITY.md) for how to report them privately.
 
-## License
+## License and contributor agreement
 
-By contributing, you agree that your contributions are licensed under the
-[MIT License](./LICENSE).
+Asynchrone Space is source-available under the [Elastic License 2.0](./LICENSE),
+effective 2026-10-30 (see
+[ADR 0025](./docs/adr/0025-license-under-elastic-license-2.0.md)). It is not an
+open-source project: the licence forbids offering the software to third parties
+as a hosted or managed service.
+
+We ask every contributor to sign the [Contributor License Agreement](./CLA.md)
+before a pull request can be merged. The CLA keeps the project's licensing
+flexible — it lets the maintainers keep distributing your contribution under the
+Elastic License 2.0 and, if the commercial model changes, under different terms —
+without having to track down every past contributor. Sign it once by commenting
+the sign-off line on your first pull request; the maintainers record it and it
+then covers all your later contributions.

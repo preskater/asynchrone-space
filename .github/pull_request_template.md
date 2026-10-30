@@ -22,6 +22,7 @@
 ## Checklist
 
 - [ ] I have read the [contributing guide](../CONTRIBUTING.md).
+- [ ] I have signed the [CLA](../CLA.md) (first contribution only).
 - [ ] `npm run lint` passes.
 - [ ] `npm run typecheck` passes.
 - [ ] `npm run build` passes.
