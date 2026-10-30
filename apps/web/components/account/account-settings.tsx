@@ -13,7 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { Checkbox } from "@workspace/ui/components/checkbox"
 import {
   Field,
   FieldDescription,
@@ -29,6 +28,7 @@ import {
   setUserRepositoryTokenAction,
 } from "@/actions/integrations"
 import { DeleteAccountCard } from "@/components/account/delete-account-card"
+import { SessionsCard } from "@/components/account/sessions-card"
 import { UserAppearanceCard } from "@/components/appearance/user-appearance-card"
 import { authClient } from "@/lib/auth-client"
 import { unwrapActionResult } from "@/lib/core/action"
@@ -124,7 +124,6 @@ function SecurityCard() {
   const [currentPassword, setCurrentPassword] = React.useState("")
   const [newPassword, setNewPassword] = React.useState("")
   const [confirmPassword, setConfirmPassword] = React.useState("")
-  const [revokeOtherSessions, setRevokeOtherSessions] = React.useState(false)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
@@ -148,7 +147,8 @@ function SecurityCard() {
     const { error } = await authClient.changePassword({
       currentPassword,
       newPassword,
-      revokeOtherSessions,
+      // A changed password must sign out every other device (issue #94).
+      revokeOtherSessions: true,
     })
     setSaving(false)
     if (error) {
@@ -159,7 +159,6 @@ function SecurityCard() {
     setCurrentPassword("")
     setNewPassword("")
     setConfirmPassword("")
-    setRevokeOtherSessions(false)
   }
 
   return (
@@ -206,18 +205,6 @@ function SecurityCard() {
                 value={confirmPassword}
                 onChange={(event) => setConfirmPassword(event.target.value)}
               />
-            </Field>
-            <Field orientation="horizontal">
-              <Checkbox
-                id="account-revoke-sessions"
-                checked={revokeOtherSessions}
-                onCheckedChange={(checked) =>
-                  setRevokeOtherSessions(checked === true)
-                }
-              />
-              <FieldLabel htmlFor="account-revoke-sessions">
-                {t("revokeOtherSessions")}
-              </FieldLabel>
             </Field>
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
             <Field orientation="horizontal">
@@ -521,6 +508,7 @@ export function AccountSettings({
         <ProfileCard />
         <UserAppearanceCard />
         <SecurityCard />
+        <SessionsCard />
         <RepositoryTokensCard />
         {socialProviders.length > 0 ? (
           <ConnectedAccountsCard providers={socialProviders} />

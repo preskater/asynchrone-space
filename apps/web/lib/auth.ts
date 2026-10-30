@@ -8,6 +8,7 @@ import { nextCookies } from "better-auth/next-js"
 import { admin, captcha, jwt, organization } from "better-auth/plugins"
 import { adminAc, defaultAc, userAc } from "better-auth/plugins/admin/access"
 
+import { recordSessionRevocation } from "./account/session-audit"
 import { rateLimit } from "./core/rate-limit"
 import { parseTrustedIpHeaders } from "./core/trusted-ip"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
@@ -179,6 +180,11 @@ export const auth = betterAuth({
         body.application_type = "native"
       }
     }),
+    after: createAuthMiddleware(async (ctx) => {
+      const userId = ctx.context.session?.user.id
+      if (!userId || ctx.context.returned instanceof APIError) return
+      await recordSessionRevocation(userId, ctx.path)
+    }),
   },
   plugins: [
     organization({
@@ -209,6 +215,12 @@ export const auth = betterAuth({
         // cap must not strand invitations that were legitimately issued.
         beforeAddMember: async ({ member }) => {
           await assertSeatAvailable(member.organizationId, member.role, false)
+        },
+        // A new role must not ride on sessions opened under the old one, so
+        // the member signs in again everywhere.
+        afterUpdateMemberRole: async ({ member, previousRole }) => {
+          if (member.role === previousRole) return
+          await prisma.session.deleteMany({ where: { userId: member.userId } })
         },
         afterCreateOrganization: async ({ organization, user }) => {
           await prisma.calendar.create({
