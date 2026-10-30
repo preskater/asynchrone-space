@@ -119,11 +119,11 @@ boot (`lib/env.ts`).
 7. Open **Manage subscription** to confirm the Customer Portal loads (payment
    methods, switches, invoice downloads).
 
-8. Check the invoice table on the Billing tab. Stripe _generates_ invoices; Presk
+8. Check the invoice table on the Billing tab. Stripe _generates_ invoices; Asynchrone
    only mirrors them. `invoice.paid` writes the row, and if that delivery was
    missed the settings page reconciles once from the provider (the local
    `invoice` table is empty for a customer that has invoices), so the list is
-   correct even before the webhook lands. Confirm no card data reached Presk:
+   correct even before the webhook lands. Confirm no card data reached Asynchrone:
    `invoice` stores only ids, amounts, currency and hosted links;
    `billingEvent` stores the event id and type.
 
