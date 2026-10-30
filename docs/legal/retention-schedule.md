@@ -19,6 +19,7 @@ the copy or the code changes, a reviewer has to confirm the two still agree.
 | Sign-in and API rate-limit counters | Overwritten per window, pruned within the hour | `rateLimit` rows in `packages/db/prisma/schema.prisma`; Better Auth prunes rows older than its longest window (`apps/web/lib/core/rate-limit.ts`) |
 | Trial claim record | Retained after deletion, disclosed | `TrialClaim` model — no relation to `Organization`, so the delete cascades do not reach it |
 | Platform audit events | Retained after deletion, disclosed | `PlatformAuditEvent` model — `organizationId` is a plain column, not a foreign key |
+| Workspace audit log | Pruned after the plan's window while the workspace exists (30 days on Starter, 12 months on Team, configurable on Enterprise) and deleted with the workspace | `AUDIT_RETENTION_DAYS` / `resolveAuditRetention` in `apps/web/lib/audit/retention.ts`; `pruneAuditLogs` run by `/api/cron/audit-retention`, scheduled daily at 03:45 in `charts/asynchrone-space-web/values.yaml`. Readable and exportable only where the `auditLog` entitlement is granted (Enterprise) |
 
 ## Records that outlive a workspace
 

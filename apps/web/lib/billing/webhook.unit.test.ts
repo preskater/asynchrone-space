@@ -38,8 +38,24 @@ class FakeRepository implements BillingRepositoryPort {
     storageQuotaBytes: null as bigint | null,
   }
 
+  planChanges: {
+    organizationId: string
+    beforePlan: string | null
+    plan: string
+    status: string
+  }[] = []
+
   async getOrganization(organizationId: string) {
     return organizationId === ORGANIZATION_ID ? this.organization : null
+  }
+
+  async recordPlanChange(input: {
+    organizationId: string
+    beforePlan: string | null
+    plan: string
+    status: string
+  }) {
+    this.planChanges.push(input)
   }
 
   async getOrganizationIdByCustomer(customerId: string) {
@@ -265,9 +281,20 @@ describe("billing webhook", () => {
       billingInterval: "month",
     })
 
+    // The customer-facing audit trail explains an entitlement change nobody in
+    // the workspace asked for.
+    expect(repo.planChanges).toEqual([
+      expect.objectContaining({
+        organizationId: ORGANIZATION_ID,
+        plan: "team",
+        status: "trialing",
+      }),
+    ])
+
     const snapshot = { ...repo.subscription }
     await expect(service.handleEvent(event)).resolves.toBe("duplicate")
     expect(repo.subscription).toEqual(snapshot)
+    expect(repo.planChanges).toHaveLength(1)
     expect(provider.retrieveSubscription).toHaveBeenCalledTimes(1)
   })
 

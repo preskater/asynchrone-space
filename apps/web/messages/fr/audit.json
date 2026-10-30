@@ -1,0 +1,241 @@
+{
+  "title": "Journal d'audit",
+  "tab": "Journal d'audit",
+  "description": "Toutes les modifications sensibles de {name} : qui, sur quoi, et depuis où.",
+  "retentionTitle": "Conservation",
+  "retentionSummary": "Votre offre conserve {days} jours d'historique.",
+  "retentionEditable": "Les espaces Enterprise choisissent leur durée, entre {min} et {max} jours.",
+  "retentionFixed": "Passez à Enterprise pour conserver un historique plus long.",
+  "retentionDays": "{count, plural, one {# jour} other {# jours}}",
+  "retentionInputLabel": "Conservation (jours)",
+  "retentionSave": "Enregistrer",
+  "retentionSaving": "Enregistrement…",
+  "retentionSaved": "Durée de conservation mise à jour.",
+  "retentionReset": "Revenir à la valeur de l'offre",
+  "total": "{count, plural, =0 {Aucun événement} one {# événement} other {# événements}}",
+  "totalFiltered": "{count, plural, =0 {Aucun événement correspondant} one {# événement correspondant} other {# événements correspondants}}",
+  "emptyTitle": "Aucun événement pour l'instant",
+  "emptyDescription": "Les modifications de projets, tâches, fichiers, membres et facturation apparaîtront ici.",
+  "emptyFilteredTitle": "Aucun événement ne correspond à ces filtres",
+  "emptyFilteredDescription": "Élargissez la période ou retirez un filtre pour en voir davantage.",
+  "loadMore": "Charger la suite",
+  "loading": "Chargement…",
+  "clearFilters": "Réinitialiser les filtres",
+  "filters": {
+    "actor": "Auteur",
+    "action": "Action",
+    "entityType": "Type de cible",
+    "from": "Du",
+    "to": "Au",
+    "all": "Tous",
+    "anyActor": "Tout le monde",
+    "anyAction": "Toutes les actions",
+    "anyEntity": "Toutes les cibles"
+  },
+  "columns": {
+    "when": "Date",
+    "actor": "Auteur",
+    "action": "Action",
+    "target": "Cible",
+    "changes": "Modifications"
+  },
+  "system": "Système",
+  "unknownActor": "Membre supprimé",
+  "noChanges": "—",
+  "moreChanges": "+{count} autres",
+  "export": {
+    "csv": "Exporter en CSV",
+    "json": "Exporter en JSON",
+    "exporting": "Export en cours…",
+    "ready": "Export prêt.",
+    "truncated": "L'export est limité à {limit} événements. Réduisez la période pour exporter le reste.",
+    "empty": "Rien à exporter pour ce filtre."
+  },
+  "userAgent": "{userAgent}",
+  "actions": {
+    "project": {
+      "created": "Projet créé",
+      "updated": "Projet modifié",
+      "deleted": "Projet supprimé",
+      "client_settings": {
+        "updated": "Paramètres du portail client modifiés"
+      },
+      "member": {
+        "added": "Membre ajouté au projet",
+        "removed": "Membre retiré du projet",
+        "role_changed": "Rôle d'un membre du projet modifié"
+      },
+      "label": {
+        "added": "Étiquette créée",
+        "removed": "Étiquette supprimée"
+      },
+      "template": {
+        "created": "Modèle de tâche créé",
+        "updated": "Modèle de tâche modifié",
+        "deleted": "Modèle de tâche supprimé"
+      },
+      "update": "Projet RH modifié"
+    },
+    "task": {
+      "created": "Tâche créée",
+      "updated": "Tâche modifiée",
+      "moved": "Tâche déplacée",
+      "deleted": "Tâche supprimée",
+      "subtask": {
+        "toggled": "Sous-tâche cochée ou rouverte"
+      },
+      "comment": {
+        "added": "Commentaire ajouté"
+      }
+    },
+    "file": {
+      "created": "Fichier importé",
+      "folder": {
+        "created": "Dossier créé"
+      },
+      "renamed": "Fichier renommé",
+      "moved": "Fichier déplacé",
+      "duplicated": "Fichier dupliqué",
+      "trashed": "Fichier mis à la corbeille",
+      "restored": "Fichier restauré",
+      "deleted": "Fichier supprimé",
+      "access": {
+        "updated": "Accès au fichier modifié"
+      },
+      "share": {
+        "added": "Partage ajouté",
+        "updated": "Partage modifié",
+        "removed": "Partage retiré"
+      }
+    },
+    "organization": {
+      "updated": "Espace de travail modifié",
+      "member": {
+        "added": "Membre ajouté",
+        "removed": "Membre retiré",
+        "role_changed": "Rôle modifié",
+        "left": "Un membre a quitté l'espace"
+      },
+      "invitation": {
+        "created": "Invitation envoyée",
+        "cancelled": "Invitation annulée",
+        "accepted": "Invitation acceptée",
+        "rejected": "Invitation refusée"
+      },
+      "plan": {
+        "changed": "Offre modifiée"
+      },
+      "audit_retention": {
+        "updated": "Durée de conservation modifiée"
+      },
+      "export": {
+        "request": "Export de l’espace de travail demandé"
+      },
+      "trial": {
+        "start": "Essai démarré",
+        "end": "Essai terminé"
+      },
+      "deletion": {
+        "request": "Suppression demandée",
+        "cancel": "Suppression annulée"
+      },
+      "deleted": "Espace de travail supprimé"
+    },
+    "client": {
+      "created": "Client créé",
+      "updated": "Client modifié",
+      "archived": "Client archivé",
+      "restored": "Client restauré",
+      "import": "Clients importés",
+      "create": "Client RH créé",
+      "update": "Client RH modifié",
+      "project": {
+        "linked": "Projet lié au client",
+        "unlinked": "Projet dissocié du client"
+      },
+      "document": {
+        "linked": "Document partagé avec le client"
+      }
+    },
+    "contact": {
+      "created": "Contact créé",
+      "updated": "Contact modifié",
+      "archived": "Contact archivé",
+      "restored": "Contact restauré",
+      "import": "Contacts importés"
+    },
+    "deal": {
+      "created": "Affaire créée",
+      "stage_changed": "Étape de l'affaire modifiée",
+      "reopened": "Affaire réouverte",
+      "archived": "Affaire archivée",
+      "restored": "Affaire restaurée"
+    },
+    "pipeline": {
+      "created": "Pipeline créé",
+      "updated": "Pipeline modifié",
+      "deleted": "Pipeline supprimé",
+      "default": "Pipeline par défaut modifié"
+    },
+    "stage": {
+      "created": "Étape créée",
+      "updated": "Étape modifiée",
+      "deleted": "Étape supprimée"
+    },
+    "crmField": {
+      "created": "Champ personnalisé créé",
+      "updated": "Champ personnalisé modifié",
+      "deleted": "Champ personnalisé supprimé"
+    },
+    "activity": {
+      "create": "Activité interne créée",
+      "update": "Activité interne modifiée"
+    },
+    "settings": {
+      "update": "Paramètres RH modifiés"
+    },
+    "salary": {
+      "update": "Salaire modifié"
+    },
+    "profile": {
+      "update": "Profil RH modifié"
+    },
+    "balance": {
+      "set": "Solde de congés défini",
+      "adjust": "Solde de congés ajusté"
+    },
+    "attendance": {
+      "clear": "Pointage effacé"
+    },
+    "leave": {
+      "create": "Demande de congé créée",
+      "cancel": "Demande de congé annulée"
+    }
+  },
+  "entities": {
+    "organization": "Espace de travail",
+    "member": "Membre",
+    "invitation": "Invitation",
+    "project": "Projet",
+    "task": "Tâche",
+    "file": "Fichier",
+    "label": "Étiquette",
+    "taskTemplate": "Modèle de tâche",
+    "client": "Client",
+    "contact": "Contact",
+    "deal": "Affaire",
+    "pipeline": "Pipeline",
+    "stage": "Étape",
+    "crmField": "Champ personnalisé",
+    "activity": "Activité interne",
+    "internalActivity": "Activité interne",
+    "hrSettings": "Paramètres RH",
+    "hrProfile": "Profil RH",
+    "salaryProfile": "Salaire",
+    "leaveRequest": "Demande de congé",
+    "leaveBalance": "Solde de congés",
+    "leaveAdjustment": "Ajustement de congés",
+    "attendance": "Pointage",
+    "dataExport": "Export de données"
+  }
+}

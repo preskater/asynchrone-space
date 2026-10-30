@@ -2,7 +2,7 @@
   "privacy": {
     "title": "Politique de confidentialité",
     "description": "Comment Asynchrone Space collecte, utilise et protège vos données.",
-    "updated": "30 octobre 2026",
+    "updated": "31 octobre 2026",
     "s1h": "Informations que nous collectons",
     "s1b1": "Nous collectons les informations que vous fournissez lorsque vous créez un compte, notamment votre nom, votre adresse e-mail et les détails de votre organisation.",
     "s1b2": "Nous enregistrons également les données techniques nécessaires à l’exploitation et à la sécurisation du service : adresses IP, informations sur le navigateur et horodatage de chaque connexion, ainsi qu’une piste d’audit des modifications effectuées dans un espace de travail.",
@@ -43,6 +43,11 @@
           "Événements d’audit de la plateforme — actions des opérateurs sur votre espace de travail",
           "Conservé après la suppression de l’espace de travail",
           "Conservé comme trace des accès du personnel de la plateforme, y compris la suppression elle-même."
+        ],
+        [
+          "Journal d’audit de l’espace de travail — qui a modifié quoi, et depuis où",
+          "Purgé après 30 jours en Starter, 12 mois en Team, ou la durée configurée par un espace Enterprise ; supprimé avec l’espace de travail",
+          "Les espaces Enterprise peuvent le consulter et l’exporter depuis les paramètres de l’espace de travail tant qu’il existe. Rien ne subsiste après la suppression de l’espace."
         ]
       ]
     },
@@ -75,13 +80,14 @@
   "security": {
     "title": "Sécurité",
     "description": "Comment Asynchrone Space protège votre espace de travail et vos données, et ce qui n’est pas encore disponible.",
-    "updated": "29 octobre 2026",
+    "updated": "31 octobre 2026",
     "s1h": "Chiffrement",
     "s1b1": "Toutes les communications entre votre navigateur et Asynchrone Space utilisent TLS. Les jetons de dépôt et d’intégration sont chiffrés en AES-256-GCM avant stockage, et les mots de passe sont hachés avec scrypt ; nous ne les stockons jamais en clair.",
     "s1b2": "Les données au repos se trouvent sur des volumes de stockage chiffrés dans notre environnement d’hébergement. Au-delà des jetons d’intégration mentionnés ci-dessus, nous ne chiffrons pas les colonnes individuelles de la base de données.",
     "s2h": "Contrôle d’accès",
     "s2b1": "Les organisations disposent d’un contrôle d’accès basé sur les rôles (propriétaire, administrateur, membre et lecteur), et l’accès aux fichiers peut être restreint par personne et par fichier.",
     "s2b2": "Notre personnel n’accède aux espaces de travail des clients que par une application interne distincte, protégée par mot de passe et par un code TOTP. Chaque action y est consignée dans une piste d’audit de la plateforme, et l’usurpation d’identité pour l’assistance est un jeton à usage unique valable une minute qui ouvre une session d’une heure — jamais un cookie de session partagé. L’espace de travail affiche une bannière d’usurpation et peut mettre fin à la session à tout moment.",
+    "s2b3": "Les espaces Enterprise incluent aussi un journal d’audit accessible aux clients, qui recense les changements de membres, de rôles, d’invitations et de paramètres, avec export CSV et une durée de conservation configurable. Les propriétaires et administrateurs le consultent depuis les paramètres de l’espace de travail.",
     "s3h": "Localisation des données et sauvegardes",
     "s3b1": "L’application et la base de données PostgreSQL qui contient votre espace de travail, fichiers importés compris, fonctionnent sur l’infrastructure OVHcloud à Gravelines, en France, au sein de l’Union européenne. Aucune donnée client n’est stockée hors de l’UE, sauf lorsqu’un sous-traitant listé sur asynchrone.space/legal/subprocessors la reçoit.",
     "s3b2": "Les sauvegardes et la restauration à un instant donné sont configurées par l’exploitant de chaque déploiement, au niveau de la base de données ; elles ne sont pas une fonctionnalité en libre-service. Si votre contrat exige des objectifs documentés de sauvegarde et de restauration, confirmez la procédure en vigueur auprès de security@asynchrone.space avant de signer.",
@@ -89,7 +95,6 @@
     "s4b1": "Nous préférons indiquer ce qui manque plutôt que de laisser un questionnaire le découvrir. Les éléments suivants ne sont pas encore livrés :",
     "s4l1": [
       "L’authentification unique SAML et le provisionnement SCIM.",
-      "Un export de journal d’audit à l’échelle du produit pour les clients — les modules RH et CRM tiennent aujourd’hui leurs propres pistes d’audit.",
       "Les certifications tierces telles que SOC 2 ou ISO 27001.",
       "La restauration d’une sauvegarde en libre-service."
     ],

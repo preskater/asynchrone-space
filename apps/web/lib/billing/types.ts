@@ -216,6 +216,16 @@ export interface BillingRepositoryPort {
     }[]
   >
   sumUsedBytes(organizationId: string): Promise<number>
+  /**
+   * Customer-facing audit row for a plan change. Lives on the repository so the
+   * billing service never reaches for a database client of its own.
+   */
+  recordPlanChange(input: {
+    organizationId: string
+    beforePlan: string | null
+    plan: string
+    status: string
+  }): Promise<void>
   listOwnerRecipients(
     organizationId: string
   ): Promise<{ userId: string; email: string; name: string }[]>

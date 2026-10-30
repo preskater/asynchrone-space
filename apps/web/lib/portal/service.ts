@@ -1,6 +1,8 @@
 import { headers } from "next/headers"
 import type { Readable } from "node:stream"
 
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit } from "@/lib/audit/record"
 import { auth } from "@/lib/auth"
 import type { RequestContext } from "@/lib/core/context"
 import {
@@ -490,15 +492,12 @@ export class PortalService {
     })
 
     // Surface the upload on the company timeline like an internal link would.
-    await prisma.auditLog.create({
-      data: {
-        organizationId: ctx.organizationId,
-        actorId: ctx.userId,
-        action: "client.document.linked",
-        entityType: "client",
-        entityId: ctx.clientId,
-        after: { fileName: input.name },
-      },
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.clientDocumentLinked,
+      entityType: "client",
+      entityId: ctx.clientId,
+      entityLabel: ctx.clientName,
+      after: { fileName: input.name },
     })
 
     await this.notifyTeamOfClientDocument(ctx, input.name)

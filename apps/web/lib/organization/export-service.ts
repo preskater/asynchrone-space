@@ -3,6 +3,8 @@ import { PassThrough } from "node:stream"
 
 import { Zip, ZipDeflate, ZipPassThrough } from "fflate"
 
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit } from "@/lib/audit/record"
 import type { RequestContext } from "@/lib/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
 import { ConflictError } from "@/lib/core/errors"
@@ -149,15 +151,15 @@ export async function requestExport(ctx: RequestContext) {
       data: { organizationId: ctx.organizationId, requestedById: ctx.userId },
       select: { id: true },
     })
-    await tx.auditLog.create({
-      data: {
-        organizationId: ctx.organizationId,
-        actorId: ctx.userId,
-        action: "organization.export.request",
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationExportRequested,
         entityType: "dataExport",
         entityId: created.id,
       },
-    })
+      tx
+    )
     return created
   })
 }

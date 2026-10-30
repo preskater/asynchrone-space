@@ -8,6 +8,8 @@ import {
   trialStage,
 } from "@workspace/db/trial"
 
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordSystemAudit, recordUserAudit } from "@/lib/audit/record"
 import type { RequestContext } from "@/lib/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
 import { ConflictError, NotFoundError } from "@/lib/core/errors"
@@ -112,16 +114,16 @@ export async function startTeamTrial(ctx: RequestContext, now = new Date()) {
           organizationId: org.id,
         },
       })
-      await tx.auditLog.create({
-        data: {
-          organizationId: org.id,
-          actorId: ctx.userId,
-          action: "organization.trial.start",
+      await recordUserAudit(
+        { ...ctx, organizationId: org.id },
+        {
+          action: AUDIT_ACTIONS.organizationTrialStart,
           entityType: "organization",
           entityId: org.id,
           after: { trialEndsAt: trialEndsAt.toISOString() },
         },
-      })
+        tx
+      )
     })
   } catch (error) {
     if ((error as { code?: string }).code === "P2002") {
@@ -205,16 +207,13 @@ export async function processTrials(now = new Date()) {
       })
       if (count === 0) continue
       expired++
-      await prisma.auditLog.create({
-        data: {
-          organizationId: org.id,
-          actorId: "system",
-          action: "organization.trial.end",
-          entityType: "organization",
-          entityId: org.id,
-          before: { plan: "team" },
-          after: { plan: paid ? parsePlan(org.metadata) : "free" },
-        },
+      await recordSystemAudit({
+        organizationId: org.id,
+        action: AUDIT_ACTIONS.organizationTrialEnd,
+        entityType: "organization",
+        entityId: org.id,
+        before: { plan: "team" },
+        after: { plan: paid ? parsePlan(org.metadata) : "free" },
       })
       if (!paid) await notifyAdmins(org, "trial.ended", 0)
     } else {

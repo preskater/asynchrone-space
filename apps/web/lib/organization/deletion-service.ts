@@ -1,3 +1,5 @@
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit } from "@/lib/audit/record"
 import type { RequestContext } from "@/lib/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
 import { ConflictError, ValidationError } from "@/lib/core/errors"
@@ -51,16 +53,16 @@ export async function requestOrganizationDeletion(
     if (count === 0) {
       throw new ConflictError("Deletion is already scheduled.")
     }
-    await tx.auditLog.create({
-      data: {
-        organizationId: ctx.organizationId,
-        actorId: ctx.userId,
-        action: "organization.deletion.request",
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationDeletionRequest,
         entityType: "organization",
         entityId: ctx.organizationId,
         after: { deletionScheduledAt: deletionScheduledAt.toISOString() },
       },
-    })
+      tx
+    )
   })
 
   return { deletionScheduledAt }
@@ -77,15 +79,15 @@ export async function cancelOrganizationDeletion(ctx: RequestContext) {
     if (count === 0) {
       throw new ConflictError("No deletion is scheduled.")
     }
-    await tx.auditLog.create({
-      data: {
-        organizationId: ctx.organizationId,
-        actorId: ctx.userId,
-        action: "organization.deletion.cancel",
+    await recordUserAudit(
+      ctx,
+      {
+        action: AUDIT_ACTIONS.organizationDeletionCancel,
         entityType: "organization",
         entityId: ctx.organizationId,
       },
-    })
+      tx
+    )
   })
 }
 

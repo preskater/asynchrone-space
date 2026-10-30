@@ -50,3 +50,4 @@ collection.
 | [0024](0024-delete-organizations-after-a-grace-period.md) | accepted | Delete organizations after a 30-day grace period                          |
 | [0025](0025-license-under-elastic-license-2.0.md)         | accepted | License the project under the Elastic License 2.0                         |
 | [0026](0026-export-organization-data-asynchronously.md)    | accepted | Export organization data asynchronously                                   |
+| [0027](0027-customer-facing-audit-log.md)                  | accepted | Expose a customer-facing audit log with filters, export and retention     |

@@ -154,6 +154,7 @@ lists. The defaults already target `asynchrone.space` and
 | CronJob | `asynchrone-space-web-repository-sync` | `0 * * * *` |
 | CronJob | `asynchrone-space-web-trial-expiry` | `0 6 * * *` |
 | CronJob | `asynchrone-space-web-organization-deletion` | `30 3 * * *` |
+| CronJob | `asynchrone-space-web-audit-retention` | `45 3 * * *` |
 | CronJob | `asynchrone-space-web-data-exports` | `*/15 * * * *` |
 | Job (hook) | `asynchrone-space-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled |
@@ -280,6 +281,8 @@ trial-expiry runs the daily Team trial reminders and expiry (ADR 0021);
 organization-deletion deletes organizations whose 30-day deletion grace period
 has passed, including their file large objects
 ([ADR 0024](../adr/0024-delete-organizations-after-a-grace-period.md));
+audit-retention prunes audit rows past each organization's plan window without
+touching `PlatformAuditEvent` (see [audit-log.md](../audit-log.md)); and
 data-exports builds owner-requested organization exports every 15 minutes and
 unlinks archives older than 7 days
 ([ADR 0026](../adr/0026-export-organization-data-asynchronously.md)). They

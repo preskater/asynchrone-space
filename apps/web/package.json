@@ -20,6 +20,7 @@
     "verify:repository-sync": "tsx scripts/verify-repository-sync.ts",
     "verify:organization-deletion": "tsx scripts/verify-organization-deletion.ts",
     "verify:trial": "tsx scripts/verify-trial.ts",
+    "verify:audit-log": "tsx scripts/verify-audit-log.ts",
     "verify:legal-copy": "tsx scripts/verify-legal-copy.ts",
     "legal:pdfs": "tsx scripts/build-legal-pdfs.ts"
   },

@@ -1,3 +1,5 @@
+import { AUDIT_ACTIONS } from "@/lib/audit/actions"
+import { recordUserAudit, recordUserAuditMany } from "@/lib/audit/record"
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
 import {
@@ -288,6 +290,13 @@ export class FileService {
       parentId: input.parentId ?? null,
       ownerId: ctx.userId,
     })
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileFolderCreated,
+      entityType: "file",
+      entityId: row.id,
+      entityLabel: row.name,
+      after: { name: row.name, parentId: row.parentId },
+    })
     return this.mapFile(row)
   }
 
@@ -308,6 +317,21 @@ export class FileService {
         mimeType: file.mimeType,
         oid: file.oid,
         sha256: file.sha256,
+      }))
+    )
+    await recordUserAuditMany(
+      ctx,
+      rows.map((row) => ({
+        action: AUDIT_ACTIONS.fileCreated,
+        entityType: "file",
+        entityId: row.id,
+        entityLabel: row.name,
+        after: {
+          name: row.name,
+          sizeBytes: row.sizeBytes,
+          mimeType: row.mimeType,
+          parentId: row.parentId,
+        },
       }))
     )
     return rows.map((row) => this.mapFile(row as FileRow))
@@ -351,6 +375,18 @@ export class FileService {
       sizeBytes: input.sizeBytes,
     })
     await this.repo.addActivity(row.id, ctx.userId, "uploadedThisFile")
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileCreated,
+      entityType: "file",
+      entityId: row.id,
+      entityLabel: row.name,
+      after: {
+        name: row.name,
+        sizeBytes: row.sizeBytes,
+        mimeType: row.mimeType,
+        parentId: row.parentId,
+      },
+    })
     const withRelations = await this.repo.findById(ctx.organizationId, row.id)
     return this.mapFile((withRelations ?? row) as FileRow)
   }
@@ -360,12 +396,20 @@ export class FileService {
     id: string,
     input: RenameFileInput
   ): Promise<FileNode> {
-    await this.requireWrite(ctx, id)
+    const existing = await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       name: input.name.trim(),
       modifiedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "renamedThisFile")
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileRenamed,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: { name: existing.name },
+      after: { name: row.name },
+    })
     return this.mapFile(row)
   }
 
@@ -374,11 +418,19 @@ export class FileService {
     id: string,
     input: MoveFileInput
   ): Promise<FileNode> {
-    await this.requireWrite(ctx, id)
+    const existing = await this.requireWrite(ctx, id)
     await this.requireParentWrite(ctx, input.parentId)
     const row = await this.repo.update(id, {
       parentId: input.parentId,
       modifiedAt: new Date(),
+    })
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileMoved,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: { parentId: existing.parentId },
+      after: { parentId: row.parentId },
     })
     return this.mapFile(row)
   }
@@ -436,6 +488,14 @@ export class FileService {
           permission: share.permission,
         })),
       })
+      await recordUserAudit(ctx, {
+        action: AUDIT_ACTIONS.fileDuplicated,
+        entityType: "file",
+        entityId: row.id,
+        entityLabel: row.name,
+        before: { sourceFileId: source.id, sourceName: source.name },
+        after: { name: row.name, parentId: row.parentId },
+      })
       return this.mapFile(row)
     } catch (error) {
       opened?.stream.destroy()
@@ -451,20 +511,35 @@ export class FileService {
   }
 
   async trashFile(ctx: RequestContext, id: string): Promise<FileNode> {
-    await this.requireWrite(ctx, id)
+    const existing = await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       trashed: true,
       trashedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "movedThisFileToTrash")
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileTrashed,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: { trashed: existing.trashed },
+      after: { trashed: row.trashed },
+    })
     return this.mapFile(row)
   }
 
   async restoreFile(ctx: RequestContext, id: string): Promise<FileNode> {
-    await this.requireWrite(ctx, id)
+    const existing = await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       trashed: false,
       trashedAt: null,
+    })
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileRestored,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: { trashed: existing.trashed },
     })
     return this.mapFile(row)
   }
@@ -476,6 +551,18 @@ export class FileService {
     const row = await this.requireWrite(ctx, id)
     await this.repo.delete(id)
     await this.unlinkRows([row])
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileDeleted,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: {
+        name: row.name,
+        sizeBytes: row.sizeBytes,
+        parentId: row.parentId,
+        ownerId: row.ownerId,
+      },
+    })
     return { id }
   }
 
@@ -501,42 +588,78 @@ export class FileService {
     )
   }
 
-  private async writeMany(
+  /** Validates write access to every id before a bulk change. */
+  private async requireWrites(
     ctx: RequestContext,
-    ids: string[],
-    run: () => Promise<{ count: number }>
-  ): Promise<{ count: number }> {
+    ids: string[]
+  ): Promise<FileRow[]> {
     canWrite(ctx)
-    await Promise.all(ids.map((id) => this.requireWrite(ctx, id)))
-    return run()
+    return Promise.all(ids.map((id) => this.requireWrite(ctx, id)))
   }
 
   async moveToTrashMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    return this.writeMany(ctx, ids, () =>
-      this.repo.updateMany(ids, { trashed: true, trashedAt: new Date() })
+    const rows = await this.requireWrites(ctx, ids)
+    const result = await this.repo.updateMany(ids, {
+      trashed: true,
+      trashedAt: new Date(),
+    })
+    await recordUserAuditMany(
+      ctx,
+      rows.map((row) => ({
+        action: AUDIT_ACTIONS.fileTrashed,
+        entityType: "file",
+        entityId: row.id,
+        entityLabel: row.name,
+        before: { trashed: row.trashed },
+        after: { trashed: true },
+      }))
     )
+    return result
   }
 
   async restoreMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    return this.writeMany(ctx, ids, () =>
-      this.repo.updateMany(ids, { trashed: false, trashedAt: null })
+    const rows = await this.requireWrites(ctx, ids)
+    const result = await this.repo.updateMany(ids, {
+      trashed: false,
+      trashedAt: null,
+    })
+    await recordUserAuditMany(
+      ctx,
+      rows.map((row) => ({
+        action: AUDIT_ACTIONS.fileRestored,
+        entityType: "file",
+        entityId: row.id,
+        entityLabel: row.name,
+        before: { trashed: row.trashed },
+        after: { trashed: false },
+      }))
     )
+    return result
   }
 
   async deleteMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    canWrite(ctx)
-    const rows = await Promise.all(ids.map((id) => this.requireWrite(ctx, id)))
+    const rows = await this.requireWrites(ctx, ids)
     const result = await this.repo.deleteMany(ids)
     await this.unlinkRows(rows)
+    await recordUserAuditMany(
+      ctx,
+      rows.map((row) => ({
+        action: AUDIT_ACTIONS.fileDeleted,
+        entityType: "file",
+        entityId: row.id,
+        entityLabel: row.name,
+        before: { name: row.name, sizeBytes: row.sizeBytes },
+      }))
+    )
     return result
   }
 
@@ -550,11 +673,19 @@ export class FileService {
     id: string,
     restricted: boolean
   ): Promise<FileNode> {
-    await this.requireWrite(ctx, id)
+    const existing = await this.requireWrite(ctx, id)
     // Lifting a restriction stays allowed so a downgraded org can clean up.
     if (restricted)
       await requireEntitlement(ctx.organizationId, "granularPermissions")
     const row = await this.repo.update(id, { restricted })
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileAccessUpdated,
+      entityType: "file",
+      entityId: id,
+      entityLabel: row.name,
+      before: { restricted: existing.restricted },
+      after: { restricted: row.restricted },
+    })
     return this.mapFile(row)
   }
 
@@ -563,10 +694,17 @@ export class FileService {
     id: string,
     input: AddShareInput
   ): Promise<ShareEntry[]> {
-    await this.requireWrite(ctx, id)
+    const file = await this.requireWrite(ctx, id)
     await requireEntitlement(ctx.organizationId, "granularPermissions")
     await this.repo.addShare(id, input.memberId, input.permission)
     await this.repo.update(id, { shared: true })
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileShareAdded,
+      entityType: "file",
+      entityId: id,
+      entityLabel: file.name,
+      after: { memberId: input.memberId, permission: input.permission },
+    })
     const row = await this.repo.findById(ctx.organizationId, id)
     return row ? this.mapShares(row) : []
   }
@@ -576,9 +714,16 @@ export class FileService {
     id: string,
     input: UpdateShareInput
   ): Promise<ShareEntry[]> {
-    await this.requireWrite(ctx, id)
+    const file = await this.requireWrite(ctx, id)
     await requireEntitlement(ctx.organizationId, "granularPermissions")
     await this.repo.addShare(id, input.memberId, input.permission)
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileShareUpdated,
+      entityType: "file",
+      entityId: id,
+      entityLabel: file.name,
+      after: { memberId: input.memberId, permission: input.permission },
+    })
     const row = await this.repo.findById(ctx.organizationId, id)
     return row ? this.mapShares(row) : []
   }
@@ -588,8 +733,15 @@ export class FileService {
     id: string,
     input: RemoveShareInput
   ): Promise<ShareEntry[]> {
-    await this.requireWrite(ctx, id)
+    const file = await this.requireWrite(ctx, id)
     await this.repo.removeShare(id, input.memberId)
+    await recordUserAudit(ctx, {
+      action: AUDIT_ACTIONS.fileShareRemoved,
+      entityType: "file",
+      entityId: id,
+      entityLabel: file.name,
+      before: { memberId: input.memberId },
+    })
     const row = await this.repo.findById(ctx.organizationId, id)
     return row ? this.mapShares(row) : []
   }

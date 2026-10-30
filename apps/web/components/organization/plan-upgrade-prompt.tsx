@@ -13,7 +13,12 @@ export function PlanUpgradePrompt({
   className,
 }: {
   feature:
-    "ai" | "aiQuota" | "granularPermissions" | "requireTwoFactor" | "seats"
+    | "ai"
+    | "aiQuota"
+    | "auditLog"
+    | "granularPermissions"
+    | "requireTwoFactor"
+    | "seats"
   className?: string
 }) {
   const t = useTranslations("Common.upgrade")

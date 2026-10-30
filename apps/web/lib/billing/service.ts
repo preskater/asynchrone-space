@@ -565,10 +565,11 @@ export class BillingService {
     const status = normalizeStatus(subscription.status)
     const customerId =
       subscription.customerId || existing?.providerCustomerId || null
+    const plan = planForStatus(status)
 
     await this.deps.repo.upsertSubscription({
       organizationId,
-      plan: planForStatus(status),
+      plan,
       status,
       provider: "stripe",
       providerCustomerId: customerId,
@@ -580,6 +581,17 @@ export class BillingService {
       trialEndsAt: status === "trialing" ? subscription.trialEndsAt : null,
       manualOverride: false,
     })
+
+    // Entitlement changes are security-relevant: the customer-facing audit log
+    // explains a storage or feature change nobody in the workspace initiated.
+    if (existing?.plan !== plan) {
+      await this.deps.repo.recordPlanChange({
+        organizationId,
+        beforePlan: existing?.plan ?? null,
+        plan,
+        status,
+      })
+    }
   }
 }
 
