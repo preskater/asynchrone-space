@@ -36,6 +36,7 @@
     "@modelcontextprotocol/server": "^2.4.0",
     "@next/mdx": "^16.4.3",
     "@openai/agents": "^0.21.0",
+    "@sentry/nextjs": "^11.10.0",
     "@shadcn/helpers": "^0.3.0",
     "@workspace/db": "*",
     "@workspace/ui": "*",
