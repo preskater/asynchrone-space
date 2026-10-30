@@ -87,6 +87,7 @@ Add optional keys to `asynchrone-space-web-secrets` as needed:
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile on sign-up and password reset |
 | `STRIPE_SECRET_KEY` | Billing: Checkout and the Customer Portal |
 | `STRIPE_WEBHOOK_SECRET` | Billing: signing secret of `/api/webhooks/stripe` |
+| `SENTRY_DSN` | Server-side error tracking and request timings ([Observability](#observability)) |
 
 `TURNSTILE_SECRET_KEY` must be set together with
 `asynchrone-space-web.config.TURNSTILE_SITE_KEY`, and `STRIPE_WEBHOOK_SECRET`
@@ -283,6 +284,37 @@ from `asynchrone-space-web-secrets`; the corresponding route rejects a missing
 or incorrect token when `CRON_SECRET` is set. `concurrencyPolicy: Forbid`
 prevents overlapping runs. Change schedules through
 `asynchrone-space-web.cronjobs.<job>.schedule`.
+
+## Observability
+
+Error tracking and request timings go to Sentry (`@sentry/nextjs`, issue #44).
+Nothing is sent while `SENTRY_DSN` is empty, so development and CI need no
+account.
+
+- **Server**: add `SENTRY_DSN` to `asynchrone-space-web-secrets`. The web app
+  reads it at runtime in `apps/web/instrumentation.ts`, reports every request
+  error through `onRequestError`, and samples 10 % of requests for latency.
+- **Browser**: the DSN is inlined at build time, so set the `SENTRY_DSN`
+  repository variable in GitHub (Settings → Secrets and variables → Actions →
+  Variables). `docker.yml` passes it as a build arg. The DSN is public; it
+  only allows sending events.
+- Events use `DEPLOY_ENV` (falling back to `NODE_ENV`) as the environment and
+  `GIT_COMMIT_SHA` as the release when they are set.
+
+Configure monitoring in Sentry once events arrive:
+
+1. **Uptime**: an uptime monitor on `GET https://<web-host>/api/health` every
+   minute. The route returns 200 when the database answers and 503 otherwise,
+   so it catches both a down pod and a lost database.
+2. **5xx rate**: a metric alert on the failure rate of
+   `transaction.op:http.server` transactions (for example above 2 % over 5
+   minutes).
+3. **p95 latency**: a metric alert on `p95(transaction.duration)` for the same
+   transactions (for example above 2 s over 10 minutes).
+
+The Content-Security-Policy is report-only and limits `connect-src` to
+`'self'`, so browser events to Sentry show up as CSP reports. Add the Sentry
+ingest host to `connect-src` before the policy is enforced.
 
 ## Upgrades and rollback
 

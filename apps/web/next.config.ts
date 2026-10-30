@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
   // so the server bundle loads it at runtime instead of trying to bundle it.
   serverExternalPackages: ["pg-large-object", "pg"],
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  // The browser SDK needs the DSN at build time; it is public, not a secret.
+  env: { NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "" },
   experimental: {
     globalNotFound: true,
     agentUpgrade: "security",

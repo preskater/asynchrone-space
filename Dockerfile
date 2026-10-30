@@ -36,6 +36,10 @@ ENV BETTER_AUTH_URL=http://localhost:3000
 # Required by the control-tower build (unused by the web build).
 ENV CONTROL_TOWER_BETTER_AUTH_SECRET=build-placeholder-control-tower-secret-not-used
 ENV PLATFORM_APP_URL=http://localhost:3000
+# Public Sentry DSN, inlined into the browser bundle (empty disables Sentry).
+# The server reads SENTRY_DSN again at runtime from the deployment secret.
+ARG SENTRY_DSN=""
+ENV SENTRY_DSN=${SENTRY_DSN}
 
 # Uncomment and pass build args to enable remote caching
 # ARG TURBO_TEAM
