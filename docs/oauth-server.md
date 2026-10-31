@@ -25,12 +25,13 @@ MCP remains a protected resource at `MCP_RESOURCE_URL` (default
 `apps/web/lib/oauth/resources.ts` builds the provider resources from
 `@workspace/contracts`:
 
-| Resource                                                                     | Scopes                                                                                        |
-| ---------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `projects`, `calendars`, `files`, `messages`, `clients`, `employees` origins | `openid`, `profile`, `email`, `offline_access`, `app:read`, `app:write`                       |
-| `MCP_RESOURCE_URL`                                                           | `openid`, `profile`, `email`, `offline_access`, `projects`, `calendars`, `files`, `messaging` |
+| Resource                                                                                                    | Scopes                                                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `urn:asynchrone:app:projects`, `...:calendars`, `...:files`, `...:messages`, `...:clients`, `...:employees` | `openid`, `profile`, `email`, `offline_access`, `app:read`, `app:write`, plus the internal service scopes for machine callers                      |
+| `urn:asynchrone:app:copilot`                                                                                | `internal:identity:*`, `internal:audit:*`, `internal:search:read`, `internal:notifications:write`, `internal:export:read`, `internal:delete:write` |
+| `MCP_RESOURCE_URL`                                                                                          | `openid`, `profile`, `email`, `offline_access`, `projects`, `calendars`, `files`, `messaging`                                                      |
 
-- The audience is the app origin. A token for projects is rejected by files.
+- The audience is a stable URN (`urn:asynchrone:app:<key>`), not the environment host. A token for projects is rejected by files.
 - `app:read`/`app:write` are the user-delegated scopes; the target app still
   applies its own role, entitlement and portal rules.
 - Dynamic MCP clients only receive the MCP resource. First-party app clients are

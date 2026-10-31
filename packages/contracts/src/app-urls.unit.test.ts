@@ -76,12 +76,12 @@ describe("OAuth resources", () => {
   it("targets the six domain apps, not Copilot or the landing", () => {
     const resources = appOAuthResources()
     expect(resources.map((resource) => resource.identifier)).toEqual([
-      "http://localhost:3004",
-      "http://localhost:3005",
-      "http://localhost:3006",
-      "http://localhost:3007",
-      "http://localhost:3008",
-      "http://localhost:3009",
+      "urn:asynchrone:app:projects",
+      "urn:asynchrone:app:calendars",
+      "urn:asynchrone:app:files",
+      "urn:asynchrone:app:messages",
+      "urn:asynchrone:app:clients",
+      "urn:asynchrone:app:employees",
     ])
     expect(
       resources.every((resource) => resource.allowedScopes.includes("app:read"))

@@ -24,7 +24,7 @@ const config = {
   clientId: process.env.PROJECTS_OAUTH_CLIENT_ID!,
   clientSecret: process.env.PROJECTS_OAUTH_CLIENT_SECRET!,
   redirectUri: "https://projects.copilot.asynchrone.space/api/auth/callback",
-  resource: "https://projects.copilot.asynchrone.space",
+  resource: "urn:asynchrone:app:projects",
 }
 ```
 

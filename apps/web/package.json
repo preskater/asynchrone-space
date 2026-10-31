@@ -22,7 +22,8 @@
     "verify:trial": "tsx scripts/verify-trial.ts",
     "verify:audit-log": "tsx scripts/verify-audit-log.ts",
     "verify:legal-copy": "tsx scripts/verify-legal-copy.ts",
-    "legal:pdfs": "tsx scripts/build-legal-pdfs.ts"
+    "legal:pdfs": "tsx scripts/build-legal-pdfs.ts",
+    "oauth:clients": "tsx scripts/provision-oauth-clients.ts"
   },
   "dependencies": {
     "@better-auth/cimd": "^1.7.13",

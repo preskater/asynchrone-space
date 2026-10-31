@@ -5,6 +5,7 @@ import {
   isAppKey,
   type AppKey,
 } from "./apps"
+import { SERVICE_SCOPES } from "./internal/contracts"
 import { APP_USER_SCOPES } from "./oauth"
 
 /**
@@ -73,8 +74,10 @@ export interface AppOAuthResource {
 
 export function appOAuthResources(): AppOAuthResource[] {
   return CUSTOMER_APP_KEYS.filter((key) => key !== "copilot").map((key) => ({
-    identifier: appOrigin(key),
-    allowedScopes: [...APP_USER_SCOPES],
+    identifier: APPS[key].internalAudience,
+    // User tokens and service tokens share the audience; the requested scope
+    // set and the client's resource link decide which are actually usable.
+    allowedScopes: [...APP_USER_SCOPES, ...Object.values(SERVICE_SCOPES)],
   }))
 }
 

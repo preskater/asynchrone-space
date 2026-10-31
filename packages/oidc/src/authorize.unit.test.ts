@@ -17,7 +17,7 @@ const config: OidcConfig = {
   clientId: "projects",
   clientSecret: "secret",
   redirectUri: "https://projects.copilot.asynchrone.space/api/auth/callback",
-  resource: "https://projects.copilot.asynchrone.space",
+  resource: "urn:asynchrone:app:projects",
 }
 
 describe("authorization request", () => {

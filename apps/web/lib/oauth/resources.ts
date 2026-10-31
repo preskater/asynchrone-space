@@ -1,3 +1,4 @@
+import { internalAudience, SERVICE_SCOPES } from "@workspace/contracts"
 import { appOAuthResources, appOAuthScopes } from "@workspace/contracts/server"
 
 /**
@@ -23,12 +24,22 @@ export const MCP_RESOURCE =
 export function oauthResources() {
   return [
     ...appOAuthResources(),
+    {
+      identifier: internalAudience("copilot"),
+      allowedScopes: Object.values(SERVICE_SCOPES),
+    },
     { identifier: MCP_RESOURCE, allowedScopes: [...MCP_SCOPES] },
   ]
 }
 
 export function oauthScopes(): string[] {
-  return [...new Set([...appOAuthScopes(), ...MCP_SCOPES])]
+  return [
+    ...new Set([
+      ...appOAuthScopes(),
+      ...Object.values(SERVICE_SCOPES),
+      ...MCP_SCOPES,
+    ]),
+  ]
 }
 
 /** Static first-party client IDs that can skip the DB lookup. */
