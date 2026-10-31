@@ -43,7 +43,7 @@ export async function soleOwnedOrganizations(userId: string) {
 
 /**
  * Deletes a personal account by anonymizing it. The `user` row stays so the
- * many plain `userId`/`authorId` columns (content, HR records kept by the
+ * many plain `userId`/`authorId` columns (content, employee records kept by the
  * employer) keep pointing at something that renders as "Deleted user"; every
  * credential, session and membership is removed, so the person can never sign
  * in again and can sign up afresh with the same address. Password and

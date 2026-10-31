@@ -22,7 +22,7 @@ model Client {
   description    String?
   source         String?
   ownerId        String?
-  /// CRM custom field values keyed by CrmFieldDefinition.key.
+  /// Client custom field values keyed by ClientFieldDefinition.key.
   customFields   Json?
   deletedAt      DateTime?
   createdAt      DateTime     @default(now())
@@ -30,7 +30,7 @@ model Client {
 
   contacts        ContactCompany[]
   deals           Deal[]
-  activities      CrmActivity[]
+  activities      ClientActivity[]
 
   @@unique([organizationId, name])
   @@index([organizationId, status])
@@ -54,7 +54,7 @@ model Contact {
 
   companies  ContactCompany[]
   deals      DealContact[]
-  activities CrmActivity[]
+  activities ClientActivity[]
 
   @@index([organizationId])
   @@index([organizationId, email])
@@ -136,7 +136,7 @@ model Deal {
   updatedAt         DateTime       @updatedAt
 
   contacts   DealContact[]
-  activities CrmActivity[]
+  activities ClientActivity[]
 
   @@index([organizationId, status])
   @@index([clientId])
@@ -156,7 +156,7 @@ model DealContact {
   @@map("dealContact")
 }
 
-model CrmActivity {
+model ClientActivity {
   id             String       @id @default(cuid())
   organizationId String
   type           String       @default("note")
@@ -177,10 +177,10 @@ model CrmActivity {
   @@index([clientId])
   @@index([contactId])
   @@index([dealId])
-  @@map("crmActivity")
+  @@map("clientActivity")
 }
 
-model CrmFieldDefinition {
+model ClientFieldDefinition {
   id             String       @id @default(cuid())
   organizationId String
   entity         String
@@ -194,10 +194,10 @@ model CrmFieldDefinition {
   updatedAt      DateTime     @updatedAt
 
   @@unique([organizationId, entity, key])
-  @@map("crmFieldDefinition")
+  @@map("clientFieldDefinition")
 }
 
-model CrmDocument {
+model ClientDocument {
   id             String       @id @default(cuid())
   organizationId String
   fileId         String
@@ -209,7 +209,7 @@ model CrmDocument {
 
   @@unique([fileId, entity, entityId])
   @@index([organizationId, entity, entityId])
-  @@map("crmDocument")
+  @@map("clientDocument")
 }
 
 model AuditLog {

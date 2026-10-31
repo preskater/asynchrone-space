@@ -128,7 +128,7 @@
     "allEnrolled": "Personne n'a encore à l'activer."
   },
   "exportTitle": "Exporter les données",
-  "exportDescription": "Téléchargez une archive ZIP de tout le contenu de cette organisation : projets, tâches, messages, calendriers, CRM, dossiers RH, membres et fichiers. Elle est préparée en arrière-plan et reste disponible {days} jours.",
+  "exportDescription": "Téléchargez une archive ZIP de tout le contenu de cette organisation : projets, tâches, messages, calendriers, clients, dossiers des collaborateurs, membres et fichiers. Elle est préparée en arrière-plan et reste disponible {days} jours.",
   "exportRequest": "Demander un export",
   "exportRequested": "Export demandé. Nous vous enverrons un e-mail quand il sera prêt.",
   "exportReady": "Prêt · {size} · disponible jusqu'au {date}",

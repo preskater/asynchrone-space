@@ -40,7 +40,7 @@
     "q3": "Is my data secure?",
     "a3": "Yes. Data is encrypted in transit and at rest, and organizations include role-based access control. SSO, SCIM and a customer-facing audit log are coming to Enterprise.",
     "q4": "Can I import from other tools?",
-    "a4": "You can bring your team over quickly — invite members by email and import your CRM clients and contacts from a CSV file."
+    "a4": "You can bring your team over quickly — invite members by email and import your client companies and contacts from a CSV file."
   },
   "features": {
     "metadataTitle": "Features",

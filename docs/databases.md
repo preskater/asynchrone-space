@@ -15,7 +15,7 @@ orchestration is #184.
 | `asynchrone_files`         | `@workspace/db-files`         | File nodes, versions, shares, upload sessions, large objects                                                             |
 | `asynchrone_messages`      | `@workspace/db-messages`      | Conversations, messages, reactions, attachment metadata                                                                  |
 | `asynchrone_clients`       | `@workspace/db-clients`       | Clients, contacts, pipelines, deals, activities, documents                                                               |
-| `asynchrone_employees`     | `@workspace/db-employees`     | HR profiles, attendance, leave, settings, salary, internal activities                                                    |
+| `asynchrone_employees`     | `@workspace/db-employees`     | Employees profiles, attendance, leave, settings, salary, internal activities                                             |
 | `asynchrone_control_tower` | `@workspace/db-control-tower` | Platform auth/2FA, platform audit, handoff                                                                               |
 
 `@workspace/db-core` owns the shared pool factory and `DATABASE_POOL_MAX`

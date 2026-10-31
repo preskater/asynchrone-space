@@ -130,7 +130,7 @@ model Organization {
   chatTeams      ChatTeam[]
   conversations  Conversation[]
 
-  hrProfiles         HrProfile[]
+  employeeProfiles   EmployeeProfile[]
   attendanceEntries  AttendanceEntry[]
   leaveRequests      LeaveRequest[]
   leaveBalances      LeaveBalance[]
@@ -138,15 +138,15 @@ model Organization {
   clients            Client[]
   internalActivities InternalActivity[]
   auditLogs          AuditLog[]
-  hrSettings         HrSettings?
+  employeeSettings   EmployeeSettings?
   salaryProfiles     SalaryProfile[]
 
   contacts            Contact[]
   pipelines           Pipeline[]
   deals               Deal[]
-  crmActivities       CrmActivity[]
-  crmFieldDefinitions CrmFieldDefinition[]
-  crmDocuments        CrmDocument[]
+  clientActivities    ClientActivity[]
+  clientFieldDefinitions ClientFieldDefinition[]
+  clientDocuments     ClientDocument[]
   notifications       Notification[]
   portalInvites       PortalInvite[]
   projectMessages     ProjectMessage[]
@@ -730,7 +730,7 @@ model FileNode {
   shares       FileShare[]
   versions     FileVersion[]
   activities   FileActivity[]
-  crmDocuments CrmDocument[]
+  clientDocuments ClientDocument[]
 
   @@index([organizationId, parentId])
   @@index([ownerId])
@@ -912,12 +912,12 @@ model MessageAttachment {
 }
 
 // ---------------------------------------------------------------------------
-// HR: time, attendance, leave & capacity
+// Employees: time, attendance, leave & capacity
 // ---------------------------------------------------------------------------
 
-/// Per-user HR settings for the time & attendance module: employment type,
+/// Per-user employee settings for the time & attendance module: employment type,
 /// contract, weekly hours, optional manager/validator designation.
-model HrProfile {
+model EmployeeProfile {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -932,7 +932,7 @@ model HrProfile {
   updatedAt      DateTime     @updatedAt
 
   @@unique([organizationId, userId])
-  @@map("hrProfile")
+  @@map("employeeProfile")
 }
 
 /// Half-day attendance: up to two rows per user per day (morning/afternoon).
@@ -1051,7 +1051,7 @@ model Client {
   description    String?
   source         String?
   ownerId        String?
-  /// CRM custom field values keyed by CrmFieldDefinition.key.
+  /// Client custom field values keyed by ClientFieldDefinition.key.
   customFields   Json?
   deletedAt      DateTime?
   createdAt      DateTime     @default(now())
@@ -1060,7 +1060,7 @@ model Client {
   projects        Project[]
   contacts        ContactCompany[]
   deals           Deal[]
-  activities      CrmActivity[]
+  activities      ClientActivity[]
   portalMembers   Member[]         @relation("PortalMembers")
   portalInvites   PortalInvite[]
   meetingRequests MeetingRequest[]
@@ -1089,7 +1089,7 @@ model Contact {
 
   companies  ContactCompany[]
   deals      DealContact[]
-  activities CrmActivity[]
+  activities ClientActivity[]
 
   @@index([organizationId])
   @@index([organizationId, email])
@@ -1177,7 +1177,7 @@ model Deal {
   updatedAt         DateTime       @updatedAt
 
   contacts   DealContact[]
-  activities CrmActivity[]
+  activities ClientActivity[]
 
   @@index([organizationId, status])
   @@index([clientId])
@@ -1198,8 +1198,8 @@ model DealContact {
   @@map("dealContact")
 }
 
-/// CRM timeline entry: note, call, email or meeting.
-model CrmActivity {
+/// Client timeline entry: note, call, email or meeting.
+model ClientActivity {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1221,11 +1221,11 @@ model CrmActivity {
   @@index([clientId])
   @@index([contactId])
   @@index([dealId])
-  @@map("crmActivity")
+  @@map("clientActivity")
 }
 
-/// Custom field definition for CRM records (client | contact | deal).
-model CrmFieldDefinition {
+/// Custom field definition for client records (client | contact | deal).
+model ClientFieldDefinition {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1240,12 +1240,12 @@ model CrmFieldDefinition {
   updatedAt      DateTime     @updatedAt
 
   @@unique([organizationId, entity, key])
-  @@map("crmFieldDefinition")
+  @@map("clientFieldDefinition")
 }
 
-/// A file attached to a CRM record (company, contact or deal). `visibility`
+/// A file attached to a client record (company, contact or deal). `visibility`
 /// is internal | client; client-visible documents are exposed in the portal.
-model CrmDocument {
+model ClientDocument {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1259,7 +1259,7 @@ model CrmDocument {
 
   @@unique([fileId, entity, entityId])
   @@index([organizationId, entity, entityId])
-  @@map("crmDocument")
+  @@map("clientDocument")
 }
 
 /// In-app notification for one user. `data` carries the interpolation values
@@ -1353,8 +1353,8 @@ model AuditLog {
   @@map("auditLog")
 }
 
-/// Organization-wide HR defaults for the time & attendance module.
-model HrSettings {
+/// Organization-wide employee defaults for the time & attendance module.
+model EmployeeSettings {
   id                    String       @id @default(cuid())
   organizationId        String       @unique
   organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1367,7 +1367,7 @@ model HrSettings {
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
 
-  @@map("hrSettings")
+  @@map("employeeSettings")
 }
 
 /// Payroll settings for one member: hourly wage, payroll category and French

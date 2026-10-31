@@ -7,7 +7,7 @@ generator client {
   output   = "../lib/generated/prisma"
 }
 
-model HrProfile {
+model EmployeeProfile {
   id             String       @id @default(cuid())
   organizationId String
   userId         String
@@ -21,7 +21,7 @@ model HrProfile {
   updatedAt      DateTime     @updatedAt
 
   @@unique([organizationId, userId])
-  @@map("hrProfile")
+  @@map("employeeProfile")
 }
 
 model AttendanceEntry {
@@ -107,7 +107,7 @@ model LeaveAdjustment {
   @@map("leaveAdjustment")
 }
 
-model HrSettings {
+model EmployeeSettings {
   id                    String       @id @default(cuid())
   organizationId        String       @unique
   defaultWeeklyHours    Float        @default(35)
@@ -119,7 +119,7 @@ model HrSettings {
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
 
-  @@map("hrSettings")
+  @@map("employeeSettings")
 }
 
 model SalaryProfile {

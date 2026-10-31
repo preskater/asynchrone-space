@@ -1,4 +1,4 @@
-# CRM / HR query audit (2026-10-21)
+# Clients / Employees query audit (2026-10-21)
 
 Goal: remove per-request growth in the authenticated app shell and stop list
 screens from loading whole tables.
@@ -9,12 +9,12 @@ screens from loading whole tables.
 
 The layout now loads shell-only data:
 
-| Feature | Shell payload | Loaded by |
-| --- | --- | --- |
-| Projects | projects, members, labels, templates, task counters | `projectService.listShell` |
-| Calendars | calendar sources | `calendarService.listShell` |
-| Messaging | conversations, teams, presence, latest message preview per conversation | `messagingService.list` |
-| Files | nothing (`EMPTY_FILES_DATA`) | `FilesWorkspace` → `listFilesAction` |
+| Feature   | Shell payload                                                           | Loaded by                            |
+| --------- | ----------------------------------------------------------------------- | ------------------------------------ |
+| Projects  | projects, members, labels, templates, task counters                     | `projectService.listShell`           |
+| Calendars | calendar sources                                                        | `calendarService.listShell`          |
+| Messaging | conversations, teams, presence, latest message preview per conversation | `messagingService.list`              |
+| Files     | nothing (`EMPTY_FILES_DATA`)                                            | `FilesWorkspace` → `listFilesAction` |
 
 Tasks + project activity hydrate through `loadProjectWorkspaceAction` when a
 projects page (or the calendar “show tasks” toggle) mounts. Calendar events
@@ -34,22 +34,22 @@ newest page.
 
 `lib/core/pagination.ts` provides opaque cursors and `toPage()`.
 
-| List | Order | Cursor | Page size |
-| --- | --- | --- | --- |
-| CRM clients | `name, id` | `[name, id]` | 50 |
-| CRM contacts | `lastName, firstName, id` | `[lastName, firstName, id]` | 50 |
-| CRM deals | `createdAt desc, id desc` | `[createdAt, id]` | 50 |
-| CRM activities | `occurredAt desc, id desc` | `[occurredAt, id]` | 30 / 50 |
-| Project activities | `createdAt desc, id desc` | `[createdAt, id]` | 50 / 100 |
-| Members | `createdAt, id` | `[createdAt, id]` | 50 |
-| Conversation messages | `createdAt desc, id desc` | `[createdAt, id]` | 50 |
+| List                  | Order                      | Cursor                      | Page size |
+| --------------------- | -------------------------- | --------------------------- | --------- |
+| Clients clients       | `name, id`                 | `[name, id]`                | 50        |
+| Clients contacts      | `lastName, firstName, id`  | `[lastName, firstName, id]` | 50        |
+| Clients deals         | `createdAt desc, id desc`  | `[createdAt, id]`           | 50        |
+| Clients activities    | `occurredAt desc, id desc` | `[occurredAt, id]`          | 30 / 50   |
+| Project activities    | `createdAt desc, id desc`  | `[createdAt, id]`           | 50 / 100  |
+| Members               | `createdAt, id`            | `[createdAt, id]`           | 50        |
+| Conversation messages | `createdAt desc, id desc`  | `[createdAt, id]`           | 50        |
 
 Exposed through server actions (`listCrm*Action`, `listProjectActivitiesAction`,
 `listMembersPageAction`) and the REST `/api/members` endpoint.
 
 ## N+1 / over-fetch findings
 
-1. **CRM overview loaded every row of clients, contacts, deals and projects**,
+1. **Clients overview loaded every row of clients, contacts, deals and projects**,
    then computed per-client counters in memory (O(clients × rows)).
    Replaced by grouped aggregates:
    `contactCountsByClient`, `openDealCountsByClient`,
@@ -63,14 +63,14 @@ Exposed through server actions (`listCrm*Action`, `listProjectActivitiesAction`,
    `countDealsInStage`.
 5. **`moveDeal` loaded every deal** to reorder siblings; replaced with
    `listDealPositions(stageId)`.
-6. **CRM import loaded all contacts** for email dedupe; now selects only
+6. **Clients import loaded all contacts** for email dedupe; now selects only
    `email` (`listContactEmails`).
-7. **HR `setDayStatus` called `setAttendance` per half-day**, repeating the
+7. **Employees `setDayStatus` called `setAttendance` per half-day**, repeating the
    access/profile lookup and project validation. Access is resolved once and
    both halves write in parallel.
-8. **HR `fetchTracking` ran four lookups sequentially**; they now run in one
+8. **Employees `fetchTracking` ran four lookups sequentially**; they now run in one
    `Promise.all`.
-9. **HR overview loaded all allocation entries ever recorded**; project totals
+9. **Employees overview loaded all allocation entries ever recorded**; project totals
    are now bounded to the current year.
 
 ## Remaining known costs

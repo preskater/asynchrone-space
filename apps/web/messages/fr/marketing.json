@@ -40,7 +40,7 @@
     "q3": "Mes données sont-elles sécurisées ?",
     "a3": "Oui. Les données sont chiffrées en transit et au repos, et les organisations incluent un contrôle d'accès basé sur les rôles. Le SSO, SCIM et un journal d'audit accessible aux clients arrivent bientôt sur l'offre Enterprise.",
     "q4": "Puis-je importer depuis d'autres outils ?",
-    "a4": "Vous pouvez transférer votre équipe rapidement — invitez les membres par e-mail et importez vos clients et contacts CRM depuis un fichier CSV."
+    "a4": "Vous pouvez transférer votre équipe rapidement — invitez les membres par e-mail et importez vos clients et contacts clients depuis un fichier CSV."
   },
   "features": {
     "metadataTitle": "Fonctionnalités",

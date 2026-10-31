@@ -128,7 +128,7 @@
     "allEnrolled": "Nobody is waiting to set it up."
   },
   "exportTitle": "Export data",
-  "exportDescription": "Download a ZIP archive of everything in this organization: projects, tasks, messages, calendars, CRM, HR records, members and files. It is prepared in the background and stays available for {days} days.",
+  "exportDescription": "Download a ZIP archive of everything in this organization: projects, tasks, messages, calendars, clients and employee records, members and files. It is prepared in the background and stays available for {days} days.",
   "exportRequest": "Request export",
   "exportRequested": "Export requested. We will email you when it is ready.",
   "exportReady": "Ready · {size} · available until {date}",

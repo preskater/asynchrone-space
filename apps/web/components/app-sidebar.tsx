@@ -65,14 +65,14 @@ export function useNavMain(orgSlug: string): NavApp[] {
       icon: <FileIcon />,
     },
     {
-      title: t("crm"),
+      title: t("clients"),
       url: `/${orgSlug}/clients`,
       icon: <HandshakeIcon />,
       match: [`/${orgSlug}/contacts`, `/${orgSlug}/deals`],
     },
     {
-      title: t("hr"),
-      url: `/${orgSlug}/hr`,
+      title: t("employees"),
+      url: `/${orgSlug}/employees`,
       icon: <BriefcaseIcon />,
     },
   ]
