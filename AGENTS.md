@@ -12,6 +12,7 @@
 - Run, in order: `npm run lint && npm run typecheck && npm run build` (matches CI), plus `npm run test:unit --workspace=web` and `npm run test:unit --workspace=@workspace/contracts` (vitest; `*.unit.test.ts` next to the code). `npm run test:e2e --workspace=web` runs Playwright against a migrated database (CI does this in the `e2e` job).
 - Workspace boundaries: `npm run check:boundaries` fails on a package→app import, an app→app import, an undeclared `@workspace/*` dependency, a relative import that escapes its workspace, or a cross-`@workspace/db-*` import. CI runs it after lint.
 - Per-app migrations: `npm run db:create && npm run migrate:deploy && npm run verify:migrations` (needs a live PostgreSQL). The migrate image runs the monolith migration first, then the ordered per-app orchestrator.
+- Database split (maintenance window; needs source and target databases): `npm run split:databases -- --dry-run`, then `--all`. Large-object OIDs are preserved. See `docs/database-split.md`.
 - The Turbo `generate` task (`prisma generate` → `packages/db/lib/generated/prisma`) is a dependency of `build`/`typecheck`/`dev`. After editing `schema.prisma`, run `npm run generate --workspace=@workspace/db`.
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.

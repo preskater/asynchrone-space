@@ -121,5 +121,5 @@ migrate Job reads every `*_DATABASE_URL` from the existing migrate secret.
 - [x] Local database creation (#183)
 - [x] CI schema validation (#183)
 - [x] Migration orchestration, baselines, shadow DBs and drift check (#184)
-- [ ] Maintenance-window data split (#185)
+- [x] Maintenance-window data split tooling and runbook (#185)
 - [ ] App wiring to the per-app clients (#186+)
