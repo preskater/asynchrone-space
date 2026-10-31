@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@workspace/contracts": "*",
-    "jose": "^6.2.3"
+    "jose": "^6.2.13"
   },
   "devDependencies": {
     "@types/node": "^26.6.5",
