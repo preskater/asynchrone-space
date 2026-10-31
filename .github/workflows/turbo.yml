@@ -53,6 +53,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check workspace boundaries
+        run: npm run check:boundaries
+
       - name: Build
         run: npm run build
 

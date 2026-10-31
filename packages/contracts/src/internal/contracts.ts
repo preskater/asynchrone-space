@@ -1,0 +1,215 @@
+import { z } from "zod"
+
+/**
+ * Versioned contracts for `/internal/*`.
+ *
+ * Internal APIs are private, service-to-service endpoints. A caller must hold a
+ * client-credentials token whose audience is the target app and whose scope
+ * covers the operation. These schemas are the single source of truth for both
+ * the handler and the typed caller.
+ */
+
+export const INTERNAL_API_VERSION = "v1" as const
+export const INTERNAL_BASE_PATH = `/internal/${INTERNAL_API_VERSION}` as const
+
+export function internalPath(...segments: string[]): string {
+  const suffix = segments
+    .map((segment) => segment.replace(/^\/+|\/+$/g, ""))
+    .filter(Boolean)
+    .join("/")
+  return suffix ? `${INTERNAL_BASE_PATH}/${suffix}` : INTERNAL_BASE_PATH
+}
+
+export const INTERNAL_ROUTES = {
+  identityOrganization: (organizationId: string) =>
+    internalPath("organizations", organizationId),
+  identityMembers: (organizationId: string) =>
+    internalPath("organizations", organizationId, "members"),
+  identityEntitlements: (organizationId: string) =>
+    internalPath("organizations", organizationId, "entitlements"),
+  identityUser: (userId: string) => internalPath("users", userId),
+  audit: internalPath("audit"),
+  auditPrune: internalPath("audit", "prune"),
+  search: internalPath("search"),
+  notifications: internalPath("notifications"),
+  exportOrganization: (organizationId: string) =>
+    internalPath("organizations", organizationId, "export"),
+  deleteOrganization: (organizationId: string) =>
+    internalPath("organizations", organizationId),
+  deleteUser: (userId: string) => internalPath("users", userId),
+} as const
+
+export const SERVICE_SCOPES = {
+  identityRead: "internal:identity:read",
+  identityAdmin: "internal:identity:admin",
+  auditRead: "internal:audit:read",
+  auditWrite: "internal:audit:write",
+  searchRead: "internal:search:read",
+  notificationsWrite: "internal:notifications:write",
+  exportRead: "internal:export:read",
+  deleteWrite: "internal:delete:write",
+  domainRead: "internal:domain:read",
+  domainWrite: "internal:domain:write",
+} as const
+
+export type ServiceScope = (typeof SERVICE_SCOPES)[keyof typeof SERVICE_SCOPES]
+
+/** Claims expected on a short-lived client-credentials access token. */
+export const ServiceTokenClaimsSchema = z.object({
+  iss: z.string().url(),
+  sub: z.string().min(1),
+  aud: z.string().min(1),
+  scope: z.string().min(1),
+  exp: z.number().int(),
+  iat: z.number().int().optional(),
+  client_id: z.string().min(1),
+  jti: z.string().min(1).optional(),
+})
+export type ServiceTokenClaims = z.infer<typeof ServiceTokenClaimsSchema>
+
+export const MemberRoleSchema = z.enum(["owner", "admin", "member", "viewer"])
+export type MemberRole = z.infer<typeof MemberRoleSchema>
+
+export const MemberSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  email: z.string().email(),
+  avatarUrl: z.string().url().nullable().optional(),
+  role: MemberRoleSchema,
+  /** Set for client-portal accounts; they never enter the internal workspace. */
+  clientId: z.string().nullable().optional(),
+})
+export type Member = z.infer<typeof MemberSchema>
+
+export const OrganizationSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  slug: z.string().min(1),
+})
+export type Organization = z.infer<typeof OrganizationSchema>
+
+export const EntitlementsSchema = z.object({
+  plan: z.enum(["free", "team", "enterprise"]),
+  /** `null` means unlimited. */
+  seats: z.number().int().nonnegative().nullable(),
+  storageBytes: z.number().int().nonnegative(),
+  aiBudgetMicrosPerSeat: z.number().int().nonnegative(),
+  auditLog: z.boolean(),
+  requireTwoFactor: z.boolean(),
+  granularPermissions: z.boolean(),
+  apiAccess: z.boolean(),
+  scim: z.boolean(),
+})
+export type Entitlements = z.infer<typeof EntitlementsSchema>
+
+export const IdentityContextSchema = z.object({
+  organization: OrganizationSchema,
+  member: MemberSchema,
+  entitlements: EntitlementsSchema,
+})
+export type IdentityContext = z.infer<typeof IdentityContextSchema>
+
+export const AuditEventSchema = z.object({
+  id: z.string().min(1),
+  organizationId: z.string().min(1),
+  actorId: z.string().min(1),
+  actorName: z.string().nullable().optional(),
+  actorEmail: z.string().email().nullable().optional(),
+  action: z.string().min(1),
+  entityType: z.string().min(1),
+  entityId: z.string().min(1),
+  entityLabel: z.string().nullable().optional(),
+  before: z.unknown().optional(),
+  after: z.unknown().optional(),
+  ipAddress: z.string().nullable().optional(),
+  userAgent: z.string().nullable().optional(),
+  createdAt: z.coerce.date(),
+})
+export type AuditEvent = z.infer<typeof AuditEventSchema>
+
+export const AuditQuerySchema = z.object({
+  organizationId: z.string().min(1),
+  action: z.string().optional(),
+  entityType: z.string().optional(),
+  actorId: z.string().optional(),
+  before: z.coerce.date().optional(),
+  after: z.coerce.date().optional(),
+  cursor: z.string().optional(),
+  limit: z.number().int().min(1).max(100).default(50),
+})
+export type AuditQuery = z.infer<typeof AuditQuerySchema>
+
+export const AuditPageSchema = z.object({
+  events: z.array(AuditEventSchema),
+  nextCursor: z.string().nullable(),
+  total: z.number().int().nonnegative().optional(),
+})
+export type AuditPage = z.infer<typeof AuditPageSchema>
+
+export const SearchResultSchema = z.object({
+  app: z.string().min(1),
+  type: z.string().min(1),
+  id: z.string().min(1),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  url: z.string().min(1),
+})
+export type SearchResult = z.infer<typeof SearchResultSchema>
+
+export const SearchQuerySchema = z.object({
+  organizationId: z.string().min(1),
+  query: z.string().trim().min(1).max(200),
+  limit: z.number().int().min(1).max(50).default(20),
+})
+export type SearchQuery = z.infer<typeof SearchQuerySchema>
+
+export const NotificationInputSchema = z.object({
+  organizationId: z.string().min(1),
+  userId: z.string().min(1),
+  type: z.string().min(1),
+  title: z.string().min(1),
+  body: z.string().optional(),
+  url: z.string().optional(),
+  /** Makes retries safe; the receiver must deduplicate on this key. */
+  idempotencyKey: z.string().min(1),
+})
+export type NotificationInput = z.infer<typeof NotificationInputSchema>
+
+export const ExportManifestSchema = z.object({
+  app: z.string().min(1),
+  appVersion: z.string().min(1),
+  schemaVersion: z.string().min(1),
+  generatedAt: z.coerce.date(),
+  tables: z.record(z.string(), z.number().int().nonnegative()),
+})
+export type ExportManifest = z.infer<typeof ExportManifestSchema>
+
+export const DeletionResultSchema = z.object({
+  app: z.string().min(1),
+  organizationId: z.string().min(1),
+  userId: z.string().optional(),
+  deleted: z.record(z.string(), z.number().int().nonnegative()),
+  completedAt: z.coerce.date(),
+})
+export type DeletionResult = z.infer<typeof DeletionResultSchema>
+
+export const InternalErrorSchema = z.object({
+  code: z.string().min(1),
+  message: z.string().min(1),
+  requestId: z.string().optional(),
+})
+export type InternalError = z.infer<typeof InternalErrorSchema>
+
+/** Standard success envelope for an internal endpoint. */
+export function internalEnvelope<T extends z.ZodType>(data: T) {
+  return z.object({
+    data,
+    meta: z
+      .object({
+        app: z.string().min(1),
+        version: z.literal(INTERNAL_API_VERSION),
+        requestId: z.string().min(1),
+      })
+      .optional(),
+  })
+}
