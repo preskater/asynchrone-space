@@ -117,6 +117,15 @@ config:
 secret:
   existingSecret: asynchrone-space-control-tower-secrets
 
+networkPolicy:
+  enabled: false
+  ingressFrom:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+  databaseFrom: []
+  databasePort: 5432
+
 extraEnv: []
 extraEnvFrom: []
 extraVolumes: []
