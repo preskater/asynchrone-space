@@ -56,6 +56,9 @@ jobs:
       - name: Check workspace boundaries
         run: npm run check:boundaries
 
+      - name: Validate OAuth client manifest
+        run: npm run oauth:clients --workspace=web
+
       - name: Build
         run: npm run build
 
