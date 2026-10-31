@@ -2,7 +2,11 @@ import { cimd } from "@better-auth/cimd"
 import { fetchClientMetadataResource } from "@better-auth/cimd/node"
 import { mcp } from "@better-auth/mcp"
 import { betterAuth } from "better-auth"
-import { APIError, createAuthMiddleware } from "better-auth/api"
+import {
+  APIError,
+  createAuthMiddleware,
+  getSessionFromCtx,
+} from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { nextCookies } from "better-auth/next-js"
 import {
@@ -23,13 +27,28 @@ import { parseTrustedIpHeaders } from "./core/trusted-ip"
 import { recordAuthAuditEvent } from "./audit/auth-audit"
 import { sendResetPasswordEmail, sendVerificationEmail } from "./email"
 import { ac, orgRoles } from "./organization/access"
-import { seatsFull } from "./organization/entitlements"
+import {
+  entitlementsFor,
+  resolvePlan,
+  seatsFull,
+} from "./organization/entitlements"
 import { parseRoles } from "./organization/utils"
 import { prisma } from "./prisma"
 import { isBlockedEmailDomain, isInviteOnly } from "./signup-policy"
-
-const mcpResource =
-  process.env.MCP_RESOURCE_URL || `${process.env.BETTER_AUTH_URL}/mcp`
+import { buildOAuthClaims, twoFactorEnrollmentRequired } from "./oauth/claims"
+import {
+  ACCESS_TOKEN_TTL_SECONDS,
+  MCP_RESOURCE,
+  REFRESH_TOKEN_REUSE_SECONDS,
+  REFRESH_TOKEN_TTL_SECONDS,
+  oauthResources,
+  oauthScopes,
+  trustedClientIds,
+} from "./oauth/resources"
+import {
+  revokeOauthTokensForSession,
+  revokeOauthTokensForUser,
+} from "./oauth/revoke"
 
 /**
  * GitHub/GitLab OAuth apps power optional account linking: a linked account
@@ -187,6 +206,55 @@ export const auth = betterAuth({
   },
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      // OAuth authorization must not issue a code to a member who still has to
+      // enroll in 2FA under the organization policy. The redirect preserves the
+      // authorize URL so the setup page can send the user back into the flow.
+      if (ctx.path === "/oauth2/authorize") {
+        const session = await getSessionFromCtx(ctx)
+        if (session && !session.session.impersonatedBy) {
+          const organizationId = session.session.activeOrganizationId
+          if (organizationId) {
+            const organization = await prisma.organization.findUnique({
+              where: { id: organizationId },
+              select: {
+                requireTwoFactor: true,
+                metadata: true,
+                trialEndsAt: true,
+                subscription: { select: { plan: true } },
+              },
+            })
+            if (organization) {
+              const plan = resolvePlan({
+                metadata: organization.metadata,
+                trialEndsAt: organization.trialEndsAt,
+                subscription: organization.subscription ?? null,
+              })
+              const enrolled = Boolean(session.user.twoFactorEnabled)
+              if (
+                twoFactorEnrollmentRequired({
+                  required: organization.requireTwoFactor,
+                  entitled: entitlementsFor(plan).requireTwoFactor,
+                  enrolled,
+                  impersonated: false,
+                })
+              ) {
+                const requestUrl = ctx.request?.url
+                if (requestUrl) {
+                  const next = encodeURIComponent(requestUrl)
+                  throw ctx.redirect(
+                    new URL(
+                      `/two-factor/setup?next=${next}`,
+                      requestUrl
+                    ).toString()
+                  )
+                }
+              }
+            }
+          }
+        }
+        return
+      }
+
       // Dynamic Client Registration defaults an omitted `application_type`
       // to `web`, which rejects the loopback `http://127.0.0.1` callback that
       // native MCP clients such as opencode use. Default it to `native`.
@@ -209,6 +277,14 @@ export const auth = betterAuth({
       const userId = ctx.context.session?.user.id
       if (!userId || ctx.context.returned instanceof APIError) return
       await recordSessionRevocation(userId, ctx.path)
+
+      if (ctx.path === "/organization/set-active") {
+        await revokeOauthTokensForUser(userId)
+      }
+      if (ctx.path === "/sign-out") {
+        const sessionId = ctx.context.session?.session.id
+        if (sessionId) await revokeOauthTokensForSession(sessionId)
+      }
     }),
   },
   plugins: [
@@ -249,6 +325,7 @@ export const auth = betterAuth({
         // the member signs in again everywhere.
         afterUpdateMemberRole: async ({ member, previousRole }) => {
           if (member.role === previousRole) return
+          await revokeOauthTokensForUser(member.userId)
           await prisma.session.deleteMany({ where: { userId: member.userId } })
         },
         afterCreateOrganization: async ({ organization, user }) => {
@@ -293,38 +370,22 @@ export const auth = betterAuth({
     mcp({
       loginPage: "/sign-in",
       consentPage: "/consent",
-      resource: mcpResource,
+      resource: MCP_RESOURCE,
       // CIMD is the primary client-identity mechanism; DCR stays enabled as a
       // fallback for MCP clients that predate Client ID Metadata Documents
       // (e.g. opencode), which self-register over RFC 7591. See the register
       // hook above for the `application_type` default.
       allowDynamicClientRegistration: true,
       allowUnauthenticatedClientRegistration: true,
-      resources: [
-        {
-          identifier: mcpResource,
-          allowedScopes: [
-            "openid",
-            "profile",
-            "email",
-            "offline_access",
-            "projects",
-            "calendars",
-            "files",
-            "messaging",
-          ],
-        },
-      ],
-      scopes: [
-        "openid",
-        "profile",
-        "email",
-        "offline_access",
-        "projects",
-        "calendars",
-        "files",
-        "messaging",
-      ],
+      resources: oauthResources(),
+      scopes: oauthScopes(),
+      accessTokenExpiresIn: ACCESS_TOKEN_TTL_SECONDS,
+      refreshTokenExpiresIn: REFRESH_TOKEN_TTL_SECONDS,
+      refreshTokenReuseInterval: REFRESH_TOKEN_REUSE_SECONDS,
+      cachedTrustedClients: trustedClientIds(),
+      // Dynamic MCP clients only get the MCP audience. First-party app clients
+      // are provisioned with their own resource in #182.
+      clientRegistrationDefaultResources: [MCP_RESOURCE],
       postLogin: {
         page: "/select-organization",
         consentReferenceId: ({ session }) =>
@@ -333,16 +394,49 @@ export const auth = betterAuth({
       },
       customAccessTokenClaims: async ({ user, referenceId }) => {
         if (!user || !referenceId) return {}
-        const member = await prisma.member.findFirst({
-          where: { organizationId: referenceId, userId: user.id },
-          select: { role: true },
+        const [organization, member] = await Promise.all([
+          prisma.organization.findUnique({
+            where: { id: referenceId },
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              requireTwoFactor: true,
+              metadata: true,
+              trialEndsAt: true,
+              subscription: { select: { plan: true } },
+            },
+          }),
+          prisma.member.findFirst({
+            where: { organizationId: referenceId, userId: user.id },
+            select: { role: true },
+          }),
+        ])
+        if (!organization) return {}
+
+        const plan = resolvePlan({
+          metadata: organization.metadata,
+          trialEndsAt: organization.trialEndsAt,
+          subscription: organization.subscription ?? null,
         })
-        return {
-          organizationId: referenceId,
-          role: parseRoles(member?.role)[0] ?? "member",
-          userName: user.name,
-          userEmail: user.email,
-        }
+
+        return buildOAuthClaims({
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            twoFactorEnabled: Boolean(user.twoFactorEnabled),
+          },
+          organization: {
+            id: organization.id,
+            name: organization.name,
+            slug: organization.slug,
+            requireTwoFactor: organization.requireTwoFactor,
+          },
+          member,
+          plan,
+          requireTwoFactorEntitled: entitlementsFor(plan).requireTwoFactor,
+        })
       },
     }),
     cimd({

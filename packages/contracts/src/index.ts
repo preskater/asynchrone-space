@@ -18,3 +18,4 @@ export type {
 
 export * from "./internal/contracts"
 export * from "./internal/auth"
+export * from "./oauth"
