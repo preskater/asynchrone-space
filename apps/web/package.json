@@ -42,6 +42,8 @@
     "@shadcn/helpers": "^0.3.0",
     "@workspace/contracts": "*",
     "@workspace/db": "*",
+    "@workspace/db-identity": "*",
+    "@workspace/service-auth": "*",
     "@workspace/ui": "*",
     "better-auth": "^1.7.13",
     "dotenv": "^18.0.9",
