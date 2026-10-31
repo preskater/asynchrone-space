@@ -59,6 +59,9 @@ jobs:
       - name: Validate OAuth client manifest
         run: npm run oauth:clients --workspace=web
 
+      - name: Validate per-app Prisma schemas
+        run: npm run verify:prisma-schemas
+
       - name: Build
         run: npm run build
 

@@ -68,7 +68,7 @@
       "dependsOn": ["^format"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck", "^generate"]
+      "dependsOn": ["^typecheck", "generate"]
     },
     "dev": {
       "dependsOn": ["^generate"],

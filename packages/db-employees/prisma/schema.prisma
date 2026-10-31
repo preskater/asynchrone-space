@@ -1,0 +1,180 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model HrProfile {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  employmentType String       @default("employee") // associate | employee | intern | contractor
+  contractType   String       @default("cdi") // cdi | cdd | internship | freelance | other
+  weeklyHours    Float        @default(35)
+  managerId      String?
+  isValidator    Boolean      @default(false)
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@map("hrProfile")
+}
+
+model AttendanceEntry {
+  id                 String            @id @default(cuid())
+  organizationId     String
+  userId             String
+  date               DateTime          @db.Date
+  period             String // morning | afternoon
+  status             String // on_site | remote | leave | rtt | sick_leave | training | business_trip | holiday | unavailable | other
+  location           String? // on_site | remote | client_site | traveling | other
+  projectId          String?
+  internalActivityId String?
+  internalActivity   InternalActivity? @relation(fields: [internalActivityId], references: [id], onDelete: SetNull)
+  leaveRequestId     String?
+  leaveRequest       LeaveRequest?     @relation(fields: [leaveRequestId], references: [id], onDelete: SetNull)
+  isBillable         Boolean           @default(false)
+  comment            String?
+  createdBy          String
+  updatedBy          String
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  @@unique([organizationId, userId, date, period])
+  @@index([organizationId, date])
+  @@index([userId, date])
+  @@index([projectId])
+  @@map("attendanceEntry")
+}
+
+model LeaveRequest {
+  id              String       @id @default(cuid())
+  organizationId  String
+  userId          String
+  type            String // paid_leave | rtt | unpaid | sick | training | other
+  status          String       @default("pending") // pending | approved | rejected | cancelled
+  startDate       DateTime     @db.Date
+  endDate         DateTime     @db.Date
+  startPeriod     String       @default("morning") // morning | afternoon
+  endPeriod       String       @default("afternoon") // morning | afternoon
+  halfDays        Float
+  comment         String?
+  validatorId     String?
+  decisionDate    DateTime?
+  decisionComment String?
+  attachmentUrl   String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  attendanceEntries AttendanceEntry[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, userId])
+  @@map("leaveRequest")
+}
+
+model LeaveBalance {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  leaveType      String // paid_leave | rtt | recovery | unpaid | training | other
+  year           Int
+  allowanceDays  Float        @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId, leaveType, year])
+  @@map("leaveBalance")
+}
+
+model LeaveAdjustment {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  leaveType      String
+  year           Int
+  days           Float
+  note           String?
+  createdBy      String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId, year])
+  @@map("leaveAdjustment")
+}
+
+model HrSettings {
+  id                    String       @id @default(cuid())
+  organizationId        String       @unique
+  defaultWeeklyHours    Float        @default(35)
+  defaultAllowanceDays  Float        @default(25)
+  lowBalanceThreshold   Float        @default(5)
+  pendingValidationDays Int          @default(3)
+  defaultEmployeeRate   Float        @default(22)
+  defaultEmployerRate   Float        @default(42)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@map("hrSettings")
+}
+
+model SalaryProfile {
+  id             String       @id @default(cuid())
+  organizationId String
+  userId         String
+  salaryType     String       @default("full_time") // full_time | part_time | intern | apprentice | contractor | other
+  hourlyRate     Float        @default(0)
+  employeeRate   Float        @default(22)
+  employerRate   Float        @default(42)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, userId])
+  @@map("salaryProfile")
+}
+
+model InternalActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  kind           String       @default("internal") // internal | non_billable
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  attendanceEntries AttendanceEntry[]
+
+  @@unique([organizationId, name])
+  @@map("internalActivity")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}
