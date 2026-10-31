@@ -21,7 +21,7 @@ RUN npx turbo prune ${APP} --docker
 FROM base AS prepare-migrate
 ARG WORKDIR
 COPY . .
-RUN npx turbo prune migrate --docker
+RUN npx turbo prune @workspace/migrate --docker
 
 # ---
 FROM base AS builder
