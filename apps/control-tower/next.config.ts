@@ -8,7 +8,12 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url))
 const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(projectRoot, "../../"),
-  transpilePackages: ["@workspace/ui", "@workspace/db"],
+  transpilePackages: [
+    "@workspace/ui",
+    "@workspace/db",
+    "@workspace/contracts",
+    "@workspace/service-auth",
+  ],
   // `pg` is a native CommonJS dependency of the shared database package.
   serverExternalPackages: ["pg"],
   poweredByHeader: false,

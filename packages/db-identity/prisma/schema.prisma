@@ -607,6 +607,22 @@ model DataExportApp {
   @@map("dataExportApp")
 }
 
+model PlatformHandoff {
+  id             String    @id @default(cuid())
+  tokenHash      String    @unique
+  kind           String    @default("impersonate")
+  actorId        String
+  targetUserId   String
+  organizationId String?
+  expiresAt      DateTime
+  usedAt         DateTime?
+  createdAt      DateTime  @default(now())
+
+  @@index([expiresAt])
+  @@index([targetUserId])
+  @@map("platformHandoff")
+}
+
 model OrganizationDeletionJob {
   id             String      @id @default(cuid())
   organizationId String      @unique

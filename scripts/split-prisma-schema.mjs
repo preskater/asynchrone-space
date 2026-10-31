@@ -54,6 +54,7 @@ const DATABASES = {
       "RateLimit",
       "DataExport",
       "DataExportApp",
+      "PlatformHandoff",
       "OrganizationDeletionJob",
       "OrganizationDeletionApp",
       "UserDeletionJob",
@@ -157,6 +158,9 @@ const DATABASES = {
       "TwoFactor",
       "Jwks",
       "PlatformAuditEvent",
+      // Present in both schemas during the control-tower cutover: the customer
+      // app consumes the identity copy, while the deployed control-tower
+      // migration still creates its original table.
       "PlatformHandoff",
     ],
   },

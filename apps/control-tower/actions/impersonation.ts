@@ -1,15 +1,12 @@
 "use server"
 
-import { createHash, randomBytes } from "node:crypto"
-
 import { redirect } from "next/navigation"
 
 import { z } from "zod"
 
-import { prisma } from "@workspace/db"
-
 import { withPlatformAction } from "@/lib/platform/action"
 import { recordPlatformEvent } from "@/lib/platform/audit"
+import { identityAdmin } from "@/lib/platform/identity"
 
 const schema = z.object({
   userId: z.string().min(1).max(64),
@@ -32,49 +29,20 @@ export async function startImpersonation(input: unknown): Promise<void> {
       throw new Error("Only platform admins can impersonate users.")
     }
 
-    const target = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, banned: true },
-    })
-    if (!target) throw new Error("User not found.")
-    if (target.banned) throw new Error("Banned accounts cannot be impersonated.")
-
-    const organization =
-      (organizationId
-        ? await prisma.member.findFirst({
-            where: { userId, organizationId },
-            select: { organizationId: true },
-          })
-        : null) ??
-      (await prisma.member.findFirst({
-        where: { userId, clientId: null },
-        orderBy: { createdAt: "asc" },
-        select: { organizationId: true },
-      }))
-
-    const token = randomBytes(32).toString("hex")
-    const tokenHash = createHash("sha256").update(token).digest("hex")
-
-    await prisma.platformHandoff.create({
-      data: {
-        tokenHash,
-        kind: "impersonate",
-        actorId: ctx.userId,
-        targetUserId: userId,
-        organizationId: organization?.organizationId ?? null,
-        expiresAt: new Date(Date.now() + 60_000),
-      },
+    const handoff = await identityAdmin().createHandoff({
+      userId,
+      organizationId,
+      actorId: ctx.userId,
     })
 
     await recordPlatformEvent(ctx, {
       action: "platform.impersonate.start",
       targetType: "user",
       targetId: userId,
-      organizationId: organization?.organizationId ?? null,
+      organizationId: organizationId ?? null,
     })
 
-    const base = (process.env.PLATFORM_APP_URL as string).replace(/\/$/, "")
-    return `${base}/api/platform/handoff?token=${token}`
+    return handoff.url
   })
 
   redirect(url)

@@ -39,6 +39,22 @@ export const INTERNAL_ROUTES = {
   deleteOrganization: (organizationId: string) =>
     internalPath("organizations", organizationId),
   deleteUser: (userId: string) => internalPath("users", userId),
+  adminOrganizations: internalPath("admin", "organizations"),
+  adminOrganization: (organizationId: string) =>
+    internalPath("admin", "organizations", organizationId),
+  adminOrganizationPlan: (organizationId: string) =>
+    internalPath("admin", "organizations", organizationId, "plan"),
+  adminOrganizationReleasePlan: (organizationId: string) =>
+    internalPath("admin", "organizations", organizationId, "release-plan"),
+  adminOrganizationTrial: (organizationId: string) =>
+    internalPath("admin", "organizations", organizationId, "trial"),
+  adminUsers: internalPath("admin", "users"),
+  adminUser: (userId: string) => internalPath("admin", "users", userId),
+  adminUserBan: (userId: string) =>
+    internalPath("admin", "users", userId, "ban"),
+  adminUserSessions: (userId: string) =>
+    internalPath("admin", "users", userId, "sessions"),
+  adminHandoffs: internalPath("admin", "handoffs"),
 } as const
 
 export const SERVICE_SCOPES = {
