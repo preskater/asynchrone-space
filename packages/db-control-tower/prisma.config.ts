@@ -12,8 +12,7 @@ loadEnv({
 })
 
 const url = process.env.CONTROL_TOWER_DATABASE_URL ?? process.env.DATABASE_URL
-if (!url)
-  throw new Error("CONTROL_TOWER_DATABASE_URL or DATABASE_URL is required")
+if (!url) throw new Error("CONTROL_TOWER_DATABASE_URL or DATABASE_URL is required")
 
 const shadow =
   process.env.CONTROL_TOWER_SHADOW_DATABASE_URL ??

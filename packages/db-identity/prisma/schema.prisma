@@ -223,8 +223,11 @@ model Notification {
   type           String
   data           Json?
   readAt         DateTime?
+  /// Set by internal callers so a retried notification is created once.
+  idempotencyKey String?
   createdAt      DateTime     @default(now())
 
+  @@unique([organizationId, idempotencyKey])
   @@index([organizationId, userId, createdAt])
   @@index([userId, readAt])
   @@map("notification")
@@ -577,9 +580,109 @@ model DataExport {
   completedAt    DateTime?
   expiresAt      DateTime?
 
+  apps           DataExportApp[]
+
   @@index([organizationId, createdAt])
   @@index([status])
   @@map("dataExport")
+}
+
+model DataExportApp {
+  id            String      @id @default(cuid())
+  exportId      String
+  export        DataExport  @relation(fields: [exportId], references: [id], onDelete: Cascade)
+  app           String
+  /// pending | processing | complete | failed
+  status        String      @default("pending")
+  schemaVersion String?
+  rowCount      Int         @default(0)
+  sizeBytes     BigInt?
+  oid           BigInt?
+  error         String?
+  createdAt     DateTime    @default(now())
+  completedAt   DateTime?
+
+  @@unique([exportId, app])
+  @@index([status])
+  @@map("dataExportApp")
+}
+
+model OrganizationDeletionJob {
+  id             String      @id @default(cuid())
+  organizationId String      @unique
+  /// pending | running | partial | completed | failed
+  status         String      @default("pending")
+  currentApp     String?
+  requestedById  String?
+  scheduledAt    DateTime
+  deadlineAt     DateTime?
+  attempts       Int         @default(0)
+  lastError      String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  apps OrganizationDeletionApp[]
+
+  @@index([status, scheduledAt])
+  @@map("organizationDeletionJob")
+}
+
+model OrganizationDeletionApp {
+  id          String                  @id @default(cuid())
+  jobId       String
+  job         OrganizationDeletionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  app         String
+  /// pending | running | completed | failed | skipped
+  status      String                  @default("pending")
+  attempts    Int                     @default(0)
+  lastError   String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  @@unique([jobId, app])
+  @@index([status])
+  @@map("organizationDeletionApp")
+}
+
+model UserDeletionJob {
+  id             String      @id @default(cuid())
+  userId         String      @unique
+  organizationId String?
+  /// pending | running | partial | completed | failed
+  status         String      @default("pending")
+  currentApp     String?
+  scheduledAt    DateTime
+  deadlineAt     DateTime?
+  attempts       Int         @default(0)
+  lastError      String?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  apps UserDeletionApp[]
+
+  @@index([status, scheduledAt])
+  @@map("userDeletionJob")
+}
+
+model UserDeletionApp {
+  id          String          @id @default(cuid())
+  jobId       String
+  job         UserDeletionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  app         String
+  /// pending | running | completed | failed | skipped
+  status      String          @default("pending")
+  attempts    Int             @default(0)
+  lastError   String?
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  @@unique([jobId, app])
+  @@index([status])
+  @@map("userDeletionApp")
 }
 
 model AuditLog {
