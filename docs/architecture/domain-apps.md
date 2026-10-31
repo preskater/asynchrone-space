@@ -50,15 +50,17 @@ caught as well.
 
 ## Service scope matrix
 
-The service-token claim carries an audience (the target app) and a scope set.
-The first target is the identity/domain split; #179/#181 finalize issuance.
+The service-token claim carries an audience (the target app) and a scope set,
+issued by Copilot and verified by `@workspace/service-auth`. The matrix below is
+the intended caller/target relationship; the app must still enforce its own
+organization, role and row-level rules.
 
 | Caller                                 | Target                                                               | Scopes                                                                                                                                          |
 | -------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | `copilot`                              | `projects`, `calendars`, `files`, `messages`, `clients`, `employees` | `internal:domain:read`, `internal:domain:write`, `internal:audit:read`, `internal:search:read`, `internal:export:read`, `internal:delete:write` |
 | `projects` (and the other domain apps) | `copilot`                                                            | `internal:identity:read`, `internal:notifications:write`                                                                                        |
-| `copilot`                              | `control-tower`                                                      | `internal:identity:read` (admin API in #191)                                                                                                    |
-| `control-tower`                        | `copilot`                                                            | `internal:identity:read`, `internal:identity:admin` (reserved for #191)                                                                         |
+| `copilot`                              | `control-tower`                                                      | `internal:identity:read`                                                                                                                        |
+| `control-tower`                        | `copilot`                                                            | `internal:identity:read`, `internal:identity:admin`                                                                                             |
 
 `@workspace/contracts` exports the stable scope strings (`SERVICE_SCOPES`) so a
 caller and handler cannot drift. Audience is always the target app's
@@ -87,9 +89,14 @@ The verifier and token cache land in #181.
   display data through the identity internal API (#186).
 - Audit rows are written in the app's own database and aggregated by Copilot
   (#187).
-- Export and deletion are orchestrated sagas in Copilot (#188).
+- Export and deletion are orchestrated sagas in Copilot (#188); see
+  [Cross-database export and deletion](../domain-app-sagas.md).
+- Search and notifications use their own internal contracts; see
+  [Search, notifications and recents](../search-and-notifications.md).
 - The assistant, MCP and portal call domain internal APIs; they do not import a
-  domain's Prisma client (#190).
+  domain's Prisma client (#190). That wiring lands with the domain apps in
+  milestone #1; the foundation already ships the contracts, tokens and
+  failure-mode tests.
 
 ## Validation
 
@@ -108,8 +115,17 @@ also catches imports in files that are not currently reachable from a route.
 - [x] App/database/audience registry (#178)
 - [x] Internal API contract package (#178)
 - [x] Boundary checker and CI step (#178)
-- [ ] OAuth authorization server (#179)
-- [ ] OIDC client package (#180)
-- [ ] Service-token verifier and cache (#181)
-- [ ] Per-app database packages (#183)
+- [x] OAuth authorization server (#179)
+- [x] OIDC client package (#180)
+- [x] Service-token verifier and cache (#181)
+- [x] First-party OAuth clients (#182)
+- [x] Per-app database packages and migrations (#183, #184)
+- [x] Maintenance-window data split (#185)
+- [x] Identity internal API (#186)
+- [x] Per-app audit rows and aggregation (#187)
+- [x] Export/deletion sagas (#188)
+- [x] Notification, search and recents contracts (#189)
+- [x] Control-tower identity admin API (#191)
+- [x] Network policy and database operations (#192)
 - [ ] Feature inventory and parity checklist (#146)
+- [ ] Assistant/MCP/portal domain wiring and control-tower DB cutover (#190, milestone #1)

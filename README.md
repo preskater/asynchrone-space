@@ -8,16 +8,16 @@ Asynchrone Space is an AI‑first workspace that automates your workflow, centra
 
 ## What you can do with Asynchrone Space
 
-- **Calendars** – Schedule meetings, set reminders, and manage events across teams.  
-- **Projects** – Create projects, assign tasks, track progress, and manage deadlines.  
-- **Files** – Upload, version, preview, and share files with per‑person permissions.  
-- **Messages** – Chat with teammates and AI assistants in shared channels and threads.  
+- **Calendars** – Schedule meetings, set reminders, and manage events across teams.
+- **Projects** – Create projects, assign tasks, track progress, and manage deadlines.
+- **Files** – Upload, version, preview, and share files with per‑person permissions.
+- **Messages** – Chat with teammates and AI assistants in shared channels and threads.
 - **Dashboard** – See all your tasks, projects, and team activity in a single, customizable view.
 
 ## Why Asynchrone Space
 
-- **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.  
-- **Unified workspace**: No more switching between tools; everything you need lives in one platform.  
+- **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.
+- **Unified workspace**: No more switching between tools; everything you need lives in one platform.
 - **Team‑first**: Built for collaboration, with shared context, threaded discussions, and clear ownership.
 
 ## Tech stack
@@ -33,15 +33,15 @@ Asynchrone Space is an AI‑first workspace that automates your workflow, centra
 
 ## Repository structure
 
-| Path | Description |
-| --- | --- |
-| `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
-| `apps/control-tower` | Internal platform administration app (organizations, users, audit, ops). |
-| `packages/db` | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
-| `packages/ui` | Shared UI component library. |
-| `packages/eslint-config` | Shared ESLint configuration. |
-| `packages/typescript-config` | Shared TypeScript configuration. |
-| `charts/asynchrone-space` | Helm umbrella chart for deploying both apps. |
+| Path                         | Description                                                                         |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `apps/web`                   | Next.js application (App Router, i18n, API + MCP routes).                           |
+| `apps/control-tower`         | Internal platform administration app (organizations, users, audit, ops).            |
+| `packages/db`                | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
+| `packages/ui`                | Shared UI component library.                                                        |
+| `packages/eslint-config`     | Shared ESLint configuration.                                                        |
+| `packages/typescript-config` | Shared TypeScript configuration.                                                    |
+| `charts/asynchrone-space`    | Helm umbrella chart for deploying both apps.                                        |
 
 ## Getting started
 
@@ -100,8 +100,11 @@ Asynchrone Space is an AI‑first workspace that automates your workflow, centra
 ### Control tower
 
 The internal administration app is a separate Next.js app on
-http://localhost:3001. It shares the database through `packages/db` but has its
-own Better Auth secret, host-only session cookie and sign-in.
+http://localhost:3001. It has its own Better Auth secret, host-only session
+cookie and sign-in. During the database split it still uses the shared Prisma
+package for platform auth; customer identity mutations go through Copilot's
+`/internal/v1/admin/*` API. The platform-database cutover is a milestone #1
+follow-up.
 
 ```bash
 cp apps/control-tower/.env.example apps/control-tower/.env
@@ -134,30 +137,30 @@ Customer-app variables live in `apps/web/.env` (see
 `apps/control-tower/.env` (see
 [`apps/control-tower/.env.example`](./apps/control-tower/.env.example)).
 
-| Variable | Required | Description |
-| --- | --- | --- |
-| `DATABASE_URL` | Yes | PostgreSQL connection string. |
-| `DATABASE_POOL_MAX` | No | Max Postgres connections per instance (default `3`). |
-| `BETTER_AUTH_SECRET` | Yes | Secret used to sign sessions and encrypt the stored MCP/OAuth JWKS keys. Keep it stable across runtimes; clear the `jwks` table when rotating it. |
-| `BETTER_AUTH_URL` | Yes | Public base URL of the app. |
-| `OPENAI_API_KEY` | No | Enables AI assistant features. |
-| `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
-| `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
-| `MCP_RESOURCE_URL` | No | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`). |
-| `CRON_SECRET` | No | Bearer token guarding the scheduled routes (`/api/files/uploads/sweep` and `/api/cron/repository-sync`); put it in the Kubernetes Secret so the chart's CronJobs authenticate. |
+| Variable             | Required | Description                                                                                                                                                                    |
+| -------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `DATABASE_URL`       | Yes      | PostgreSQL connection string.                                                                                                                                                  |
+| `DATABASE_POOL_MAX`  | No       | Max Postgres connections per instance (default `3`).                                                                                                                           |
+| `BETTER_AUTH_SECRET` | Yes      | Secret used to sign sessions and encrypt the stored MCP/OAuth JWKS keys. Keep it stable across runtimes; clear the `jwks` table when rotating it.                              |
+| `BETTER_AUTH_URL`    | Yes      | Public base URL of the app.                                                                                                                                                    |
+| `OPENAI_API_KEY`     | No       | Enables AI assistant features.                                                                                                                                                 |
+| `OPENAI_API_URL`     | No       | Custom OpenAI-compatible base URL.                                                                                                                                             |
+| `ASSISTANT_MODEL`    | No       | Model used by the assistant (default `gpt-4o-mini`).                                                                                                                           |
+| `MCP_RESOURCE_URL`   | No       | Public identifier of the OAuth2-protected `/mcp` endpoint (defaults to `${BETTER_AUTH_URL}/mcp`).                                                                              |
+| `CRON_SECRET`        | No       | Bearer token guarding the scheduled routes (`/api/files/uploads/sweep` and `/api/cron/repository-sync`); put it in the Kubernetes Secret so the chart's CronJobs authenticate. |
 
 ## Available scripts
 
 Run these from the repository root; Turborepo fans them out to the relevant
 workspaces.
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the dev servers in watch mode. |
-| `npm run build` | Build all workspaces. |
-| `npm run lint` | Lint all workspaces. |
-| `npm run typecheck` | Type-check all workspaces. |
-| `npm run format` | Format with Prettier. |
+| Command             | Description                          |
+| ------------------- | ------------------------------------ |
+| `npm run dev`       | Start the dev servers in watch mode. |
+| `npm run build`     | Build all workspaces.                |
+| `npm run lint`      | Lint all workspaces.                 |
+| `npm run typecheck` | Type-check all workspaces.           |
+| `npm run format`    | Format with Prettier.                |
 
 ## File storage
 
@@ -229,11 +232,11 @@ npm run verify:large-object --workspace=web
 
 The Docker workflow publishes three images to GHCR:
 
-| Image | Dockerfile stage | Runs |
-| --- | --- | --- |
-| `ghcr.io/preskater/asynchrone-space` | `runner` (`APP=web`) | Customer app |
-| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
-| `ghcr.io/preskater/asynchrone-space-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
+| Image                                              | Dockerfile stage               | Runs                       |
+| -------------------------------------------------- | ------------------------------ | -------------------------- |
+| `ghcr.io/preskater/asynchrone-space`               | `runner` (`APP=web`)           | Customer app               |
+| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` (`APP=control-tower`) | Internal control tower     |
+| `ghcr.io/preskater/asynchrone-space-migrate`       | `migrate` (`APP=web`)          | One-shot Prisma migrations |
 
 Deploy them with the Helm umbrella chart in `charts/asynchrone-space`, which composes the
 `asynchrone-space-web` and `asynchrone-space-control-tower` subcharts:
@@ -258,7 +261,10 @@ helm upgrade --install asynchrone-space charts/asynchrone-space -n asynchrone-sp
 A pre-install/pre-upgrade Job runs `prisma migrate deploy` before the
 Deployments roll out, and Kubernetes CronJobs replace the former Vercel crons.
 See [docs/deployment/helm.md](./docs/deployment/helm.md) for chart values,
-ingress/TLS, DNS, rollback and troubleshooting.
+ingress/TLS, DNS, rollback and troubleshooting, and
+[database operations](./docs/deployment/database-operations.md) for the
+eight-database secrets, network policy, backups, restore order and connection
+budget.
 
 Paid plans are billed through Stripe Checkout; [docs/billing.md](./docs/billing.md)
 covers the plan model, configuration and the test-mode procedure.

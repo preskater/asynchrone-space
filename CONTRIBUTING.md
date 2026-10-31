@@ -51,12 +51,20 @@ By participating you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md)
    At minimum, set `DATABASE_URL` and a `BETTER_AUTH_SECRET` (any random
    string). An `OPENAI_API_KEY` is only needed for AI assistant features.
 
-4. **Apply database migrations and generate the Prisma client:**
+4. **Create the per-app databases, apply migrations and generate the Prisma
+   clients:**
 
    ```bash
-   npm run generate --workspace=@workspace/db
-   cd packages/db && npx prisma migrate deploy
+   npm run db:create
+   npm run migrate:deploy
+   npm run verify:migrations
+   npm run generate --workspaces --if-present
    ```
+
+   `db:create` creates `asynchrone_identity`, the seven domain databases and
+   their shadow databases from the fixed map in
+   `packages/migrate/src/databases.mjs`. Provide the `*_DATABASE_URL` keys (see
+   `apps/web/.env.example`).
 
 5. **Run the app:**
 
@@ -64,35 +72,47 @@ By participating you agree to follow our [Code of Conduct](./CODE_OF_CONDUCT.md)
    npm run dev
    ```
 
-   The web app is available at http://localhost:3000.
+   The customer app is available at http://localhost:3000 and the control tower
+   at http://localhost:3001.
 
 ## Project structure
 
 This is a [Turborepo](https://turborepo.com) monorepo managed with npm
 workspaces.
 
-| Path | Description |
-| --- | --- |
-| `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
-| `packages/ui` | Shared UI component library. |
-| `packages/eslint-config` | Shared ESLint configuration. |
-| `packages/typescript-config` | Shared TypeScript configuration. |
+| Path                                                   | Description                                                           |
+| ------------------------------------------------------ | --------------------------------------------------------------------- |
+| `apps/web`                                             | Customer Next.js app (App Router, i18n, API + MCP + internal routes). |
+| `apps/control-tower`                                   | Internal platform administration app.                                 |
+| `packages/contracts`                                   | App/database registry, internal API contracts and typed clients.      |
+| `packages/audit`                                       | Per-app audit write/read/export/prune core.                           |
+| `packages/sagas`                                       | Cross-database export/deletion orchestration.                         |
+| `packages/search`                                      | Per-app internal search handler.                                      |
+| `packages/oidc`, `packages/service-auth`               | OAuth client and service-token primitives.                            |
+| `packages/db`, `packages/db-*`                         | Monolith schema plus one Prisma package per app.                      |
+| `packages/ui`                                          | Shared UI component library.                                          |
+| `packages/eslint-config`, `packages/typescript-config` | Shared tooling.                                                       |
 
 ## Scripts
 
 Run these from the repository root; Turborepo fans them out to the relevant
 workspaces.
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the dev servers in watch mode. |
-| `npm run build` | Build all workspaces. |
-| `npm run lint` | Lint all workspaces. |
-| `npm run typecheck` | Type-check all workspaces. |
-| `npm run format` | Format with Prettier. |
+| Command                                              | Description                                                                                       |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `npm run dev`                                        | Start the dev servers in watch mode.                                                              |
+| `npm run build`                                      | Build all workspaces.                                                                             |
+| `npm run lint`                                       | Lint all workspaces.                                                                              |
+| `npm run typecheck`                                  | Type-check all workspaces.                                                                        |
+| `npm run format`                                     | Format with Prettier.                                                                             |
+| `npm run test:unit --workspace=web`                  | Vitest unit tests next to the app code.                                                           |
+| `npm run test:unit --workspace=@workspace/contracts` | Contract/client tests (repeat for `@workspace/audit`, `sagas`, `search`, `oidc`, `service-auth`). |
+| `npm run test:e2e --workspace=web`                   | Playwright against a migrated database.                                                           |
+| `npm run check:boundaries`                           | Enforce workspace and database ownership.                                                         |
+| `npm run verify:prisma-schemas`                      | Validate every generated Prisma schema.                                                           |
 
-> **Note:** there is currently no automated test suite. Please verify your
-> change manually and describe the steps you followed in your pull request.
+Unit tests use `*.unit.test.ts` next to the code. There is no separate test
+package; add a test beside the module you change.
 
 ## Making a change
 
@@ -100,11 +120,17 @@ workspaces.
    `feat/bulk-task-actions` or `fix/calendar-timezone`.
 2. Make your change, keeping it focused, and follow the existing code style
    (see `.prettierrc` and `.eslintrc.js` / workspace `eslint.config.js` files).
-3. Run the checks before pushing:
+3. Run the checks before pushing (CI runs the same order):
 
    ```bash
-   npm run lint && npm run typecheck && npm run build
+   npm run lint \
+     && npm run check:boundaries \
+     && npm run verify:prisma-schemas \
+     && npm run typecheck \
+     && npm run build
    ```
+
+   Add the relevant `test:unit` workspaces when you touch runtime code.
 
 4. Commit using [Conventional Commits](https://www.conventionalcommits.org/)
    prefixes (`feat:`, `fix:`, `docs:`, `chore:`, …), matching the existing git
