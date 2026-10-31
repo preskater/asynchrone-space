@@ -18,5 +18,7 @@ export type {
 
 export * from "./internal/contracts"
 export * from "./internal/auth"
+export * from "./internal/audit"
 export * from "./clients/identity"
+export * from "./clients/audit"
 export * from "./oauth"
