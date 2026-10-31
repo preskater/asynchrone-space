@@ -1,3 +1,23 @@
+import {
+  AUDIT_EXPORT_LIMIT,
+  AUDIT_RETENTION_DAYS,
+  AUDIT_RETENTION_MAX_DAYS,
+  AUDIT_RETENTION_MIN_DAYS,
+  AuditReader,
+  auditChanges,
+  auditRetentionCutoff,
+  normalizeRetentionDays,
+  resolveAuditRetention,
+  type AuditChange,
+  type AuditEntryView,
+  type AuditExport,
+  type AuditExportFormat,
+  type AuditFacets,
+  type AuditFilter,
+  type AuditPage,
+  type AuditPageInput,
+  type AuditRetentionView,
+} from "@workspace/audit"
 import type { PrismaClient } from "@workspace/db"
 
 import { parseOrganizationMetadata } from "@/lib/appearance/types"
@@ -8,77 +28,19 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/lib/core/errors"
-import {
-  decodeCursor,
-  encodeCursor,
-  pageSize,
-  toPage,
-} from "@/lib/core/pagination"
 import { requireEntitlement } from "@/lib/organization/entitlements"
 import { ROLE_RANK, roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"
 
-import { AUDIT_ACTIONS, SYSTEM_ACTOR_ID } from "./actions"
-import { auditChanges, type AuditChange } from "./changes"
+import { AUDIT_ACTIONS } from "./actions"
 import {
-  AUDIT_EXPORT_LIMIT,
-  AUDIT_PAGE_SIZE,
-  auditWhere,
-  type AuditFilter,
-  type AuditPageInput,
-} from "./filters"
+  exportAuditAcrossApps,
+  facetsAcrossApps,
+  listAuditAcrossApps,
+  type LocalAuditSource,
+} from "./fanout"
 import { recordUserAudit } from "./record"
-import {
-  AUDIT_RETENTION_DAYS,
-  AUDIT_RETENTION_MAX_DAYS,
-  AUDIT_RETENTION_MIN_DAYS,
-  auditRetentionCutoff,
-  normalizeRetentionDays,
-  resolveAuditRetention,
-} from "./retention"
-import type {
-  AuditEntryView,
-  AuditExport,
-  AuditExportFormat,
-  AuditFacets,
-  AuditPage,
-  AuditRetentionView,
-} from "./types"
-
-const AUDIT_ROW_SELECT = {
-  id: true,
-  createdAt: true,
-  actorId: true,
-  actorName: true,
-  actorEmail: true,
-  action: true,
-  entityType: true,
-  entityId: true,
-  entityLabel: true,
-  ipAddress: true,
-  userAgent: true,
-  before: true,
-  after: true,
-} as const
-
-type AuditRow = {
-  id: string
-  createdAt: Date
-  actorId: string
-  actorName: string | null
-  actorEmail: string | null
-  action: string
-  entityType: string
-  entityId: string
-  entityLabel: string | null
-  ipAddress: string | null
-  userAgent: string | null
-  before: unknown
-  after: unknown
-}
-
-/** Values written by rows that predate the `actorName` snapshot. */
-type ActorIdentity = { name: string | null; email: string | null }
+import { auditRemotes } from "./remotes"
 
 function dayKey(date: Date): string {
   return date.toISOString().slice(0, 10)
@@ -90,7 +52,28 @@ function dayKey(date: Date): string {
  * workspace, and members/viewers get a 403.
  */
 export class AuditService {
-  constructor(private readonly db: PrismaClient = prisma) {}
+  private readonly reader: AuditReader
+  private readonly local: LocalAuditSource
+
+  constructor(private readonly db: PrismaClient = prisma) {
+    this.reader = new AuditReader(db, {
+      actorLookup: async (ids) => {
+        const users = await db.user.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true, email: true },
+        })
+        return new Map(
+          users.map((user) => [user.id, { name: user.name, email: user.email }])
+        )
+      },
+    })
+    this.local = {
+      list: (organizationId, input) => this.reader.list(organizationId, input),
+      facets: (organizationId) => this.reader.facets(organizationId),
+      export: (organizationId, filter, limit) =>
+        this.reader.export(organizationId, filter, limit),
+    }
+  }
 
   private async planSource(organizationId: string) {
     const organization = await this.db.organization.findUnique({
@@ -141,44 +124,12 @@ export class AuditService {
 
   async list(ctx: RequestContext, input: AuditPageInput): Promise<AuditPage> {
     await this.requireRead(ctx)
-    const limit = pageSize(input.limit, AUDIT_PAGE_SIZE)
-    const where = auditWhere(ctx.organizationId, input)
-    const cursor = decodeCursor(input.cursor)
-    const cursorDate = cursor?.[0] ? new Date(cursor[0]) : null
-
-    const rows = await this.db.auditLog.findMany({
-      where:
-        cursor && cursorDate && !Number.isNaN(cursorDate.getTime()) && cursor[1]
-          ? {
-              AND: [
-                where,
-                {
-                  OR: [
-                    { createdAt: { lt: cursorDate } },
-                    { createdAt: cursorDate, id: { lt: cursor[1] } },
-                  ],
-                },
-              ],
-            }
-          : where,
-      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-      take: limit + 1,
-      select: AUDIT_ROW_SELECT,
-    })
-
-    const page = toPage(rows, limit, (row) =>
-      encodeCursor([row.createdAt.toISOString(), row.id])
+    return listAuditAcrossApps(
+      ctx.organizationId,
+      input,
+      this.local,
+      auditRemotes()
     )
-    const [total, identities] = await Promise.all([
-      this.db.auditLog.count({ where }),
-      this.actorIdentities(page.items),
-    ])
-
-    return {
-      items: page.items.map((row) => this.toView(row, identities)),
-      nextCursor: page.nextCursor,
-      total,
-    }
   }
 
   /** Distinct values of the filter dropdowns, within the retention window. */
@@ -187,48 +138,16 @@ export class AuditService {
     const retention = resolveAuditRetention(
       await this.planSource(ctx.organizationId)
     )
-    const where = {
-      organizationId: ctx.organizationId,
-      createdAt: { gte: auditRetentionCutoff(retention.days) },
-    }
-
-    const [actions, entityTypes, actors] = await Promise.all([
-      this.db.auditLog.groupBy({
-        by: ["action"],
-        where,
-        _count: { _all: true },
-        orderBy: { _count: { action: "desc" } },
-        take: 40,
-      }),
-      this.db.auditLog.groupBy({
-        by: ["entityType"],
-        where,
-        _count: { _all: true },
-        orderBy: { _count: { entityType: "desc" } },
-        take: 40,
-      }),
-      // `groupBy`, not `distinct`: Prisma applies `distinct` after fetching, so
-      // a busy workspace would only see the actors of the newest rows.
-      this.db.auditLog.groupBy({
-        by: ["actorId", "actorName"],
-        where,
-        _count: { _all: true },
-        orderBy: { _count: { actorId: "desc" } },
-        take: 50,
-      }),
-    ])
-
-    return {
-      actions: actions.map((row) => ({
-        value: row.action,
-        count: row._count._all,
-      })),
-      entityTypes: entityTypes.map((row) => ({
-        value: row.entityType,
-        count: row._count._all,
-      })),
-      actors: uniqueActors(actors),
-    }
+    const cutoff = auditRetentionCutoff(retention.days)
+    return facetsAcrossApps(
+      ctx.organizationId,
+      {
+        ...this.local,
+        facets: (organizationId) => this.reader.facets(organizationId, cutoff),
+      },
+      auditRemotes(),
+      cutoff
+    )
   }
 
   /**
@@ -241,17 +160,14 @@ export class AuditService {
     format: AuditExportFormat
   ): Promise<AuditExport> {
     await this.requireRead(ctx)
-    const where = auditWhere(ctx.organizationId, filter)
-    const rows = await this.db.auditLog.findMany({
-      where,
-      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-      take: AUDIT_EXPORT_LIMIT + 1,
-      select: AUDIT_ROW_SELECT,
-    })
-    const truncated = rows.length > AUDIT_EXPORT_LIMIT
-    const kept = truncated ? rows.slice(0, AUDIT_EXPORT_LIMIT) : rows
-    const identities = await this.actorIdentities(kept)
-    const entries = kept.map((row) => this.toView(row, identities))
+    const { entries, truncated, partial, unavailableApps } =
+      await exportAuditAcrossApps(
+        ctx.organizationId,
+        filter,
+        this.local,
+        auditRemotes(),
+        AUDIT_EXPORT_LIMIT
+      )
     const today = dayKey(new Date())
 
     if (format === "json") {
@@ -259,12 +175,20 @@ export class AuditService {
         filename: `asynchrone-space-audit-${today}.json`,
         contentType: "application/json",
         content: JSON.stringify(
-          { exportedAt: new Date().toISOString(), truncated, entries },
+          {
+            exportedAt: new Date().toISOString(),
+            truncated,
+            partial,
+            unavailableApps,
+            entries,
+          },
           null,
           2
         ),
         count: entries.length,
         truncated,
+        partial,
+        unavailableApps,
       }
     }
 
@@ -305,6 +229,8 @@ export class AuditService {
       content: toCsv(csvRows),
       count: entries.length,
       truncated,
+      partial,
+      unavailableApps,
     }
   }
 
@@ -365,64 +291,6 @@ export class AuditService {
 
     return this.retentionFor(ctx.organizationId)
   }
-
-  /** Names for rows written before the `actorName` snapshot existed. */
-  private async actorIdentities(
-    rows: AuditRow[]
-  ): Promise<Map<string, ActorIdentity>> {
-    const missing = [
-      ...new Set(
-        rows
-          .filter((row) => !row.actorName && row.actorId !== SYSTEM_ACTOR_ID)
-          .map((row) => row.actorId)
-      ),
-    ]
-    if (missing.length === 0) return new Map()
-    const users = await this.db.user.findMany({
-      where: { id: { in: missing } },
-      select: { id: true, name: true, email: true },
-    })
-    return new Map(
-      users.map((user) => [user.id, { name: user.name, email: user.email }])
-    )
-  }
-
-  private toView(
-    row: AuditRow,
-    identities: Map<string, ActorIdentity>
-  ): AuditEntryView {
-    const identity = identities.get(row.actorId)
-    return {
-      id: row.id,
-      createdAt: row.createdAt.toISOString(),
-      actorId: row.actorId,
-      actorName: row.actorName ?? identity?.name ?? null,
-      actorEmail: row.actorEmail ?? identity?.email ?? null,
-      action: row.action,
-      entityType: row.entityType,
-      entityId: row.entityId,
-      entityLabel: row.entityLabel,
-      ipAddress: row.ipAddress,
-      userAgent: row.userAgent,
-      before: row.before,
-      after: row.after,
-    }
-  }
-}
-
-/** One option per actor, preferring the snapshot that carries a name. */
-function uniqueActors(
-  rows: { actorId: string; actorName: string | null }[]
-): { id: string; name: string | null }[] {
-  const byId = new Map<string, string | null>()
-  for (const row of rows) {
-    if (row.actorId === SYSTEM_ACTOR_ID) continue
-    const current = byId.get(row.actorId)
-    if (current === undefined || (!current && row.actorName)) {
-      byId.set(row.actorId, row.actorName)
-    }
-  }
-  return [...byId].map(([id, name]) => ({ id, name }))
 }
 
 function describeChange(change: AuditChange, entry: AuditEntryView): string {

@@ -1,3 +1,4 @@
+import { AuditReader } from "@workspace/audit"
 import type { PrismaClient } from "@workspace/db"
 
 import { prisma } from "@/lib/prisma"
@@ -43,6 +44,9 @@ export interface AuditPruneOptions {
  * Only `AuditLog` is touched: the control tower's `PlatformAuditEvent` is a
  * separate table with its own lifecycle and must outlive the customer-visible
  * trail. Idempotent: a second run the same day deletes nothing.
+ *
+ * The delete itself goes through `@workspace/audit`, so the same job can run
+ * against any per-app database by swapping the client.
  */
 export async function pruneAuditLogs(
   options: AuditPruneOptions = {}
@@ -58,6 +62,7 @@ export async function pruneAuditLogs(
     deleted: 0,
     capped: 0,
   }
+  const reader = new AuditReader(db)
 
   let cursorId: string | null = null
   for (;;) {
@@ -86,35 +91,12 @@ export async function pruneAuditLogs(
         now
       )
       const cutoff = auditRetentionCutoff(retention.days, now)
-
-      let mayHaveMore = false
-      for (let batch = 0; batch < maxBatches; batch += 1) {
-        const stale = await db.auditLog.findMany({
-          where: { organizationId: organization.id, createdAt: { lt: cutoff } },
-          select: { id: true },
-          orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-          take: batchSize,
-        })
-        if (stale.length === 0) {
-          mayHaveMore = false
-          break
-        }
-        const { count } = await db.auditLog.deleteMany({
-          where: { id: { in: stale.map((row) => row.id) } },
-        })
-        result.deleted += count
-        if (stale.length < batchSize) {
-          mayHaveMore = false
-          break
-        }
-        mayHaveMore = true
-      }
-      if (mayHaveMore) {
-        const left = await db.auditLog.count({
-          where: { organizationId: organization.id, createdAt: { lt: cutoff } },
-        })
-        if (left > 0) result.capped += 1
-      }
+      const pruned = await reader.prune(organization.id, cutoff, {
+        batchSize,
+        maxBatches,
+      })
+      result.deleted += pruned.deleted
+      if (pruned.capped) result.capped += 1
     }
 
     if (organizations.length < ORG_PAGE_SIZE) break

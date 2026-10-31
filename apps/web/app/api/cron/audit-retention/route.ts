@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { pruneAuditLogs } from "@/lib/audit/prune"
+import { pruneRemoteAuditLogs } from "@/lib/audit/remote-prune"
 
 export const runtime = "nodejs"
 export const maxDuration = 300
@@ -23,6 +24,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
   }
 
-  const result = await pruneAuditLogs()
-  return NextResponse.json({ ok: true, ...result })
+  const local = await pruneAuditLogs()
+  const remote = await pruneRemoteAuditLogs()
+  return NextResponse.json({ ok: true, local, remote })
 }

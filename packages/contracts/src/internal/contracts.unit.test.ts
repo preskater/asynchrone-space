@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest"
 
 import {
   AuditPageSchema,
-  AuditQuerySchema,
   DeletionResultSchema,
   ExportManifestSchema,
   INTERNAL_API_VERSION,
@@ -82,10 +81,10 @@ describe("identity contracts", () => {
 })
 
 describe("resource contracts", () => {
-  it("defaults audit pagination", () => {
-    expect(AuditQuerySchema.parse({ organizationId: "org_1" }).limit).toBe(50)
+  it("validates an audit page", () => {
     expect(
-      AuditPageSchema.parse({ events: [], nextCursor: null }).nextCursor
+      AuditPageSchema.parse({ items: [], nextCursor: null, total: 0 })
+        .nextCursor
     ).toBeNull()
   })
 

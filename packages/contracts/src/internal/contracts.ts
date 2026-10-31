@@ -29,6 +29,8 @@ export const INTERNAL_ROUTES = {
     internalPath("organizations", organizationId, "entitlements"),
   identityUser: (userId: string) => internalPath("users", userId),
   audit: internalPath("audit"),
+  auditExport: internalPath("audit", "export"),
+  auditFacets: internalPath("audit", "facets"),
   auditPrune: internalPath("audit", "prune"),
   search: internalPath("search"),
   notifications: internalPath("notifications"),
@@ -119,43 +121,6 @@ export const IdentityContextSchema = z.object({
   entitlements: EntitlementsSchema,
 })
 export type IdentityContext = z.infer<typeof IdentityContextSchema>
-
-export const AuditEventSchema = z.object({
-  id: z.string().min(1),
-  organizationId: z.string().min(1),
-  actorId: z.string().min(1),
-  actorName: z.string().nullable().optional(),
-  actorEmail: z.string().email().nullable().optional(),
-  action: z.string().min(1),
-  entityType: z.string().min(1),
-  entityId: z.string().min(1),
-  entityLabel: z.string().nullable().optional(),
-  before: z.unknown().optional(),
-  after: z.unknown().optional(),
-  ipAddress: z.string().nullable().optional(),
-  userAgent: z.string().nullable().optional(),
-  createdAt: z.coerce.date(),
-})
-export type AuditEvent = z.infer<typeof AuditEventSchema>
-
-export const AuditQuerySchema = z.object({
-  organizationId: z.string().min(1),
-  action: z.string().optional(),
-  entityType: z.string().optional(),
-  actorId: z.string().optional(),
-  before: z.coerce.date().optional(),
-  after: z.coerce.date().optional(),
-  cursor: z.string().optional(),
-  limit: z.number().int().min(1).max(100).default(50),
-})
-export type AuditQuery = z.infer<typeof AuditQuerySchema>
-
-export const AuditPageSchema = z.object({
-  events: z.array(AuditEventSchema),
-  nextCursor: z.string().nullable(),
-  total: z.number().int().nonnegative().optional(),
-})
-export type AuditPage = z.infer<typeof AuditPageSchema>
 
 export const SearchResultSchema = z.object({
   app: z.string().min(1),

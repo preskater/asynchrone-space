@@ -74,7 +74,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Audit log
 
-- `AuditLog` is the customer-facing trail (Settings → Audit log). Write it only through `apps/web/lib/audit/record.ts` (`recordUserAudit` for server actions, `recordSystemAudit` for jobs/webhooks), never with `prisma.auditLog.create` — that is what keeps the page, the export and the retention job consistent.
+- `AuditLog` is the customer-facing trail (Settings → Audit log) and exists in every per-app schema. Shared logic lives in `@workspace/audit` (`packages/audit`), parameterized by the app's database client. Write it only through `apps/web/lib/audit/record.ts` (`recordUserAudit` for server actions, `recordSystemAudit` for jobs/webhooks), never with `prisma.auditLog.create` — that is what keeps the page, the export and the retention job consistent.
+- Every app exposes `/internal/v1/audit`, `/audit/facets`, `/audit/export` and `/audit/prune` through `packages/audit/src/http.ts`, gated by `internal:audit:read` / `internal:audit:write`. Copilot merges them with `apps/web/lib/audit/fanout.ts` (composite cursor, partial results); configure `*_APP_URL` to enable a domain app.
 - The mutation that performs a change records the row itself (one row per changed entity), snapshots `entityLabel`, and lets a failed audit write fail the action.
 - New actions go into `AUDIT_ACTIONS` and get `Audit.actions.<action>` labels in `apps/web/messages/{en,fr}/audit.json`; unknown actions fall back to their raw value.
 - Member, role and invitation changes go through Better Auth, so they are audited from the `after` hook in `apps/web/lib/auth.ts` (`apps/web/lib/audit/auth-audit.ts`).
