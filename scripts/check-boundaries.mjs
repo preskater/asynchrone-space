@@ -118,11 +118,27 @@ function workspaceAt(absolutePath) {
   )
 }
 
-function workspacePackageName(specifier) {
-  if (!specifier.startsWith("@workspace/")) return null
-  const [scope, name] = specifier.split("/")
-  return name ? `${scope}/${name}` : null
+/**
+ * Resolve a bare import to a workspace package. Workspace apps are unscoped
+ * (`web`, `control-tower`), so the check cannot rely on the `@workspace/`
+ * prefix alone. A subpath such as `@workspace/ui/button` or `web/lib/x`
+ * resolves to its owning package.
+ */
+function workspacePackageName(specifier, packages) {
+  if (specifier.startsWith(".")) return null
+
+  if (specifier.startsWith("@workspace/")) {
+    const [scope, name] = specifier.split("/")
+    return name ? `${scope}/${name}` : null
+  }
+
+  const [name] = specifier.split("/")
+  // Unscoped workspace packages are apps. Unknown bare imports are npm
+  // dependencies and never reach this branch.
+  return packages.has(name) ? name : null
 }
+
+const DIRECT_PRISMA_PACKAGES = new Set(["@prisma/client", "@prisma/adapter-pg"])
 
 const workspaces = listWorkspaces()
 const packages = new Map(
@@ -161,6 +177,22 @@ function checkDbOwnership(importer, packageName, file, specifier) {
   }
 }
 
+/**
+ * Only the database packages may construct a Prisma client. An app or a
+ * domain package reaching for `@prisma/client` directly would bypass both the
+ * pool budget (`@workspace/db-core`) and the per-app database ownership rule.
+ */
+function checkDirectPrisma(importer, file, specifier) {
+  if (!DIRECT_PRISMA_PACKAGES.has(specifier)) return
+  if (importer.name.startsWith("@workspace/db")) return
+  report(
+    file,
+    specifier,
+    "direct-database-client",
+    `${importer.name} must import a @workspace/db-* package instead of a Prisma client`
+  )
+}
+
 for (const workspace of workspaces) {
   for (const file of walk(workspace.dir)) {
     const source = readFileSync(file, "utf8")
@@ -186,7 +218,9 @@ for (const workspace of workspaces) {
         continue
       }
 
-      const packageName = workspacePackageName(specifier)
+      checkDirectPrisma(workspace, file, specifier)
+
+      const packageName = workspacePackageName(specifier, packages)
       if (!packageName) continue
 
       const dependency = packages.get(packageName)
@@ -201,6 +235,25 @@ for (const workspace of workspaces) {
       }
 
       if (dependency.name === workspace.name) continue
+
+      // App source must never import another app: the split relies on every
+      // app being independently deployable. Packages never import an app for
+      // the same reason.
+      if (workspace.kind === "app" && dependency.kind === "app") {
+        report(
+          file,
+          specifier,
+          "app-to-app-import",
+          `${workspace.name} may not import the ${dependency.name} app`
+        )
+      } else if (workspace.kind === "package" && dependency.kind === "app") {
+        report(
+          file,
+          specifier,
+          "package-app-import",
+          `${workspace.name} may not import the ${dependency.name} app`
+        )
+      }
 
       if (!workspace.dependencyNames.has(packageName)) {
         report(
