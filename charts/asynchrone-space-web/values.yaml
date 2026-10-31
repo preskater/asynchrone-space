@@ -142,6 +142,20 @@ config:
 secret:
   existingSecret: asynchrone-space-web-secrets
 
+# Least-privilege network policy. Disabled by default so an existing cluster
+# keeps working; enable it after reviewing the ingress controller and database
+# namespaces for your installation.
+networkPolicy:
+  enabled: false
+  # Who may reach the HTTP port. Defaults to the common ingress-nginx namespace.
+  ingressFrom:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: ingress-nginx
+  # Restrict the database destination to its namespace or ipBlock.
+  databaseFrom: []
+  databasePort: 5432
+
 extraEnv: []
 extraEnvFrom: []
 extraVolumes: []

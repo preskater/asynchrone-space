@@ -1,7 +1,10 @@
 # Deploying Asynchrone Space with Helm
 
-Asynchrone Space runs as two Next.js apps backed by one PostgreSQL database. This guide
-installs both from the umbrella chart in `charts/asynchrone-space`.
+Asynchrone Space runs as two Next.js apps backed by eight PostgreSQL databases
+(one per app; the customer app owns identity). This guide installs both from the
+umbrella chart in `charts/asynchrone-space`. Secrets, network policy, backups,
+restore order and the connection budget are covered in
+[Database operations](database-operations.md).
 
 ```
 charts/
@@ -184,6 +187,7 @@ Web values live under `asynchrone-space-web` and `asynchrone-space-control-tower
 | `*.ingress.className`                          | `nginx`                          | Ingress controller class               |
 | `*.ingress.tls`                                | `[]`                             | TLS secret(s) for the hosts            |
 | `*.config`                                     | see values                       | Non-secret environment variables       |
+| `*.networkPolicy.enabled`                      | `false`                          | Enable least-privilege ingress/egress  |
 | `asynchrone-space-web.cronjobs.*.enabled`      | `true`                           | Toggle each scheduled job              |
 | `migrate.enabled`                              | `true`                           | Toggle the migration hook              |
 
@@ -227,15 +231,15 @@ upload chunk.
 
 ### Database connections
 
-Each pod opens one pool (`DATABASE_POOL_MAX`, default 10 in the chart). Keep:
+Each pod opens one pool (`DATABASE_POOL_MAX`, default 10 in the chart). The
+fleet-wide budget, per-app values, PgBouncer guidance and the failure drill are
+in [Database operations](database-operations.md). In-flight uploads and
+downloads hold one connection each; keep the total below 70% of
+`max_connections`.
 
-```
-(web replicas + control-tower replicas) × DATABASE_POOL_MAX
-  + migration/cron headroom
-```
-
-below the database connection limit, or point `DATABASE_URL` at PgBouncer or a
-managed pooler. In-flight uploads and downloads hold one connection each.
+Enable `asynchrone-space-web.networkPolicy.enabled` and
+`asynchrone-space-control-tower.networkPolicy.enabled` after setting the ingress
+and database namespaces. `/internal/v1/*` is never routed by the Ingress.
 
 ### Control tower access
 
