@@ -4,16 +4,22 @@ import { getTranslations } from "next-intl/server"
 
 import { TwoFactorCard } from "@/components/account/two-factor-card"
 import { AuthHomeButton } from "@/components/auth-home-button"
-import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
 import { auth } from "@/lib/auth"
+import { safeRedirect } from "@/lib/core/redirect"
 
 /** Where the workspace gate sends members of an organization that requires 2FA. */
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>
+}) {
   const session = await auth.api.getSession({ headers: await headers() })
   if (!session) redirect("/sign-in")
 
+  const { next } = await searchParams
+  const continueTo = safeRedirect(next)
   const t = await getTranslations("Auth.twoFactorSetup")
 
   return (
@@ -27,7 +33,7 @@ export default async function Page() {
           <p className="text-sm text-muted-foreground">{t("description")}</p>
         </div>
         <TwoFactorCard />
-        <Button nativeButton={false} render={<Link href="/onboarding" />}>
+        <Button nativeButton={false} render={<a href={continueTo} />}>
           {t("continue")}
         </Button>
       </div>

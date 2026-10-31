@@ -5,6 +5,7 @@ import {
   isAppKey,
   type AppKey,
 } from "./apps"
+import { APP_USER_SCOPES } from "./oauth"
 
 /**
  * Runtime app origins.
@@ -58,6 +59,28 @@ export function appUrl(key: AppKey, options: AppUrlOptions = {}): string {
     .join("/")
 
   return suffix ? `${appOrigin(key)}/${suffix}` : appOrigin(key)
+}
+
+/**
+ * OAuth resources for the workspace apps that receive user-delegated tokens.
+ * Copilot is the authorization server and does not need a token for itself;
+ * the landing and control tower have their own surfaces.
+ */
+export interface AppOAuthResource {
+  identifier: string
+  allowedScopes: string[]
+}
+
+export function appOAuthResources(): AppOAuthResource[] {
+  return CUSTOMER_APP_KEYS.filter((key) => key !== "copilot").map((key) => ({
+    identifier: appOrigin(key),
+    allowedScopes: [...APP_USER_SCOPES],
+  }))
+}
+
+/** User-delegated scopes requested by a first-party app. */
+export function appOAuthScopes(): string[] {
+  return [...APP_USER_SCOPES]
 }
 
 /**

@@ -2,11 +2,14 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   allAppOrigins,
+  appOAuthResources,
+  appOAuthScopes,
   appOrigin,
   appUrl,
   trustedCustomerOrigins,
   workspaceOrigin,
 } from "./app-urls.server"
+import { APP_USER_SCOPES } from "./oauth"
 
 afterEach(() => {
   vi.unstubAllEnvs()
@@ -66,5 +69,27 @@ describe("app origins", () => {
     const origins = allAppOrigins()
     expect(origins.landing).toBe("http://localhost:3002")
     expect(origins["control-tower"]).toBe("http://localhost:3001")
+  })
+})
+
+describe("OAuth resources", () => {
+  it("targets the six domain apps, not Copilot or the landing", () => {
+    const resources = appOAuthResources()
+    expect(resources.map((resource) => resource.identifier)).toEqual([
+      "http://localhost:3004",
+      "http://localhost:3005",
+      "http://localhost:3006",
+      "http://localhost:3007",
+      "http://localhost:3008",
+      "http://localhost:3009",
+    ])
+    expect(
+      resources.every((resource) => resource.allowedScopes.includes("app:read"))
+    ).toBe(true)
+  })
+
+  it("uses the same user scopes for every app", () => {
+    expect(appOAuthScopes()).toEqual([...APP_USER_SCOPES])
+    expect(appOAuthScopes()).toContain("offline_access")
   })
 })
