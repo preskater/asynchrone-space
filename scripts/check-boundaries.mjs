@@ -136,6 +136,8 @@ function report(file, specifier, rule, message) {
 
 function checkDbOwnership(importer, packageName, file, specifier) {
   if (!packageName.startsWith("@workspace/db-")) return
+  // The shared pool/adapter package is not a per-app database.
+  if (packageName === "@workspace/db-core") return
   const owner = packageName.slice("@workspace/db-".length)
   const allowed =
     importer.appKey === owner ||

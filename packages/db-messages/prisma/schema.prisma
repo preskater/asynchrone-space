@@ -1,0 +1,133 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model ChatTeam {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  createdAt      DateTime     @default(now())
+
+  conversations Conversation[]
+
+  @@index([organizationId])
+  @@map("chatTeam")
+}
+
+model Conversation {
+  id             String       @id @default(cuid())
+  organizationId String
+  kind           String       @default("channel")
+  name           String
+  teamId         String?
+  team           ChatTeam?    @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  topic          String?
+  unreadCount    Int          @default(0)
+  lastMessageAt  DateTime     @default(now())
+  muted          Boolean      @default(false)
+  pinned         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  members  ConversationMember[]
+  messages Message[]
+
+  @@index([organizationId])
+  @@index([teamId])
+  @@map("conversation")
+}
+
+model ConversationMember {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@map("conversationMember")
+}
+
+model Message {
+  id              String       @id @default(cuid())
+  conversationId  String
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  authorId        String
+  body            String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  edited          Boolean      @default(false)
+  system          Boolean      @default(false)
+  parentId        String?
+  parent          Message?     @relation("Thread", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         Message[]    @relation("Thread")
+  meetingTitle    String?
+  meetingStartsAt DateTime?
+  meetingDuration Int?
+
+  reactions   MessageReaction[]
+  attachments MessageAttachment[]
+
+  @@index([conversationId])
+  @@index([parentId])
+  @@map("message")
+}
+
+model MessageReaction {
+  id        String  @id @default(cuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  emoji     String
+  userId    String
+
+  @@unique([messageId, emoji, userId])
+  @@index([messageId])
+  @@map("messageReaction")
+}
+
+model MessageAttachment {
+  id        String  @id @default(cuid())
+  messageId String
+  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  name      String
+  kind      String  @default("file")
+  meta      String?
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
+
+  @@index([messageId])
+  @@map("messageAttachment")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}

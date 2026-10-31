@@ -1,0 +1,609 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model User {
+  id            String       @id
+  name          String
+  email         String
+  emailVerified Boolean      @default(false)
+  image         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  role          String?
+  banned        Boolean?     @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  twoFactorEnabled Boolean?  @default(false)
+  customerTwoFactorEnabled Boolean? @default(false)
+  lastSeenAt    DateTime?
+  sessions      Session[]
+  accounts      Account[]
+  teammembers   TeamMember[]
+  members       Member[]
+  invitations   Invitation[]
+  twoFactor     TwoFactor[]
+  customerTwoFactor CustomerTwoFactor[]
+
+  oauthClients       OauthClient[]
+  oauthRefreshTokens OauthRefreshToken[]
+  oauthAccessTokens  OauthAccessToken[]
+  oauthConsents      OauthConsent[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id                   String   @id
+  expiresAt            DateTime
+  token                String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  ipAddress            String?
+  userAgent            String?
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activeOrganizationId String?
+  activeTeamId         String?
+  impersonatedBy       String?
+
+  oauthRefreshTokens OauthRefreshToken[]
+  oauthAccessTokens  OauthAccessToken[]
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Organization {
+  id                String       @id
+  name              String
+  slug              String
+  logo              String?
+  createdAt         DateTime
+  metadata          String?
+  storageQuotaBytes BigInt?
+  /// Team trial window. The trial grants Team while `trialEndsAt` is in the
+  /// future; `metadata.plan` is never changed by it.
+  trialStartedAt      DateTime?
+  trialEndsAt         DateTime?
+  /// Set once by the trial-expiry cron so reminders and expiry never repeat.
+  trialReminderSentAt DateTime?
+  trialEndedAt        DateTime?
+  /// Owner-requested deletion. The organization-deletion cron removes the
+  /// organization once this date has passed; clearing it cancels the request.
+  deletionScheduledAt   DateTime?
+  deletionRequestedById String?
+  /// Members must enroll TOTP before reaching the workspace (Team/Enterprise).
+  requireTwoFactor      Boolean   @default(false)
+  teams             Team[]
+  members           Member[]
+  invitations       Invitation[]
+
+
+
+  notifications       Notification[]
+  portalInvites       PortalInvite[]
+
+
+
+  dataExports DataExport[]
+
+  subscription Subscription?
+  invoices     Invoice[]
+  aiUsageEvents AiUsageEvent[]
+
+  @@unique([slug])
+  @@map("organization")
+}
+
+model TrialClaim {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  /// Null for public mailbox providers (gmail.com…), which are not blocked.
+  domain         String?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  @@unique([domain])
+  @@map("trialClaim")
+}
+
+model Team {
+  id             String       @id
+  name           String
+  memberCount    Int          @default(0)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime
+  updatedAt      DateTime?    @updatedAt
+  teammembers    TeamMember[]
+
+  @@index([organizationId])
+  @@map("team")
+}
+
+model TeamMember {
+  id            String    @id
+  teamId        String
+  team          Team      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  membershipKey String?
+  createdAt     DateTime?
+
+  @@unique([membershipKey])
+  @@index([teamId])
+  @@index([userId])
+  @@map("teamMember")
+}
+
+model Member {
+  id               String       @id
+  organizationId   String
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId           String
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role             String       @default("member")
+  /// Set for client-portal members: the company whose projects they can see.
+  clientId         String?
+  /// Last time the portal user opened their dashboard or a project (unread badges).
+  portalLastSeenAt DateTime?
+  createdAt        DateTime
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([clientId])
+  @@map("member")
+}
+
+model Invitation {
+  id             String       @id
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String?
+  teamId         String?
+  status         String       @default("pending")
+  expiresAt      DateTime
+  createdAt      DateTime     @default(now())
+  inviterId      String
+  user           User         @relation(fields: [inviterId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([email])
+  @@map("invitation")
+}
+
+model Notification {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  actorId        String?
+  type           String
+  data           Json?
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, userId, createdAt])
+  @@index([userId, readAt])
+  @@map("notification")
+}
+
+model PortalInvite {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String
+  email          String
+  name           String?
+  invitationId   String?      @unique
+  invitedById    String?
+  createdAt      DateTime     @default(now())
+  acceptedAt     DateTime?
+
+  @@index([organizationId, clientId])
+  @@index([email])
+  @@map("portalInvite")
+}
+
+model Jwks {
+  id         String    @id
+  publicKey  String
+  privateKey String
+  createdAt  DateTime
+  expiresAt  DateTime?
+  alg        String?
+  crv        String?
+
+  @@map("jwks")
+}
+
+model OauthClient {
+  id                               String    @id
+  clientId                         String    @unique
+  clientSecret                     String?
+  clientDiscoveryId                String?
+  disabled                         Boolean?  @default(false)
+  skipConsent                      Boolean?
+  enableEndSession                 Boolean?
+  subjectType                      String?
+  scopes                           String[]  @default([])
+  clientCredentialsScopes          String[]  @default([])
+  userId                           String?
+  user                             User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt                        DateTime?
+  updatedAt                        DateTime?
+  name                             String?
+  uri                              String?
+  icon                             String?
+  contacts                         String[]  @default([])
+  tos                              String?
+  policy                           String?
+  softwareId                       String?
+  softwareVersion                  String?
+  softwareStatement                String?
+  redirectUris                     String[]  @default([])
+  postLogoutRedirectUris           String[]  @default([])
+  backchannelLogoutUri             String?
+  backchannelLogoutSessionRequired Boolean?
+  tokenEndpointAuthMethod          String?
+  applicationType                  String?
+  jwks                             String?
+  jwksUri                          String?
+  grantTypes                       String[]  @default([])
+  responseTypes                    String[]  @default([])
+  requirePKCE                      Boolean?
+  dpopBoundAccessTokens            Boolean?  @default(false)
+  referenceId                      String?
+  metadata                         Json?
+
+  refreshTokens   OauthRefreshToken[]
+  accessTokens    OauthAccessToken[]
+  consents        OauthConsent[]
+  clientResources OauthClientResource[]
+
+  @@index([userId])
+  @@map("oauthClient")
+}
+
+model OauthResource {
+  id                            String    @id
+  identifier                    String    @unique
+  name                          String
+  accessTokenTtl                Int?
+  refreshTokenTtl               Int?
+  signingAlgorithm              String?
+  signingKeyId                  String?
+  allowedScopes                 String[]  @default([])
+  customClaims                  Json?
+  dpopBoundAccessTokensRequired Boolean?  @default(false)
+  disabled                      Boolean?  @default(false)
+  createdAt                     DateTime?
+  updatedAt                     DateTime?
+  policyVersion                 Int?      @default(1)
+  metadata                      Json?
+
+  clientResources OauthClientResource[]
+
+  @@map("oauthResource")
+}
+
+model OauthClientResource {
+  id         String        @id
+  clientId   String
+  client     OauthClient   @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  resourceId String
+  resource   OauthResource @relation(fields: [resourceId], references: [identifier], onDelete: Cascade)
+  metadata   Json?
+  createdAt  DateTime?
+
+  @@unique([clientId, resourceId])
+  @@index([clientId])
+  @@index([resourceId])
+  @@map("oauthClientResource")
+}
+
+model OauthRefreshToken {
+  id                      String      @id
+  token                   String      @unique
+  clientId                String
+  client                  OauthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  sessionId               String?
+  session                 Session?    @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  userId                  String
+  user                    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referenceId             String?
+  authorizationCodeId     String?
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
+  expiresAt               DateTime
+  createdAt               DateTime
+  revoked                 DateTime?
+  rotatedAt               DateTime?
+  rotationReplayResponse  String?
+  rotationReplayExpiresAt DateTime?
+  authTime                DateTime?
+  confirmation            Json?
+  scopes                  String[]    @default([])
+
+  accessTokens OauthAccessToken[]
+
+  @@index([clientId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([authorizationCodeId])
+  @@map("oauthRefreshToken")
+}
+
+model OauthAccessToken {
+  id                      String             @id
+  token                   String             @unique
+  clientId                String
+  client                  OauthClient        @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  sessionId               String?
+  session                 Session?           @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  userId                  String?
+  user                    User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referenceId             String?
+  authorizationCodeId     String?
+  resources               String[]           @default([])
+  requestedUserInfoClaims String[]           @default([])
+  refreshId               String?
+  refresh                 OauthRefreshToken? @relation(fields: [refreshId], references: [id], onDelete: Cascade)
+  expiresAt               DateTime
+  createdAt               DateTime
+  revoked                 DateTime?
+  confirmation            Json?
+  scopes                  String[]           @default([])
+
+  @@index([clientId])
+  @@index([sessionId])
+  @@index([userId])
+  @@index([authorizationCodeId])
+  @@index([refreshId])
+  @@map("oauthAccessToken")
+}
+
+model OauthConsent {
+  id                      String      @id
+  clientId                String
+  client                  OauthClient @relation(fields: [clientId], references: [clientId], onDelete: Cascade)
+  userId                  String?
+  user                    User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referenceId             String?
+  resources               String[]    @default([])
+  requestedUserInfoClaims String[]    @default([])
+  scopes                  String[]    @default([])
+  createdAt               DateTime
+  updatedAt               DateTime
+
+  @@index([clientId])
+  @@index([userId])
+  @@map("oauthConsent")
+}
+
+model OauthClientAssertion {
+  id        String   @id
+  expiresAt DateTime
+
+  @@map("oauthClientAssertion")
+}
+
+model TwoFactor {
+  id                     String    @id @default(cuid())
+  secret                 String
+  backupCodes            String
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified               Boolean?  @default(true)
+  failedVerificationCount Int      @default(0)
+  lockedUntil            DateTime?
+
+  @@index([userId])
+  @@map("twoFactor")
+}
+
+model CustomerTwoFactor {
+  id                     String    @id @default(cuid())
+  secret                 String
+  backupCodes            String
+  userId                 String
+  user                   User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified               Boolean?  @default(true)
+  failedVerificationCount Int      @default(0)
+  lockedUntil            DateTime?
+
+  @@index([userId])
+  @@map("customerTwoFactor")
+}
+
+model Subscription {
+  id                     String       @id @default(cuid())
+  organizationId         String       @unique
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// `free`, `team` or `enterprise`.
+  plan                   String       @default("free")
+  /// `inactive`, `trialing`, `active`, `past_due`, `canceled`, `unpaid`.
+  status                 String       @default("inactive")
+  /// `stripe` when the customer pays through checkout, `manual` for contracts.
+  provider               String       @default("stripe")
+  providerCustomerId     String?
+  providerSubscriptionId String?      @unique
+  providerPriceId        String?
+  /// `month` or `year`; null for manually granted plans.
+  billingInterval        String?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean      @default(false)
+  trialEndsAt            DateTime?
+  /// Set when a platform admin granted the plan by hand; webhooks never
+  /// downgrade an overridden plan.
+  manualOverride         Boolean      @default(false)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+
+  invoices Invoice[]
+
+  @@index([providerCustomerId])
+  @@index([status])
+  @@index([trialEndsAt])
+  @@map("subscription")
+}
+
+model Invoice {
+  id                String        @id @default(cuid())
+  organizationId    String
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  providerInvoiceId String        @unique
+  number            String?
+  /// `draft`, `open`, `paid`, `void` or `uncollectible`.
+  status            String
+  amountDue         Int           @default(0)
+  amountPaid        Int           @default(0)
+  currency          String        @default("eur")
+  hostedInvoiceUrl  String?
+  invoicePdf        String?
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@map("invoice")
+}
+
+model BillingEvent {
+  id             String   @id @default(cuid())
+  provider       String   @default("stripe")
+  eventId        String
+  type           String
+  organizationId String?
+  /// `processed`, `ignored` or `failed`.
+  status         String   @default("processed")
+  error          String?
+  processedAt    DateTime @default(now())
+
+  @@unique([provider, eventId])
+  @@index([organizationId, processedAt])
+  @@map("billingEvent")
+}
+
+model AiUsageEvent {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Kept without a relation so usage survives the user's deletion.
+  userId         String
+  model          String
+  requests       Int
+  inputTokens    Int
+  outputTokens   Int
+  cachedTokens   Int
+  /// Micro-USD (1e-6 USD).
+  costMicros     Int
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+  @@map("ai_usage_event")
+}
+
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  /// Epoch milliseconds: last request (Better Auth) or window start (app rows).
+  lastRequest BigInt
+
+  @@index([lastRequest])
+  @@map("rateLimit")
+}
+
+model DataExport {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedById  String
+  /// pending | processing | ready | failed | expired
+  status         String       @default("pending")
+  oid            BigInt?
+  sizeBytes      BigInt?
+  error          String?
+  createdAt      DateTime     @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  expiresAt      DateTime?
+
+  @@index([organizationId, createdAt])
+  @@index([status])
+  @@map("dataExport")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}

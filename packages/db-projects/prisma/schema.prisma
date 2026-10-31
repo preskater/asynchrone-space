@@ -1,0 +1,284 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model Project {
+  id                 String       @id @default(cuid())
+  organizationId     String
+  name               String
+  description        String?
+  status             String       @default("active")
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  dueDate            DateTime?
+  clientId           String?
+  /// Client-portal visibility and contribution policies (`none | read | read_write`).
+  clientVisible      Boolean      @default(true)
+  clientDiscussion   String       @default("read_write")
+  clientTaskComments String       @default("read_write")
+  plannedHours       Float?
+  isBillable         Boolean      @default(true)
+  startDate          DateTime?
+  endDate            DateTime?
+
+  members           ProjectMember[]
+  labels            ProjectLabel[]
+  tasks             Task[]
+  activities        ProjectActivity[]
+  templates         TaskTemplate[]
+  messages          ProjectMessage[]
+  repository        RepositoryConnection?
+
+  @@index([organizationId])
+  @@index([clientId])
+  @@map("project")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([projectId, userId])
+  @@index([userId])
+  @@map("projectMember")
+}
+
+model Label {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  color          String
+  createdAt      DateTime     @default(now())
+
+  projects ProjectLabel[]
+  tasks    TaskLabel[]
+
+  @@unique([organizationId, name])
+  @@map("label")
+}
+
+model ProjectLabel {
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  labelId   String
+  label     Label   @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, labelId])
+  @@map("projectLabel")
+}
+
+model Task {
+  id             String        @id @default(cuid())
+  organizationId String
+  projectId      String
+  project        Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  identifier     String
+  title          String
+  description    String?
+  status         String        @default("todo")
+  priority       String        @default("medium")
+  assigneeId     String?
+  dueDate        DateTime?
+  endDate        DateTime?
+  templateId     String?
+  template       TaskTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  /// Values for the custom fields of `template`, keyed by field id.
+  customFields   Json          @default("{}")
+  order          Int           @default(0)
+  /// Whether this task is reported to the project's connected repository as
+  /// an issue. Chosen on the task form when the project has a repository;
+  /// `false` tasks stay local (no issue, no pull request, no backfill).
+  createIssue    Boolean       @default(true)
+  /// Repository issue this task is synced with, if the project has a
+  /// repository connection. Set on backfill, task creation and remote events.
+  externalIssueNumber Int?
+  externalIssueUrl    String?
+  externalPrNumber    Int?
+  externalPrUrl       String?
+  /// `updatedAt` of the remote issue when it was last applied locally, used
+  /// to detect stale webhook payloads and avoid feedback loops.
+  externalUpdatedAt   DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subtasks Subtask[]
+  comments TaskComment[]
+  labels   TaskLabel[]
+
+  @@unique([organizationId, identifier])
+  @@index([organizationId])
+  @@index([projectId])
+  @@index([assigneeId])
+  @@index([templateId])
+  @@map("task")
+}
+
+model TaskIdentifierCounter {
+  organizationId String
+  prefix         String
+  value          Int
+
+  @@id([organizationId, prefix])
+  @@map("task_identifier_counter")
+}
+
+model TaskTemplate {
+  id             String       @id @default(cuid())
+  organizationId String
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  status         String       @default("todo")
+  priority       String       @default("medium")
+  labelIds       String[]
+  /// Custom form fields (`TaskTemplateField[]`) shown when this template is used.
+  fields         Json         @default("[]")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  tasks Task[]
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("taskTemplate")
+}
+
+model TaskLabel {
+  taskId  String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  labelId String
+  label   Label  @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@id([taskId, labelId])
+  @@map("taskLabel")
+}
+
+model Subtask {
+  id     String  @id @default(cuid())
+  taskId String
+  task   Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title  String
+  done   Boolean @default(false)
+  order  Int     @default(0)
+
+  @@index([taskId])
+  @@map("subtask")
+}
+
+model TaskComment {
+  id         String   @id @default(cuid())
+  taskId     String
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  authorId   String
+  /// internal | client — frozen at write time so the two sides render differently.
+  authorKind String   @default("internal")
+  authorName String?
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([taskId])
+  @@map("taskComment")
+}
+
+model ProjectActivity {
+  id        String   @id @default(cuid())
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  actorId   String
+  action    String
+  target    String
+  createdAt DateTime @default(now())
+
+  @@index([projectId])
+  @@map("projectActivity")
+}
+
+model ProjectMessage {
+  id             String       @id @default(cuid())
+  organizationId String
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  authorId       String
+  authorKind     String       @default("internal")
+  body           String
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([projectId, createdAt])
+  @@map("projectMessage")
+}
+
+model RepositoryConnection {
+  id             String       @id @default(cuid())
+  organizationId String
+  projectId      String       @unique
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  /// Enum-like: `github` | `gitlab`.
+  provider       String
+  /// Web/instance URL for self-managed GitLab or GitHub Enterprise; null
+  /// means github.com / gitlab.com.
+  baseUrl        String?
+  /// Repository owner (user, org or GitLab group path, subgroups included).
+  owner          String
+  repo           String
+  repoUrl        String
+  /// Secret used to verify incoming webhooks (GitHub HMAC / GitLab token).
+  webhookSecret  String
+  createdById    String
+  lastSyncedAt   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, provider, owner, repo])
+  @@index([organizationId])
+  @@map("repositoryConnection")
+}
+
+model UserRepositoryToken {
+  id          String   @id @default(cuid())
+  userId      String
+  /// Enum-like: `github` | `gitlab`.
+  provider    String
+  accessToken String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, provider])
+  @@index([userId])
+  @@map("userRepositoryToken")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}

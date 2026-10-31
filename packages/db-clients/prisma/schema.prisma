@@ -1,0 +1,239 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model Client {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  contactEmail   String?
+  isActive       Boolean      @default(true)
+  /// CRM lifecycle: prospect | active | inactive
+  status         String       @default("prospect")
+  industry       String?
+  website        String?
+  phone          String?
+  address        String?
+  description    String?
+  source         String?
+  ownerId        String?
+  /// CRM custom field values keyed by CrmFieldDefinition.key.
+  customFields   Json?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  contacts        ContactCompany[]
+  deals           Deal[]
+  activities      CrmActivity[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@map("client")
+}
+
+model Contact {
+  id             String       @id @default(cuid())
+  organizationId String
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  jobTitle       String?
+  notes          String?
+  ownerId        String?
+  customFields   Json?
+  deletedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  companies  ContactCompany[]
+  deals      DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId])
+  @@index([organizationId, email])
+  @@map("contact")
+}
+
+model ContactCompany {
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  jobTitle  String?
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@id([contactId, clientId])
+  @@index([clientId])
+  @@map("contactCompany")
+}
+
+model Pipeline {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  stages PipelineStage[]
+  deals  Deal[]
+
+  @@unique([organizationId, name])
+  @@map("pipeline")
+}
+
+model PipelineStage {
+  id         String   @id @default(cuid())
+  pipelineId String
+  pipeline   Pipeline @relation(fields: [pipelineId], references: [id], onDelete: Cascade)
+  name       String
+  position   Int      @default(0)
+  type       String   @default("open")
+  color      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  deals Deal[]
+
+  @@unique([pipelineId, name])
+  @@index([pipelineId, position])
+  @@map("pipelineStage")
+}
+
+model Deal {
+  id                String         @id @default(cuid())
+  organizationId    String
+  name              String
+  clientId          String?
+  client            Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  pipelineId        String?
+  pipeline          Pipeline?      @relation(fields: [pipelineId], references: [id], onDelete: SetNull)
+  stageId           String?
+  stage             PipelineStage? @relation(fields: [stageId], references: [id], onDelete: SetNull)
+  amount            Float          @default(0)
+  currency          String         @default("EUR")
+  probability       Int            @default(50)
+  /// open | won | lost
+  status            String         @default("open")
+  expectedCloseDate DateTime?      @db.Date
+  actualCloseDate   DateTime?      @db.Date
+  lossReason        String?
+  source            String?
+  description       String?
+  ownerId           String?
+  position          Int            @default(0)
+  customFields      Json?
+  deletedAt         DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  contacts   DealContact[]
+  activities CrmActivity[]
+
+  @@index([organizationId, status])
+  @@index([clientId])
+  @@index([stageId])
+  @@map("deal")
+}
+
+model DealContact {
+  dealId    String
+  deal      Deal    @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  contactId String
+  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  isPrimary Boolean @default(false)
+
+  @@id([dealId, contactId])
+  @@index([contactId])
+  @@map("dealContact")
+}
+
+model CrmActivity {
+  id             String       @id @default(cuid())
+  organizationId String
+  type           String       @default("note")
+  subject        String?
+  body           String
+  occurredAt     DateTime     @default(now())
+  authorId       String
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  dealId         String?
+  deal           Deal?        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, occurredAt])
+  @@index([clientId])
+  @@index([contactId])
+  @@index([dealId])
+  @@map("crmActivity")
+}
+
+model CrmFieldDefinition {
+  id             String       @id @default(cuid())
+  organizationId String
+  entity         String
+  key            String
+  label          String
+  type           String
+  options        Json?
+  isRequired     Boolean      @default(false)
+  position       Int          @default(0)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, entity, key])
+  @@map("crmFieldDefinition")
+}
+
+model CrmDocument {
+  id             String       @id @default(cuid())
+  organizationId String
+  fileId         String
+  entity         String
+  entityId       String
+  visibility     String       @default("internal")
+  addedBy        String
+  createdAt      DateTime     @default(now())
+
+  @@unique([fileId, entity, entityId])
+  @@index([organizationId, entity, entityId])
+  @@map("crmDocument")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}

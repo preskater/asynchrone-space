@@ -1,0 +1,128 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+model FileNode {
+  id             String       @id @default(cuid())
+  organizationId String
+  name           String
+  kind           String       @default("other")
+  parentId       String?
+  parent         FileNode?    @relation("FileTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children       FileNode[]   @relation("FileTree")
+  ownerId        String
+  modifiedAt     DateTime     @default(now())
+  sizeBytes      Int?
+  starred        Boolean      @default(false)
+  trashed        Boolean      @default(false)
+  trashedAt      DateTime?
+  shared         Boolean      @default(false)
+  restricted     Boolean      @default(false)
+  oid            BigInt?      @unique
+  mimeType       String?
+  sha256         String?
+  createdAt      DateTime     @default(now())
+
+  shares       FileShare[]
+  versions     FileVersion[]
+  activities   FileActivity[]
+
+  @@index([organizationId, parentId])
+  @@index([ownerId])
+  @@map("fileNode")
+}
+
+model UploadSession {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  name           String
+  parentId       String?
+  kind           String   @default("other")
+  mimeType       String?
+  oid            BigInt
+  expectedSize   Int?
+  receivedBytes  Int      @default(0)
+  sha256         String?
+  transient      Boolean  @default(false)
+  status         String   @default("open")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("uploadSession")
+}
+
+model FileShare {
+  id         String   @id @default(cuid())
+  fileId     String
+  file       FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId     String
+  permission String   @default("view")
+  createdAt  DateTime @default(now())
+
+  @@unique([fileId, userId])
+  @@index([userId])
+  @@map("fileShare")
+}
+
+model FileVersion {
+  id        String   @id @default(cuid())
+  fileId    String
+  file      FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId    String
+  at        DateTime @default(now())
+  note      String
+  oid       BigInt?
+  mimeType  String?
+  sha256    String?
+  sizeBytes Int?
+
+  @@index([fileId])
+  @@map("fileVersion")
+}
+
+model FileActivity {
+  id     String   @id @default(cuid())
+  fileId String
+  file   FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId String
+  action String
+  at     DateTime @default(now())
+
+  @@index([fileId])
+  @@map("fileActivity")
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  /// Acting user id, or `"system"` for jobs and provider webhooks.
+  actorId        String
+  /// Actor name and email at write time (`null` only for rows written before
+  /// these columns existed, and for system actors).
+  actorName      String?
+  actorEmail     String?
+  action         String
+  entityType     String
+  entityId       String
+  /// Human label of the target at write time (task key, member email, file name).
+  entityLabel    String?
+  ipAddress      String?
+  userAgent      String?
+  before         Json?
+  after          Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@index([organizationId, action, createdAt])
+  @@index([organizationId, entityType, createdAt])
+  @@map("auditLog")
+}

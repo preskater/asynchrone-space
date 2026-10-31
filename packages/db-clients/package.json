@@ -1,0 +1,32 @@
+{
+  "name": "@workspace/db-clients",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "Elastic-2.0",
+  "scripts": {
+    "generate": "prisma generate",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "migrate:deploy": "prisma migrate deploy"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.10.1",
+    "@prisma/client": "^7.10.1",
+    "@workspace/db-core": "*",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/pg": "^8.23.1",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "dotenv": "^18.0.9",
+    "eslint": "^10.13.0",
+    "prisma": "^7.10.1",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
