@@ -139,6 +139,11 @@ export const SearchQuerySchema = z.object({
 })
 export type SearchQuery = z.infer<typeof SearchQuerySchema>
 
+export const SearchResponseSchema = z.object({
+  results: z.array(SearchResultSchema),
+})
+export type SearchResponse = z.infer<typeof SearchResponseSchema>
+
 export const NotificationInputSchema = z.object({
   organizationId: z.string().min(1),
   userId: z.string().min(1),
@@ -151,6 +156,12 @@ export const NotificationInputSchema = z.object({
 })
 export type NotificationInput = z.infer<typeof NotificationInputSchema>
 
+export const NotificationResultSchema = z.object({
+  /** False when the idempotency key had already been used. */
+  created: z.boolean(),
+})
+export type NotificationResult = z.infer<typeof NotificationResultSchema>
+
 export const ExportManifestSchema = z.object({
   app: z.string().min(1),
   appVersion: z.string().min(1),
@@ -159,6 +170,13 @@ export const ExportManifestSchema = z.object({
   tables: z.record(z.string(), z.number().int().nonnegative()),
 })
 export type ExportManifest = z.infer<typeof ExportManifestSchema>
+
+export const ExportPartSchema = z.object({
+  manifest: ExportManifestSchema,
+  /** One array per exported table, already scoped to the organization. */
+  data: z.record(z.string(), z.array(z.unknown())),
+})
+export type ExportPart = z.infer<typeof ExportPartSchema>
 
 export const DeletionResultSchema = z.object({
   app: z.string().min(1),

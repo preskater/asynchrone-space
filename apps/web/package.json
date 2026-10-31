@@ -42,6 +42,8 @@
     "@shadcn/helpers": "^0.3.0",
     "@workspace/audit": "*",
     "@workspace/contracts": "*",
+    "@workspace/sagas": "*",
+    "@workspace/search": "*",
     "@workspace/db": "*",
     "@workspace/db-identity": "*",
     "@workspace/service-auth": "*",

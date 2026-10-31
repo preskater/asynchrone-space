@@ -16,6 +16,8 @@ const nextConfig: NextConfig = {
     "@workspace/db",
     "@workspace/audit",
     "@workspace/contracts",
+    "@workspace/sagas",
+    "@workspace/search",
     "@workspace/db-core",
     "@workspace/db-identity",
     "@workspace/service-auth",

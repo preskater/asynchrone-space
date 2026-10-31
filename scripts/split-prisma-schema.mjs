@@ -53,6 +53,11 @@ const DATABASES = {
       "AiUsageEvent",
       "RateLimit",
       "DataExport",
+      "DataExportApp",
+      "OrganizationDeletionJob",
+      "OrganizationDeletionApp",
+      "UserDeletionJob",
+      "UserDeletionApp",
     ],
   },
   projects: {
