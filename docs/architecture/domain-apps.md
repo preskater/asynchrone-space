@@ -5,8 +5,8 @@ This document is the working contract for the split described in ADRs
 [0029](../adr/0029-use-copilot-as-oauth-authorization-server.md),
 [0032](../adr/0032-give-each-app-its-own-database.md) and
 [0033](../adr/0033-keep-audit-export-and-deletion-consistent-across-databases.md).
-It is owned by the foundation milestone (#2) and expanded with the feature
-inventory in #146.
+It is owned by the foundation milestone (#2) and expanded by the feature
+inventory in [#146](./feature-inventory.md).
 
 ## Apps and data
 
@@ -77,10 +77,13 @@ caller and handler cannot drift. Audience is always the target app's
 - `SERVICE_SCOPES` and the service-token helpers;
 - `internalEnvelope(schema)` for the standard success response.
 
+The surface-by-surface inventory, internal endpoint map and parity checklist
+live in [feature-inventory.md](./feature-inventory.md).
+
 Internal calls use OAuth `client_credentials` tokens with the target app's
 audience and an explicit scope. `/internal/*` is never exposed through public
 ingress; Kubernetes `NetworkPolicy` or the compose network restricts callers.
-The verifier and token cache land in #181.
+The verifier and token cache live in `@workspace/service-auth` (#181).
 
 ## Identity and cross-domain data
 
@@ -127,5 +130,5 @@ also catches imports in files that are not currently reachable from a route.
 - [x] Notification, search and recents contracts (#189)
 - [x] Control-tower identity admin API (#191)
 - [x] Network policy and database operations (#192)
-- [ ] Feature inventory and parity checklist (#146)
+- [x] Feature inventory and parity checklist (#146)
 - [ ] Assistant/MCP/portal domain wiring and control-tower DB cutover (#190, milestone #1)
