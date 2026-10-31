@@ -4,10 +4,9 @@ import { revalidatePath } from "next/cache"
 
 import { z } from "zod"
 
-import { prisma } from "@workspace/db"
-
 import { withPlatformAction } from "@/lib/platform/action"
 import { recordPlatformEvent } from "@/lib/platform/audit"
+import { identityAdmin } from "@/lib/platform/identity"
 import type { ActionResult } from "@/lib/platform/result"
 
 const banSchema = z.object({
@@ -27,33 +26,18 @@ export async function setUserBanned(input: unknown): Promise<ActionResult> {
       return { ok: false, error: "Only platform admins can change ban state." }
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { banned: true, banReason: true },
-    })
+    const admin = identityAdmin()
+    const user = await admin.getUser(userId)
     if (!user) return { ok: false, error: "User not found." }
 
-    const banReason = banned
-      ? (reason?.trim() || "Banned from the control tower")
-      : null
-
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: userId },
-        data: { banned, banReason, banExpires: null },
-      })
-      // A banned account must not keep an already-issued session.
-      if (banned) {
-        await tx.session.deleteMany({ where: { userId } })
-      }
-    })
+    const updated = await admin.setBan(userId, { banned, reason })
 
     await recordPlatformEvent(ctx, {
       action: banned ? "user.ban" : "user.unban",
       targetType: "user",
       targetId: userId,
       before: { banned: user.banned, banReason: user.banReason },
-      after: { banned, banReason },
+      after: { banned: updated.banned, banReason: updated.banReason },
     })
 
     revalidatePath(`/users/${userId}`)
@@ -65,20 +49,22 @@ export async function setUserBanned(input: unknown): Promise<ActionResult> {
 const sessionsSchema = z.object({ userId: z.string().min(1).max(64) })
 
 /** Support staff may cut off access without waiting for an admin. */
-export async function revokeUserSessions(input: unknown): Promise<ActionResult> {
+export async function revokeUserSessions(
+  input: unknown
+): Promise<ActionResult> {
   const parsed = sessionsSchema.safeParse(input)
   if (!parsed.success) return { ok: false, error: "Invalid input." }
 
   const { userId } = parsed.data
 
   return withPlatformAction(async (ctx) => {
-    const result = await prisma.session.deleteMany({ where: { userId } })
+    const result = await identityAdmin().revokeSessions(userId)
 
     await recordPlatformEvent(ctx, {
       action: "user.sessions.revoke",
       targetType: "user",
       targetId: userId,
-      after: { deleted: result.count },
+      after: { deleted: result.deleted },
     })
 
     revalidatePath(`/users/${userId}`)

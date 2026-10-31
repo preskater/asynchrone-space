@@ -32,7 +32,33 @@ The handler uses `@workspace/service-auth`:
 The route is excluded from the next-intl middleware and is never public.
 Ingress must return 404 for `/internal/*`; that enforcement lands in #192.
 
-`internal:identity:admin` is reserved for #191 (control-tower admin API).
+## Control-tower admin API
+
+The control tower mutates customer identity only through
+`/internal/v1/admin/*`, authenticated with
+`internal:identity:admin`. `IdentityAdminClient` in `@workspace/contracts` is the
+typed caller; the control tower instantiates it in
+`apps/control-tower/lib/platform/identity.ts`.
+
+| Method | Path                                                | Purpose                               |
+| ------ | --------------------------------------------------- | ------------------------------------- |
+| `GET`  | `/internal/v1/admin/organizations`                  | Search/list organizations             |
+| `GET`  | `/internal/v1/admin/organizations/:id`              | Organization details                  |
+| `POST` | `/internal/v1/admin/organizations/:id/plan`         | Manual plan/quota override            |
+| `POST` | `/internal/v1/admin/organizations/:id/release-plan` | Return to provider-driven state       |
+| `POST` | `/internal/v1/admin/organizations/:id/trial`        | Start/end a trial                     |
+| `GET`  | `/internal/v1/admin/users`                          | Search/list users                     |
+| `GET`  | `/internal/v1/admin/users/:id`                      | User details                          |
+| `POST` | `/internal/v1/admin/users/:id/ban`                  | Ban/unban and revoke sessions         |
+| `POST` | `/internal/v1/admin/users/:id/sessions`             | Revoke sessions (support-safe)        |
+| `POST` | `/internal/v1/admin/handoffs`                       | Create a single-use impersonation URL |
+
+Platform mutations are audited by the control tower in its own
+`PlatformAuditEvent`, never in the customer `AuditLog`. The handoff row is
+created in the identity database so the customer app can consume it; the
+control tower still owns its host-only session and never shares cookies
+(ADR 0018). The control-tower database cutover is tracked as a follow-up in
+milestone #1.
 
 ## Client
 
@@ -79,7 +105,5 @@ typed client’s caching/error mapping.
 
 ## Follow-up
 
-- #187 audit endpoints.
-- #188 export/deletion endpoints.
-- #191 admin endpoints.
+- Control-tower database cutover and platform-data copy (milestone #1).
 - #192 ingress/network enforcement.

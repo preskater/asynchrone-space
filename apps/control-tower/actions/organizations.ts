@@ -8,6 +8,7 @@ import { prisma } from "@workspace/db"
 
 import { withPlatformAction } from "@/lib/platform/action"
 import { recordPlatformEvent } from "@/lib/platform/audit"
+import { identityAdmin } from "@/lib/platform/identity"
 import type { ActionResult } from "@/lib/platform/result"
 
 const planSchema = z.object({
@@ -15,19 +16,6 @@ const planSchema = z.object({
   plan: z.enum(["free", "team", "enterprise"]),
   quotaBytes: z.number().int().positive().nullable(),
 })
-
-function parseMetadata(raw: string | null): Record<string, unknown> {
-  if (!raw) return {}
-  try {
-    const parsed = JSON.parse(raw) as unknown
-    return parsed && typeof parsed === "object"
-      ? (parsed as Record<string, unknown>)
-      : {}
-  } catch {
-    // `metadata` also stores appearance settings; corrupt JSON is replaced.
-    return {}
-  }
-}
 
 export async function updateOrganizationPlan(
   input: unknown
@@ -42,60 +30,14 @@ export async function updateOrganizationPlan(
       return { ok: false, error: "Only platform admins can change plans." }
     }
 
-    const organization = await prisma.organization.findUnique({
-      where: { id: organizationId },
-      select: {
-        metadata: true,
-        storageQuotaBytes: true,
-        subscription: {
-          select: {
-            plan: true,
-            status: true,
-            provider: true,
-            providerSubscriptionId: true,
-            manualOverride: true,
-          },
-        },
-      },
-    })
+    const admin = identityAdmin()
+    const organization = await admin.getOrganization(organizationId)
     if (!organization) return { ok: false, error: "Organization not found." }
 
-    // `metadata.plan` stays in sync for older readers; `subscription` is what
-    // the customer app enforces.
-    const metadata = parseMetadata(organization.metadata)
-    metadata.plan = plan
-
-    const status = plan === "free" ? "inactive" : "active"
-
-    // A control-tower save is a manual override whatever the plan: webhooks
-    // must not put a manually downgraded organization back on its Stripe plan.
-    // "Release override" is the only way back to provider-driven state.
-    await prisma.$transaction([
-      prisma.organization.update({
-        where: { id: organizationId },
-        data: {
-          metadata: JSON.stringify(metadata),
-          storageQuotaBytes: quotaBytes === null ? null : BigInt(quotaBytes),
-        },
-      }),
-      prisma.subscription.upsert({
-        where: { organizationId },
-        create: {
-          organizationId,
-          plan,
-          status,
-          provider: "manual",
-          manualOverride: true,
-        },
-        update: {
-          plan,
-          status,
-          provider: "manual",
-          manualOverride: true,
-          cancelAtPeriodEnd: false,
-        },
-      }),
-    ])
+    const updated = await admin.updatePlan(organizationId, {
+      plan,
+      quotaBytes,
+    })
 
     await recordPlatformEvent(ctx, {
       action: "organization.plan.update",
@@ -103,24 +45,16 @@ export async function updateOrganizationPlan(
       targetId: organizationId,
       organizationId,
       before: {
-        plan:
-          organization.subscription?.plan ??
-          parseMetadata(organization.metadata).plan ??
-          "free",
-        status: organization.subscription?.status ?? "inactive",
-        provider: organization.subscription?.provider ?? "manual",
-        manualOverride: organization.subscription?.manualOverride ?? false,
-        storageQuotaBytes:
-          organization.storageQuotaBytes === null
-            ? null
-            : organization.storageQuotaBytes.toString(),
+        plan: organization.plan,
+        status: organization.subscriptionStatus ?? "inactive",
+        manualOverride: organization.manualOverride,
+        storageQuotaBytes: organization.storageQuotaBytes,
       },
       after: {
-        plan,
-        status,
-        provider: "manual",
-        manualOverride: true,
-        storageQuotaBytes: quotaBytes,
+        plan: updated.plan,
+        status: updated.subscriptionStatus ?? "inactive",
+        manualOverride: updated.manualOverride,
+        storageQuotaBytes: updated.storageQuotaBytes,
       },
     })
 
@@ -145,7 +79,10 @@ export async function setOAuthClientDisabled(
 
   return withPlatformAction(async (ctx) => {
     if (ctx.role !== "platform_admin") {
-      return { ok: false, error: "Only platform admins can manage OAuth clients." }
+      return {
+        ok: false,
+        error: "Only platform admins can manage OAuth clients.",
+      }
     }
 
     const client = await prisma.oauthClient.findUnique({
@@ -195,28 +132,16 @@ export async function releaseOrganizationPlanOverride(
       return { ok: false, error: "Only platform admins can change plans." }
     }
 
-    const subscription = await prisma.subscription.findUnique({
-      where: { organizationId },
-      select: {
-        plan: true,
-        status: true,
-        provider: true,
-        manualOverride: true,
-        providerSubscriptionId: true,
-      },
-    })
-    if (!subscription)
-      return { ok: false, error: "No subscription to release." }
-    if (!subscription.manualOverride) {
+    const admin = identityAdmin()
+    const organization = await admin.getOrganization(organizationId)
+    if (!organization) {
+      return { ok: false, error: "Organization not found." }
+    }
+    if (!organization.manualOverride) {
       return { ok: false, error: "This plan is not manually overridden." }
     }
 
-    const provider = subscription.providerSubscriptionId ? "stripe" : "manual"
-
-    await prisma.subscription.update({
-      where: { organizationId },
-      data: { manualOverride: false, provider },
-    })
+    const updated = await admin.releasePlan(organizationId)
 
     await recordPlatformEvent(ctx, {
       action: "organization.plan.release",
@@ -224,16 +149,14 @@ export async function releaseOrganizationPlanOverride(
       targetId: organizationId,
       organizationId,
       before: {
-        plan: subscription.plan,
-        status: subscription.status,
-        provider: subscription.provider,
+        plan: organization.plan,
+        status: organization.subscriptionStatus,
         manualOverride: true,
       },
       after: {
-        plan: subscription.plan,
-        status: subscription.status,
-        provider,
-        manualOverride: false,
+        plan: updated.plan,
+        status: updated.subscriptionStatus,
+        manualOverride: updated.manualOverride,
       },
     })
 

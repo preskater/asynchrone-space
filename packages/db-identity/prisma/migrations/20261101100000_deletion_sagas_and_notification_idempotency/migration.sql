@@ -1,5 +1,22 @@
 -- Cross-database export/deletion saga state and idempotent notifications.
 
+CREATE TABLE "platformHandoff" (
+    "id" TEXT NOT NULL,
+    "tokenHash" TEXT NOT NULL,
+    "kind" TEXT NOT NULL DEFAULT 'impersonate',
+    "actorId" TEXT NOT NULL,
+    "targetUserId" TEXT NOT NULL,
+    "organizationId" TEXT,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "usedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "platformHandoff_pkey" PRIMARY KEY ("id")
+);
+CREATE UNIQUE INDEX "platformHandoff_tokenHash_key" ON "platformHandoff"("tokenHash");
+CREATE INDEX "platformHandoff_expiresAt_idx" ON "platformHandoff"("expiresAt");
+CREATE INDEX "platformHandoff_targetUserId_idx" ON "platformHandoff"("targetUserId");
+
 ALTER TABLE "notification" ADD COLUMN "idempotencyKey" TEXT;
 CREATE UNIQUE INDEX "notification_organizationId_idempotencyKey_key" ON "notification"("organizationId", "idempotencyKey");
 

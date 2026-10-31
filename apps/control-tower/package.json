@@ -16,7 +16,9 @@
     "verify:platform-authorization": "tsx scripts/verify-platform-authorization.ts"
   },
   "dependencies": {
+    "@workspace/contracts": "*",
     "@workspace/db": "*",
+    "@workspace/service-auth": "*",
     "@workspace/ui": "*",
     "better-auth": "^1.7.13",
     "dotenv": "^18.0.9",
