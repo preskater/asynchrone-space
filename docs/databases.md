@@ -81,6 +81,30 @@ npm run typecheck
 Each package writes its client to `lib/generated/prisma`. The generated folders
 are ignored by ESLint and git.
 
+## Migrations
+
+The monolith migrations still run first until #185. The per-app orchestrator then
+applies every database in dependency order:
+
+```bash
+npm run db:create            # creates app + shadow databases when missing
+npm run migrate:deploy       # identity → projects → … → control-tower
+npm run migrate:status       # per-app Prisma status
+npm run verify:migrations    # fails on drift between migrations and schema
+```
+
+`packages/migrate` owns the order and the env mapping. It requires every
+`*_DATABASE_URL` in production; `--allow-database-url-fallback` exists only for
+local/CI where every target lives on one server.
+
+Shadow databases are derived by appending `_shadow` to the database name, or
+set explicitly with `IDENTITY_SHADOW_DATABASE_URL`, … They are used by
+`verify:migrations` and are created by `db:create`.
+
+Each database currently has one `20261031120000_init` baseline. The Docker
+`migrate` stage runs the monolith migration and then the orchestrator. The Helm
+migrate Job reads every `*_DATABASE_URL` from the existing migrate secret.
+
 ## Boundaries
 
 - A domain package imports only its own `@workspace/db-<domain>` package.
@@ -88,14 +112,14 @@ are ignored by ESLint and git.
   internal APIs from `@workspace/contracts` and `@workspace/service-auth`.
 - No cross-database cascades. Organization/user deletion and export are sagas
   (#188).
-- Every database gets its own migrations in #184; the current schemas have no
-  migration history yet.
+- Every database has its own migration history; the monolith history is retired
+  when #185 cuts the data over.
 
 ## Status
 
 - [x] Per-app packages, schemas and clients (#183)
 - [x] Local database creation (#183)
 - [x] CI schema validation (#183)
-- [ ] Migration orchestration (#184)
+- [x] Migration orchestration, baselines, shadow DBs and drift check (#184)
 - [ ] Maintenance-window data split (#185)
 - [ ] App wiring to the per-app clients (#186+)

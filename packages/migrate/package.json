@@ -1,0 +1,28 @@
+{
+  "name": "@workspace/migrate",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "Elastic-2.0",
+  "scripts": {
+    "migrate:deploy": "node src/index.mjs",
+    "migrate:status": "node src/index.mjs --status",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@workspace/db": "*",
+    "@workspace/db-calendars": "*",
+    "@workspace/db-clients": "*",
+    "@workspace/db-control-tower": "*",
+    "@workspace/db-employees": "*",
+    "@workspace/db-files": "*",
+    "@workspace/db-identity": "*",
+    "@workspace/db-messages": "*",
+    "@workspace/db-projects": "*"
+  },
+  "devDependencies": {
+    "@workspace/eslint-config": "*",
+    "eslint": "^10.13.0",
+    "prisma": "^7.10.1"
+  }
+}

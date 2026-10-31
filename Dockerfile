@@ -17,6 +17,12 @@ FROM base AS prepare
 COPY . .
 RUN npx turbo prune ${APP} --docker
 
+# The migrate image needs every database workspace, not just the web app.
+FROM base AS prepare-migrate
+ARG WORKDIR
+COPY . .
+RUN npx turbo prune migrate --docker
+
 # ---
 FROM base AS builder
 ARG WORKDIR
@@ -55,10 +61,12 @@ RUN npx turbo build
 # migrations live in `packages/db` (shared with the control tower).
 FROM base AS migrate
 ARG WORKDIR
-COPY --from=prepare ${WORKDIR}/out/json/ .
+COPY --from=prepare-migrate ${WORKDIR}/out/json/ .
 RUN npm ci
-COPY --from=prepare ${WORKDIR}/out/full/ .
-CMD ["sh", "-c", "cd packages/db && npx prisma migrate deploy"]
+COPY --from=prepare-migrate ${WORKDIR}/out/full/ .
+# The monolith migrations still run until #185 cuts the data over; the
+# orchestrator then applies every per-app database in dependency order.
+CMD ["sh", "-c", "cd packages/db && npx prisma migrate deploy && cd ../.. && node packages/migrate/src/index.mjs"]
 
 # ---
 FROM node:${NODE_VERSION}-alpine AS runner
