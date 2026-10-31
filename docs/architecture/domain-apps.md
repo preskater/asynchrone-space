@@ -1,0 +1,115 @@
+# Domain apps: ownership and boundaries
+
+This document is the working contract for the split described in ADRs
+[0028](../adr/0028-split-workspace-into-domain-apps.md),
+[0029](../adr/0029-use-copilot-as-oauth-authorization-server.md),
+[0032](../adr/0032-give-each-app-its-own-database.md) and
+[0033](../adr/0033-keep-audit-export-and-deletion-consistent-across-databases.md).
+It is owned by the foundation milestone (#2) and expanded with the feature
+inventory in #146.
+
+## Apps and data
+
+| App                  | Host                                 | Database                   | Internal audience                  | OAuth client                   |
+| -------------------- | ------------------------------------ | -------------------------- | ---------------------------------- | ------------------------------ |
+| `apps/landing`       | `asynchrone.space`                   | none                       | `urn:asynchrone:app:landing`       | none                           |
+| `apps/copilot`       | `copilot.asynchrone.space`           | `asynchrone_identity`      | `urn:asynchrone:app:copilot`       | `COPILOT_OAUTH_CLIENT_*`       |
+| `apps/projects`      | `projects.copilot.asynchrone.space`  | `asynchrone_projects`      | `urn:asynchrone:app:projects`      | `PROJECTS_OAUTH_CLIENT_*`      |
+| `apps/calendars`     | `calendars.copilot.asynchrone.space` | `asynchrone_calendars`     | `urn:asynchrone:app:calendars`     | `CALENDARS_OAUTH_CLIENT_*`     |
+| `apps/files`         | `files.copilot.asynchrone.space`     | `asynchrone_files`         | `urn:asynchrone:app:files`         | `FILES_OAUTH_CLIENT_*`         |
+| `apps/messages`      | `messages.copilot.asynchrone.space`  | `asynchrone_messages`      | `urn:asynchrone:app:messages`      | `MESSAGES_OAUTH_CLIENT_*`      |
+| `apps/clients`       | `clients.copilot.asynchrone.space`   | `asynchrone_clients`       | `urn:asynchrone:app:clients`       | `CLIENTS_OAUTH_CLIENT_*`       |
+| `apps/employees`     | `employees.copilot.asynchrone.space` | `asynchrone_employees`     | `urn:asynchrone:app:employees`     | `EMPLOYEES_OAUTH_CLIENT_*`     |
+| `apps/control-tower` | `control-tower.asynchrone.space`     | `asynchrone_control_tower` | `urn:asynchrone:app:control-tower` | `CONTROL_TOWER_OAUTH_CLIENT_*` |
+
+The registry lives in `@workspace/contracts`:
+
+- `apps.ts` — keys, hosts, development ports, database names, audiences and
+  OAuth client environment names; safe to import anywhere.
+- `server.ts` — `appOrigin`, `appUrl`, `trustedCustomerOrigins` and
+  `workspaceOrigin`; server-only because they read runtime environment.
+
+Hosts, database URLs and OAuth secrets are environment variables. They are never
+baked into an image or committed.
+
+## Ownership rules
+
+1. A workspace owns its database and its Prisma client. A domain may only import
+   its own `@workspace/db-<domain>` package.
+2. A package never imports an app. An app never imports another app.
+3. Relative imports never escape their workspace.
+4. Every `@workspace/*` import is declared in the importer's `package.json`.
+5. Cross-domain reads and writes go through a versioned `/internal/v1/*`
+   endpoint; no cross-database joins and no shared Prisma client.
+6. The landing has no database and no session. The control tower has its own
+   platform auth and reads customer identity through the Copilot admin API.
+
+`npm run check:boundaries` enforces rules 1–4 in CI. The checker scans source
+files, including dynamic imports and client components, so a string import is
+caught as well.
+
+## Service scope matrix
+
+The service-token claim carries an audience (the target app) and a scope set.
+The first target is the identity/domain split; #179/#181 finalize issuance.
+
+| Caller                                 | Target                                                               | Scopes                                                                                                                                          |
+| -------------------------------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `copilot`                              | `projects`, `calendars`, `files`, `messages`, `clients`, `employees` | `internal:domain:read`, `internal:domain:write`, `internal:audit:read`, `internal:search:read`, `internal:export:read`, `internal:delete:write` |
+| `projects` (and the other domain apps) | `copilot`                                                            | `internal:identity:read`, `internal:notifications:write`                                                                                        |
+| `copilot`                              | `control-tower`                                                      | `internal:identity:read` (admin API in #191)                                                                                                    |
+| `control-tower`                        | `copilot`                                                            | `internal:identity:read`, `internal:identity:admin` (reserved for #191)                                                                         |
+
+`@workspace/contracts` exports the stable scope strings (`SERVICE_SCOPES`) so a
+caller and handler cannot drift. Audience is always the target app's
+`urn:asynchrone:app:<key>`.
+
+## Internal API contract
+
+`@workspace/contracts` defines:
+
+- `INTERNAL_BASE_PATH` (`/internal/v1`) and `INTERNAL_ROUTES`;
+- Zod schemas for members, organizations, entitlements, audit events and pages,
+  search results, notifications, export manifests, deletion results and
+  service-token claims;
+- `SERVICE_SCOPES` and the service-token helpers;
+- `internalEnvelope(schema)` for the standard success response.
+
+Internal calls use OAuth `client_credentials` tokens with the target app's
+audience and an explicit scope. `/internal/*` is never exposed through public
+ingress; Kubernetes `NetworkPolicy` or the compose network restricts callers.
+The verifier and token cache land in #181.
+
+## Identity and cross-domain data
+
+- Copilot owns users, organizations, members, roles and entitlements.
+- Domain apps store `organizationId` and `userId` as opaque strings and fetch
+  display data through the identity internal API (#186).
+- Audit rows are written in the app's own database and aggregated by Copilot
+  (#187).
+- Export and deletion are orchestrated sagas in Copilot (#188).
+- The assistant, MCP and portal call domain internal APIs; they do not import a
+  domain's Prisma client (#190).
+
+## Validation
+
+```bash
+npm run check:boundaries
+npm run test:unit --workspace=@workspace/contracts
+npm run typecheck
+npm run lint
+```
+
+The boundary checker is intentionally independent of TypeScript resolution: it
+also catches imports in files that are not currently reachable from a route.
+
+## Status
+
+- [x] App/database/audience registry (#178)
+- [x] Internal API contract package (#178)
+- [x] Boundary checker and CI step (#178)
+- [ ] OAuth authorization server (#179)
+- [ ] OIDC client package (#180)
+- [ ] Service-token verifier and cache (#181)
+- [ ] Per-app database packages (#183)
+- [ ] Feature inventory and parity checklist (#146)

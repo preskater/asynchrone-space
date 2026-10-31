@@ -9,7 +9,8 @@
 ## Verify before finishing
 
 - There is no automated test suite and no `test` script — do not add one speculatively.
-- Run, in order: `npm run lint && npm run typecheck && npm run build` (matches CI), plus `npm run test:unit --workspace=web` (vitest; `*.unit.test.ts` next to the code). `npm run test:e2e --workspace=web` runs Playwright against a migrated database (CI does this in the `e2e` job).
+- Run, in order: `npm run lint && npm run typecheck && npm run build` (matches CI), plus `npm run test:unit --workspace=web` and `npm run test:unit --workspace=@workspace/contracts` (vitest; `*.unit.test.ts` next to the code). `npm run test:e2e --workspace=web` runs Playwright against a migrated database (CI does this in the `e2e` job).
+- Workspace boundaries: `npm run check:boundaries` fails on a package→app import, an app→app import, an undeclared `@workspace/*` dependency, a relative import that escapes its workspace, or a cross-`@workspace/db-*` import. CI runs it after lint.
 - The Turbo `generate` task (`prisma generate` → `packages/db/lib/generated/prisma`) is a dependency of `build`/`typecheck`/`dev`. After editing `schema.prisma`, run `npm run generate --workspace=@workspace/db`.
 - Manual storage check (needs a live DB): `npm run verify:large-object --workspace=web`.
 - Manual repository-sync check (needs a live DB; exercises GitHub/GitLab against an in-process mock): `npm run verify:repository-sync --workspace=web`.
@@ -92,6 +93,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Code layout & conventions
 
 - Path aliases: `@/*` → `apps/web/*`, `@workspace/ui/*` → `packages/ui/src/*`. UI imports require `transpilePackages` (already set in `next.config.ts`).
+- `@workspace/contracts` owns the app/database registry and the versioned `/internal/v1` schemas. Import from the package root for shared metadata; `@workspace/contracts/server` is server-only because it reads runtime app origins. Internal APIs must use these contracts rather than inventing their own shapes. See `docs/architecture/domain-apps.md`.
 - UI is shadcn/ui on **Base UI** primitives (not Radix) with Tailwind. Owned components live in `packages/ui/src/components`.
 - `pg` and `pg-large-object` are listed in `serverExternalPackages`; keep them out of client code.
 - Rate limits are shared across replicas through the `rateLimit` table (ADR 0022): use `rateLimit`/`assertRateLimit` from `apps/web/lib/core/rate-limit.ts` and choose `failOpen` per call site. Better Auth limits auth endpoints through the same table.
