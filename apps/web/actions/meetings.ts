@@ -1,8 +1,8 @@
 "use server"
 
-import { withAction } from "@/lib/core/action"
+import { withAction } from "@workspace/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
-import { UnauthorizedError } from "@/lib/core/errors"
+import { UnauthorizedError } from "@workspace/core/errors"
 import { parseLocalized } from "@/lib/core/validation-server"
 import { meetingService } from "@/lib/meetings"
 import {

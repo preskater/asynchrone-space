@@ -11,12 +11,12 @@ import {
 } from "@workspace/ui/components/card"
 import { Progress } from "@workspace/ui/components/progress"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { PortalDiscussion } from "@/components/portal/portal-discussion"
 import { PortalSeenTracker } from "@/components/portal/portal-seen-tracker"
 import { getPortalContext } from "@/lib/portal/context"
 import { portalService } from "@/lib/portal"
-import { isAppError } from "@/lib/core/errors"
+import { isAppError } from "@workspace/core/errors"
 
 export default async function PortalProjectPage({
   params,

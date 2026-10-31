@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { Button } from "@workspace/ui/components/button"
 import { UpgradePrompt } from "@workspace/ui/components/upgrade-prompt"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 export function PlanUpgradePrompt({

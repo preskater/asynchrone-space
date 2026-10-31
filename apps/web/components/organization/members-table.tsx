@@ -37,7 +37,7 @@ import {
 } from "@workspace/ui/components/table"
 
 import { authClient } from "@/lib/auth-client"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { ORG_ROLES, roleRank, type OrgRole } from "@/lib/organization/roles"
 import { getInitials, parseRoles } from "@/lib/organization/utils"
 

@@ -1,13 +1,14 @@
 # Feature inventory and parity checklist
 
-Last audited: 2026-10-31 (issues #146 and #147).
+Last audited: 2026-10-31 (issues #146, #147 and #148).
 
 This document is the surface inventory for the domain-app split. Every route,
 server action, API handler, cron job, MCP tool, Prisma model, audit action,
 portal surface, internal endpoint, environment variable and test is assigned to
 exactly one app. It is a snapshot of the monolith before phase 4: `apps/web`
 still serves every customer surface from one runtime and one database, while
-the per-app database packages already exist.
+the per-app database packages and the shared kernel (`@workspace/core`,
+`@workspace/i18n`, `@workspace/next-config`) already exist.
 
 Keep this document current in the same pull request that moves a surface. A
 surface may only move when its target app owns the database, internal contract
@@ -41,12 +42,12 @@ Today only `apps/web` and `apps/control-tower` exist. `apps/web` is the future
 
 Target: `apps/landing`, stateless. No session, no database, no internal API.
 
-| Surface         | Current location                                                                                           | Notes                                                                                  |
-| --------------- | ---------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| Marketing pages | `apps/web/app/[locale]/(marketing)/*`                                                                      | home, about, blog, blog/[slug], careers, contact, FAQ, features, legal/[slug], pricing |
-| Content         | `apps/web/content/{blog,legal,careers,features,faq}/<locale>`                                              | MDX mirrored in `en` and `fr`                                                          |
-| Legal copy/PDFs | `apps/web/lib/landing/legal.ts`, `apps/web/messages/{en,fr}/legal.json`, `apps/web/public/downloads/legal` | `verify:legal-copy`, `legal:pdfs`                                                      |
-| Layout/metadata | `apps/web/app/[locale]/(marketing)/layout.tsx`, `apps/web/mdx-components.tsx`                              |                                                                                        |
+| Surface         | Current location                                                                                                | Notes                                                                                  |
+| --------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Marketing pages | `apps/web/app/[locale]/(marketing)/*`                                                                           | home, about, blog, blog/[slug], careers, contact, FAQ, features, legal/[slug], pricing |
+| Content         | `apps/web/content/{blog,legal,careers,features,faq}/<locale>`                                                   | MDX mirrored in `en` and `fr`                                                          |
+| Legal copy/PDFs | `apps/web/lib/landing/legal.ts`, `packages/i18n/messages/{en,fr}/legal.json`, `apps/web/public/downloads/legal` | `verify:legal-copy`, `legal:pdfs`                                                      |
+| Layout/metadata | `apps/web/app/[locale]/(marketing)/layout.tsx`, `apps/web/mdx-components.tsx`                                   |                                                                                        |
 
 No server actions, API routes, cron jobs, MCP tools, Prisma models or audit
 actions. Keeping the landing database-free is an acceptance criterion of #176
@@ -353,10 +354,10 @@ Never bake secrets into an image.
 
 | Suite                     | Location                                                                                                                                     |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unit — Copilot shell      | `apps/web/lib/{account,admin,audit,auth,billing,core,email,identity,oauth,organization,search,signup-policy}*.unit.test.ts`                  |
+| Unit — Copilot shell      | `apps/web/lib/{account,admin,audit,auth,billing,email,identity,oauth,organization,search,signup-policy}*.unit.test.ts`                       |
 | Unit — Projects           | domain has no standalone unit file yet; covered by `e2e` and scripts                                                                         |
 | Unit — Files              | `apps/web/lib/files/duplicate.unit.test.ts`                                                                                                  |
-| Unit — shared packages    | `packages/{audit,contracts,db-core,oidc,sagas,search,service-auth}/**/*.unit.test.ts`                                                        |
+| Unit — shared packages    | `packages/{audit,contracts,core,db-core,oidc,sagas,search,service-auth}/**/*.unit.test.ts`                                                   |
 | E2E                       | `apps/web/e2e/{a11y,audit-log,member-rbac,password-reset,upload}.spec.ts`                                                                    |
 | Verification scripts (DB) | `apps/web/scripts/verify-{authorization,audit-log,trial,data-export,organization-deletion,account-deletion,large-object,repository-sync}.ts` |
 | Legal copy                | `apps/web/scripts/verify-legal-copy.ts`                                                                                                      |

@@ -48,11 +48,11 @@ import {
   type OrgThemeId,
 } from "@/lib/appearance/types"
 import { useAppearance } from "@/components/appearance/appearance-provider"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 import { TASK_PRIORITY_VALUES } from "@/lib/projects/types"
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 
 const LEVEL_ICONS: Record<
   AnimationLevel,

@@ -18,9 +18,9 @@ import {
   listUserRepositoryTokensAction,
   syncRepositoryAction,
 } from "@/actions/integrations"
-import { Link } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { Link } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import type {
   RepositoryConnectionView,
   RepositoryProvider,

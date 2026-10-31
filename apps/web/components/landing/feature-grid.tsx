@@ -10,7 +10,7 @@ import {
 } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,

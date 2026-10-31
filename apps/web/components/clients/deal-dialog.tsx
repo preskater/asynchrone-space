@@ -33,8 +33,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { saveDealAction } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   ClientOptionData,
   ClientContactOptionData,
@@ -44,7 +44,7 @@ import type {
   ClientPipelineData,
 } from "@/lib/clients/types"
 import { CLIENT_CURRENCIES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 import { CustomFieldInputs } from "./custom-fields"
 

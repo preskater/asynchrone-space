@@ -36,7 +36,8 @@ export function enumLabels(t: Translator) {
     contractType: (value: string) => t(`contractType.${value}` as never),
     salaryType: (value: string) => t(`salaryType.${value}` as never),
     clientStatus: (value: string) => t(`clientStatus.${value}` as never),
-    clientActivityType: (value: string) => t(`clientActivityType.${value}` as never),
+    clientActivityType: (value: string) =>
+      t(`clientActivityType.${value}` as never),
     clientFieldType: (value: string) => t(`clientFieldType.${value}` as never),
     dealStatus: (value: string) => t(`dealStatus.${value}` as never),
     pipelineStageType: (value: string) =>

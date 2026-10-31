@@ -3,7 +3,7 @@ import "dotenv/config"
 import { randomUUID } from "node:crypto"
 
 import { getAiQuota } from "../lib/assistant/usage"
-import type { RequestContext } from "../lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { orgQuotaBytes } from "../lib/files/storage"
 import { getOrganizationEntitlements } from "../lib/organization/entitlements"
 import {

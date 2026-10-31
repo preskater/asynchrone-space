@@ -5,7 +5,7 @@ import { ProjectWorkspace } from "@/components/project/project-workspace"
 
 import { auth } from "@/lib/auth"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
-import { NotFoundError } from "@/lib/core/errors"
+import { NotFoundError } from "@workspace/core/errors"
 import { prisma } from "@/lib/prisma"
 import { projectService } from "@/lib/projects"
 

@@ -15,7 +15,7 @@ import {
 import type { AuditEntryView } from "@/lib/audit/types"
 import { auditChanges } from "@/lib/audit/changes"
 import { SYSTEM_ACTOR_ID } from "@/lib/audit/actions"
-import { useFormatters } from "@/lib/i18n/format"
+import { useFormatters } from "@workspace/i18n/format"
 
 import { useAuditLabels } from "./audit-labels"
 

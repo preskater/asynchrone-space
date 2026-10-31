@@ -2,8 +2,8 @@ import { Readable } from "node:stream"
 
 import { NextResponse } from "next/server"
 
-import { toAppError } from "@/lib/core/errors"
-import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
+import { toAppError } from "@workspace/core/errors"
+import { jsonError, rejectCrossOrigin } from "@workspace/core/http"
 import { MAX_PORTAL_UPLOAD_BYTES, portalService } from "@/lib/portal"
 import { getPortalContext } from "@/lib/portal/context"
 

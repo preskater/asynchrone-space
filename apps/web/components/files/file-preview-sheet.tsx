@@ -44,7 +44,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 
 import { formatBytes, formatRelativeDate } from "@/lib/files/file-utils"
 import { useFiles } from "@/lib/files/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type { FileNode } from "@/lib/files/types"
 
 function DetailRow({

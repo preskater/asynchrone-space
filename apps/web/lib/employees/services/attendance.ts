@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { NotFoundError, ValidationError } from "@workspace/core/errors"
 import type { EmployeeAccess } from "../access"
 import { parseDateKey, toDateKey } from "../date-utils"
 import type {

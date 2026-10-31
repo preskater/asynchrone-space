@@ -8,10 +8,10 @@ import { toast } from "sonner"
 import { createCheckoutSessionAction } from "@/actions/billing"
 import { Button } from "@workspace/ui/components/button"
 
-import { Link, useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { Link, useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { BillingInterval } from "@/lib/billing/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 /**
  * Team CTA on the marketing site: one click opens Stripe Checkout.

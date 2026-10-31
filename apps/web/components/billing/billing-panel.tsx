@@ -37,8 +37,8 @@ import {
   TableRow,
 } from "@workspace/ui/components/table"
 
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   BillingInterval,
   BillingOverviewData,
@@ -46,7 +46,7 @@ import type {
   SubscriptionStatus,
 } from "@/lib/billing/types"
 import { formatBytes } from "@/lib/files/file-utils"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
 export interface CheckoutReturn {

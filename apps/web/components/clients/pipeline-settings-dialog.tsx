@@ -48,12 +48,12 @@ import {
   saveStageAction,
   setDefaultPipelineAction,
 } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult, type ActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult, type ActionResult } from "@workspace/core/action"
 import type { ClientPipelineData, PipelineStageType } from "@/lib/clients/types"
 import { PIPELINE_STAGE_TYPES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 const STAGE_TYPE_VARIANTS: Record<
   PipelineStageType,

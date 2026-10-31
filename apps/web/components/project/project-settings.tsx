@@ -60,7 +60,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 import { useProjectStore } from "@/lib/projects/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 import {
   TASK_STATUS_VALUES,

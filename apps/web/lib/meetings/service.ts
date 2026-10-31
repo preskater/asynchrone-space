@@ -1,10 +1,10 @@
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"
 import type { PortalContext } from "@/lib/portal/context"

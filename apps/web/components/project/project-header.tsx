@@ -41,10 +41,10 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { formatDate, type Project } from "@/lib/projects/types"
 
 export function ProjectHeader({

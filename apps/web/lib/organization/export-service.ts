@@ -5,9 +5,9 @@ import { Zip, ZipDeflate, ZipPassThrough } from "fflate"
 
 import { AUDIT_ACTIONS } from "@/lib/audit/actions"
 import { recordUserAudit } from "@/lib/audit/record"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
-import { ConflictError } from "@/lib/core/errors"
+import { ConflictError } from "@workspace/core/errors"
 import { sendDataExportReadyEmail } from "@/lib/email"
 import {
   openLargeObjectStream,

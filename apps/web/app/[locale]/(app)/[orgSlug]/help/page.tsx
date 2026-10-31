@@ -2,7 +2,7 @@ import { CircleHelpIcon, MessageSquareHeartIcon } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
 export default async function HelpPage({

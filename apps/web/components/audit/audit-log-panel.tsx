@@ -35,8 +35,8 @@ import type {
   AuditFacets,
   AuditRetentionView,
 } from "@/lib/audit/types"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"

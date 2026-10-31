@@ -10,7 +10,7 @@ import {
 import { useTranslations } from "next-intl"
 
 import { authClient } from "@/lib/auth-client"
-import { Link, useRouter } from "@/i18n/navigation"
+import { Link, useRouter } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Avatar,

@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
 
-import { Link, usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@workspace/i18n/navigation"
 
 export function AppSwitcher({ orgSlug }: { orgSlug: string }) {
   const t = useTranslations("Sidebar")

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl"
 
 import { cn } from "@workspace/ui/lib/utils"
 
-import { Link, usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@workspace/i18n/navigation"
 
 export function PortalNav() {
   const t = useTranslations("Portal")

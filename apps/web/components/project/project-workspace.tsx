@@ -8,7 +8,7 @@ import { ProjectView } from "@/components/project/project-view"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@workspace/ui/components/button"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
 

@@ -1,6 +1,6 @@
 import { sendPaymentFailedEmail } from "@/lib/email"
 import { notificationService } from "@/lib/notifications"
-import { routing } from "@/i18n/routing"
+import { routing } from "@workspace/i18n/routing"
 
 import type { BillingNotifierPort, BillingRepositoryPort } from "./types"
 

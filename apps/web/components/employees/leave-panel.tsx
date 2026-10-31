@@ -31,14 +31,14 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { cancelLeaveAction } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import { LEAVE_STATUS_VARIANT } from "@/lib/employees/colors"
 import { formatDateKey } from "@/lib/employees/date-utils"
 import type { EmployeeOverviewData, LeaveRequestData } from "@/lib/employees/types"
 import { TRACKED_LEAVE_TYPES } from "@/lib/employees/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { getInitials } from "@/lib/organization/utils"
 
 import {

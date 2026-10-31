@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 
 export default function NotFound() {
   const t = useTranslations("NotFound")

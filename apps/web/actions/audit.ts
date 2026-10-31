@@ -4,7 +4,7 @@ import { z } from "zod"
 
 import { auditFilterSchema, auditPageInputSchema } from "@/lib/audit/filters"
 import { auditService } from "@/lib/audit/service"
-import { withAction } from "@/lib/core/action"
+import { withAction } from "@workspace/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
 import { parseLocalized } from "@/lib/core/validation-server"
 

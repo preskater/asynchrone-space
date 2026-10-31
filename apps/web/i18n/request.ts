@@ -1,23 +1,6 @@
-import * as rootParams from "next/root-params"
-import { notFound } from "next/navigation"
-import { hasLocale } from "next-intl"
-import { getRequestConfig } from "next-intl/server"
-
-import { routing } from "./routing"
-
-export default getRequestConfig(async ({ locale }) => {
-  if (!locale) {
-    const paramValue = await rootParams.locale()
-    if (hasLocale(routing.locales, paramValue)) {
-      locale = paramValue
-    } else {
-      notFound()
-    }
-  }
-
-  return {
-    locale,
-    timeZone: "Europe/Paris",
-    messages: (await import(`../messages/${locale}/index.ts`)).default,
-  }
-})
+/**
+ * next-intl resolves its request config from the app directory. The actual
+ * configuration (locales, messages and time zone) lives in @workspace/i18n so
+ * every app shares one copy.
+ */
+export { default } from "@workspace/i18n/request"

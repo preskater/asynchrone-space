@@ -1,4 +1,4 @@
-import { parseTrustedIpHeaders } from "@/lib/core/trusted-ip"
+import { parseTrustedIpHeaders } from "@workspace/core/trusted-ip"
 
 /**
  * Request metadata stored on every audit row. Security reviewers read the IP

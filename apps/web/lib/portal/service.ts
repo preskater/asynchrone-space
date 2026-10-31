@@ -4,14 +4,14 @@ import type { Readable } from "node:stream"
 import { AUDIT_ACTIONS } from "@/lib/audit/actions"
 import { recordUserAudit } from "@/lib/audit/record"
 import { auth } from "@/lib/auth"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import {
   ConflictError,
   ForbiddenError,
   NotFoundError,
   UnauthorizedError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { fileService } from "@/lib/files"
 import { orgQuotaBytes, orgUsedBytes } from "@/lib/files/storage"
 import { MaxBytesExceededError, uploadLargeObject } from "@/lib/large-object"

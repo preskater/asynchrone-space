@@ -12,7 +12,7 @@ import {
   CommandList,
 } from "@workspace/ui/components/command"
 
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 
 export function CommandMenu({
   orgSlug,

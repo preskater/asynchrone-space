@@ -17,7 +17,9 @@ describe("rejectCrossOrigin", () => {
         post({ origin: "https://presk.re", "x-forwarded-host": "presk.re" })
       )
     ).toBeNull()
-    expect(rejectCrossOrigin(post({ "sec-fetch-site": "same-origin" }))).toBeNull()
+    expect(
+      rejectCrossOrigin(post({ "sec-fetch-site": "same-origin" }))
+    ).toBeNull()
   })
 
   it("allows non-browser clients without Origin or Sec-Fetch-Site", () => {

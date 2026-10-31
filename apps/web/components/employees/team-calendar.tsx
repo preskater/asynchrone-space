@@ -36,7 +36,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { fetchAttendanceAction } from "@/actions/employees"
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import { STATUS_CLASSES } from "@/lib/employees/colors"
 import {
   addDaysToKey,
@@ -57,8 +57,8 @@ import type {
 } from "@/lib/employees/types"
 import { ATTENDANCE_STATUSES } from "@/lib/employees/types"
 import { entryIndex, entryOn, leaveStatusOnDate } from "@/lib/employees/utils"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { getInitials } from "@/lib/organization/utils"
 
 import { EntryDialog } from "./entry-dialog"

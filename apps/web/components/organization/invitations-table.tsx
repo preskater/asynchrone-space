@@ -25,7 +25,7 @@ import {
 } from "@workspace/ui/components/empty"
 
 import { authClient } from "@/lib/auth-client"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { parseRoles } from "@/lib/organization/roles"
 import { buildInviteUrl } from "@/lib/organization/utils"
 

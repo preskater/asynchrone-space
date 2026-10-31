@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -31,7 +31,7 @@ import {
   PASSWORD_COMPROMISED,
 } from "@/lib/account/password-policy"
 import { authClient } from "@/lib/auth-client"
-import { safeRedirect } from "@/lib/core/redirect"
+import { safeRedirect } from "@workspace/core/redirect"
 
 export function SignUpForm({
   captchaSiteKey,

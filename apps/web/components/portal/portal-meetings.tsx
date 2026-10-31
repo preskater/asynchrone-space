@@ -55,10 +55,10 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 
-import { unwrapActionResult } from "@/lib/core/action"
-import { useRouter } from "@/i18n/navigation"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import {
   MAX_PROPOSED_SLOTS,
   MEETING_DURATIONS,

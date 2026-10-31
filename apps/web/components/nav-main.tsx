@@ -5,7 +5,7 @@ import { CirclePlusIcon, MailIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
 import { ProjectFormDialog } from "@/components/project/project-dialog"
-import { Link, usePathname, useRouter } from "@/i18n/navigation"
+import { Link, usePathname, useRouter } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   SidebarGroup,

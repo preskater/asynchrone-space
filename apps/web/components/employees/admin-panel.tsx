@@ -30,12 +30,12 @@ import {
 } from "@workspace/ui/components/table"
 
 import { exportCsvAction, updateEmployeeSettingsAction } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import { formatDateKey } from "@/lib/employees/date-utils"
 import type { EmployeeOverviewData } from "@/lib/employees/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import {
   ActivityDialog,

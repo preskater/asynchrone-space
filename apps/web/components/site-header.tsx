@@ -14,7 +14,7 @@ import { Button } from "@workspace/ui/components/button"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
-import { usePathname } from "@/i18n/navigation"
+import { usePathname } from "@workspace/i18n/navigation"
 import type { NotificationsData } from "@/lib/notifications/types"
 import { useProjectStore } from "@/lib/projects/store"
 

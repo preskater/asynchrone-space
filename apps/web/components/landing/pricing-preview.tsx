@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { Section, SectionHeading } from "@/components/landing/section"
 import { PricingGrid } from "@/components/landing/pricing-section"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 

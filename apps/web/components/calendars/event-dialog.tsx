@@ -39,7 +39,7 @@ import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-gr
 
 import { EVENT_COLOR_VAR } from "@/lib/calendars/event-colors"
 import { useCalendars, type EventInput } from "@/lib/calendars/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type { CalendarEvent, EventColor } from "@/lib/calendars/types"
 
 const EVENT_COLOR_VALUES = [

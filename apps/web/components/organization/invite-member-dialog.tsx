@@ -35,7 +35,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 
 import { PlanUpgradePrompt } from "@/components/organization/plan-upgrade-prompt"
 import { authClient } from "@/lib/auth-client"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { INVITABLE_ROLES, type OrgRole } from "@/lib/organization/roles"
 import { buildInviteUrl } from "@/lib/organization/utils"
 

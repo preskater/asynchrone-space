@@ -8,7 +8,7 @@ import {
 import { effectivePlan } from "@workspace/db/trial"
 
 import { planForOrganization } from "@/lib/billing/plans"
-import { ForbiddenError } from "@/lib/core/errors"
+import { ForbiddenError } from "@workspace/core/errors"
 import { prisma } from "@/lib/prisma"
 
 export {

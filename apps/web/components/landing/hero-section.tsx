@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 
 import { Container } from "@/components/landing/section"
 import { WaitlistForm } from "@/components/forms/waitlist-form"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 

@@ -10,9 +10,9 @@ import { Label } from "@workspace/ui/components/label"
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { setAuditRetentionAction } from "@/actions/audit"
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { AuditRetentionView } from "@/lib/audit/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 /**
  * Retention summary. Enterprise owners can pick their own window; every other

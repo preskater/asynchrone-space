@@ -26,13 +26,13 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/actions/notifications"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   NotificationItemData,
   NotificationsData,
 } from "@/lib/notifications/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 function iconFor(type: string) {
   if (type.startsWith("task.")) {

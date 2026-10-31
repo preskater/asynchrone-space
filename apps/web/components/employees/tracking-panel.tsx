@@ -27,7 +27,7 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { fetchTrackingAction } from "@/actions/employees"
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import {
   addDaysToKey,
   monthDateRange,
@@ -36,7 +36,7 @@ import {
 } from "@/lib/employees/date-utils"
 import type { EmployeeOverviewData, TrackingResult, TrackingRow } from "@/lib/employees/types"
 import { formatHours } from "@/lib/employees/utils"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 import { useTodayKey } from "./use-employees"
 

@@ -51,7 +51,7 @@ import {
   ToggleGroupItem,
 } from "@workspace/ui/components/toggle-group"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useProjectStore } from "@/lib/projects/store"
 import {
   CHOICE_FIELD_TYPES,

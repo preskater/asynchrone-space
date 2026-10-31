@@ -11,10 +11,10 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { postPortalTaskCommentAction } from "@/actions/portal"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { TaskCommentData } from "@/lib/projects/task-comments"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)

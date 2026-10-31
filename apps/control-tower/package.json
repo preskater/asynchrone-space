@@ -18,6 +18,7 @@
   "dependencies": {
     "@workspace/contracts": "*",
     "@workspace/db": "*",
+    "@workspace/next-config": "*",
     "@workspace/service-auth": "*",
     "@workspace/ui": "*",
     "better-auth": "^1.7.13",

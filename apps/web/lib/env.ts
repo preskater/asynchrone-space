@@ -6,7 +6,7 @@
  * message instead of crashing per request. Keep this dependency-free so it can
  * also run under `tsx` (e.g. `scripts/verify-large-object.ts`).
  */
-import { trustedIpHeaderProblems } from "./core/trusted-ip"
+import { trustedIpHeaderProblems } from "@workspace/core/trusted-ip"
 
 interface Rule {
   key: string

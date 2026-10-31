@@ -1,11 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-const prisma = vi.hoisted(() => ({ $queryRaw: vi.fn() }))
-vi.mock("@/lib/prisma", () => ({ prisma }))
+import { AppError } from "./errors"
+import { createRateLimiter, MAX_WINDOW_MS } from "./rate-limit"
 
-import { AppError } from "@/lib/core/errors"
-
-import { assertRateLimit, MAX_WINDOW_MS, rateLimit } from "./rate-limit"
+const queryRaw = vi.fn()
+const { assertRateLimit, rateLimit } = createRateLimiter(queryRaw)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -15,13 +14,13 @@ beforeEach(() => {
 describe("rateLimit", () => {
   it("allows up to the limit and reports the remaining window after it", async () => {
     const start = BigInt(Date.now() - 20_000)
-    prisma.$queryRaw.mockResolvedValueOnce([{ count: 3, lastRequest: start }])
+    queryRaw.mockResolvedValueOnce([{ count: 3, lastRequest: start }])
     expect(await rateLimit("k", 3, 60_000, { failOpen: false })).toEqual({
       allowed: true,
       retryAfter: 0,
     })
 
-    prisma.$queryRaw.mockResolvedValueOnce([{ count: 4, lastRequest: start }])
+    queryRaw.mockResolvedValueOnce([{ count: 4, lastRequest: start }])
     const denied = await rateLimit("k", 3, 60_000, { failOpen: false })
     expect(denied.allowed).toBe(false)
     expect(denied.retryAfter).toBeGreaterThanOrEqual(39)
@@ -29,13 +28,13 @@ describe("rateLimit", () => {
   })
 
   it("namespaces keys away from Better Auth's ip|path rows", async () => {
-    prisma.$queryRaw.mockResolvedValueOnce([{ count: 1, lastRequest: 0n }])
+    queryRaw.mockResolvedValueOnce([{ count: 1, lastRequest: 0n }])
     await rateLimit("feedback:u1", 1, 1000, { failOpen: true })
-    expect(prisma.$queryRaw.mock.calls[0]).toContain("app:feedback:u1")
+    expect(queryRaw.mock.calls[0]).toContain("app:feedback:u1")
   })
 
   it("fails open or closed as the call site asks when the store is down", async () => {
-    prisma.$queryRaw.mockRejectedValue(new Error("db down"))
+    queryRaw.mockRejectedValue(new Error("db down"))
     expect((await rateLimit("k", 1, 60_000, { failOpen: true })).allowed).toBe(
       true
     )
@@ -54,7 +53,7 @@ describe("rateLimit", () => {
 
 describe("assertRateLimit", () => {
   it("throws a 429 carrying Retry-After", async () => {
-    prisma.$queryRaw.mockResolvedValueOnce([
+    queryRaw.mockResolvedValueOnce([
       { count: 2, lastRequest: BigInt(Date.now()) },
     ])
     const error = await assertRateLimit("k", 1, 30_000, {

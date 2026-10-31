@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 import { useTranslations } from "next-intl"
 import { MailIcon } from "lucide-react"
 import { toast } from "sonner"
@@ -19,7 +19,7 @@ import { Spinner } from "@workspace/ui/components/spinner"
 
 import { authClient } from "@/lib/auth-client"
 import { claimPortalAccessAction } from "@/actions/portal"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { parseRoles } from "@/lib/organization/roles"
 
 interface InvitationDetails {

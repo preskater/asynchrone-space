@@ -1,7 +1,7 @@
 import { ArrowRightIcon, SparklesIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 
 export function AnnouncementBar() {
   const t = useTranslations("Announcement")

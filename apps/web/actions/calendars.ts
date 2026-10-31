@@ -1,6 +1,6 @@
 "use server"
 
-import { withAction } from "@/lib/core/action"
+import { withAction } from "@workspace/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
 import { parseLocalized } from "@/lib/core/validation-server"
 import { revalidateOrgPath } from "@/lib/organization/paths"

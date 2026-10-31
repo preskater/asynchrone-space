@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { FaqSection } from "@/components/landing/faq-section"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
 export async function generateMetadata(): Promise<Metadata> {

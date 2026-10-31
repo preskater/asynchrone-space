@@ -1,4 +1,4 @@
-import { NotFoundError } from "@/lib/core/errors"
+import { NotFoundError } from "@workspace/core/errors"
 import { notificationService } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma"
 

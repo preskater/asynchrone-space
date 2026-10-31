@@ -23,7 +23,7 @@ legal page and from the contact page's legal pack. The path avoids
 - **Structure** — `apps/web/lib/landing/legal.ts` lists the sections and blocks
   of each document (`p`, `list`, `table`, `pre`). A missing block renders
   nothing, so keep it in step with the copy.
-- **Copy** — `apps/web/messages/en/legal.json` and `fr/legal.json`, keyed by the
+- **Copy** — `packages/i18n/messages/en/legal.json` and `fr/legal.json`, keyed by the
   identifiers in that structure. English is type-checked through
   `Messages = typeof en`; French is not, which is why the check below exists.
 - **Page chrome** — `apps/web/components/landing/legal-page.tsx`.

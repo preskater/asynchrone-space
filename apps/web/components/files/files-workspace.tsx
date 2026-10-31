@@ -33,7 +33,7 @@ import {
 import { useFiles } from "@/lib/files/store"
 import { useRecents } from "@/lib/recents/store"
 import { useWorkspaceNav } from "@/lib/workspace-nav/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type { FileLocation, FileNode } from "@/lib/files/types"
 
 export function FilesWorkspace() {

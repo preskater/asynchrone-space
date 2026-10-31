@@ -35,9 +35,9 @@ import {
 } from "@workspace/ui/components/select"
 import { Spinner } from "@workspace/ui/components/spinner"
 
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import {
   MEETING_PROVIDERS,
   type MeetingProviderId,

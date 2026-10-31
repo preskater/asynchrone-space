@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import type { MoveStageInput, PipelineInput, StageInput } from "../schemas"
 import type { ClientPipelineData } from "../types"
 import { ClientsServiceCore, requireManage, DEFAULT_PIPELINE } from "./core"

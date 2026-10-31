@@ -16,7 +16,7 @@ import {
 } from "@workspace/audit"
 import type { PrismaClient } from "@workspace/db"
 
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 
 import { SYSTEM_ACTOR_ID } from "./actions"
 import { EMPTY_REQUEST_META, requestMetaFromHeaders } from "./request-meta"

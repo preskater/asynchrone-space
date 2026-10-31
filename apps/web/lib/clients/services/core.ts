@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { ForbiddenError, ValidationError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { ForbiddenError, ValidationError } from "@workspace/core/errors"
 import { toDateKey } from "../dates"
 import { resolveClientAccess, type ClientAccess } from "../access"
 import type { ClientsRepository } from "../repository"

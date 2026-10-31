@@ -24,7 +24,7 @@ const problems: string[] = []
 
 function load(locale: string): Messages {
   const path = fileURLToPath(
-    new URL(`../messages/${locale}/legal.json`, import.meta.url)
+    new URL(`../../../packages/i18n/messages/${locale}/legal.json`, import.meta.url)
   )
   return JSON.parse(readFileSync(path, "utf8")) as Messages
 }

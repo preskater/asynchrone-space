@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useTranslations } from "next-intl"
 
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 import { ProjectFilters, defaultFilters, filterTasks, type TaskFilters } from "@/components/project/project-filters"
 import { ProjectDiscussion } from "@/components/project/project-discussion"
 import { ProjectHeader } from "@/components/project/project-header"

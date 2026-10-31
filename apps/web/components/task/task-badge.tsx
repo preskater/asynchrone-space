@@ -3,7 +3,7 @@
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type { Label, TaskPriority, TaskStatus } from "@/lib/projects/types"
 
 const STATUS_BADGE_VARIANT: Record<

@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl"
 import { ThemeToggle } from "@workspace/ui/components/theme-toggle"
 import { LocaleSwitcher } from "@/components/landing/locale-switcher"
 import { Wordmark } from "@/components/landing/wordmark"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   NavigationMenu,

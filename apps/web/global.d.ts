@@ -1,5 +1,5 @@
-import { routing } from "@/i18n/routing"
-import en from "./messages/en"
+import { routing } from "@workspace/i18n/routing"
+import en from "@workspace/i18n/messages/en"
 
 type Messages = typeof en
 

@@ -7,8 +7,7 @@ export type ActionResultError = {
 }
 
 export type ActionResult<T> =
-  | { ok: true; data: T }
-  | { ok: false; error: ActionResultError }
+  { ok: true; data: T } | { ok: false; error: ActionResultError }
 
 export function unwrapActionResult<T>(result: ActionResult<T>): T {
   if (!result.ok) {

@@ -1,4 +1,4 @@
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
 import { AUDIT_ACTIONS } from "@/lib/audit/actions"
 import { recordUserAudit } from "@/lib/audit/record"

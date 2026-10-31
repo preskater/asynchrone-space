@@ -2,7 +2,7 @@ import { ArrowRightIcon } from "lucide-react"
 import { getTranslations } from "next-intl/server"
 
 import { Container } from "@/components/landing/section"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
 export async function FinalCta({

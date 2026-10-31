@@ -1,0 +1,40 @@
+{
+  "name": "@workspace/i18n",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "Elastic-2.0",
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.4.3",
+    "next-intl": "^4.14.9",
+    "react": "19.3.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10.13.0",
+    "typescript": "^7"
+  },
+  "exports": {
+    ".": "./src/routing.ts",
+    "./routing": "./src/routing.ts",
+    "./navigation": "./src/navigation.ts",
+    "./request": "./src/request.ts",
+    "./errors": "./src/errors.ts",
+    "./format": "./src/format.ts",
+    "./labels": "./src/labels.ts",
+    "./zod": "./src/zod.ts",
+    "./zod-messages": "./src/zod-messages.ts",
+    "./messages/en": "./messages/en/index.ts",
+    "./messages/fr": "./messages/fr/index.ts",
+    "./messages/*": "./messages/*"
+  }
+}

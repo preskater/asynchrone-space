@@ -10,7 +10,7 @@ vi.mock("@/lib/prisma", () => ({ prisma }))
 
 import { monthWindow } from "@workspace/db/plans"
 
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 
 import { getAiQuota, quotaExceeded, recordAiUsage, tokenUsage } from "./usage"
 

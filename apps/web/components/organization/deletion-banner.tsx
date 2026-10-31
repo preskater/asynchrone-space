@@ -1,6 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { buttonVariants } from "@workspace/ui/components/button"
 
 /** Shown to every member while the organization is scheduled for deletion. */

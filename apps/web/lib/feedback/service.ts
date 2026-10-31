@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { AppError, NotFoundError, ValidationError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { AppError, NotFoundError, ValidationError } from "@workspace/core/errors"
 import { assertRateLimit } from "@/lib/core/rate-limit"
 import { deliverEmail, type EmailDelivery } from "@/lib/email"
 import { prisma } from "@/lib/prisma"

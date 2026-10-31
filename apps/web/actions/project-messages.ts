@@ -1,8 +1,8 @@
 "use server"
 
-import { withAction } from "@/lib/core/action"
+import { withAction } from "@workspace/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
-import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
+import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
 import { parseLocalized } from "@/lib/core/validation-server"
 import { roleRank } from "@/lib/organization/roles"
 import { postProjectMessageSchema } from "@/lib/portal/schemas"

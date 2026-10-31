@@ -3,7 +3,7 @@ import { useTranslations } from "next-intl"
 import { Container } from "@/components/landing/section"
 import { Wordmark } from "@/components/landing/wordmark"
 import { NewsletterForm } from "@/components/forms/newsletter-form"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Separator } from "@workspace/ui/components/separator"
 import { footerColumns } from "@/lib/landing/content"
 

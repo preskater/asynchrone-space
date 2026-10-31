@@ -16,7 +16,7 @@ import {
 } from "@workspace/ui/components/empty"
 import { MessageSquareIcon } from "lucide-react"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useMessaging } from "@/lib/messaging/store"
 import { useRecents } from "@/lib/recents/store"
 import { useWorkspaceNav } from "@/lib/workspace-nav/store"

@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import type { LinkProjectInput, UnlinkProjectInput } from "../schemas"
 import type { ClientProjectLinkOptionData, ClientProjectOptionData } from "../types"
 import { ClientsServiceCore, requireEdit } from "./core"

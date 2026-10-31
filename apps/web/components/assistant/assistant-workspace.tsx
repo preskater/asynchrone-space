@@ -19,7 +19,7 @@ import {
 
 import { suggestions } from "@/lib/assistant/suggestions"
 import { useAssistant } from "@/lib/assistant/use-assistant"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 export function AssistantWorkspace() {

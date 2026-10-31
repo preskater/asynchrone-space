@@ -8,8 +8,8 @@ import { toast } from "sonner"
 import { Button } from "@workspace/ui/components/button"
 import { Spinner } from "@workspace/ui/components/spinner"
 
-import { useRouter } from "@/i18n/navigation"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useRouter } from "@workspace/i18n/navigation"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 /**
  * Uploads one document from the portal (max 25 MB). The file becomes a

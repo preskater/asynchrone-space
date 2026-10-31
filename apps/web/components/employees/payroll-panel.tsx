@@ -59,8 +59,8 @@ import {
   fetchPayrollAction,
   updateSalaryAction,
 } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import {
   addMonthsToKey,
   localDateFromKey,
@@ -70,8 +70,8 @@ import {
 import type { EmployeeOverviewData, PayrollData, PayrollRow } from "@/lib/employees/types"
 import { SALARY_TYPES } from "@/lib/employees/types"
 import { formatHours } from "@/lib/employees/utils"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { downloadCsv, useTodayKey } from "./use-employees"
 

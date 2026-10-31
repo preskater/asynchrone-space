@@ -1,5 +1,5 @@
-import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
-import type { RequestContext } from "@/lib/core/context"
+import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 import {
   decodeCursor,
   encodeCursor,
@@ -7,7 +7,7 @@ import {
   toPage,
   type Page,
   type PageInput,
-} from "@/lib/core/pagination"
+} from "@workspace/core/pagination"
 import { unlinkLargeObject } from "@/lib/large-object"
 import { roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"

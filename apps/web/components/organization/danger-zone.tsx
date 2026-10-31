@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 import { useFormatter, useTranslations } from "next-intl"
 import { LogOutIcon, Trash2Icon, Undo2Icon } from "lucide-react"
 import { toast } from "sonner"
@@ -38,8 +38,8 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 export function OrganizationDangerZone({
   organization,

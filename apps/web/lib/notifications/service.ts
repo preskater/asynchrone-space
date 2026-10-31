@@ -1,4 +1,4 @@
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 
 import { NotificationRepository } from "./repository"
 import type {

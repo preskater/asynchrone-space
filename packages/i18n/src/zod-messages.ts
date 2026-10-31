@@ -4,11 +4,7 @@
  * both server and client code; the zod-typed wrapper lives in `./zod`.
  */
 
-export type ValidationMessageKey =
-  | "required"
-  | "email"
-  | "tooShort"
-  | "tooLong"
+export type ValidationMessageKey = "required" | "email" | "tooShort" | "tooLong"
 
 export type ValidationTranslator = (
   key: ValidationMessageKey,

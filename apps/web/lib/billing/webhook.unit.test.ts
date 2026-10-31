@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { ForbiddenError } from "@/lib/core/errors"
+import { ForbiddenError } from "@workspace/core/errors"
 
 import { BillingService } from "./service"
 import type {
