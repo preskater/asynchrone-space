@@ -67,24 +67,14 @@ export const ServiceTokenClaimsSchema = z.object({
 })
 export type ServiceTokenClaims = z.infer<typeof ServiceTokenClaimsSchema>
 
-export const MemberRoleSchema = z.enum([
-  "owner",
-  "admin",
-  "member",
-  "viewer",
-  "client",
-])
+export const MemberRoleSchema = z.enum(["owner", "admin", "member", "viewer"])
 export type MemberRole = z.infer<typeof MemberRoleSchema>
 
-export const UserSchema = z.object({
+export const MemberSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
   email: z.string().email(),
   avatarUrl: z.string().url().nullable().optional(),
-})
-export type IdentityUser = z.infer<typeof UserSchema>
-
-export const MemberSchema = UserSchema.extend({
   role: MemberRoleSchema,
   /** Set for client-portal accounts; they never enter the internal workspace. */
   clientId: z.string().nullable().optional(),
@@ -105,7 +95,6 @@ export const EntitlementsSchema = z.object({
   storageBytes: z.number().int().nonnegative(),
   aiBudgetMicrosPerSeat: z.number().int().nonnegative(),
   auditLog: z.boolean(),
-  sso: z.boolean(),
   requireTwoFactor: z.boolean(),
   granularPermissions: z.boolean(),
   apiAccess: z.boolean(),

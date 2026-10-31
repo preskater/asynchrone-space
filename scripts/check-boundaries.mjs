@@ -134,12 +134,6 @@ function report(file, specifier, rule, message) {
   errors.push(`${relative(root, file)}: ${rule}: ${specifier} — ${message}`)
 }
 
-const DB_OWNER_ALIASES = {
-  // The identity database is owned by the workspace shell; the app is still
-  // `web` during the migration and becomes `copilot` in milestone #1.
-  identity: new Set(["web", "copilot"]),
-}
-
 function checkDbOwnership(importer, packageName, file, specifier) {
   if (!packageName.startsWith("@workspace/db-")) return
   // The shared pool/adapter package is not a per-app database.
@@ -147,7 +141,6 @@ function checkDbOwnership(importer, packageName, file, specifier) {
   const owner = packageName.slice("@workspace/db-".length)
   const allowed =
     importer.appKey === owner ||
-    DB_OWNER_ALIASES[owner]?.has(importer.appKey) ||
     importer.name === `@workspace/${owner}` ||
     importer.name.startsWith(`@workspace/${owner}-`) ||
     importer.name === packageName
