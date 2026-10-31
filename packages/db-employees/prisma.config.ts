@@ -14,7 +14,15 @@ loadEnv({
 const url = process.env.EMPLOYEES_DATABASE_URL ?? process.env.DATABASE_URL
 if (!url) throw new Error("EMPLOYEES_DATABASE_URL or DATABASE_URL is required")
 
+const shadow =
+  process.env.EMPLOYEES_SHADOW_DATABASE_URL ??
+  (() => {
+    const parsed = new URL(url)
+    parsed.pathname = parsed.pathname + "_shadow"
+    return parsed.toString()
+  })()
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
-  datasource: { url },
+  datasource: { url, shadowDatabaseUrl: shadow },
 })

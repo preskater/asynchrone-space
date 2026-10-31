@@ -155,6 +155,10 @@ asynchrone-space-control-tower:
 # ---------------------------------------------------------------------------
 migrate:
   enabled: true
+  # The referenced secret must contain DATABASE_URL (the monolith, until #185)
+  # and IDENTITY_DATABASE_URL, PROJECTS_DATABASE_URL, CALENDARS_DATABASE_URL,
+  # FILES_DATABASE_URL, MESSAGES_DATABASE_URL, CLIENTS_DATABASE_URL,
+  # EMPLOYEES_DATABASE_URL and CONTROL_TOWER_DATABASE_URL.
   image:
     repository: ghcr.io/preskater/asynchrone-space-migrate
     tag: ""

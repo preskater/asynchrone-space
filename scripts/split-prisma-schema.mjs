@@ -224,6 +224,7 @@ function renderSchema(db) {
 }
 
 function renderPrismaConfig(env) {
+  const shadowEnv = env.replace("DATABASE_URL", "SHADOW_DATABASE_URL")
   return `import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -240,9 +241,17 @@ loadEnv({
 const url = process.env.${env} ?? process.env.DATABASE_URL
 if (!url) throw new Error("${env} or DATABASE_URL is required")
 
+const shadow =
+  process.env.${shadowEnv} ??
+  (() => {
+    const parsed = new URL(url)
+    parsed.pathname = parsed.pathname + "_shadow"
+    return parsed.toString()
+  })()
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
-  datasource: { url },
+  datasource: { url, shadowDatabaseUrl: shadow },
 })
 `
 }

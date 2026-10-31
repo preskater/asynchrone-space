@@ -40,11 +40,11 @@ charts/
 `.github/workflows/docker.yml` publishes three images for every push to `main`
 and every `v*` tag:
 
-| Image | Built from | Purpose |
-| --- | --- | --- |
-| `ghcr.io/preskater/asynchrone-space` | `runner` stage, `APP=web` | Customer app |
-| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
-| `ghcr.io/preskater/asynchrone-space-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
+| Image                                              | Built from                             | Purpose                                       |
+| -------------------------------------------------- | -------------------------------------- | --------------------------------------------- |
+| `ghcr.io/preskater/asynchrone-space`               | `runner` stage, `APP=web`              | Customer app                                  |
+| `ghcr.io/preskater/asynchrone-space-control-tower` | `runner` stage, `APP=control-tower`    | Control tower                                 |
+| `ghcr.io/preskater/asynchrone-space-migrate`       | `migrate` stage, `turbo prune migrate` | One-shot monolith + per-app Prisma migrations |
 
 The workflow tags images with the branch, the release tag and `sha-<shortsha>`.
 Use the immutable `sha-` tag:
@@ -68,26 +68,34 @@ kubectl create namespace asynchrone-space
 
 kubectl -n asynchrone-space create secret generic asynchrone-space-web-secrets \
   --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/asynchrone-space?schema=public' \
+  --from-literal=IDENTITY_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_identity?schema=public' \
+  --from-literal=PROJECTS_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_projects?schema=public' \
+  --from-literal=CALENDARS_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_calendars?schema=public' \
+  --from-literal=FILES_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_files?schema=public' \
+  --from-literal=MESSAGES_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_messages?schema=public' \
+  --from-literal=CLIENTS_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_clients?schema=public' \
+  --from-literal=EMPLOYEES_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_employees?schema=public' \
+  --from-literal=CONTROL_TOWER_DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_control_tower?schema=public' \
   --from-literal=BETTER_AUTH_SECRET='<at-least-16-chars>' \
   --from-literal=CRON_SECRET='<random-token>'
 
 kubectl -n asynchrone-space create secret generic asynchrone-space-control-tower-secrets \
-  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/asynchrone-space?schema=public' \
+  --from-literal=DATABASE_URL='postgresql://user:pass@db:5432/asynchrone_control_tower?schema=public' \
   --from-literal=CONTROL_TOWER_BETTER_AUTH_SECRET='<at-least-32-chars>'
 ```
 
 Add optional keys to `asynchrone-space-web-secrets` as needed:
 
-| Key | Used by |
-| --- | --- |
-| `OPENAI_API_KEY` | Assistant |
-| `RESEND_API_KEY` | Verification and password-reset email |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth account linking |
-| `GITLAB_CLIENT_SECRET` | GitLab OAuth account linking |
-| `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile on sign-up and password reset |
-| `STRIPE_SECRET_KEY` | Billing: Checkout and the Customer Portal |
-| `STRIPE_WEBHOOK_SECRET` | Billing: signing secret of `/api/webhooks/stripe` |
-| `SENTRY_DSN` | Server-side error tracking and request timings ([Observability](#observability)) |
+| Key                     | Used by                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `OPENAI_API_KEY`        | Assistant                                                                        |
+| `RESEND_API_KEY`        | Verification and password-reset email                                            |
+| `GITHUB_CLIENT_SECRET`  | GitHub OAuth account linking                                                     |
+| `GITLAB_CLIENT_SECRET`  | GitLab OAuth account linking                                                     |
+| `TURNSTILE_SECRET_KEY`  | Cloudflare Turnstile on sign-up and password reset                               |
+| `STRIPE_SECRET_KEY`     | Billing: Checkout and the Customer Portal                                        |
+| `STRIPE_WEBHOOK_SECRET` | Billing: signing secret of `/api/webhooks/stripe`                                |
+| `SENTRY_DSN`            | Server-side error tracking and request timings ([Observability](#observability)) |
 
 `TURNSTILE_SECRET_KEY` must be set together with
 `asynchrone-space-web.config.TURNSTILE_SITE_KEY`, and `STRIPE_WEBHOOK_SECRET`
@@ -143,41 +151,41 @@ lists. The defaults already target `asynchrone.space` and
 
 ## What gets created
 
-| Resource | Name | Notes |
-| --- | --- | --- |
-| Deployment | `asynchrone-space-web` | 2 replicas by default |
-| Deployment | `asynchrone-space-control-tower` | 2 replicas by default |
-| Service | `asynchrone-space-web`, `asynchrone-space-control-tower` | ClusterIP, port 80 → container 3000 |
-| Ingress | `asynchrone-space-web`, `asynchrone-space-control-tower` | One host each |
-| ConfigMap | `asynchrone-space-web`, `asynchrone-space-control-tower` | Non-secret runtime config |
-| CronJob | `asynchrone-space-web-uploads-sweep` | `0 3 * * *` |
-| CronJob | `asynchrone-space-web-repository-sync` | `0 * * * *` |
-| CronJob | `asynchrone-space-web-trial-expiry` | `0 6 * * *` |
-| CronJob | `asynchrone-space-web-organization-deletion` | `30 3 * * *` |
-| CronJob | `asynchrone-space-web-audit-retention` | `45 3 * * *` |
-| CronJob | `asynchrone-space-web-data-exports` | `*/15 * * * *` |
-| Job (hook) | `asynchrone-space-migrate` | Pre-install and pre-upgrade |
-| ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled |
-| PDB | `asynchrone-space-web`, `asynchrone-space-control-tower` | `minAvailable: 1` |
+| Resource       | Name                                                                                 | Notes                               |
+| -------------- | ------------------------------------------------------------------------------------ | ----------------------------------- |
+| Deployment     | `asynchrone-space-web`                                                               | 2 replicas by default               |
+| Deployment     | `asynchrone-space-control-tower`                                                     | 2 replicas by default               |
+| Service        | `asynchrone-space-web`, `asynchrone-space-control-tower`                             | ClusterIP, port 80 → container 3000 |
+| Ingress        | `asynchrone-space-web`, `asynchrone-space-control-tower`                             | One host each                       |
+| ConfigMap      | `asynchrone-space-web`, `asynchrone-space-control-tower`                             | Non-secret runtime config           |
+| CronJob        | `asynchrone-space-web-uploads-sweep`                                                 | `0 3 * * *`                         |
+| CronJob        | `asynchrone-space-web-repository-sync`                                               | `0 * * * *`                         |
+| CronJob        | `asynchrone-space-web-trial-expiry`                                                  | `0 6 * * *`                         |
+| CronJob        | `asynchrone-space-web-organization-deletion`                                         | `30 3 * * *`                        |
+| CronJob        | `asynchrone-space-web-audit-retention`                                               | `45 3 * * *`                        |
+| CronJob        | `asynchrone-space-web-data-exports`                                                  | `*/15 * * * *`                      |
+| Job (hook)     | `asynchrone-space-migrate`                                                           | Pre-install and pre-upgrade         |
+| ServiceAccount | `asynchrone-space-web`, `asynchrone-space-control-tower`, `asynchrone-space-migrate` | Token automount disabled            |
+| PDB            | `asynchrone-space-web`, `asynchrone-space-control-tower`                             | `minAvailable: 1`                   |
 
 ## Configuration
 
 Web values live under `asynchrone-space-web` and `asynchrone-space-control-tower` in
 `charts/asynchrone-space/values.yaml`. The most useful overrides:
 
-| Value | Default | Purpose |
-| --- | --- | --- |
-| `global.imageTag` | `""` (required) | Tag shared by all three images |
-| `global.imagePullSecrets` | `[]` | Pull secrets for private GHCR packages |
-| `asynchrone-space-web.replicaCount` | `2` | Customer app replicas |
-| `asynchrone-space-control-tower.replicaCount` | `2` | Control tower replicas |
-| `asynchrone-space-web.ingress.hosts` | `asynchrone.space` | Customer app host(s) |
-| `asynchrone-space-control-tower.ingress.hosts` | `control-tower.asynchrone.space` | Control tower host(s) |
-| `*.ingress.className` | `nginx` | Ingress controller class |
-| `*.ingress.tls` | `[]` | TLS secret(s) for the hosts |
-| `*.config` | see values | Non-secret environment variables |
-| `asynchrone-space-web.cronjobs.*.enabled` | `true` | Toggle each scheduled job |
-| `migrate.enabled` | `true` | Toggle the migration hook |
+| Value                                          | Default                          | Purpose                                |
+| ---------------------------------------------- | -------------------------------- | -------------------------------------- |
+| `global.imageTag`                              | `""` (required)                  | Tag shared by all three images         |
+| `global.imagePullSecrets`                      | `[]`                             | Pull secrets for private GHCR packages |
+| `asynchrone-space-web.replicaCount`            | `2`                              | Customer app replicas                  |
+| `asynchrone-space-control-tower.replicaCount`  | `2`                              | Control tower replicas                 |
+| `asynchrone-space-web.ingress.hosts`           | `asynchrone.space`               | Customer app host(s)                   |
+| `asynchrone-space-control-tower.ingress.hosts` | `control-tower.asynchrone.space` | Control tower host(s)                  |
+| `*.ingress.className`                          | `nginx`                          | Ingress controller class               |
+| `*.ingress.tls`                                | `[]`                             | TLS secret(s) for the hosts            |
+| `*.config`                                     | see values                       | Non-secret environment variables       |
+| `asynchrone-space-web.cronjobs.*.enabled`      | `true`                           | Toggle each scheduled job              |
+| `migrate.enabled`                              | `true`                           | Toggle the migration hook              |
 
 `BETTER_AUTH_URL`, `PLATFORM_APP_URL`, `NEXT_PUBLIC_APP_URL` and
 `CONTROL_TOWER_URL` must match the public URLs served by the ingress. The web
@@ -354,7 +362,7 @@ kubectl -n asynchrone-space logs deploy/asynchrone-space-web --tail=100
 ## Troubleshooting
 
 - **`image.tag or global.imageTag must be set`** — pass `--set
-  global.imageTag=sha-…`; the chart intentionally refuses to default to a
+global.imageTag=sha-…`; the chart intentionally refuses to default to a
   mutable tag.
 - **Migration Job fails immediately** — check that the Secret exists and
   contains `DATABASE_URL`; check the Job logs. If Prisma needs a writable path,

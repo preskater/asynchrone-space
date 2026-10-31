@@ -47,6 +47,13 @@ spec:
                 secretKeyRef:
                   name: {{ required "asynchrone-space.migrate.existingSecret (or asynchrone-space-web.secret.existingSecret) is required" $secretName }}
                   key: {{ .Values.migrate.secretKey }}
+            {{- range $key := list "IDENTITY_DATABASE_URL" "PROJECTS_DATABASE_URL" "CALENDARS_DATABASE_URL" "FILES_DATABASE_URL" "MESSAGES_DATABASE_URL" "CLIENTS_DATABASE_URL" "EMPLOYEES_DATABASE_URL" "CONTROL_TOWER_DATABASE_URL" }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $secretName }}
+                  key: {{ $key }}
+            {{- end }}
             {{- with .Values.migrate.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
