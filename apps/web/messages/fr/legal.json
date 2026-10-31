@@ -15,7 +15,7 @@
       "columns": ["Données", "Conservation", "Traitement"],
       "rows": [
         [
-          "Contenu de l’espace de travail — projets, tâches, messages, calendriers, enregistrements CRM et RH, fichiers importés",
+          "Contenu de l’espace de travail — projets, tâches, messages, calendriers, enregistrements clients et collaborateurs, fichiers importés",
           "30 jours après la demande de suppression d’un propriétaire",
           "L’espace de travail reste utilisable pendant ces 30 jours afin qu’une suppression accidentelle puisse être annulée. Une tâche quotidienne supprime ensuite les lignes et les octets de fichiers stockés."
         ],
@@ -53,7 +53,7 @@
     },
     "s3b2": "Les enregistrements des utilisateurs que vous avez invités sont supprimés avec l’espace de travail. Si vous avez besoin d’une copie de ce qui a été supprimé, demandez-la avant l’expiration des 30 jours.",
     "s4h": "Vos droits",
-    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d’accéder à vos données personnelles, de les rectifier, de les exporter ou de les supprimer. Les enregistrements CRM et RH peuvent être exportés au format CSV depuis le produit. Les propriétaires d’un espace de travail peuvent aussi télécharger à tout moment un export complet de son contenu depuis ses paramètres.",
+    "s4b1": "Selon votre lieu de résidence, vous pouvez avoir le droit d’accéder à vos données personnelles, de les rectifier, de les exporter ou de les supprimer. Les enregistrements clients et collaborateurs peuvent être exportés au format CSV depuis le produit. Les propriétaires d’un espace de travail peuvent aussi télécharger à tout moment un export complet de son contenu depuis ses paramètres.",
     "s4b2": "Les propriétaires d’un espace de travail programment la suppression depuis les paramètres et peuvent l’annuler jusqu’à la fin du délai de 30 jours. Nous pouvons vous demander de confirmer votre identité avant de traiter une demande.",
     "s5h": "Sous-traitants",
     "s5b1": "Nous faisons appel à un petit nombre de prestataires pour exploiter Asynchrone Space : hébergement cloud et PostgreSQL dans l’Union européenne, e-mail transactionnel, l’assistant IA lorsqu’il est activé, la synchronisation de dépôts, le traitement des paiements et un captcha à l’inscription lorsque le déploiement l’active. Chacun ne reçoit que les données nécessaires à sa tâche et est lié par un accord de sous-traitance.",
@@ -201,7 +201,7 @@
     ],
     "s7b2": "Lorsque les informations ne sont pas toutes disponibles immédiatement, elles sont communiquées par étapes sans délai supplémentaire. Le Sous-traitant aide le Client dans ses propres obligations de notification, mais le Client reste responsable de la notification aux autorités de contrôle et aux personnes concernées. Une notification ne vaut pas reconnaissance de responsabilité.",
     "s8h": "Demandes des personnes concernées et assistance",
-    "s8b1": "Le produit permet aux utilisateurs d’accéder à leurs données de profil et de les rectifier, aux propriétaires d’espaces de travail de restreindre ou de révoquer les accès, et exporte les enregistrements CRM et RH au format CSV. Un export complet de toutes les données d’un espace de travail n’est pas encore en libre-service : le Client peut en faire la demande à privacy@asynchrone.space et le reçoit sous 30 jours, dans un format structuré et couramment utilisé. La suppression est programmée par un propriétaire de l’espace de travail et s’exécute automatiquement 30 jours plus tard.",
+    "s8b1": "Le produit permet aux utilisateurs d’accéder à leurs données de profil et de les rectifier, aux propriétaires d’espaces de travail de restreindre ou de révoquer les accès, et exporte les enregistrements clients et collaborateurs au format CSV. Un export complet de toutes les données d’un espace de travail n’est pas encore en libre-service : le Client peut en faire la demande à privacy@asynchrone.space et le reçoit sous 30 jours, dans un format structuré et couramment utilisé. La suppression est programmée par un propriétaire de l’espace de travail et s’exécute automatiquement 30 jours plus tard.",
     "s8b2": "Si une personne concernée s’adresse directement au Sous-traitant, celui-ci la réoriente vers le Client, sauf obligation légale d’y répondre lui-même. Pour les analyses d’impact et les consultations préalables d’une autorité de contrôle, le Sous-traitant fournit gratuitement les informations figurant dans le présent Accord et sur la page Sécurité ; lorsqu’une demande exige un travail supplémentaire substantiel, il convient au préalable de son périmètre et de son coût avec le Client.",
     "s9h": "Droits d’audit",
     "s9b1": "Le Sous-traitant met à la disposition du Client :",

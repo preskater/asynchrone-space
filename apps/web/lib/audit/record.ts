@@ -131,7 +131,7 @@ export async function recordSystemAudit(
 
 /**
  * Fills `actorName`/`actorEmail` from the user table for callers that only
- * carry ids (the CRM and HR repositories build their entries from `ctx.userId`).
+ * carry ids (the client and employee repositories build their entries from `ctx.userId`).
  * Snapshotting keeps the row readable once the account is gone.
  */
 export async function withActorIdentity<

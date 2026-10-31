@@ -74,7 +74,7 @@
         "updated": "Task template updated",
         "deleted": "Task template deleted"
       },
-      "update": "HR project updated"
+      "update": "Employee project updated"
     },
     "task": {
       "created": "Task created",
@@ -154,8 +154,8 @@
       "archived": "Client archived",
       "restored": "Client restored",
       "import": "Clients imported",
-      "create": "HR client created",
-      "update": "HR client updated",
+      "create": "Employee client created",
+      "update": "Employee client updated",
       "project": {
         "linked": "Project linked to client",
         "unlinked": "Project unlinked from client"
@@ -189,7 +189,7 @@
       "updated": "Stage updated",
       "deleted": "Stage deleted"
     },
-    "crmField": {
+    "clientField": {
       "created": "Custom field created",
       "updated": "Custom field updated",
       "deleted": "Custom field deleted"
@@ -199,13 +199,13 @@
       "update": "Internal activity updated"
     },
     "settings": {
-      "update": "HR settings updated"
+      "update": "Employee settings updated"
     },
     "salary": {
       "update": "Salary updated"
     },
     "profile": {
-      "update": "HR profile updated"
+      "update": "Employee profile updated"
     },
     "balance": {
       "set": "Leave balance set",
@@ -234,11 +234,11 @@
     "deal": "Deal",
     "pipeline": "Pipeline",
     "stage": "Stage",
-    "crmField": "Custom field",
+    "clientField": "Custom field",
     "activity": "Internal activity",
     "internalActivity": "Internal activity",
-    "hrSettings": "HR settings",
-    "hrProfile": "HR profile",
+    "employeeSettings": "Employee settings",
+    "employeeProfile": "Employee profile",
     "salaryProfile": "Salary",
     "leaveRequest": "Leave request",
     "leaveBalance": "Leave balance",

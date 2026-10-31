@@ -159,18 +159,18 @@
     "contractor": "Prestataire",
     "other": "Autre"
   },
-  "crmClientStatus": {
+  "clientStatus": {
     "prospect": "Prospect",
     "active": "Client actif",
     "inactive": "Inactif"
   },
-  "crmActivityType": {
+  "clientActivityType": {
     "note": "Note",
     "call": "Appel",
     "email": "E-mail",
     "meeting": "Réunion"
   },
-  "crmFieldType": {
+  "clientFieldType": {
     "text": "Texte",
     "number": "Nombre",
     "date": "Date",
@@ -191,7 +191,7 @@
     "won": "Gagnée",
     "lost": "Perdue"
   },
-  "crmDocumentVisibility": {
+  "clientDocumentVisibility": {
     "internal": "Interne",
     "client": "Visible client"
   },

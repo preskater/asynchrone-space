@@ -35,14 +35,14 @@ export function enumLabels(t: Translator) {
     employmentType: (value: string) => t(`employmentType.${value}` as never),
     contractType: (value: string) => t(`contractType.${value}` as never),
     salaryType: (value: string) => t(`salaryType.${value}` as never),
-    crmClientStatus: (value: string) => t(`crmClientStatus.${value}` as never),
-    crmActivityType: (value: string) => t(`crmActivityType.${value}` as never),
-    crmFieldType: (value: string) => t(`crmFieldType.${value}` as never),
+    clientStatus: (value: string) => t(`clientStatus.${value}` as never),
+    clientActivityType: (value: string) => t(`clientActivityType.${value}` as never),
+    clientFieldType: (value: string) => t(`clientFieldType.${value}` as never),
     dealStatus: (value: string) => t(`dealStatus.${value}` as never),
     pipelineStageType: (value: string) =>
       t(`pipelineStageType.${value}` as never),
-    crmDocumentVisibility: (value: string) =>
-      t(`crmDocumentVisibility.${value}` as never),
+    clientDocumentVisibility: (value: string) =>
+      t(`clientDocumentVisibility.${value}` as never),
     meetingStatus: (value: string) => t(`meetingStatus.${value}` as never),
     meetingMode: (value: string) => t(`meetingMode.${value}` as never),
     meetingProvider: (value: string) => t(`meetingProvider.${value}` as never),

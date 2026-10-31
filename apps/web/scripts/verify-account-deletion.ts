@@ -12,7 +12,7 @@ import { prisma } from "../lib/prisma"
  * Manual check for personal account deletion (issue #88), against throwaway
  * users and organizations in the configured database: the sole-owner and
  * platform-operator guards, anonymization, removed credentials, kept content
- * and HR rows, and the audit trail. Password and impersonation checks live in
+ * and employee rows, and the audit trail. Password and impersonation checks live in
  * the server action and are covered by the manual UI test. Run with:
  *
  *   npm run verify:account-deletion

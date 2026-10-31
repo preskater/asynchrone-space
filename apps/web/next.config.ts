@@ -28,6 +28,17 @@ const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   // The browser SDK needs the DSN at build time; it is public, not a secret.
   env: { NEXT_PUBLIC_SENTRY_DSN: process.env.SENTRY_DSN ?? "" },
+  async redirects() {
+    return [
+      {
+        // Time & attendance became Employees (#147). Keep old bookmarks working; the locale
+        // prefix is always present because the app uses `localePrefix: "always"`.
+        source: "/:locale/:orgSlug/hr",
+        destination: "/:locale/:orgSlug/employees",
+        permanent: true,
+      },
+    ]
+  },
   experimental: {
     globalNotFound: true,
     agentUpgrade: "security",

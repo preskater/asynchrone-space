@@ -262,7 +262,7 @@ export const faqs: FaqItem[] = [
     value: "migrate",
     question: "Can I import from other tools?",
     answer:
-      "You can bring your team over quickly — invite members by email and import your CRM clients and contacts from a CSV file.",
+      "You can bring your team over quickly — invite members by email and import your client companies and contacts from a CSV file.",
   },
 ]
 

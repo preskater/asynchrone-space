@@ -59,7 +59,7 @@ What moves where:
 | File nodes, versions, shares, upload sessions and their bytes                                                                        | `asynchrone_files`     |
 | Conversations, messages, reactions, attachment metadata and bytes                                                                    | `asynchrone_messages`  |
 | Clients, contacts, pipelines, deals, activities, documents                                                                           | `asynchrone_clients`   |
-| HR profiles, attendance, leave, settings, salary, internal activities                                                                | `asynchrone_employees` |
+| Employees profiles, attendance, leave, settings, salary, internal activities                                                         | `asynchrone_employees` |
 | Platform auth/audit/handoff                                                                                                          | deferred to #191       |
 
 Notes:

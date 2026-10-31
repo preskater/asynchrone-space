@@ -74,7 +74,7 @@
         "updated": "Modèle de tâche modifié",
         "deleted": "Modèle de tâche supprimé"
       },
-      "update": "Projet RH modifié"
+      "update": "Projet collaborateur modifié"
     },
     "task": {
       "created": "Tâche créée",
@@ -154,8 +154,8 @@
       "archived": "Client archivé",
       "restored": "Client restauré",
       "import": "Clients importés",
-      "create": "Client RH créé",
-      "update": "Client RH modifié",
+      "create": "Client collaborateur créé",
+      "update": "Client collaborateur modifié",
       "project": {
         "linked": "Projet lié au client",
         "unlinked": "Projet dissocié du client"
@@ -189,7 +189,7 @@
       "updated": "Étape modifiée",
       "deleted": "Étape supprimée"
     },
-    "crmField": {
+    "clientField": {
       "created": "Champ personnalisé créé",
       "updated": "Champ personnalisé modifié",
       "deleted": "Champ personnalisé supprimé"
@@ -199,13 +199,13 @@
       "update": "Activité interne modifiée"
     },
     "settings": {
-      "update": "Paramètres RH modifiés"
+      "update": "Paramètres collaborateurs modifiés"
     },
     "salary": {
       "update": "Salaire modifié"
     },
     "profile": {
-      "update": "Profil RH modifié"
+      "update": "Profil collaborateur modifié"
     },
     "balance": {
       "set": "Solde de congés défini",
@@ -234,11 +234,11 @@
     "deal": "Affaire",
     "pipeline": "Pipeline",
     "stage": "Étape",
-    "crmField": "Champ personnalisé",
+    "clientField": "Champ personnalisé",
     "activity": "Activité interne",
     "internalActivity": "Activité interne",
-    "hrSettings": "Paramètres RH",
-    "hrProfile": "Profil RH",
+    "employeeSettings": "Paramètres collaborateurs",
+    "employeeProfile": "Profil collaborateur",
     "salaryProfile": "Salaire",
     "leaveRequest": "Demande de congé",
     "leaveBalance": "Solde de congés",
