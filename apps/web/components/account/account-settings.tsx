@@ -36,8 +36,8 @@ import {
   PASSWORD_COMPROMISED,
 } from "@/lib/account/password-policy"
 import { authClient } from "@/lib/auth-client"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 function ProfileCard() {
   const t = useTranslations("Account")

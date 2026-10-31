@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 import { GripVerticalIcon } from "lucide-react"
 
 import { Badge } from "@workspace/ui/components/badge"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { cn } from "@workspace/ui/lib/utils"
 
 import type { ClientDealData, ClientPipelineData } from "@/lib/clients/types"

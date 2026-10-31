@@ -31,7 +31,7 @@ import {
 
 import { useProjectStore, type CreateTaskInput } from "@/lib/projects/store"
 import { repositoryProviderLabel } from "@/lib/integrations/types"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import {
   isEmptyTaskCustomFieldValue,
   TASK_PRIORITY_VALUES,

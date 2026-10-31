@@ -12,9 +12,9 @@ import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
 import { cn } from "@workspace/ui/lib/utils"
 
-import { routing } from "@/i18n/routing"
-import en from "@/messages/en"
-import fr from "@/messages/fr"
+import { routing } from "@workspace/i18n/routing"
+import en from "@workspace/i18n/messages/en"
+import fr from "@workspace/i18n/messages/fr"
 
 const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })

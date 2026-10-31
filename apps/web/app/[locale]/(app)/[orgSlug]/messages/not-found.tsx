@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server"
 import { MessageSquareXIcon } from "lucide-react"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
 

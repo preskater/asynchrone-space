@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
-import { toAppError } from "@/lib/core/errors"
-import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
+import { toAppError } from "@workspace/core/errors"
+import { jsonError, rejectCrossOrigin } from "@workspace/core/http"
 import { completeUploadSession } from "@/lib/files/upload-session"
 
 export const runtime = "nodejs"

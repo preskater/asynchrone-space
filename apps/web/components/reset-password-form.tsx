@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form"
 import { toast } from "sonner"
 import * as z from "zod"
 
-import { Link, useRouter } from "@/i18n/navigation"
+import { Link, useRouter } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,

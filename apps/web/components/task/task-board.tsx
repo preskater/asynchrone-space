@@ -27,7 +27,7 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useProjectStore } from "@/lib/projects/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import {
   TASK_STATUS_VALUES,
   type Task,

@@ -28,13 +28,13 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { updateProjectClientSettingsAction } from "@/actions/projects"
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import {
   PORTAL_POLICIES,
   type PortalPolicy,
   type Project,
 } from "@/lib/projects/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 /** Per-project client-portal visibility and contribution policies. */
 export function ProjectPortalSettings({ project }: { project: Project }) {

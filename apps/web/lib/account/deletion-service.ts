@@ -2,7 +2,7 @@ import {
   ConflictError,
   ForbiddenError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { sendAccountDeletedEmail } from "@/lib/email"
 import { parseRoles } from "@/lib/organization/utils"
 import { prisma } from "@/lib/prisma"

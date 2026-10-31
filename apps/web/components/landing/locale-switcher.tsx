@@ -10,8 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu"
-import { Link, usePathname } from "@/i18n/navigation"
-import { routing } from "@/i18n/routing"
+import { Link, usePathname } from "@workspace/i18n/navigation"
+import { routing } from "@workspace/i18n/routing"
 
 const labels: Record<string, string> = {
   en: "English",

@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { buttonVariants } from "@workspace/ui/components/button"
 
 /** Shown across the workspace while a Team trial is running. */

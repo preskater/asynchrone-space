@@ -1,7 +1,7 @@
 import { ArrowRightIcon } from "lucide-react"
 import { getFormatter, getTranslations } from "next-intl/server"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,

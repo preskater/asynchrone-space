@@ -1,6 +1,6 @@
-import type { RequestContext } from "@/lib/core/context"
-import { NotFoundError } from "@/lib/core/errors"
-import { encodeCursor, pageSize, toPage } from "@/lib/core/pagination"
+import type { RequestContext } from "@workspace/core/context"
+import { NotFoundError } from "@workspace/core/errors"
+import { encodeCursor, pageSize, toPage } from "@workspace/core/pagination"
 import type { ClientAccess } from "../access"
 import { toDateKey } from "../dates"
 import type {

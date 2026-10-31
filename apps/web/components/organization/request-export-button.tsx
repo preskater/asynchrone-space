@@ -6,11 +6,11 @@ import { DownloadIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { requestExportAction } from "@/actions/data-export"
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 export function RequestExportButton({ disabled }: { disabled: boolean }) {
   const t = useTranslations("Org")

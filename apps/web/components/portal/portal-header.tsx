@@ -6,7 +6,7 @@ import { Building2Icon, LogOutIcon } from "lucide-react"
 import { Button } from "@workspace/ui/components/button"
 
 import { authClient } from "@/lib/auth-client"
-import { useRouter } from "@/i18n/navigation"
+import { useRouter } from "@workspace/i18n/navigation"
 
 import { PortalNav } from "./portal-nav"
 

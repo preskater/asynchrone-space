@@ -41,16 +41,16 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { createActivityAction } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   ClientActivityData,
   ClientActivityType,
   ClientTimelineEntryData,
 } from "@/lib/clients/types"
 import { CLIENT_ACTIVITY_TYPES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { toDateTimeLocal, useClientFormat } from "./use-clients"
 

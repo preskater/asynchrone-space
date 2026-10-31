@@ -22,11 +22,11 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { importClientsAction, importContactsAction } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { ClientImportResultData } from "@/lib/clients/types"
 import { CLIENT_STATUSES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 type ImportKind = "clients" | "contacts"
 

@@ -24,8 +24,8 @@ import {
   updateTaskAction,
   updateTaskTemplateAction,
 } from "@/actions/projects"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import type {
   CreateTaskInput,
   CreateTaskTemplateInput,

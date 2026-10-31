@@ -40,16 +40,16 @@ import {
   deleteFieldDefinitionAction,
   saveFieldDefinitionAction,
 } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   ClientFieldDefinitionData,
   ClientFieldEntity,
   ClientFieldValues,
 } from "@/lib/clients/types"
 import { CLIENT_FIELD_TYPES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 function isBlank(value: unknown): boolean {
   return (

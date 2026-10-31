@@ -41,10 +41,10 @@ import {
   invitePortalUserAction,
   revokePortalMemberAction,
 } from "@/actions/portal"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { PortalAccessData } from "@/lib/portal/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 /** Portal users and pending invitations of one client company. */
 export function PortalAccessCard({

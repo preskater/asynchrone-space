@@ -165,7 +165,7 @@ async function main() {
     const copy = JSON.parse(
       await readFile(
         fileURLToPath(
-          new URL(`../messages/${locale}/legal.json`, import.meta.url)
+          new URL(`../../../packages/i18n/messages/${locale}/legal.json`, import.meta.url)
         ),
         "utf8"
       )

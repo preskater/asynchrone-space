@@ -1,8 +1,8 @@
 import type { Usage } from "@openai/agents"
 import { monthWindow } from "@workspace/db/plans"
 
-import { AppError } from "@/lib/core/errors"
-import type { RequestContext } from "@/lib/core/context"
+import { AppError } from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 import { getOrganizationEntitlements } from "@/lib/organization/entitlements"
 import { prisma } from "@/lib/prisma"
 

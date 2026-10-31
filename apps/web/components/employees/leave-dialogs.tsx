@@ -39,8 +39,8 @@ import {
   decideLeaveAction,
   setAllowanceAction,
 } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import { formatDateKey } from "@/lib/employees/date-utils"
 import type {
   BalanceType,
@@ -52,8 +52,8 @@ import type {
 } from "@/lib/employees/types"
 import { BALANCE_TYPES, LEAVE_TYPES, TRACKED_LEAVE_TYPES } from "@/lib/employees/types"
 import { halfKeysBetween } from "@/lib/employees/utils"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { EmployeeDatePicker } from "./employee-date-picker"
 

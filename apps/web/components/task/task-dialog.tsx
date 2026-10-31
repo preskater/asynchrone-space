@@ -17,7 +17,7 @@ import {
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useProjectStore } from "@/lib/projects/store"
 import type { Task, TaskTemplate } from "@/lib/projects/types"
 

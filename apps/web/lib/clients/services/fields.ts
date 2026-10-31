@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { NotFoundError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { NotFoundError } from "@workspace/core/errors"
 import type { FieldDefinitionInput } from "../schemas"
 import type { ClientFieldDefinitionData } from "../types"
 import { ClientsServiceCore, requireManage, slugify } from "./core"

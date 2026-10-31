@@ -27,7 +27,7 @@ vi.mock("@/lib/organization/entitlements", () => ({
   requireEntitlement: vi.fn(),
 }))
 
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 
 import { FileService } from "./service"
 import type { FileRepository } from "./repository"

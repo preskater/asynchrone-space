@@ -5,7 +5,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { STATUS_CLASSES } from "@/lib/employees/colors"
 import { isAbsenceStatus, type AttendanceStatus } from "@/lib/employees/types"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 export function StatusBadge({
   status,

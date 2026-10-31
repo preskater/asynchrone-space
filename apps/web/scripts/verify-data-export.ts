@@ -5,7 +5,7 @@ import { Readable } from "node:stream"
 
 import { unzipSync } from "fflate"
 
-import type { RequestContext } from "../lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { openLargeObjectStream, uploadLargeObject } from "../lib/large-object"
 import { deleteOrganization } from "../lib/organization/deletion-service"
 import {

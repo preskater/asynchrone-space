@@ -1,7 +1,7 @@
 import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { projectService } from "@/lib/projects"
 import {
   createProjectSchema,

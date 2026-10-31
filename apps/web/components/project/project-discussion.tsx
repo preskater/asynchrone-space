@@ -14,9 +14,9 @@ import {
   listProjectMessagesAction,
   postProjectMessageAction,
 } from "@/actions/project-messages"
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { ProjectMessageData } from "@/lib/projects/thread"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 function initialsOf(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)

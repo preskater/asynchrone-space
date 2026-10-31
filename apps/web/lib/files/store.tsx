@@ -22,8 +22,8 @@ import {
   trashFileAction,
   updateShareAction,
 } from "@/actions/files"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { uploadFile } from "@/lib/files/upload-client"
 import type { Member } from "@/lib/projects/types"
 

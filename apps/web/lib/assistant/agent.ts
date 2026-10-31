@@ -2,7 +2,7 @@ import "./provider"
 
 import { Agent } from "@openai/agents"
 
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { DEFAULT_ASSISTANT_MODEL } from "@/lib/assistant/model"
 import { assistantTools } from "@/lib/assistant/tools"
 

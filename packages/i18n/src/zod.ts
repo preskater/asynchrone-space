@@ -15,9 +15,7 @@ export function zodErrorMap(
   t: (key: string, values?: Record<string, string | number>) => string
 ): $ZodErrorMap {
   return (issue: $ZodRawIssue) => {
-    const message = validationMessage(issue, (key, values) =>
-      t(key, values)
-    )
+    const message = validationMessage(issue, (key, values) => t(key, values))
     return message ? { message } : undefined
   }
 }

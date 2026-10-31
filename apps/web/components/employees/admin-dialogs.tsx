@@ -39,8 +39,8 @@ import {
   updateProfileAction,
   updateProjectEmployeeAction,
 } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   ClientData,
   EmployeeMemberData,
@@ -49,8 +49,8 @@ import type {
   ProjectOptionData,
 } from "@/lib/employees/types"
 import { ACTIVITY_KINDS, CONTRACT_TYPES, EMPLOYMENT_TYPES } from "@/lib/employees/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { EmployeeDatePicker } from "./employee-date-picker"
 

@@ -21,13 +21,13 @@ import {
 import type { PrismaClient } from "@workspace/db"
 
 import { parseOrganizationMetadata } from "@/lib/appearance/types"
-import { toCsv } from "@/lib/core/csv"
-import type { RequestContext } from "@/lib/core/context"
+import { toCsv } from "@workspace/core/csv"
+import type { RequestContext } from "@workspace/core/context"
 import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { requireEntitlement } from "@/lib/organization/entitlements"
 import { ROLE_RANK, roleRank } from "@/lib/organization/roles"
 import { prisma } from "@/lib/prisma"

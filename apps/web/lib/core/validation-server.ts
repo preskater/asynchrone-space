@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server"
 import type { ZodType } from "zod"
 import type { $ZodErrorMap } from "zod/v4/core"
 
-import { zodErrorMap } from "@/lib/i18n/zod"
+import { zodErrorMap } from "@workspace/i18n/zod"
 
 /**
  * Server-only zod parse that localizes validation messages through the

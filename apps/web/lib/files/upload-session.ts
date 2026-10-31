@@ -1,5 +1,5 @@
-import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
-import type { RequestContext } from "@/lib/core/context"
+import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 import { assertRateLimit } from "@/lib/core/rate-limit"
 import {
   appendLargeObject,

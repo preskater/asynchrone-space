@@ -30,10 +30,10 @@ import { Field, FieldLabel } from "@workspace/ui/components/field"
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
-import { unwrapActionResult } from "@/lib/core/action"
-import { useRouter } from "@/i18n/navigation"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type {
   MeetingRequestData,
   MeetingRequestsData,

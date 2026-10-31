@@ -33,8 +33,8 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 export function DeleteAccountCard() {
   const t = useTranslations("Account")

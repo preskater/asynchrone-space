@@ -1,9 +1,9 @@
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import {
   ConflictError,
   NotFoundError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { parseDateKey, toDateKey } from "../date-utils"
 import type { CreateLeaveInput, DecideLeaveInput } from "../schemas"
 import {

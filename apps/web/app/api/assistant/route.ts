@@ -6,8 +6,8 @@ import {
 import { z } from "zod"
 
 import { getRequestContext } from "@/lib/core/auth-context"
-import { AppError } from "@/lib/core/errors"
-import { jsonError, rejectCrossOrigin } from "@/lib/core/http"
+import { AppError } from "@workspace/core/errors"
+import { jsonError, rejectCrossOrigin } from "@workspace/core/http"
 import { upgradeRequired } from "@/lib/organization/entitlements"
 import { rateLimit } from "@/lib/core/rate-limit"
 import { assistantAgent } from "@/lib/assistant/agent"

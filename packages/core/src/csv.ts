@@ -19,9 +19,7 @@ function escapeCell(value: string | number | null | undefined): string {
   return text
 }
 
-export function toCsv(
-  rows: (string | number | null | undefined)[][]
-): string {
+export function toCsv(rows: (string | number | null | undefined)[][]): string {
   const body = rows
     .map((row) => row.map((cell) => escapeCell(cell)).join(SEPARATOR))
     .join("\r\n")

@@ -24,7 +24,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { formatBytes } from "@/lib/files/file-utils"
 import { useFiles } from "@/lib/files/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useWorkspaceNav } from "@/lib/workspace-nav/store"
 import type { FileLocation, FileNode } from "@/lib/files/types"
 

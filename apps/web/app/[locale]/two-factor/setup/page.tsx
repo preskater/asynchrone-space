@@ -7,7 +7,7 @@ import { AuthHomeButton } from "@/components/auth-home-button"
 import { Button } from "@workspace/ui/components/button"
 
 import { auth } from "@/lib/auth"
-import { safeRedirect } from "@/lib/core/redirect"
+import { safeRedirect } from "@workspace/core/redirect"
 
 /** Where the workspace gate sends members of an organization that requires 2FA. */
 export default async function Page({

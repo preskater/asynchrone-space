@@ -4,8 +4,8 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "@/lib/core/errors"
-import type { RequestContext } from "@/lib/core/context"
+} from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 import type { PrismaClient } from "@workspace/db"
 import { ROLE_RANK } from "@/lib/organization/roles"
 

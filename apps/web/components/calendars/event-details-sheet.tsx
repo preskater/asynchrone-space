@@ -41,7 +41,7 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { formatDayLabel, formatEventRange } from "@/lib/calendars/date-utils"
 import { EVENT_COLOR_CLASSES, RESPONSE_VARIANT } from "@/lib/calendars/event-colors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useCalendars } from "@/lib/calendars/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
 

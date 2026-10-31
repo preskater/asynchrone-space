@@ -20,7 +20,7 @@ import {
 } from "@workspace/ui/components/select"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import {
   TASK_PRIORITY_VALUES,
   TASK_STATUS_VALUES,

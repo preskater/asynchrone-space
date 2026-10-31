@@ -1,7 +1,7 @@
 import type { AuthInfo } from "@modelcontextprotocol/server"
 
-import { UnauthorizedError, ForbiddenError } from "@/lib/core/errors"
-import type { RequestContext } from "@/lib/core/context"
+import { UnauthorizedError, ForbiddenError } from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 import type { OrgRole } from "@/lib/organization/roles"
 
 type Claims = Record<string, unknown>

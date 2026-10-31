@@ -43,10 +43,10 @@ import {
   listClientContactsAction,
   restoreContactAction,
 } from "@/actions/clients"
-import { Link, useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { Link, useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type { ClientContactData, ClientOverviewData } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 
 import { ContactDialog } from "./contact-dialog"
 import { ImportDialog } from "./import-dialog"

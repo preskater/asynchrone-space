@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 
-import { routing } from "@/i18n/routing"
+import { routing } from "@workspace/i18n/routing"
 
 export interface BlogFrontmatter {
   title: string

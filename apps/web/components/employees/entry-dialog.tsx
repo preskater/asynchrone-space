@@ -33,8 +33,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { clearAttendanceAction, setAttendanceAction } from "@/actions/employees"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import { STATUS_CLASSES } from "@/lib/employees/colors"
 import { formatDateKey } from "@/lib/employees/date-utils"
 import {
@@ -46,8 +46,8 @@ import {
   type EmployeeOverviewData,
   type WorkLocationKind,
 } from "@/lib/employees/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { useTodayKey } from "./use-employees"
 

@@ -5,9 +5,9 @@ import {
   ForbiddenError,
   NotFoundError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { toMemberView } from "@/lib/core/members"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import {
   decodeCursor,
   encodeCursor,
@@ -15,7 +15,7 @@ import {
   toPage,
   type Page,
   type PageInput,
-} from "@/lib/core/pagination"
+} from "@workspace/core/pagination"
 import { repositoryIntegrationService } from "@/lib/integrations"
 import { notificationService } from "@/lib/notifications"
 import { roleRank } from "@/lib/organization/roles"

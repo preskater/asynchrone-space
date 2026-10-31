@@ -7,7 +7,7 @@ import {
   type ServerResponse,
 } from "node:http"
 
-import type { RequestContext } from "../lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { RepositoryConnectionRepository } from "../lib/integrations/repository"
 import { RepositoryIntegrationService } from "../lib/integrations/service"
 import { RepositoryWebhookHandler } from "../lib/integrations/webhooks"

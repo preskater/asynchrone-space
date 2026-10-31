@@ -1,4 +1,4 @@
-import { ForbiddenError } from "@/lib/core/errors"
+import { ForbiddenError } from "@workspace/core/errors"
 
 import type { MeetingProviderId } from "./types"
 

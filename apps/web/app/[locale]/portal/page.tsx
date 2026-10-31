@@ -11,7 +11,7 @@ import {
 } from "@workspace/ui/components/card"
 import { Progress } from "@workspace/ui/components/progress"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { getPortalContext } from "@/lib/portal/context"
 import { portalService } from "@/lib/portal"
 import { PortalSeenTracker } from "@/components/portal/portal-seen-tracker"

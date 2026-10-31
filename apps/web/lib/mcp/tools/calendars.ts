@@ -2,7 +2,7 @@ import { z } from "zod"
 
 import { calendarService } from "@/lib/calendars"
 import { createEventSchema } from "@/lib/calendars/schemas"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 
 import type { McpTool } from "./projects"
 

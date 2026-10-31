@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -24,7 +24,7 @@ import {
 import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
-import { safeRedirect } from "@/lib/core/redirect"
+import { safeRedirect } from "@workspace/core/redirect"
 
 export function TwoFactorForm() {
   const t = useTranslations("Auth.twoFactor")

@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { NotFoundError, ValidationError } from "@workspace/core/errors"
 import {
   decodeCursor,
   encodeCursor,
@@ -7,7 +7,7 @@ import {
   toPage,
   type Page,
   type PageInput,
-} from "@/lib/core/pagination"
+} from "@workspace/core/pagination"
 import type { ActivityInput } from "../schemas"
 import type { ClientActivityData } from "../types"
 import { ClientsServiceCore, requireEdit } from "./core"

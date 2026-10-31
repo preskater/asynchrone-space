@@ -1,12 +1,12 @@
 import { entitlementsFor } from "@workspace/db/plans"
 
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import {
   BadRequestError,
   ConflictError,
   ForbiddenError,
   NotFoundError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { roleRank } from "@/lib/organization/roles"
 
 import {

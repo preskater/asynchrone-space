@@ -1,11 +1,11 @@
-import type { OrgRole } from "@/lib/organization/roles"
+import type { MemberRole } from "@workspace/contracts"
 
 export interface RequestContext {
   userId: string
   userName: string
   userEmail: string
   organizationId: string
-  role: OrgRole
+  role: MemberRole
 }
 
 export type RequestContextInput = Partial<RequestContext> & {

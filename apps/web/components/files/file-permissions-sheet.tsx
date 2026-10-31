@@ -34,7 +34,7 @@ import {
 } from "@workspace/ui/components/table"
 
 import { useFiles } from "@/lib/files/store"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 import type { FileNode, SharePermission } from "@/lib/files/types"
 

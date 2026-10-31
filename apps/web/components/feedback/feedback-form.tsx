@@ -14,7 +14,7 @@ import { toast } from "sonner"
 import * as z from "zod"
 
 import { submitFeedbackAction } from "@/actions/feedback"
-import { usePathname } from "@/i18n/navigation"
+import { usePathname } from "@workspace/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -43,7 +43,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
-import { unwrapActionResult } from "@/lib/core/action"
+import { unwrapActionResult } from "@workspace/core/action"
 import {
   FEEDBACK_ATTACHMENT_TYPES,
   FEEDBACK_CATEGORIES,
@@ -54,8 +54,8 @@ import {
   type FeedbackAttachment,
   type FeedbackFieldId,
 } from "@/lib/feedback/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 function formatBytes(bytes: number) {
   return bytes < 1024 * 1024

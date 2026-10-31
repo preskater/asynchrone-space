@@ -1,7 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server"
 
 import { StartTrialButton } from "@/components/trial/start-trial-button"
-import { Link } from "@/i18n/navigation"
+import { Link } from "@workspace/i18n/navigation"
 import { buttonVariants } from "@workspace/ui/components/button"
 import {
   Card,

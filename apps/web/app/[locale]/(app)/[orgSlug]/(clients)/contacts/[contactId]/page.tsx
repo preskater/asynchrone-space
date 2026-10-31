@@ -6,7 +6,7 @@ import { ContactDetail } from "@/components/clients/contact-detail"
 
 import { auth } from "@/lib/auth"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
-import { isAppError } from "@/lib/core/errors"
+import { isAppError } from "@workspace/core/errors"
 import { clientsService } from "@/lib/clients"
 import { prisma } from "@/lib/prisma"
 

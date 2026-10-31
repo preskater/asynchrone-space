@@ -2,7 +2,7 @@
 
 import { cn } from "@workspace/ui/lib/utils"
 
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useEnumLabel } from "@workspace/i18n/labels"
 import type { Presence } from "@/lib/messaging/types"
 
 const PRESENCE_COLOR: Record<Presence, string> = {

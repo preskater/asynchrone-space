@@ -5,8 +5,8 @@ import { prisma } from "@/lib/prisma"
 import { parseRoles } from "@/lib/organization/utils"
 import type { OrgRole } from "@/lib/organization/roles"
 
-import { UnauthorizedError, ForbiddenError } from "./errors"
-import type { RequestContext } from "./context"
+import { UnauthorizedError, ForbiddenError } from "@workspace/core/errors"
+import type { RequestContext } from "@workspace/core/context"
 
 const DEFAULT_ROLE: OrgRole = "member"
 

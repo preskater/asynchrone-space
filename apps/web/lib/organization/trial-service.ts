@@ -10,9 +10,9 @@ import {
 
 import { AUDIT_ACTIONS } from "@/lib/audit/actions"
 import { recordSystemAudit, recordUserAudit } from "@/lib/audit/record"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
-import { ConflictError, NotFoundError } from "@/lib/core/errors"
+import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import { sendTrialEndedEmail, sendTrialReminderEmail } from "@/lib/email"
 import { notificationService } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma"

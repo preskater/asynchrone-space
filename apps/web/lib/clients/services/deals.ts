@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import { NotFoundError, ValidationError } from "@/lib/core/errors"
+import type { RequestContext } from "@workspace/core/context"
+import { NotFoundError, ValidationError } from "@workspace/core/errors"
 import {
   decodeCursor,
   encodeCursor,
@@ -7,7 +7,7 @@ import {
   toPage,
   type Page,
   type PageInput,
-} from "@/lib/core/pagination"
+} from "@workspace/core/pagination"
 import { notificationService } from "@/lib/notifications"
 import { parseDateKey, toDateKey } from "../dates"
 import type { ClientsRepository } from "../repository"

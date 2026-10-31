@@ -3,7 +3,7 @@ import "dotenv/config"
 import { randomUUID } from "node:crypto"
 import { Readable } from "node:stream"
 
-import type { RequestContext } from "../lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { uploadLargeObject } from "../lib/large-object"
 import {
   cancelOrganizationDeletion,

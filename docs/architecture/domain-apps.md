@@ -132,4 +132,5 @@ also catches imports in files that are not currently reachable from a route.
 - [x] Network policy and database operations (#192)
 - [x] Feature inventory and parity checklist (#146)
 - [x] Clients/Employees rename (#147)
+- [x] Shared kernel: core, i18n and next-config (#148)
 - [ ] Assistant/MCP/portal domain wiring and control-tower DB cutover (#190, milestone #1)

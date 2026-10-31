@@ -1,4 +1,4 @@
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { roleRank } from "@/lib/organization/roles"
 
 export interface EmployeeAccess {

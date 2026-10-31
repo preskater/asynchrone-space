@@ -3,7 +3,7 @@
 import { Building2Icon, HandshakeIcon, UsersIcon } from "lucide-react"
 import { useTranslations } from "next-intl"
 
-import { Link, usePathname } from "@/i18n/navigation"
+import { Link, usePathname } from "@workspace/i18n/navigation"
 import { cn } from "@workspace/ui/lib/utils"
 
 /** Module navigation shared by every client page (Clients / Contacts / Deals). */

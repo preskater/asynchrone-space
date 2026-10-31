@@ -5,7 +5,7 @@ import { randomUUID } from "node:crypto"
 import { AUDIT_ACTIONS } from "../lib/audit/actions"
 import { auditService } from "../lib/audit/service"
 import { pruneAuditLogs } from "../lib/audit/prune"
-import type { RequestContext } from "../lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { projectService } from "../lib/projects"
 import { prisma } from "../lib/prisma"
 

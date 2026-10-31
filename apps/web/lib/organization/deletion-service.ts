@@ -1,8 +1,8 @@
 import { AUDIT_ACTIONS } from "@/lib/audit/actions"
 import { recordUserAudit } from "@/lib/audit/record"
-import type { RequestContext } from "@/lib/core/context"
+import type { RequestContext } from "@workspace/core/context"
 import { requirePermission } from "@/lib/core/auth-context"
-import { ConflictError, ValidationError } from "@/lib/core/errors"
+import { ConflictError, ValidationError } from "@workspace/core/errors"
 import { sendOrganizationDeletedEmail } from "@/lib/email"
 import { unlinkLargeObject } from "@/lib/large-object"
 import { prisma } from "@/lib/prisma"
@@ -97,7 +97,7 @@ export async function cancelOrganizationDeletion(ctx: RequestContext) {
  * Two records survive on purpose: a `PlatformAuditEvent` (the proof of the
  * deletion) and the `TrialClaim` rows (email/domain) that stop a deleted
  * workspace from claiming a second Team trial. Both are disclosed in the
- * privacy policy's retention clause (`apps/web/messages/<locale>/legal.json`).
+ * privacy policy's retention clause (`packages/i18n/messages/<locale>/legal.json`).
  * Large objects are unlinked only after the delete commits, so a failed
  * delete never loses file bytes. Returns false when there was nothing to do.
  * See ADR 0024.

@@ -33,8 +33,8 @@ import { Spinner } from "@workspace/ui/components/spinner"
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { saveClientAction } from "@/actions/clients"
-import { useRouter } from "@/i18n/navigation"
-import { unwrapActionResult } from "@/lib/core/action"
+import { useRouter } from "@workspace/i18n/navigation"
+import { unwrapActionResult } from "@workspace/core/action"
 import type {
   ClientData,
   ClientStatus,
@@ -42,8 +42,8 @@ import type {
   ClientMemberOptionData,
 } from "@/lib/clients/types"
 import { CLIENT_STATUSES } from "@/lib/clients/types"
-import { useErrorTranslator } from "@/lib/i18n/errors"
-import { useEnumLabel } from "@/lib/i18n/labels"
+import { useErrorTranslator } from "@workspace/i18n/errors"
+import { useEnumLabel } from "@workspace/i18n/labels"
 
 import { CustomFieldInputs } from "./custom-fields"
 

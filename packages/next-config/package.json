@@ -1,0 +1,33 @@
+{
+  "name": "@workspace/next-config",
+  "version": "0.0.0",
+  "type": "module",
+  "private": true,
+  "license": "Elastic-2.0",
+  "scripts": {
+    "lint": "eslint",
+    "format": "prettier --write \"**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@next/mdx": "^16.4.3",
+    "next-intl": "^4.14.9",
+    "remark-frontmatter": "^5.0.0",
+    "remark-mdx-frontmatter": "^6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "@types/react": "^19",
+    "@workspace/eslint-config": "*",
+    "@workspace/typescript-config": "*",
+    "eslint": "^10.13.0",
+    "next": "16.4.3",
+    "typescript": "^7"
+  },
+  "peerDependencies": {
+    "next": "^16.4.3"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

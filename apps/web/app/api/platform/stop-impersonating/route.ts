@@ -2,7 +2,7 @@ import { headers } from "next/headers"
 import { NextResponse } from "next/server"
 
 import { auth } from "@/lib/auth"
-import { rejectCrossOrigin } from "@/lib/core/http"
+import { rejectCrossOrigin } from "@workspace/core/http"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"

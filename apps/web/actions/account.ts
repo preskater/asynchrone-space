@@ -4,12 +4,12 @@ import { headers } from "next/headers"
 
 import { deleteAccount } from "@/lib/account/deletion-service"
 import { auth } from "@/lib/auth"
-import { withAction } from "@/lib/core/action"
+import { withAction } from "@workspace/core/action"
 import {
   ForbiddenError,
   UnauthorizedError,
   ValidationError,
-} from "@/lib/core/errors"
+} from "@workspace/core/errors"
 import { prisma } from "@/lib/prisma"
 
 export const deleteAccountAction = withAction(

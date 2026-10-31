@@ -1,5 +1,5 @@
-import type { RequestContext } from "@/lib/core/context"
-import type { Page, PageInput } from "@/lib/core/pagination"
+import type { RequestContext } from "@workspace/core/context"
+import type { Page, PageInput } from "@workspace/core/pagination"
 import type {
   ActivityInput,
   ClientInput,

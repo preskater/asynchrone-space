@@ -22,8 +22,8 @@ import {
   FieldLabel,
 } from "@workspace/ui/components/field"
 
-import { unwrapActionResult } from "@/lib/core/action"
-import { useErrorTranslator } from "@/lib/i18n/errors"
+import { unwrapActionResult } from "@workspace/core/action"
+import { useErrorTranslator } from "@workspace/i18n/errors"
 import { useEntitlements } from "@/lib/organization/use-entitlements"
 
 export interface TwoFactorPolicy {
