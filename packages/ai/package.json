@@ -11,7 +11,7 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "@openai/agents": "^0.21.0",
+    "@openai/agents": "^0.22.0",
     "@workspace/core": "*",
     "@workspace/db": "*",
     "react": "19.3.1"
