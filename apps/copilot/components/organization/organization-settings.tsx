@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl"
 import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
 import { AuditLogPanel } from "@/components/audit/audit-log-panel"
+import { ApiTokensPanel } from "@/components/organization/api-tokens-panel"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import {
   BillingPanel,
@@ -52,6 +53,7 @@ const TAB_IDS = [
   "members",
   "invitations",
   "audit",
+  "developers",
   "danger",
 ] as const
 type TabId = (typeof TAB_IDS)[number]
@@ -94,7 +96,8 @@ export function OrganizationSettings({
         (tab !== "billing" || permissions.can("billing:manage")) &&
         (tab !== "appearance" || permissions.can("appearance:update")) &&
         (tab !== "invitations" || permissions.can("member:manage")) &&
-        (tab !== "audit" || permissions.can("audit:read"))
+        (tab !== "audit" || permissions.can("audit:read")) &&
+        (tab !== "developers" || permissions.can("workspace:read"))
     )
   )
   const searchParams = useSearchParams()
@@ -164,7 +167,10 @@ export function OrganizationSettings({
       onValueChange={changeTab}
       className="flex flex-col gap-4"
     >
-      <TabsList variant="line" className="w-full justify-start border-b pb-0">
+      <TabsList
+        variant="line"
+        className="w-full justify-start overflow-x-auto overflow-y-hidden border-b pb-0"
+      >
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
         {visibleTabs.has("billing") ? (
           <TabsTrigger value="billing">{t("billing")}</TabsTrigger>
@@ -179,6 +185,9 @@ export function OrganizationSettings({
         ) : null}
         {visibleTabs.has("audit") ? (
           <TabsTrigger value="audit">{tAudit("tab")}</TabsTrigger>
+        ) : null}
+        {visibleTabs.has("developers") ? (
+          <TabsTrigger value="developers">{t("apiTokens.tab")}</TabsTrigger>
         ) : null}
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
       </TabsList>
@@ -292,6 +301,15 @@ export function OrganizationSettings({
           <AuditLogPanel
             organizationName={organization.name}
             isOwner={permissions.isOwner}
+          />
+        </TabsContent>
+      ) : null}
+
+      {visibleTabs.has("developers") ? (
+        <TabsContent value="developers">
+          <ApiTokensPanel
+            currentUserId={currentUserId ?? ""}
+            showOwner={permissions.can("member:manage")}
           />
         </TabsContent>
       ) : null}

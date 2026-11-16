@@ -62,6 +62,8 @@ export const AUDIT_ACTIONS = {
   organizationExportRequested: "organization.export.request",
   memberTwoFactorEnabled: "member.two_factor_enabled",
   memberTwoFactorDisabled: "member.two_factor_disabled",
+  apiTokenCreated: "api_token.created",
+  apiTokenRevoked: "api_token.revoked",
 
   // Written by earlier releases; listed so the filter and labels still know
   // them.
@@ -78,6 +80,14 @@ export const AUDIT_ACTIONS = {
   clientProjectLinked: "client.project.linked",
   clientProjectUnlinked: "client.project.unlinked",
   clientDocumentLinked: "client.document.linked",
+  clientReleaseCreated: "client.release.created",
+  clientReleaseUpdated: "client.release.updated",
+  clientReleaseDeleted: "client.release.deleted",
+  clientFeedbackCreated: "client.feedback.created",
+  clientFeedbackUpdated: "client.feedback.updated",
+  clientFeedbackStatusChanged: "client.feedback.status_changed",
+  clientFeedbackDeleted: "client.feedback.deleted",
+  clientFeedbackConverted: "client.feedback.converted",
   contactCreated: "contact.created",
   contactUpdated: "contact.updated",
   contactArchived: "contact.archived",
@@ -170,4 +180,5 @@ export const AUDIT_ENTITY_TYPES = [
   "attendance",
   "dataExport",
   "projectGuest",
+  "apiToken",
 ] as const

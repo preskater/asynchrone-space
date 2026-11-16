@@ -53,6 +53,10 @@ export type ServiceErrorCode =
   | "file_in_trash"
   | "project_already_linked"
   | "project_not_linked"
+  | "release_version_taken"
+  | "project_not_linked_to_client"
+  | "feedback_already_converted"
+  | "feedback_project_required"
   | "portal_invite_exists"
   | "portal_read_only"
   | "guest_capability_missing"
@@ -102,6 +106,10 @@ export type ServiceErrorCode =
   | "account_sole_owner"
   | "account_impersonated"
   | "account_deletion_partial"
+  | "token_invalid"
+  | "token_expired"
+  | "token_revoked"
+  | "token_scope_missing"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
@@ -152,8 +160,14 @@ export interface CodedErrorOptions {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = "You must be signed in to do this.") {
-    super("unauthorized", message, { status: 401 })
+  constructor(
+    message = "You must be signed in to do this.",
+    options: CodedErrorOptions = {}
+  ) {
+    super(options.code ?? "unauthorized", message, {
+      params: options.params,
+      status: 401,
+    })
     this.name = "UnauthorizedError"
   }
 }

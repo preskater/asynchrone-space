@@ -8,6 +8,8 @@ import {
   PortalMeetingsSchema,
   PortalProjectDetailSchema,
   PortalProjectSummarySchema,
+  PortalReleaseReportSchema,
+  PortalReleaseSummarySchema,
   PortalTaskDetailSchema,
   ProjectMessageSchema,
   TaskCommentSchema,
@@ -67,6 +69,11 @@ export interface DomainCallOptions {
    * target app's logs and metrics share one id with the caller (issue #170).
    */
   correlationId?: string | null
+  /**
+   * Sent as `User-Agent`, so the target app's audit rows name the real client,
+   * e.g. the personal access token behind an `/api/v1` call (ADR 0042).
+   */
+  userAgent?: string
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -210,6 +217,7 @@ export class DomainClient {
             ...(options.correlationId
               ? { "x-request-id": options.correlationId }
               : {}),
+            ...(options.userAgent ? { "User-Agent": options.userAgent } : {}),
           },
           body: JSON.stringify({ context, input }),
           cache: "no-store",
@@ -407,6 +415,33 @@ export class DomainClient {
       context,
       {},
       PortalDocumentSchema.array(),
+      options ?? {}
+    )
+  }
+
+  listPortalReleaseReports(
+    context: DelegatedContext,
+    options?: DomainCallOptions
+  ): Promise<z.infer<typeof PortalReleaseSummarySchema>[]> {
+    return this.post(
+      "portal-list-release-reports",
+      context,
+      {},
+      PortalReleaseSummarySchema.array(),
+      options ?? {}
+    )
+  }
+
+  getPortalReleaseReport(
+    context: DelegatedContext,
+    releaseId: string,
+    options?: DomainCallOptions
+  ): Promise<z.infer<typeof PortalReleaseReportSchema> | null> {
+    return this.post(
+      "portal-get-release-report",
+      context,
+      { releaseId },
+      PortalReleaseReportSchema.nullable(),
       options ?? {}
     )
   }

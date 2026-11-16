@@ -41,6 +41,7 @@
     "./roles": "./src/roles.ts",
     "./guests": "./src/guests.ts",
     "./trial": "./src/trial.ts",
-    "./support": "./src/support.ts"
+    "./support": "./src/support.ts",
+    "./feedback": "./src/feedback.ts"
   }
 }

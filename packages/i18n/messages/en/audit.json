@@ -171,6 +171,18 @@
       },
       "document": {
         "linked": "Document shared with client"
+      },
+      "release": {
+        "created": "Client release created",
+        "updated": "Client release updated",
+        "deleted": "Client release deleted"
+      },
+      "feedback": {
+        "created": "Client feedback recorded",
+        "updated": "Client feedback updated",
+        "status_changed": "Client feedback status changed",
+        "deleted": "Client feedback deleted",
+        "converted": "Client feedback converted to a task"
       }
     },
     "contact": {
@@ -260,6 +272,10 @@
     "conversation": {
       "created": "Conversation created",
       "updated": "Conversation updated"
+    },
+    "api_token": {
+      "created": "API token created",
+      "revoked": "API token revoked"
     }
   },
   "entities": {
@@ -288,6 +304,7 @@
     "leaveAdjustment": "Leave adjustment",
     "attendance": "Attendance",
     "dataExport": "Data export",
-    "projectGuest": "External collaborator"
+    "projectGuest": "External collaborator",
+    "apiToken": "API token"
   }
 }
