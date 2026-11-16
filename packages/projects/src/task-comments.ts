@@ -15,10 +15,17 @@ export interface TaskCommentDependencies {
 
 export const TASK_COMMENT_MAX_LENGTH = 4000
 
+export type AuthorKind = "internal" | "client" | "guest"
+
+/** Stored author kind; anything unknown renders as the team. */
+export function authorKindOf(value: string): AuthorKind {
+  return value === "client" || value === "guest" ? value : "internal"
+}
+
 export interface TaskCommentData {
   id: string
   authorId: string
-  authorKind: "internal" | "client"
+  authorKind: "internal" | "client" | "guest"
   authorName?: string
   body: string
   createdAt: string
@@ -73,7 +80,7 @@ function mapComment(
   return {
     id: row.id,
     authorId: row.authorId,
-    authorKind: row.authorKind === "client" ? "client" : "internal",
+    authorKind: authorKindOf(row.authorKind),
     authorName: row.authorName ?? nameById.get(row.authorId),
     body: row.body,
     createdAt: row.createdAt.toISOString(),
@@ -90,7 +97,7 @@ export async function createTaskComment(
     organizationId: string
     taskId: string
     authorId: string
-    authorKind: "internal" | "client"
+    authorKind: AuthorKind
     authorName?: string
     body: string
   }
@@ -132,7 +139,8 @@ export async function createTaskComment(
       after: { authorKind: input.authorKind },
     }
   )
-  if (input.authorKind === "client") {
+  // Clients and external guests are outside the team: tell the project members.
+  if (input.authorKind !== "internal") {
     await notifyTeamOfClientComment({ db, notify, directory }, input, task)
   }
   await changed?.(input.organizationId)

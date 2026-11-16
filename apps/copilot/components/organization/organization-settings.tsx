@@ -67,6 +67,7 @@ export function OrganizationSettings({
   deletionScheduledAt,
   twoFactorPolicy,
   exportCard,
+  guestsCard,
   calendarsUrl,
 }: {
   checkout?: CheckoutReturn
@@ -75,6 +76,8 @@ export function OrganizationSettings({
   twoFactorPolicy: TwoFactorPolicy | null
   /** Server-rendered, owner-only data export card for the General tab. */
   exportCard?: React.ReactNode
+  /** Server-rendered external collaborators section (owners and admins). */
+  guestsCard?: React.ReactNode
   /** Origin of the calendars app, which owns the meeting settings (#161). */
   calendarsUrl: string
 }) {
@@ -263,6 +266,7 @@ export function OrganizationSettings({
             />
           </CardContent>
         </Card>
+        {guestsCard}
         <RolesGuide />
       </TabsContent>
 
