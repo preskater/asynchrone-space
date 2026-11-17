@@ -184,9 +184,87 @@ model Organization {
   invoices     Invoice[]
   aiUsageEvents AiUsageEvent[]
   assistantConversations AssistantConversation[]
+  apiTokens    ApiToken[]
+  webhookSubscriptions WebhookSubscription[]
+  webhookDeliveries WebhookDelivery[]
 
   @@unique([slug])
   @@map("organization")
+}
+
+/// A public API personal access token. The raw value is shown once at
+/// creation; only its SHA-256 hash is stored. A token is bound to one
+/// organization and checked on every request so revocation is immediate.
+model ApiToken {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  /// First characters of the raw token, shown in settings to tell tokens apart.
+  prefix         String
+  /// SHA-256 hex of the raw token. Unique so lookup is a single index probe.
+  hashedToken    String       @unique
+  scopes         String[]
+  createdById    String
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@map("apiToken")
+}
+
+/// An outbound webhook endpoint. The signing secret is encrypted at rest and
+/// returned only once at creation; soft deletion keeps delivery history.
+model WebhookSubscription {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url            String
+  /// AES-256-GCM encrypted signing secret (purpose `webhook-secret`).
+  secret         String
+  events         String[]
+  description    String?
+  active         Boolean      @default(true)
+  createdById    String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  deliveries     WebhookDelivery[]
+
+  @@index([organizationId, createdAt])
+  @@map("webhookSubscription")
+}
+
+/// One delivery attempt stream per subscription and event. The payload is the
+/// exact envelope that is signed and sent; the URL is the enqueue-time
+/// snapshot for the delivery log.
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId String
+  subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  eventId        String
+  eventType      String
+  payload        Json
+  url            String
+  /// pending | succeeded | failed
+  status         String   @default("pending")
+  attempts       Int      @default(0)
+  nextAttemptAt  DateTime @default(now())
+  lastStatusCode Int?
+  lastError      String?
+  replayCount    Int      @default(0)
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  @@unique([subscriptionId, eventId])
+  @@index([status, nextAttemptAt])
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+  @@map("webhookDelivery")
 }
 
 /// One row per Team trial ever started. Deliberately not related to

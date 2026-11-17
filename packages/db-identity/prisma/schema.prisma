@@ -132,6 +132,9 @@ model Organization {
   invoices     Invoice[]
   aiUsageEvents AiUsageEvent[]
   assistantConversations AssistantConversation[]
+  apiTokens    ApiToken[]
+  webhookSubscriptions WebhookSubscription[]
+  webhookDeliveries WebhookDelivery[]
 
   @@unique([slug])
   @@map("organization")
@@ -601,6 +604,73 @@ model AssistantMessage {
 
   @@index([conversationId, createdAt])
   @@map("assistantMessage")
+}
+
+model ApiToken {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  /// First characters of the raw token, shown in settings to tell tokens apart.
+  prefix         String
+  /// SHA-256 hex of the raw token. Unique so lookup is a single index probe.
+  hashedToken    String       @unique
+  scopes         String[]
+  createdById    String
+  expiresAt      DateTime?
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, createdAt])
+  @@map("apiToken")
+}
+
+model WebhookSubscription {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url            String
+  /// AES-256-GCM encrypted signing secret (purpose `webhook-secret`).
+  secret         String
+  events         String[]
+  description    String?
+  active         Boolean      @default(true)
+  createdById    String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  deliveries     WebhookDelivery[]
+
+  @@index([organizationId, createdAt])
+  @@map("webhookSubscription")
+}
+
+model WebhookDelivery {
+  id             String   @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscriptionId String
+  subscription   WebhookSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  eventId        String
+  eventType      String
+  payload        Json
+  url            String
+  /// pending | succeeded | failed
+  status         String   @default("pending")
+  attempts       Int      @default(0)
+  nextAttemptAt  DateTime @default(now())
+  lastStatusCode Int?
+  lastError      String?
+  replayCount    Int      @default(0)
+  createdAt      DateTime @default(now())
+  completedAt    DateTime?
+
+  @@unique([subscriptionId, eventId])
+  @@index([status, nextAttemptAt])
+  @@index([organizationId, createdAt])
+  @@index([createdAt])
+  @@map("webhookDelivery")
 }
 
 model RateLimit {
