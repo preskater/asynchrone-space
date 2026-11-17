@@ -11,7 +11,7 @@ const ctx: RequestContext = {
   userName: "Ada",
   userEmail: "ada@example.com",
   organizationId: "org_1",
-  role: "member",
+  roles: ["member"],
 }
 
 function row(overrides: Record<string, unknown> = {}) {
@@ -71,7 +71,7 @@ describe("FileService.listPage", () => {
   it("lets an owner see restricted files without shares", async () => {
     const { repo, service } = build([row({ restricted: true })])
     const page = await service.listPage(
-      { ...ctx, role: "owner" },
+      { ...ctx, roles: ["owner"] },
       { limit: 10 }
     )
     expect(page.items).toHaveLength(1)
@@ -86,7 +86,7 @@ describe("FileService.listPage", () => {
     ]
     const { repo, service } = build(rows)
 
-    const page = await service.listPage({ ...ctx, role: "owner" }, { limit: 2 })
+    const page = await service.listPage({ ...ctx, roles: ["owner"] }, { limit: 2 })
 
     expect(repo.listPage).toHaveBeenCalledWith("org_1", {
       after: null,

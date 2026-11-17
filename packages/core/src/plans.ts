@@ -19,6 +19,7 @@ export type Entitlement =
   | "apiAccess"
   | "apiRequestsPerMinute"
   | "requireTwoFactor"
+  | "externalCollaborators"
 
 export type Entitlements = {
   seats: number
@@ -34,6 +35,8 @@ export type Entitlements = {
   apiRequestsPerMinute: number
   /** Owners and admins may make two-factor authentication mandatory. */
   requireTwoFactor: boolean
+  /** External collaborators per project (0 = not included). Guests never take a seat. */
+  externalCollaborators: number
 }
 
 const GB = 1024 * 1024 * 1024
@@ -54,6 +57,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     apiAccess: true,
     apiRequestsPerMinute: 60,
     requireTwoFactor: false,
+    externalCollaborators: 0,
   },
   team: {
     // Mirrors the "Up to 100 members" the pricing page sells.
@@ -67,6 +71,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     apiAccess: true,
     apiRequestsPerMinute: 300,
     requireTwoFactor: true,
+    externalCollaborators: 5,
   },
   enterprise: {
     seats: Infinity,
@@ -79,6 +84,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     apiAccess: true,
     apiRequestsPerMinute: 1200,
     requireTwoFactor: true,
+    externalCollaborators: Infinity,
   },
 }
 

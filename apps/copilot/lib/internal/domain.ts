@@ -10,6 +10,7 @@ import {
 } from "@workspace/contracts"
 import { ServiceTokenClient } from "@workspace/service-auth"
 import type { RequestContext } from "@workspace/core/context"
+import { roleFields } from "@workspace/core/roles"
 import { getCorrelationId } from "@workspace/observability/next"
 import type { PortalContext } from "@workspace/portal/types"
 
@@ -71,7 +72,7 @@ export function delegatedContext(
     userName: ctx.userName,
     userEmail: ctx.userEmail,
     organizationId: ctx.organizationId,
-    role: ctx.role,
+    ...roleFields(ctx.roles),
     impersonatedBy: impersonatedBy ?? null,
     portal: null,
   }
@@ -90,13 +91,48 @@ export function delegatedPortalContext(ctx: PortalContext): DelegatedContext {
   }
 }
 
+/**
+ * Delegated context for an external collaborator (ADR 0041). The role grants
+ * nothing; the projects app serves only `guest-*` operations, scoped to the
+ * grant's project.
+ */
+export function delegatedGuestContext(ctx: {
+  grantId: string
+  userId: string
+  userName: string
+  userEmail: string
+  organizationId: string
+  projectId: string
+  capabilities: readonly string[]
+}): DelegatedContext {
+  return {
+    userId: ctx.userId,
+    userName: ctx.userName,
+    userEmail: ctx.userEmail,
+    organizationId: ctx.organizationId,
+    role: "client",
+    roles: ["client"],
+    impersonatedBy: null,
+    portal: null,
+    guest: {
+      grantId: ctx.grantId,
+      projectId: ctx.projectId,
+      capabilities: [...ctx.capabilities],
+    },
+  }
+}
+
 export async function callDomain<T>(
   app: DomainAppKey,
   operation: DomainOperation,
   context: DelegatedContext,
   input: unknown,
   schema: z.ZodType<T>,
-  options?: { idempotencyKey?: string; signal?: AbortSignal }
+  options?: {
+    idempotencyKey?: string
+    signal?: AbortSignal
+    userAgent?: string
+  }
 ): Promise<T> {
   // Carry the inbound request's correlation id into the domain call so both
   // apps' logs and metrics can be joined (issue #170).
@@ -114,7 +150,10 @@ export async function callDomain<T>(
 export async function domainServiceFetch(
   app: DomainAppKey,
   path: string,
-  init: RequestInit & { scope: "internal:domain:read" | "internal:domain:write" | "internal:export:read" }
+  init: RequestInit & {
+    scope:
+      "internal:domain:read" | "internal:domain:write" | "internal:export:read"
+  }
 ): Promise<Response> {
   const service = tokenClient()
   const baseUrl = process.env[APPS[app].hostEnv]

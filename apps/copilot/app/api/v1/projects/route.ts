@@ -1,53 +1,60 @@
+import { z } from "zod"
+
 import {
-  PUBLIC_API_SCOPES,
   PublicCreateProjectSchema,
   PublicProjectSchema,
-  publicPageResultSchema,
 } from "@workspace/contracts"
 
-import { callDomain } from "@/lib/internal/domain"
-import {
-  delegatedApiContext,
-  idempotencyKey,
-  pageQuery,
-  publicJson,
-  publicPage,
-  readJsonBody,
-  withPublicApi,
-} from "@/lib/public-api"
+import { apiJson, apiList, apiUserAgent, withApiToken } from "@/lib/api/v1"
+import { ApiProjectSchema, ProjectShellSchema } from "@/lib/api/schemas"
+import { callDomain, delegatedContext } from "@/lib/internal/domain"
+import { idempotencyKey, readJsonBody } from "@/lib/public-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-export const GET = withPublicApi({
-  route: "GET /api/v1/projects",
-  scope: PUBLIC_API_SCOPES.projectsRead,
-  handler: async (ctx, request) => {
-    const query = pageQuery(new URL(request.url))
-    const page = await callDomain(
+/** Projects of the token's organization, each with its labels. */
+export const GET = withApiToken(
+  "/api/v1/projects",
+  "projects:read",
+  async (token, request) => {
+    const { projects, labels } = await callDomain(
       "projects",
-      "list-projects-page",
-      delegatedApiContext(ctx),
-      query,
-      publicPageResultSchema(PublicProjectSchema)
+      "list-project-shell",
+      delegatedContext(token.ctx),
+      {},
+      ProjectShellSchema,
+      { userAgent: apiUserAgent(token, request) }
     )
-    return publicPage(page.items, page.nextCursor, ctx)
-  },
-})
+    const byId = new Map(labels.map((label) => [label.id, label]))
+    return apiList(
+      z.array(ApiProjectSchema).parse(
+        projects.map(({ labelIds, ...project }) => ({
+          ...project,
+          labels: labelIds.flatMap((id) => byId.get(id) ?? []),
+        }))
+      )
+    )
+  }
+)
 
-export const POST = withPublicApi({
-  route: "POST /api/v1/projects",
-  scope: PUBLIC_API_SCOPES.projectsWrite,
-  handler: async (ctx, request) => {
+/** Creates a project; retrying with the same `Idempotency-Key` is safe. */
+export const POST = withApiToken(
+  "/api/v1/projects",
+  "projects:write",
+  async (token, request) => {
     const body = PublicCreateProjectSchema.parse(await readJsonBody(request))
     const project = await callDomain(
       "projects",
       "public-create-project",
-      delegatedApiContext(ctx),
+      delegatedContext(token.ctx),
       body,
       PublicProjectSchema,
-      { idempotencyKey: idempotencyKey(request) }
+      {
+        userAgent: apiUserAgent(token, request),
+        idempotencyKey: idempotencyKey(request),
+      }
     )
-    return publicJson(project, ctx, {}, { status: 201 })
-  },
-})
+    return apiJson(project, { status: 201 })
+  }
+)

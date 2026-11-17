@@ -5,6 +5,7 @@ import {
   NotificationClient,
   WebhookClient,
   type DomainAppKey,
+  type MemberRole,
   type NotificationInput,
   type WebhookEventEnvelope,
   type Workspace,
@@ -15,6 +16,7 @@ import {
   type DirectoryMemberInput,
   type MemberDirectoryPort,
 } from "@workspace/organization/directory"
+import { roleFields, rolesFrom } from "@workspace/organization/roles"
 import type { NotifyArgs } from "@workspace/notifications"
 import { ServiceTokenClient } from "@workspace/service-auth"
 
@@ -83,6 +85,7 @@ function entry(member: {
   email: string
   avatarUrl?: string | null
   role: string
+  roles?: MemberRole[]
   clientId?: string | null
   createdAt?: Date
 }): DirectoryEntry {
@@ -108,21 +111,21 @@ export const memberDirectory: MemberDirectoryPort = {
   },
   async countOwners(organizationId) {
     const members = await identity.listMembers(organizationId)
-    return members.filter((member) => member.role === "owner").length
+    return members.filter((member) => rolesFrom(member).includes("owner"))
+      .length
   },
   async add(organizationId, input: DirectoryMemberInput) {
     return entry(
       await identity.addMember(organizationId, {
-        ...input,
-        role: input.role as "owner" | "admin" | "member" | "viewer" | "client",
+        name: input.name,
+        email: input.email,
+        ...roleFields(input.roles),
       })
     )
   },
-  async updateRole(organizationId, userId, role) {
+  async updateRole(organizationId, userId, roles) {
     return entry(
-      await identity.updateMemberRole(organizationId, userId, {
-        role: role as "owner" | "admin" | "member" | "viewer" | "client",
-      })
+      await identity.updateMemberRole(organizationId, userId, roleFields(roles))
     )
   },
   remove(organizationId, userId) {

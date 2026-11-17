@@ -6,14 +6,17 @@ export type TaskPriority = "low" | "medium" | "high" | "urgent"
 
 export type ProjectStatus = "active" | "paused" | "completed"
 
-export type MemberRole = "owner" | "admin" | "member" | "viewer"
+export type MemberRole = "owner" | "admin" | "member" | "developer" | "viewer"
 
 export interface Member {
   id: string
   name: string
   email: string
   avatarUrl?: string
+  /** Primary role. */
   role: MemberRole
+  /** Every role the member holds; several can only be edited in Copilot. */
+  roles: MemberRole[]
 }
 
 export interface Label {
@@ -86,7 +89,7 @@ export interface Subtask {
 export interface Comment {
   id: string
   authorId: string
-  authorKind: "internal" | "client"
+  authorKind: "internal" | "client" | "guest"
   authorName?: string
   body: string
   createdAt: string
@@ -229,4 +232,32 @@ export function formatDate(value?: string, locale = "en") {
     month: "short",
     day: "numeric",
   })
+}
+
+/**
+ * Client test feedback on one release of the project, read from the clients
+ * app (`list-project-feedback`, ADR 0040). Read-only here.
+ */
+export interface ProjectFeedbackReleaseData {
+  id: string
+  clientId: string
+  clientName: string
+  version: string
+  label?: string
+  releasedAt?: string
+  status: string
+  openCount: number
+  feedbackCount: number
+  /** The company's feedback page in the clients app. */
+  url: string
+  feedback: {
+    id: string
+    title: string
+    status: string
+    category: string
+    impact: string
+    testedAt: string
+    contactName?: string
+    linkedTaskId?: string
+  }[]
 }

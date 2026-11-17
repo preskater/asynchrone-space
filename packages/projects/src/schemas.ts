@@ -5,6 +5,7 @@ import {
   PORTAL_POLICIES,
   TASK_TEMPLATE_FIELD_TYPES,
 } from "./types"
+import { TASK_IMPORT_MAX_ROWS } from "./task-import"
 
 export const portalPolicySchema = z.enum(PORTAL_POLICIES)
 
@@ -27,7 +28,13 @@ export const taskPrioritySchema = z.enum(["low", "medium", "high", "urgent"])
 
 export const projectStatusSchema = z.enum(["active", "paused", "completed"])
 
-export const memberRoleSchema = z.enum(["owner", "admin", "member", "viewer"])
+export const memberRoleSchema = z.enum([
+  "owner",
+  "admin",
+  "member",
+  "developer",
+  "viewer",
+])
 
 // The date picker sends ISO datetimes; API/assistant callers may send a day.
 const dateInputSchema = z
@@ -96,6 +103,30 @@ export const createTaskSchema = z.object({
   createIssue: z.boolean().optional(),
 })
 
+// Lengths are generous on purpose: an overlong row is reported per row by the
+// service instead of failing the whole file here.
+const importCellSchema = z.string().max(2000).optional()
+
+export const importTasksSchema = z.object({
+  projectId: z.string().min(1),
+  dryRun: z.boolean(),
+  rows: z
+    .array(
+      z.object({
+        row: z.number().int().positive(),
+        title: z.string().max(2000),
+        description: z.string().max(20_000).optional(),
+        status: importCellSchema,
+        priority: importCellSchema,
+        assignee: importCellSchema,
+        labels: importCellSchema,
+        dueDate: importCellSchema,
+      })
+    )
+    .min(1)
+    .max(TASK_IMPORT_MAX_ROWS),
+})
+
 export const updateTaskSchema = z.object({
   title: z.string().min(1).max(240).optional(),
   description: z.string().max(5000).nullable().optional(),
@@ -160,6 +191,7 @@ export type UpdateProjectClientSettingsInput = z.infer<
   typeof updateProjectClientSettingsSchema
 >
 export type CreateTaskInput = z.infer<typeof createTaskSchema>
+export type ImportTasksInput = z.infer<typeof importTasksSchema>
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>
 export type MoveTaskInput = z.infer<typeof moveTaskSchema>
 export type AddCommentInput = z.infer<typeof addCommentSchema>

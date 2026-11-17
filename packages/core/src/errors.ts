@@ -21,6 +21,9 @@ export type ServiceErrorCode =
   | "role_cannot_modify_projects"
   | "role_cannot_manage_members"
   | "email_already_member"
+  | "last_owner"
+  | "role_client_exclusive"
+  | "roles_require_upgrade"
   | "role_cannot_modify_files"
   | "file_permission_denied"
   | "storage_quota_exceeded"
@@ -50,8 +53,17 @@ export type ServiceErrorCode =
   | "file_in_trash"
   | "project_already_linked"
   | "project_not_linked"
+  | "release_version_taken"
+  | "project_not_linked_to_client"
+  | "feedback_already_converted"
+  | "feedback_project_required"
   | "portal_invite_exists"
   | "portal_read_only"
+  | "guest_capability_missing"
+  | "guest_limit_reached"
+  | "guest_already_invited"
+  | "guest_email_mismatch"
+  | "guest_invitation_closed"
   | "file_too_large"
   | "message_not_author"
   | "role_cannot_manage_integrations"
@@ -94,6 +106,10 @@ export type ServiceErrorCode =
   | "account_sole_owner"
   | "account_impersonated"
   | "account_deletion_partial"
+  | "token_invalid"
+  | "token_expired"
+  | "token_revoked"
+  | "token_scope_missing"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 
@@ -144,8 +160,14 @@ export interface CodedErrorOptions {
 }
 
 export class UnauthorizedError extends AppError {
-  constructor(message = "You must be signed in to do this.") {
-    super("unauthorized", message, { status: 401 })
+  constructor(
+    message = "You must be signed in to do this.",
+    options: CodedErrorOptions = {}
+  ) {
+    super(options.code ?? "unauthorized", message, {
+      params: options.params,
+      status: 401,
+    })
     this.name = "UnauthorizedError"
   }
 }

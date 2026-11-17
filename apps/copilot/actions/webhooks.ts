@@ -26,7 +26,7 @@ const listWebhookDeliveriesSchema = z.object({
 export const createWebhookSubscriptionAction = withAction(
   async (input: unknown) => {
     const ctx = await getRequestContext()
-    requirePermission(ctx, ["owner", "admin"])
+    requirePermission(ctx, "member:manage")
     const parsed = await parseLocalized(createWebhookSubscriptionSchema, input)
     return createWebhookSubscription(ctx, parsed)
   }
@@ -35,7 +35,7 @@ export const createWebhookSubscriptionAction = withAction(
 export const updateWebhookSubscriptionAction = withAction(
   async (input: unknown) => {
     const ctx = await getRequestContext()
-    requirePermission(ctx, ["owner", "admin"])
+    requirePermission(ctx, "member:manage")
     const parsed = await parseLocalized(updateWebhookSubscriptionSchema, input)
     return updateWebhookSubscription(ctx, parsed)
   }
@@ -44,7 +44,7 @@ export const updateWebhookSubscriptionAction = withAction(
 export const deleteWebhookSubscriptionAction = withAction(
   async (id: string) => {
     const ctx = await getRequestContext()
-    requirePermission(ctx, ["owner", "admin"])
+    requirePermission(ctx, "member:manage")
     return deleteWebhookSubscription(ctx, z.string().min(1).parse(id))
   }
 )
@@ -52,7 +52,7 @@ export const deleteWebhookSubscriptionAction = withAction(
 export const listWebhookDeliveriesAction = withAction(
   async (input: unknown) => {
     const ctx = await getRequestContext()
-    requirePermission(ctx, ["owner", "admin"])
+    requirePermission(ctx, "member:manage")
     const parsed = await parseLocalized(listWebhookDeliveriesSchema, input)
     return listWebhookDeliveries(ctx, {
       limit: parsed.limit,
@@ -65,6 +65,6 @@ export const listWebhookDeliveriesAction = withAction(
 
 export const replayWebhookDeliveryAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
-  requirePermission(ctx, ["owner", "admin"])
+  requirePermission(ctx, "member:manage")
   return replayWebhookDelivery(ctx, z.string().min(1).parse(id))
 })

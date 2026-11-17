@@ -16,6 +16,8 @@ import {
 import {
   PublicApiPageQuerySchema,
   PublicApiMeSchema,
+  PublicApiTokenInfoSchema,
+  PublicApiMemberSchema,
   PublicApiErrorSchema,
   PublicDeleteResultSchema,
 } from "./schemas"
@@ -36,6 +38,8 @@ import {
 /** Every response component, generated from its Zod schema. */
 export const PUBLIC_API_COMPONENTS = {
   Me: PublicApiMeSchema,
+  TokenInfo: PublicApiTokenInfoSchema,
+  Member: PublicApiMemberSchema,
   Project: PublicProjectSchema,
   Task: PublicTaskSchema,
   Client: PublicClientSchema,
@@ -73,6 +77,7 @@ export interface PublicApiRoute {
 
 export const PUBLIC_API_TAGS = [
   { name: "Account", description: "Token and organization identity." },
+  { name: "Members", description: "The workspace member directory." },
   { name: "Projects", description: "Projects and their settings." },
   { name: "Tasks", description: "Tasks inside a project." },
   { name: "Clients", description: "CRM companies." },
@@ -104,6 +109,23 @@ export const PUBLIC_API_ROUTES: readonly PublicApiRoute[] = [
     summary: "Get the current token, organization and limits",
     tag: "Account",
     response: item("Me"),
+  },
+  {
+    method: "GET",
+    path: "/api/v1/token",
+    operationId: "getTokenInfo",
+    summary: "Get the calling token, its owner and organization",
+    tag: "Account",
+    response: item("TokenInfo"),
+  },
+  {
+    method: "GET",
+    path: "/api/v1/members",
+    operationId: "listMembers",
+    summary: "List workspace members for task assignees",
+    tag: "Members",
+    scope: PUBLIC_API_SCOPES.membersRead,
+    response: list("Member"),
   },
 
   // Projects

@@ -10,6 +10,7 @@ import {
 } from "@workspace/contracts"
 import type { FileNode } from "@workspace/files/types"
 import type { RequestContext } from "@workspace/core/context"
+import { rolesFrom } from "@workspace/core/roles"
 import { NotFoundError } from "@workspace/core/errors"
 import {
   createFilesSchema,
@@ -27,7 +28,7 @@ function requestContext(context: DelegatedContext): RequestContext {
     userName: context.userName,
     userEmail: context.userEmail,
     organizationId: context.organizationId,
-    role: context.role,
+    roles: rolesFrom(context),
     actor: context.actor ?? undefined,
   }
 }

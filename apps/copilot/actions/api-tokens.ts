@@ -14,13 +14,13 @@ import {
 
 export const createApiTokenAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  requirePermission(ctx, ["owner", "admin"])
+  requirePermission(ctx, "member:manage")
   const parsed = await parseLocalized(createApiTokenSchema, input)
   return createApiToken(ctx, parsed)
 })
 
 export const revokeApiTokenAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
-  requirePermission(ctx, ["owner", "admin"])
+  requirePermission(ctx, "member:manage")
   return revokeApiToken(ctx, z.string().min(1).parse(id))
 })

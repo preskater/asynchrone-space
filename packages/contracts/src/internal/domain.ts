@@ -3,6 +3,7 @@ import { z } from "zod"
 import {
   INTERNAL_API_VERSION,
   MemberRoleSchema,
+  MemberRolesSchema,
   SERVICE_SCOPES,
   internalPath,
 } from "./contracts"
@@ -22,6 +23,7 @@ export const DelegatedContextSchema = z.object({
   userEmail: z.string().email(),
   organizationId: z.string().min(1),
   role: MemberRoleSchema,
+  roles: MemberRolesSchema.optional(),
   /** Set when a platform operator impersonates the user. */
   impersonatedBy: z.string().min(1).nullable().optional(),
   /**
@@ -44,6 +46,19 @@ export const DelegatedContextSchema = z.object({
     .object({
       clientId: z.string().min(1),
       clientName: z.string().min(1),
+    })
+    .nullable()
+    .optional(),
+  /**
+   * External collaborators only (ADR 0041). Copilot resolves it from the
+   * guest's grant; the target app filters every row by this project and only
+   * serves `guest-*` operations to it.
+   */
+  guest: z
+    .object({
+      grantId: z.string().min(1),
+      projectId: z.string().min(1),
+      capabilities: z.array(z.string().min(1)),
     })
     .nullable()
     .optional(),
@@ -90,6 +105,7 @@ export const DOMAIN_OPERATIONS = [
   "public-delete-task",
   "list-calendar-tasks",
   "list-project-options",
+  "list-project-shell",
   "count-projects-by-client",
   "count-client-projects",
   "list-client-projects",
@@ -115,6 +131,14 @@ export const DOMAIN_OPERATIONS = [
   "portal-create-message",
   "portal-list-task-comments",
   "portal-create-task-comment",
+  // projects — external collaborators, scoped to the grant's project
+  "guest-get-project",
+  "guest-get-task",
+  "guest-update-task-status",
+  "guest-list-messages",
+  "guest-create-message",
+  "guest-list-task-comments",
+  "guest-create-task-comment",
   // calendars + meetings
   "list-calendars",
   "ensure-personal-calendar",
@@ -181,6 +205,10 @@ export const DOMAIN_OPERATIONS = [
   "portal-get-client",
   "list-client-directory",
   "save-client-basics",
+  // clients — test feedback per release (#132)
+  "list-project-feedback",
+  "portal-list-release-reports",
+  "portal-get-release-report",
   // employees
   "get-employees-overview",
   "get-employee-profiles",
@@ -217,6 +245,9 @@ const WRITE_OPERATIONS: ReadonlySet<DomainOperation> = new Set([
   "create-task-comment",
   "portal-create-message",
   "portal-create-task-comment",
+  "guest-update-task-status",
+  "guest-create-message",
+  "guest-create-task-comment",
   "portal-create-meeting",
   "portal-cancel-meeting",
   "create-event",
@@ -255,6 +286,21 @@ const WRITE_OPERATIONS: ReadonlySet<DomainOperation> = new Set([
 
 export function isDomainOperation(value: string): value is DomainOperation {
   return (DOMAIN_OPERATIONS as readonly string[]).includes(value)
+}
+
+/**
+ * Guest operations take only a guest context, and a guest context reaches
+ * only guest operations: a grant never opens a workspace operation.
+ */
+export function isGuestOperation(operation: DomainOperation): boolean {
+  return operation.startsWith("guest-")
+}
+
+export function guestContextAllowed(
+  operation: DomainOperation,
+  context: Pick<DelegatedContext, "guest">
+): boolean {
+  return Boolean(context.guest) === isGuestOperation(operation)
 }
 
 export function domainOperationScope(
@@ -403,6 +449,87 @@ export const PortalMeetingsSchema = z.object({
   requests: z.array(z.unknown()),
 })
 export type PortalMeetings = z.infer<typeof PortalMeetingsSchema>
+
+/** Client test feedback on the releases of one project (#132, ADR 0040). */
+export const ProjectFeedbackReleaseSchema = z.object({
+  id: z.string().min(1),
+  clientId: z.string().min(1),
+  clientName: z.string(),
+  version: z.string(),
+  label: z.string().optional(),
+  releasedAt: z.string().optional(),
+  status: z.string(),
+  openCount: z.number().int().nonnegative(),
+  feedbackCount: z.number().int().nonnegative(),
+  /** The company's feedback page in the clients app. */
+  url: z.string().url(),
+  feedback: z.array(
+    z.object({
+      id: z.string().min(1),
+      title: z.string(),
+      status: z.string(),
+      category: z.string(),
+      impact: z.string(),
+      testedAt: z.string(),
+      contactName: z.string().optional(),
+      linkedTaskId: z.string().optional(),
+    })
+  ),
+})
+export type ProjectFeedbackRelease = z.infer<
+  typeof ProjectFeedbackReleaseSchema
+>
+
+/** A release report shared with the portal (ADR 0040). */
+export const PortalReleaseSummarySchema = z.object({
+  id: z.string().min(1),
+  version: z.string(),
+  label: z.string().optional(),
+  releasedAt: z.string().optional(),
+  status: z.string(),
+  openCount: z.number().int().nonnegative(),
+  feedbackCount: z.number().int().nonnegative(),
+})
+export type PortalReleaseSummary = z.infer<typeof PortalReleaseSummarySchema>
+
+const CountsSchema = z.record(z.string(), z.number().int().nonnegative())
+
+/** The portal copy of a release report: no notes, assignees or authors. */
+export const PortalReleaseReportSchema = z.object({
+  release: z.object({
+    id: z.string().min(1),
+    clientId: z.string().min(1),
+    version: z.string(),
+    label: z.string().optional(),
+    releasedAt: z.string().optional(),
+    status: z.string(),
+    testedFrom: z.string().optional(),
+    testedTo: z.string().optional(),
+  }),
+  clientName: z.string(),
+  generatedAt: z.string(),
+  summary: z.object({
+    total: z.number().int().nonnegative(),
+    open: z.number().int().nonnegative(),
+    byStatus: CountsSchema,
+    byCategory: CountsSchema,
+    byImpact: CountsSchema,
+  }),
+  feedback: z.array(
+    z.object({
+      id: z.string().min(1),
+      title: z.string(),
+      body: z.string(),
+      status: z.string(),
+      category: z.string(),
+      impact: z.string(),
+      environment: z.string(),
+      testedAt: z.string(),
+      contactName: z.string().optional(),
+    })
+  ),
+})
+export type PortalReleaseReport = z.infer<typeof PortalReleaseReportSchema>
 
 /** Idempotent mutation result used by the generic client on retries. */
 export const DomainMutationResultSchema = z.object({

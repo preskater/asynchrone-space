@@ -8,7 +8,7 @@ import {
   type Page,
   type PageInput,
 } from "@workspace/core/pagination"
-import { roleRank } from "@workspace/organization/roles"
+import { can } from "@workspace/organization/roles"
 
 import type {
   FileAudit,
@@ -47,7 +47,7 @@ const VIEW_RANK = 1
 const EDIT_RANK = 3
 
 function canWrite(ctx: RequestContext) {
-  if (roleRank(ctx.role) >= 2) return
+  if (can(ctx, "file:write")) return
   throw new ForbiddenError("Your role cannot modify files.", {
     code: "role_cannot_modify_files",
   })
@@ -85,7 +85,7 @@ interface FileAccess {
  *   member role (viewers are read-only).
  */
 function resolveAccess(ctx: RequestContext, chain: AncestorNode[]): FileAccess {
-  if (ctx.role === "owner") return { canRead: true, canWrite: true }
+  if (can(ctx, "file:manage")) return { canRead: true, canWrite: true }
   if (chain.some((node) => node.ownerId === ctx.userId)) {
     return { canRead: true, canWrite: true }
   }
@@ -102,7 +102,7 @@ function resolveAccess(ctx: RequestContext, chain: AncestorNode[]): FileAccess {
   const restricted = chain.some((node) => node.restricted)
   const canRead = granted >= VIEW_RANK || !restricted
   const canWrite =
-    roleRank(ctx.role) >= 2 && (granted >= EDIT_RANK || !restricted)
+    can(ctx, "file:write") && (granted >= EDIT_RANK || !restricted)
 
   return { canRead, canWrite }
 }
@@ -255,7 +255,7 @@ export class FileService {
   ): FileAccess {
     const cached = cache.get(id)
     if (cached) return cached
-    if (ctx.role === "owner") {
+    if (can(ctx, "file:manage")) {
       const access = { canRead: true, canWrite: true }
       cache.set(id, access)
       return access
@@ -289,7 +289,7 @@ export class FileService {
     const canRead =
       granted >= VIEW_RANK || (!row.restricted && parentAccess.canRead)
     const canWrite =
-      roleRank(ctx.role) >= 2 &&
+      can(ctx, "file:write") &&
       (granted >= EDIT_RANK || (!row.restricted && parentAccess.canWrite))
 
     const access = { canRead, canWrite }

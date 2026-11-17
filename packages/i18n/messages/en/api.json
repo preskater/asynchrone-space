@@ -45,6 +45,7 @@
     "projects:write": "Create and update projects",
     "tasks:read": "Read tasks",
     "tasks:write": "Create and update tasks",
+    "members:read": "Read the workspace member directory",
     "clients:read": "Read clients, contacts and deals",
     "clients:write": "Create and update clients, contacts and deals",
     "employees:read": "Read employees",
@@ -163,6 +164,7 @@
     "noScope": "Bearer token",
     "tags": {
       "account": "Account",
+      "members": "Members",
       "projects": "Projects",
       "tasks": "Tasks",
       "clients": "Clients",

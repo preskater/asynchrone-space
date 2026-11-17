@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+import { MemberRoleSchema } from "../internal/contracts"
+
 /**
  * Stable shapes of the public `/api/v1` surface. Route handlers validate
  * requests and build responses from these schemas so the OpenAPI document and
@@ -82,3 +84,30 @@ export const PublicApiMeSchema = z.object({
   }),
 })
 export type PublicApiMe = z.infer<typeof PublicApiMeSchema>
+
+/** `GET /api/v1/token`: the calling token, its owner and its organization. */
+export const PublicApiTokenInfoSchema = z.object({
+  prefix: z.string().min(1),
+  scopes: z.array(z.string().min(1)),
+  expiresAt: z.string().datetime().nullable(),
+  user: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    email: z.string().email(),
+  }),
+  organization: z.object({
+    id: z.string().min(1),
+    name: z.string(),
+    slug: z.string().min(1),
+  }),
+})
+export type PublicApiTokenInfo = z.infer<typeof PublicApiTokenInfoSchema>
+
+/** `GET /api/v1/members`: a workspace member (portal accounts excluded). */
+export const PublicApiMemberSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  email: z.string().email(),
+  roles: z.array(MemberRoleSchema),
+})
+export type PublicApiMember = z.infer<typeof PublicApiMemberSchema>

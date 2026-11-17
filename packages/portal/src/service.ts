@@ -31,6 +31,8 @@ import type {
   PortalDashboardData,
   PortalDocumentData,
   PortalDocumentFile,
+  PortalReleaseReportData,
+  PortalReleaseSummaryData,
   PortalProjectDetailData,
   PortalTaskDetailData,
 } from "./types"
@@ -279,6 +281,30 @@ export class PortalService {
     })
   }
 
+  /** Release reports shared with the client's company (ADR 0040). */
+  async getReleaseReports(
+    ctx: PortalContext
+  ): Promise<PortalReleaseSummaryData[]> {
+    return this.deps.clientDocuments.listReleaseReports(
+      ctx.organizationId,
+      ctx.clientId
+    )
+  }
+
+  /** One shared report; the clients app answers null for anything else. */
+  async getReleaseReport(
+    ctx: PortalContext,
+    releaseId: string
+  ): Promise<PortalReleaseReportData> {
+    const report = await this.deps.clientDocuments.getReleaseReport(
+      ctx.organizationId,
+      ctx.clientId,
+      releaseId
+    )
+    if (!report) throw new NotFoundError("Report")
+    return report
+  }
+
   /** All documents shared with the client's company. */
   async getDocuments(ctx: PortalContext): Promise<PortalDocumentData[]> {
     return this.deps.clientDocuments.listDocuments(
@@ -350,7 +376,7 @@ export class PortalService {
       userName: ctx.userName,
       userEmail: ctx.userEmail,
       organizationId: ctx.organizationId,
-      role: "client",
+      roles: ["client"],
     }
     const file = await this.deps.files.createUploadedFile(fileCtx, {
       name: input.name,

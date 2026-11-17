@@ -10,6 +10,8 @@ export const PUBLIC_API_SCOPES = {
   projectsWrite: "projects:write",
   tasksRead: "tasks:read",
   tasksWrite: "tasks:write",
+  /** The workspace member directory, used to resolve task assignees. */
+  membersRead: "members:read",
   clientsRead: "clients:read",
   clientsWrite: "clients:write",
   employeesRead: "employees:read",

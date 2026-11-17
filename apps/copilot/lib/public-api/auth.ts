@@ -5,7 +5,7 @@ import {
   type PublicApiMe,
   type PublicApiScope,
 } from "@workspace/contracts"
-import { parseRoles } from "@workspace/organization/utils"
+import { parseRoles } from "@workspace/organization/roles"
 import type { OrgPlan } from "@workspace/core/plans"
 
 import { rateLimit } from "@/lib/core/rate-limit"
@@ -42,6 +42,9 @@ export interface PublicApiContext {
   userId: string
   userName: string
   userEmail: string
+  /** The member's cumulative roles, client accounts excluded. */
+  roles: Exclude<MemberRole, "client">[]
+  /** The primary role shown by `/me`. */
   role: Exclude<MemberRole, "client">
   plan: OrgPlan
   limits: { requestsPerMinute: number }
@@ -61,9 +64,10 @@ function bearerToken(request: Request): string {
   return value
 }
 
-function roleOf(value: string): Exclude<MemberRole, "client"> {
-  const roles = parseRoles(value).filter((role) => role !== "client")
-  return (roles[0] ?? "viewer") as Exclude<MemberRole, "client">
+function rolesOf(value: string): Exclude<MemberRole, "client">[] {
+  return parseRoles(value).filter(
+    (role): role is Exclude<MemberRole, "client"> => role !== "client"
+  )
 }
 
 /**
@@ -123,13 +127,15 @@ export async function authenticatePublicApi(
       "The member who created this token is no longer in the organization."
     )
   }
-  if (member.role === "client") {
+  const roles = rolesOf(member.role)
+  if (roles.length === 0) {
     throw new PublicApiError(
       "forbidden",
       "Client portal accounts cannot use the public API.",
       { status: 403 }
     )
   }
+  const role = roles[0] ?? "viewer"
   if (requiredScope && !hasPublicApiScope(row.scopes, requiredScope)) {
     throw insufficientScope(requiredScope)
   }
@@ -203,7 +209,7 @@ export async function authenticatePublicApi(
       slug: row.organization.slug,
     },
     plan,
-    role: roleOf(member.role),
+    role,
     limits: { requestsPerMinute: entitlements.apiRequestsPerMinute },
   })
 
@@ -224,7 +230,8 @@ export async function authenticatePublicApi(
     userId: member.user.id,
     userName: member.user.name,
     userEmail: member.user.email,
-    role: roleOf(member.role),
+    roles,
+    role,
     plan,
     limits: { requestsPerMinute: entitlements.apiRequestsPerMinute },
     rate: {

@@ -24,15 +24,18 @@ describe("OAuth client manifest", () => {
       skipConsent: true,
       enableEndSession: true,
     })
+    // Read-only on clients: the project page lists client test feedback (#132).
     expect(projects?.resources).toEqual([
       "urn:asynchrone:app:projects",
       "urn:asynchrone:app:copilot",
+      "urn:asynchrone:app:clients",
     ])
     expect(projects?.clientCredentialsScopes).toEqual([
       SERVICE_SCOPES.identityRead,
       SERVICE_SCOPES.identityWrite,
       SERVICE_SCOPES.notificationsWrite,
       SERVICE_SCOPES.webhooksWrite,
+      SERVICE_SCOPES.domainRead,
     ])
     expect(byKey.get("clients")?.clientCredentialsScopes).toContain(
       SERVICE_SCOPES.webhooksWrite

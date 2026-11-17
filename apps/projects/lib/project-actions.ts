@@ -6,6 +6,7 @@ import {
   addMemberAction,
   createProjectAction,
   createTaskAction,
+  importTasksAction,
   createTaskTemplateAction,
   deleteProjectAction,
   deleteTaskAction,
@@ -33,6 +34,7 @@ import {
   listProjectMessagesAction,
   postProjectMessageAction,
 } from "@/actions/project-messages"
+import { listProjectFeedbackAction } from "@/actions/project-feedback"
 
 /**
  * The app's server actions, bound to the port `@workspace/projects` expects.
@@ -48,6 +50,7 @@ export const PROJECT_ACTIONS: ProjectActions = {
   deleteProject: deleteProjectAction,
   updateClientSettings: updateProjectClientSettingsAction,
   createTask: createTaskAction,
+  importTasks: importTasksAction,
   updateTask: updateTaskAction,
   moveTask: moveTaskAction,
   deleteTask: deleteTaskAction,
@@ -68,4 +71,5 @@ export const PROJECT_ACTIONS: ProjectActions = {
   disconnectRepository: disconnectRepositoryAction,
   syncRepository: syncRepositoryAction,
   listUserRepositoryTokens: listUserRepositoryTokensAction,
+  listProjectFeedback: listProjectFeedbackAction,
 }

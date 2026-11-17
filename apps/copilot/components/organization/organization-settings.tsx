@@ -37,9 +37,10 @@ import {
   TabsTrigger,
 } from "@workspace/ui/components/tabs"
 
+import { RolesGuide } from "@/components/organization/roles-guide"
 import { authClient } from "@/lib/auth-client"
-import { roleRank } from "@workspace/organization/roles"
-import { parseRoles } from "@workspace/organization/utils"
+import { parseRoles } from "@workspace/organization/roles"
+import { useEntitlements } from "@/lib/organization/use-entitlements"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
 /** Tab ids are part of the URL (`?tab=billing`), so links can deep-link here. */
@@ -66,6 +67,7 @@ export function OrganizationSettings({
   twoFactorPolicy,
   exportCard,
   developersCard,
+  guestsCard,
   calendarsUrl,
 }: {
   checkout?: CheckoutReturn
@@ -74,8 +76,10 @@ export function OrganizationSettings({
   twoFactorPolicy: TwoFactorPolicy | null
   /** Server-rendered, owner-only data export card for the General tab. */
   exportCard?: React.ReactNode
-  /** Server-rendered API token card; absent for members and viewers. */
+  /** Server-rendered API token and webhook cards; absent for members. */
   developersCard?: React.ReactNode
+  /** Server-rendered external collaborators section (owners and admins). */
+  guestsCard?: React.ReactNode
   /** Origin of the calendars app, which owns the meeting settings (#161). */
   calendarsUrl: string
 }) {
@@ -86,6 +90,19 @@ export function OrganizationSettings({
   const tMeetings = useTranslations("MeetingRequests")
   const locale = useLocale()
   const permissions = useOrgPermissions()
+  const entitlements = useEntitlements()
+  // Tabs follow capabilities: a developer sees neither billing, appearance nor
+  // invitations; the server re-checks every action.
+  const visibleTabs = new Set<TabId>(
+    TAB_IDS.filter(
+      (tab) =>
+        (tab !== "billing" || permissions.can("billing:manage")) &&
+        (tab !== "appearance" || permissions.can("appearance:update")) &&
+        (tab !== "invitations" || permissions.can("member:manage")) &&
+        (tab !== "audit" || permissions.can("audit:read")) &&
+        (tab !== "developers" || Boolean(developersCard))
+    )
+  )
   const searchParams = useSearchParams()
   const pathname = usePathname()
   const router = useRouter()
@@ -95,10 +112,7 @@ export function OrganizationSettings({
     searchParams.get("tab"),
     checkout ? "billing" : "general"
   )
-  // A member without the developer card must not land on an empty tab via a
-  // shared `?tab=developers` link.
-  const activeTab =
-    requestedTab === "developers" && !developersCard ? "general" : requestedTab
+  const activeTab = visibleTabs.has(requestedTab) ? requestedTab : "general"
 
   function changeTab(value: string) {
     const tab = resolveTab(value, "general")
@@ -149,9 +163,6 @@ export function OrganizationSettings({
   const isOnlyOwner =
     owners.length <= 1 &&
     owners.some((member) => member.userId === currentUserId)
-  // The audit trail is read by whoever can change the workspace: members and
-  // viewers never see it, and the server action re-checks the role.
-  const canReadAudit = roleRank(permissions.role) >= 3
 
   return (
     <Tabs
@@ -159,17 +170,26 @@ export function OrganizationSettings({
       onValueChange={changeTab}
       className="flex flex-col gap-4"
     >
-      <TabsList variant="line" className="w-full justify-start border-b pb-0">
+      <TabsList
+        variant="line"
+        className="w-full justify-start overflow-x-auto overflow-y-hidden border-b pb-0"
+      >
         <TabsTrigger value="general">{t("general")}</TabsTrigger>
-        <TabsTrigger value="billing">{t("billing")}</TabsTrigger>
-        <TabsTrigger value="appearance">{tAppearance("title")}</TabsTrigger>
+        {visibleTabs.has("billing") ? (
+          <TabsTrigger value="billing">{t("billing")}</TabsTrigger>
+        ) : null}
+        {visibleTabs.has("appearance") ? (
+          <TabsTrigger value="appearance">{tAppearance("title")}</TabsTrigger>
+        ) : null}
         <TabsTrigger value="meetings">{tMeetings("settingsTitle")}</TabsTrigger>
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
-        <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
-        {canReadAudit ? (
+        {visibleTabs.has("invitations") ? (
+          <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
+        ) : null}
+        {visibleTabs.has("audit") ? (
           <TabsTrigger value="audit">{tAudit("tab")}</TabsTrigger>
         ) : null}
-        {developersCard ? (
+        {visibleTabs.has("developers") ? (
           <TabsTrigger value="developers">{tApi("title")}</TabsTrigger>
         ) : null}
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
@@ -244,10 +264,13 @@ export function OrganizationSettings({
               canUpdate={permissions.canUpdateMember}
               canRemove={permissions.canDeleteMember}
               canTransferOwnership={permissions.isOwner}
+              multipleRoles={entitlements.can("granularPermissions")}
               onChanged={refetch}
             />
           </CardContent>
         </Card>
+        {guestsCard}
+        <RolesGuide />
       </TabsContent>
 
       <TabsContent value="invitations">
@@ -276,7 +299,7 @@ export function OrganizationSettings({
         </Card>
       </TabsContent>
 
-      {canReadAudit ? (
+      {visibleTabs.has("audit") ? (
         <TabsContent value="audit">
           <AuditLogPanel
             organizationName={organization.name}
@@ -285,7 +308,7 @@ export function OrganizationSettings({
         </TabsContent>
       ) : null}
 
-      {developersCard ? (
+      {visibleTabs.has("developers") ? (
         <TabsContent value="developers">{developersCard}</TabsContent>
       ) : null}
 

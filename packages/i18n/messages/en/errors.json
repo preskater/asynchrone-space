@@ -9,6 +9,9 @@
   "roleCannotModifyProjects": "Your role cannot modify projects.",
   "roleCannotManageMembers": "Your role cannot manage workspace members.",
   "emailAlreadyMember": "That email is already a member.",
+  "lastOwner": "The organization needs at least one owner.",
+  "roleClientExclusive": "A client portal account cannot hold another role.",
+  "rolesRequireUpgrade": "Combining several roles requires the Team plan. Upgrade to assign more than one role.",
   "roleCannotModifyFiles": "Your role cannot modify files.",
   "filePermissionDenied": "You do not have permission to modify this file.",
   "storageQuotaExceeded": "Your workspace is out of storage.",
@@ -39,6 +42,11 @@
   "projectNotLinked": "This project is not linked to this company.",
   "portalInviteExists": "This email already has a pending portal invitation.",
   "portalReadOnly": "This area is read-only for the client portal.",
+  "guestCapabilityMissing": "Your invitation to this project does not allow that.",
+  "guestLimitReached": "This project already has the maximum number of external collaborators for your plan.",
+  "guestAlreadyInvited": "This person already has an open invitation or access to this project.",
+  "guestEmailMismatch": "This invitation was sent to another email address. Sign in with that address to accept it.",
+  "guestInvitationClosed": "This invitation is no longer valid. Ask the project team for a new one.",
   "fileTooLarge": "This file is too large (maximum {max} MB).",
   "messageNotAuthor": "You can only modify your own messages.",
   "roleCannotManageIntegrations": "Your role cannot manage repository connections.",
@@ -113,5 +121,9 @@
   "accountPlatformOperator": "Platform operator accounts cannot be deleted here. Ask another platform admin to remove your platform role first.",
   "accountSoleOwner": "You are the only owner of {organizations}. Transfer ownership or delete the organization first.",
   "accountImpersonated": "This account cannot be deleted from a session opened by the control tower.",
-  "accountDeletionPartial": "Some apps could not delete the account yet. Please retry."
+  "accountDeletionPartial": "Some apps could not delete the account yet. Please retry.",
+  "releaseVersionTaken": "This version already exists for this client.",
+  "projectNotLinkedToClient": "Link the project to this client first.",
+  "feedbackAlreadyConverted": "This feedback already has a task.",
+  "feedbackProjectRequired": "Link the version to a project first."
 }

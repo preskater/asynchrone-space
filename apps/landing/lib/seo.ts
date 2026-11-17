@@ -29,6 +29,7 @@ export const MARKETING_ROUTES = [
   "/docs/api",
   "/faq",
   "/features",
+  "/support",
   "/legal/privacy",
   "/legal/terms",
   "/legal/security",

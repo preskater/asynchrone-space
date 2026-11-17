@@ -13,6 +13,7 @@ export function delegatedApiContext(ctx: PublicApiContext): DelegatedContext {
     userEmail: ctx.userEmail,
     organizationId: ctx.organization.id,
     role: ctx.role,
+    roles: ctx.roles,
     impersonatedBy: null,
     portal: null,
     actor: ctx.actor,

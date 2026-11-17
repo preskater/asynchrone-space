@@ -91,6 +91,12 @@
       "update": "Employee project updated",
       "message": {
         "added": "Project message sent"
+      },
+      "guest": {
+        "invited": "External collaborator invited",
+        "accepted": "External collaborator joined",
+        "revoked": "External collaborator removed",
+        "left": "External collaborator left"
       }
     },
     "task": {
@@ -179,6 +185,18 @@
       },
       "document": {
         "linked": "Document shared with client"
+      },
+      "release": {
+        "created": "Client release created",
+        "updated": "Client release updated",
+        "deleted": "Client release deleted"
+      },
+      "feedback": {
+        "created": "Client feedback recorded",
+        "updated": "Client feedback updated",
+        "status_changed": "Client feedback status changed",
+        "deleted": "Client feedback deleted",
+        "converted": "Client feedback converted to a task"
       }
     },
     "contact": {
@@ -295,6 +313,8 @@
     "leaveBalance": "Leave balance",
     "leaveAdjustment": "Leave adjustment",
     "attendance": "Attendance",
-    "dataExport": "Data export"
+    "dataExport": "Data export",
+    "projectGuest": "External collaborator",
+    "apiToken": "API token"
   }
 }

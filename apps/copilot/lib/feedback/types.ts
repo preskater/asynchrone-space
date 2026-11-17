@@ -1,18 +1,13 @@
 /** Shared types and limits for the in-app feedback form. */
 
-/** What the tester is reporting. */
-export const FEEDBACK_CATEGORIES = [
-  "bug",
-  "idea",
-  "design",
-  "performance",
-  "other",
-] as const
-export type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]
+import type { FeedbackCategory, FeedbackImpact } from "@workspace/core/feedback"
 
-/** How much the report affects the tester's work. */
-export const FEEDBACK_IMPACTS = ["low", "medium", "high", "critical"] as const
-export type FeedbackImpact = (typeof FEEDBACK_IMPACTS)[number]
+export {
+  FEEDBACK_CATEGORIES,
+  FEEDBACK_IMPACTS,
+  type FeedbackCategory,
+  type FeedbackImpact,
+} from "@workspace/core/feedback"
 
 /** How often a bug or slowdown happens. */
 export const FEEDBACK_FREQUENCIES = [
@@ -78,6 +73,7 @@ export interface FeedbackContext {
   timezone: string
   viewport: string
   userAgent: string
+  recentErrors: string[]
 }
 
 export interface FeedbackAttachment {
@@ -107,10 +103,18 @@ export interface SubmitFeedbackInput {
   attachment?: FeedbackAttachment
 }
 
+/** Server-side diagnostics the browser cannot be trusted to send. */
+export interface FeedbackDiagnostics {
+  /** Correlation id of the browser flow (`asynchrone_rid`), for log lookup. */
+  requestId: string | null
+}
+
 export interface FeedbackSubmissionResult {
+  /** Support ticket reference shown to the user ("#42"). */
+  ticketNumber: number
   /**
-   * False when transactional email is not configured (local development or a
-   * preview). The report is still logged server-side; the UI tells the user.
+   * False when the support inbox email was not sent (no mail provider, or a
+   * delivery failure). The ticket is stored either way.
    */
   delivered: boolean
 }

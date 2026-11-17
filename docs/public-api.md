@@ -3,7 +3,7 @@
 The versioned REST API lets a workspace's scripts and integrations read and
 write its own data. It is hosted on the apex at `https://asynchrone.space/api/v1`
 (one Ingress path routes `/api/v1` to Copilot; there is no separate API host).
-The decision is recorded in [ADR 0039](adr/0039-expose-a-versioned-public-rest-api.md).
+The decision is recorded in [ADR 0044](adr/0044-expose-a-versioned-public-rest-api.md).
 
 ## Authentication
 

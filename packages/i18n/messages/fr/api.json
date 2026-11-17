@@ -45,6 +45,7 @@
     "projects:write": "Créer et modifier les projets",
     "tasks:read": "Lire les tâches",
     "tasks:write": "Créer et modifier les tâches",
+    "members:read": "Lire l'annuaire des membres de l'espace de travail",
     "clients:read": "Lire les clients, contacts et opportunités",
     "clients:write": "Créer et modifier les clients, contacts et opportunités",
     "employees:read": "Lire les employés",
@@ -163,6 +164,7 @@
     "noScope": "Jeton Bearer",
     "tags": {
       "account": "Compte",
+      "members": "Membres",
       "projects": "Projets",
       "tasks": "Tâches",
       "clients": "Clients",

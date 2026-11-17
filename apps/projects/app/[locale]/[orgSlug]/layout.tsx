@@ -6,11 +6,11 @@ import { RecentsProvider } from "@workspace/app-shell/recents"
 import { WorkspaceShell } from "@workspace/app-shell/shell"
 import { appOrigin } from "@workspace/contracts/server"
 import { EntitlementsProvider } from "@workspace/organization/use-entitlements"
-import { roleRank } from "@workspace/organization/roles"
-import { ProjectStoreProvider } from "@workspace/projects/store"
+import { can } from "@workspace/organization/roles"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { ProjectSidebar } from "@/components/app-sidebar"
+import { ProjectStoreShellProvider } from "@/components/project-store-provider"
 import { SiteHeader } from "@/components/site-header"
 import { getOrganizationAppearance } from "@/lib/appearance"
 import { requireProjectWorkspace, toRequestContext } from "@/lib/auth/workspace"
@@ -58,14 +58,15 @@ export default async function OrgLayout({
           userId={workspace.user.id}
         >
           <RecentsProvider organizationId={workspace.organization.id}>
-            <ProjectStoreProvider
+            <ProjectStoreShellProvider
               initialData={initialData}
               currentUserId={workspace.user.id}
               actions={PROJECT_ACTIONS}
-              canManageMembers={roleRank(workspace.role) >= 3}
+              canManageMembers={can(workspace, "member:manage")}
             >
               <WorkspaceShell
                 skipLabel={t("skipToContent")}
+                copilotUrl={copilotUrl}
                 sidebar={
                   <ProjectSidebar
                     orgSlug={orgSlug}
@@ -92,7 +93,7 @@ export default async function OrgLayout({
               >
                 {children}
               </WorkspaceShell>
-            </ProjectStoreProvider>
+            </ProjectStoreShellProvider>
           </RecentsProvider>
         </AppearanceProvider>
       </EntitlementsProvider>

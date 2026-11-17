@@ -19,6 +19,7 @@ import feedback from "./feedback.json"
 import files from "./files.json"
 import footer from "./footer.json"
 import forms from "./forms.json"
+import guests from "./guests.json"
 import employees from "./employees.json"
 import impersonation from "./impersonation.json"
 import landing from "./landing.json"
@@ -37,6 +38,7 @@ import portal from "./portal.json"
 import pricing from "./pricing.json"
 import projects from "./projects.json"
 import sidebar from "./sidebar.json"
+import support from "./support.json"
 import toasts from "./toasts.json"
 import trial from "./trial.json"
 import userMenu from "./userMenu.json"
@@ -63,6 +65,7 @@ export default {
   Files: files,
   Footer: footer,
   Forms: forms,
+  Guests: guests,
   Employees: employees,
   Impersonation: impersonation,
   Landing: landing,
@@ -81,6 +84,7 @@ export default {
   Pricing: pricing,
   Projects: projects,
   Sidebar: sidebar,
+  Support: support,
   Toasts: toasts,
   Trial: trial,
   UserMenu: userMenu,

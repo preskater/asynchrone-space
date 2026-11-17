@@ -18,6 +18,7 @@
     "split:prisma": "node scripts/split-prisma-schema.mjs",
     "verify:prisma-schemas": "node scripts/verify-prisma-schemas.mjs",
     "db:create": "node scripts/create-databases.mjs",
+    "seed": "npm run seed --workspace=@workspace/seed --",
     "migrate:deploy": "npm run migrate:deploy --workspace=@workspace/migrate",
     "migrate:status": "npm run migrate:status --workspace=@workspace/migrate",
     "verify:migrations": "node scripts/verify-migrations.mjs",
@@ -26,7 +27,6 @@
     "test:unit": "turbo run test:unit"
   },
   "devDependencies": {
-    "@rolldown/binding-wasm32-wasi": "^1.2.15",
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
     "pg-copy-streams": "^7.0.0",
@@ -34,6 +34,9 @@
     "prettier-plugin-tailwindcss": "^0.8.1",
     "turbo": "^2.11.10",
     "typescript": "^7"
+  },
+  "optionalDependencies": {
+    "@rolldown/binding-wasm32-wasi": "^1.3.0"
   },
   "packageManager": "npm@11.19.1",
   "engines": {

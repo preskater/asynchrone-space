@@ -65,6 +65,16 @@ export interface CreateProjectInput {
   labelIds?: string[]
 }
 
+/**
+ * Optional push channel for task comments (#98). The app binds its stream and
+ * a route-handler read; the store re-reads the open task's comments on every
+ * hint and on every (re)connection.
+ */
+export interface ProjectLive {
+  subscribe(onChange: () => void): { close(): void; connected(): boolean }
+  taskComments(taskId: string): Promise<Comment[]>
+}
+
 interface ProjectStore {
   projects: Project[]
   tasks: Task[]
@@ -77,6 +87,10 @@ interface ProjectStore {
   tasksLoaded: boolean
   /** Load tasks + activity once, when a project/calendar screen needs them. */
   ensureProjectData: () => void
+  /** Fetch tasks + activity again after a change made outside the store. */
+  reloadProjectData: () => void
+  /** Keep one task's comments live while it is open; returns the cleanup. */
+  watchTaskComments: (taskId: string) => () => void
   getProject: (id: string) => Project | undefined
   getMember: (id?: string) => Member | undefined
   getLabel: (id: string) => Label | undefined
@@ -123,12 +137,14 @@ export function ProjectStoreProvider({
   currentUserId,
   actions,
   canManageMembers,
+  live,
 }: {
   children: React.ReactNode
   initialData: ProjectData
   currentUserId: string
   actions: ProjectActions
   canManageMembers: boolean
+  live?: ProjectLive
 }) {
   const t = useTranslations("Toasts")
   const te = useErrorTranslator()
@@ -194,6 +210,36 @@ export function ProjectStoreProvider({
       })
   }, [])
 
+  const reloadProjectData = React.useCallback(() => {
+    tasksLoadedRef.current = false
+    ensureProjectData()
+  }, [ensureProjectData])
+
+  const watchTaskComments = React.useCallback(
+    (taskId: string) => {
+      if (!live) return () => {}
+      let active = true
+      const stream = live.subscribe(() => {
+        void live
+          .taskComments(taskId)
+          .then((comments) => {
+            if (!active) return
+            setTasks((prev) =>
+              prev.map((task) =>
+                task.id === taskId ? { ...task, comments } : task
+              )
+            )
+          })
+          .catch(() => {})
+      })
+      return () => {
+        active = false
+        stream.close()
+      }
+    },
+    [live]
+  )
+
   const pushActivity = React.useCallback(
     (projectId: string, action: string, target: string) => {
       setActivities((prev) => [
@@ -228,6 +274,8 @@ export function ProjectStoreProvider({
       canManageMembers,
       tasksLoaded,
       ensureProjectData,
+      reloadProjectData,
+      watchTaskComments,
       getProject,
       getMember,
       getLabel,
@@ -445,6 +493,7 @@ export function ProjectStoreProvider({
           name: input.name,
           email: input.email,
           role: input.role,
+          roles: [input.role],
         }
         setMembers((prev) => [...prev, optimistic])
         void actions
@@ -602,6 +651,7 @@ export function ProjectStoreProvider({
     canManageMembers,
     tasksLoaded,
     ensureProjectData,
+    watchTaskComments,
     pushActivity,
   ])
 

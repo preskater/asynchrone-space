@@ -12,7 +12,8 @@ export interface RequestContext {
   userName: string
   userEmail: string
   organizationId: string
-  role: MemberRole
+  /** The member's cumulative roles; authorize with `can(ctx, capability)`. */
+  roles: MemberRole[]
   /**
    * Set when an API token performs the action on the user's behalf. Audit
    * writers prefer it so the token, not the member, is the actor.

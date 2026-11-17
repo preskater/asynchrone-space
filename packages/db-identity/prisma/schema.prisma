@@ -30,6 +30,9 @@ model User {
   twoFactor     TwoFactor[]
   customerTwoFactor CustomerTwoFactor[]
   assistantConversations AssistantConversation[]
+  supportTickets SupportTicket[]
+  projectGuests    ProjectGuest[]
+  apiTokens        ApiToken[]
 
   oauthClients       OauthClient[]
   oauthRefreshTokens OauthRefreshToken[]
@@ -123,6 +126,7 @@ model Organization {
 
   notifications       Notification[]
   portalInvites       PortalInvite[]
+  projectGuests       ProjectGuest[]
 
 
 
@@ -132,9 +136,10 @@ model Organization {
   invoices     Invoice[]
   aiUsageEvents AiUsageEvent[]
   assistantConversations AssistantConversation[]
-  apiTokens    ApiToken[]
+  supportTickets       SupportTicket[]
+  apiTokens            ApiToken[]
   webhookSubscriptions WebhookSubscription[]
-  webhookDeliveries WebhookDelivery[]
+  webhookDeliveries    WebhookDelivery[]
 
   @@unique([slug])
   @@map("organization")
@@ -253,6 +258,39 @@ model PortalInvite {
   @@index([organizationId, clientId])
   @@index([email])
   @@map("portalInvite")
+}
+
+/// An external collaborator's grant on one project of the host organization
+/// (ADR 0041). Not a membership: it never takes a seat and every guest request
+/// is resolved from this row, never from the session's active organization.
+model ProjectGuest {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Project in the projects app's database (no cross-database foreign key).
+  projectId      String
+  /// Snapshot so the guest space and the settings list render without a call.
+  projectName    String
+  email          String
+  /// Set on acceptance; the invitation is bound to `email` until then.
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// invited | active | revoked. Expiry is read from `expiresAt`, never stored.
+  status         String       @default("invited")
+  /// Comma-separated `@workspace/core/guests` capabilities.
+  capabilities   String
+  /// SHA-256 of the invitation link token; the token itself is never stored.
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  invitedById    String?
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, projectId])
+  @@index([userId])
+  @@index([email])
+  @@map("projectGuest")
 }
 
 model Jwks {
@@ -610,19 +648,22 @@ model ApiToken {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// The member who created the token; the historical `userId` column.
+  createdById    String       @map("userId")
+  user           User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
   name           String
   /// First characters of the raw token, shown in settings to tell tokens apart.
-  prefix         String
-  /// SHA-256 hex of the raw token. Unique so lookup is a single index probe.
-  hashedToken    String       @unique
+  prefix         String       @unique
+  /// SHA-256 hex of the raw token, stored in the historical `tokenHash` column.
+  hashedToken    String       @unique @map("tokenHash")
   scopes         String[]
-  createdById    String
   expiresAt      DateTime?
   lastUsedAt     DateTime?
   revokedAt      DateTime?
   createdAt      DateTime     @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([organizationId, createdById])
   @@map("apiToken")
 }
 
@@ -818,6 +859,39 @@ model UserDeletionApp {
   @@unique([jobId, app])
   @@index([status])
   @@map("userDeletionApp")
+}
+
+model SupportTicket {
+  id             String       @id @default(cuid())
+  /// Human-facing reference ("#42") quoted in emails and replies.
+  number         Int          @unique @default(autoincrement())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "open" | "acknowledged" | "resolved"
+  status         String       @default("open")
+  category       String
+  impact         String
+  title          String
+  description    String
+  contactEmail   String
+  allowContact   Boolean      @default(true)
+  /// Category-specific answers (steps, expected, problem, …).
+  details        Json
+  /// Diagnostics: page, locale, viewport, user agent, build SHA, request id,
+  /// recent client errors.
+  context        Json
+  /// Email of the platform operator who owns the ticket.
+  assigneeEmail  String?
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("supportTicket")
 }
 
 model AuditLog {

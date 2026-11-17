@@ -9,6 +9,9 @@
   "roleCannotModifyProjects": "Votre rôle ne permet pas de modifier les projets.",
   "roleCannotManageMembers": "Votre rôle ne permet pas de gérer les membres de l'espace de travail.",
   "emailAlreadyMember": "Cette adresse e-mail est déjà membre.",
+  "lastOwner": "L'organisation doit garder au moins un propriétaire.",
+  "roleClientExclusive": "Un compte du portail client ne peut pas avoir d'autre rôle.",
+  "rolesRequireUpgrade": "Cumuler plusieurs rôles nécessite le plan Team. Passez au plan supérieur pour attribuer plus d'un rôle.",
   "roleCannotModifyFiles": "Votre rôle ne permet pas de modifier les fichiers.",
   "storageQuotaExceeded": "Votre espace de stockage est plein.",
   "uploadOffsetMismatch": "Le téléversement a été interrompu. Veuillez réessayer.",
@@ -39,6 +42,11 @@
   "projectNotLinked": "Ce projet n'est pas lié à cette société.",
   "portalInviteExists": "Cette adresse e-mail a déjà une invitation au portail en attente.",
   "portalReadOnly": "Cette zone est en lecture seule pour le portail client.",
+  "guestCapabilityMissing": "Votre invitation sur ce projet ne permet pas cette action.",
+  "guestLimitReached": "Ce projet a déjà le nombre maximal de collaborateurs externes prévu par votre offre.",
+  "guestAlreadyInvited": "Cette personne a déjà une invitation en cours ou un accès à ce projet.",
+  "guestEmailMismatch": "Cette invitation a été envoyée à une autre adresse e-mail. Connectez-vous avec cette adresse pour l'accepter.",
+  "guestInvitationClosed": "Cette invitation n'est plus valable. Demandez-en une nouvelle à l'équipe du projet.",
   "fileTooLarge": "Ce fichier est trop volumineux (maximum {max} Mo).",
   "messageNotAuthor": "Vous ne pouvez modifier que vos propres messages.",
   "roleCannotManageIntegrations": "Votre rôle ne permet pas de gérer les connexions aux dépôts.",
@@ -113,5 +121,9 @@
   "accountPlatformOperator": "Les comptes d'opérateur de la plateforme ne peuvent pas être supprimés ici. Demandez d'abord à un autre administrateur de retirer votre rôle plateforme.",
   "accountSoleOwner": "Vous êtes le seul propriétaire de {organizations}. Transférez la propriété ou supprimez l'organisation d'abord.",
   "accountImpersonated": "Impossible de supprimer ce compte depuis une session ouverte par la tour de contrôle.",
-  "accountDeletionPartial": "Certaines applications n’ont pas encore pu supprimer le compte. Réessayez."
+  "accountDeletionPartial": "Certaines applications n’ont pas encore pu supprimer le compte. Réessayez.",
+  "releaseVersionTaken": "Cette version existe déjà pour ce client.",
+  "projectNotLinkedToClient": "Liez d’abord le projet à ce client.",
+  "feedbackAlreadyConverted": "Ce retour a déjà une tâche.",
+  "feedbackProjectRequired": "Liez d’abord la version à un projet."
 }

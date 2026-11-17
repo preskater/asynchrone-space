@@ -67,6 +67,8 @@ const DATABASES = {
       "OrganizationDeletionApp",
       "UserDeletionJob",
       "UserDeletionApp",
+      "SupportTicket",
+      "ApiToken",
     ],
   },
   projects: {
@@ -154,6 +156,8 @@ const DATABASES = {
       "ClientActivity",
       "ClientFieldDefinition",
       "ClientDocument",
+      "ClientRelease",
+      "ClientFeedback",
       // The app-local relying-party session (#163).
       "OidcSession",
     ],

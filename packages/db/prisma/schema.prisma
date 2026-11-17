@@ -30,6 +30,9 @@ model User {
   twoFactor     TwoFactor[]
   customerTwoFactor CustomerTwoFactor[]
   assistantConversations AssistantConversation[]
+  supportTickets SupportTicket[]
+  projectGuests    ProjectGuest[]
+  apiTokens        ApiToken[]
 
   oauthClients       OauthClient[]
   oauthRefreshTokens OauthRefreshToken[]
@@ -169,6 +172,8 @@ model Organization {
   clientActivities    ClientActivity[]
   clientFieldDefinitions ClientFieldDefinition[]
   clientDocuments     ClientDocument[]
+  clientReleases      ClientRelease[]
+  clientFeedback      ClientFeedback[]
   notifications       Notification[]
   portalInvites       PortalInvite[]
   projectMessages     ProjectMessage[]
@@ -184,9 +189,11 @@ model Organization {
   invoices     Invoice[]
   aiUsageEvents AiUsageEvent[]
   assistantConversations AssistantConversation[]
-  apiTokens    ApiToken[]
+  supportTickets       SupportTicket[]
+  projectGuests        ProjectGuest[]
+  apiTokens            ApiToken[]
   webhookSubscriptions WebhookSubscription[]
-  webhookDeliveries WebhookDelivery[]
+  webhookDeliveries    WebhookDelivery[]
 
   @@unique([slug])
   @@map("organization")
@@ -199,19 +206,22 @@ model ApiToken {
   id             String       @id @default(cuid())
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// The member who created the token; the historical `userId` column.
+  createdById    String       @map("userId")
+  user           User         @relation(fields: [createdById], references: [id], onDelete: Cascade)
   name           String
   /// First characters of the raw token, shown in settings to tell tokens apart.
-  prefix         String
-  /// SHA-256 hex of the raw token. Unique so lookup is a single index probe.
-  hashedToken    String       @unique
+  prefix         String       @unique
+  /// SHA-256 hex of the raw token, stored in the historical `tokenHash` column.
+  hashedToken    String       @unique @map("tokenHash")
   scopes         String[]
-  createdById    String
   expiresAt      DateTime?
   lastUsedAt     DateTime?
   revokedAt      DateTime?
   createdAt      DateTime     @default(now())
 
   @@index([organizationId, createdAt])
+  @@index([organizationId, createdById])
   @@map("apiToken")
 }
 
@@ -568,7 +578,10 @@ model ProjectMessage {
   projectId      String
   project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
   authorId       String
+  /// internal | client | guest
   authorKind     String       @default("internal")
+  /// Snapshot for authors outside the member directory (external guests).
+  authorName     String?
   body           String
   createdAt      DateTime     @default(now())
 
@@ -1165,6 +1178,8 @@ model Client {
   portalMembers   Member[]         @relation("PortalMembers")
   portalInvites   PortalInvite[]
   meetingRequests MeetingRequest[]
+  releases        ClientRelease[]
+  feedback        ClientFeedback[]
 
   @@unique([organizationId, name])
   @@index([organizationId, status])
@@ -1191,6 +1206,7 @@ model Contact {
   companies  ContactCompany[]
   deals      DealContact[]
   activities ClientActivity[]
+  feedback   ClientFeedback[]
 
   @@index([organizationId])
   @@index([organizationId, email])
@@ -1363,6 +1379,76 @@ model ClientDocument {
   @@map("clientDocument")
 }
 
+/// A delivery version of a client company, tested by the client (ADR 0040).
+/// `status` is planned | in_test | approved | rejected.
+model ClientRelease {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  /// Project in the projects database (no foreign key across databases).
+  projectId      String?
+  version        String
+  label          String?
+  releasedAt     DateTime?
+  status         String       @default("planned")
+  notes          String?
+  /// Whether portal users of this company may read the release report.
+  portalVisible  Boolean      @default(false)
+  createdBy      String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  feedback ClientFeedback[]
+
+  @@unique([clientId, version])
+  @@index([organizationId, releasedAt])
+  @@map("clientRelease")
+}
+
+/// One test report a client made on a release (ADR 0040). `status` is
+/// new | triaged | accepted | rejected | fixed | deferred.
+model ClientFeedback {
+  id              String        @id @default(cuid())
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  releaseId       String
+  release         ClientRelease @relation(fields: [releaseId], references: [id], onDelete: Cascade)
+  /// Project in the projects database (no foreign key across databases).
+  projectId       String?
+  /// The client contact who reported it.
+  contactId       String?
+  contact         Contact?      @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  /// The member who recorded it.
+  authorId        String
+  assigneeId      String?
+  testedAt        DateTime
+  environment     String        @default("staging")
+  category        String
+  impact          String
+  status          String        @default("new")
+  statusChangedAt DateTime      @default(now())
+  title           String
+  body            String
+  /// Task in the projects database created by "Convert to task".
+  linkedTaskId    String?
+  /// File in the files database (screenshot or recording).
+  documentId      String?
+  /// Release version at the time of the report.
+  version         String
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([organizationId, status])
+  @@index([releaseId, testedAt])
+  @@index([clientId])
+  @@index([contactId])
+  @@map("clientFeedback")
+}
+
 /// In-app notification for one user. `data` carries the interpolation values
 /// (names, identifiers, ids) for the type-specific message rendered by the UI.
 model Notification {
@@ -1492,6 +1578,39 @@ model SalaryProfile {
 
 // OAuth / MCP (better-auth jwt + mcp plugins)
 // ---------------------------------------------------------------------------
+
+/// An external collaborator's grant on one project of the host organization
+/// (ADR 0041). Not a membership: it never takes a seat and every guest request
+/// is resolved from this row, never from the session's active organization.
+model ProjectGuest {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  /// Project in the projects app's database (no cross-database foreign key).
+  projectId      String
+  /// Snapshot so the guest space and the settings list render without a call.
+  projectName    String
+  email          String
+  /// Set on acceptance; the invitation is bound to `email` until then.
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// invited | active | revoked. Expiry is read from `expiresAt`, never stored.
+  status         String       @default("invited")
+  /// Comma-separated `@workspace/core/guests` capabilities.
+  capabilities   String
+  /// SHA-256 of the invitation link token; the token itself is never stored.
+  tokenHash      String       @unique
+  expiresAt      DateTime
+  invitedById    String?
+  acceptedAt     DateTime?
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId, projectId])
+  @@index([userId])
+  @@index([email])
+  @@map("projectGuest")
+}
 
 model Jwks {
   id         String    @id
@@ -2047,3 +2166,40 @@ model UserDeletionApp {
   @@index([status])
   @@map("userDeletionApp")
 }
+
+/// One support request filed from the in-app "Contact support" form (#101).
+/// The email to the support inbox is a notification; this row is the record
+/// the control tower triages (open → acknowledged → resolved).
+model SupportTicket {
+  id             String       @id @default(cuid())
+  /// Human-facing reference ("#42") quoted in emails and replies.
+  number         Int          @unique @default(autoincrement())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// "open" | "acknowledged" | "resolved"
+  status         String       @default("open")
+  category       String
+  impact         String
+  title          String
+  description    String
+  contactEmail   String
+  allowContact   Boolean      @default(true)
+  /// Category-specific answers (steps, expected, problem, …).
+  details        Json
+  /// Diagnostics: page, locale, viewport, user agent, build SHA, request id,
+  /// recent client errors.
+  context        Json
+  /// Email of the platform operator who owns the ticket.
+  assigneeEmail  String?
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("supportTicket")
+}
+

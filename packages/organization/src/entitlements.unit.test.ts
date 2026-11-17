@@ -39,6 +39,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     apiAccess: true,
     apiRequestsPerMinute: 60,
     requireTwoFactor: false,
+    externalCollaborators: 0,
   },
   team: {
     seats: 100,
@@ -51,6 +52,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     apiAccess: true,
     apiRequestsPerMinute: 300,
     requireTwoFactor: true,
+    externalCollaborators: 5,
   },
   enterprise: {
     seats: Infinity,
@@ -63,6 +65,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     apiAccess: true,
     apiRequestsPerMinute: 1200,
     requireTwoFactor: true,
+    externalCollaborators: Infinity,
   },
 }
 

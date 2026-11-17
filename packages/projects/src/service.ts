@@ -14,14 +14,19 @@ import {
   type Page,
   type PageInput,
 } from "@workspace/core/pagination"
-import { roleRank } from "@workspace/organization/roles"
+import { can, compareRoles, hasRole } from "@workspace/organization/roles"
 import type { DirectoryEntry } from "@workspace/organization/directory"
 import type { ProjectDb } from "./db"
 import { toMemberView } from "./members"
 import type { ProjectServicePorts } from "./ports"
 
 import { ProjectRepository } from "./repository"
-import { createTaskComment } from "./task-comments"
+import { authorKindOf, createTaskComment } from "./task-comments"
+import {
+  resolveImportRow,
+  taskFingerprint,
+  type TaskImportResult,
+} from "./task-import"
 import { allocateTaskIdentifier, taskPrefix } from "./task-key"
 import type {
   AddCommentInput,
@@ -29,6 +34,7 @@ import type {
   AddMemberInput,
   CreateProjectInput,
   CreateTaskInput,
+  ImportTasksInput,
   CreateTaskTemplateInput,
   MoveTaskInput,
   UpdateMemberRoleInput,
@@ -106,14 +112,28 @@ export class ProjectService {
   ) {}
 
   private canWrite(ctx: RequestContext) {
-    if (roleRank(ctx.role) >= 2) return
+    if (can(ctx, "project:write")) return
+    throw new ForbiddenError("Your role cannot modify projects.", {
+      code: "role_cannot_modify_projects",
+    })
+  }
+
+  private canWriteTasks(ctx: RequestContext) {
+    if (can(ctx, "task:write")) return
     throw new ForbiddenError("Your role cannot modify projects.", {
       code: "role_cannot_modify_projects",
     })
   }
 
   private canManage(ctx: RequestContext) {
-    if (roleRank(ctx.role) >= 3) return
+    if (can(ctx, "project:manage")) return
+    throw new ForbiddenError("Your role cannot manage workspace members.", {
+      code: "role_cannot_manage_members",
+    })
+  }
+
+  private canManageMembers(ctx: RequestContext) {
+    if (can(ctx, "member:manage")) return
     throw new ForbiddenError("Your role cannot manage workspace members.", {
       code: "role_cannot_manage_members",
     })
@@ -315,7 +335,7 @@ export class ProjectService {
       comments: [...row.comments].reverse().map((comment): Comment => ({
         id: comment.id,
         authorId: comment.authorId,
-        authorKind: comment.authorKind === "client" ? "client" : "internal",
+        authorKind: authorKindOf(comment.authorKind),
         authorName: comment.authorName ?? undefined,
         body: comment.body,
         createdAt: requiredIso(comment.createdAt),
@@ -328,8 +348,7 @@ export class ProjectService {
     return rows
       .map((row) => this.mapMember(row))
       .sort(
-        (a, b) =>
-          roleRank(b.role) - roleRank(a.role) || a.name.localeCompare(b.name)
+        (a, b) => compareRoles(a.role, b.role) || a.name.localeCompare(b.name)
       )
   }
 
@@ -706,7 +725,7 @@ export class ProjectService {
   }
 
   async createTask(ctx: RequestContext, input: CreateTaskInput): Promise<Task> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const project = await this.get(ctx, input.projectId)
     const existing = await this.repo.listTasks(
       ctx.organizationId,
@@ -804,12 +823,99 @@ export class ProjectService {
     return task
   }
 
+  /**
+   * Bulk creation from a file. Unlike `createTask` it never opens repository
+   * issues and sends no assignment notification: an import must not flood a
+   * repository or an inbox. A dry run reports the same result without writing.
+   */
+  async importTasks(
+    ctx: RequestContext,
+    input: ImportTasksInput
+  ): Promise<TaskImportResult> {
+    this.canWriteTasks(ctx)
+    const project = await this.get(ctx, input.projectId)
+    const [existing, labels, members] = await Promise.all([
+      this.repo.listTasks(ctx.organizationId, input.projectId),
+      this.repo.listLabels(ctx.organizationId),
+      this.listMembersView(ctx),
+    ])
+    const lookups = {
+      memberIdByEmail: new Map(
+        members.map((member) => [member.email.toLowerCase(), member.id])
+      ),
+      labelIdByName: new Map(
+        labels.map((label) => [label.name.toLowerCase(), label.id])
+      ),
+    }
+    const seen = new Set(
+      existing.map((task) => taskFingerprint(task.title, task.dueDate))
+    )
+    const prefix = taskPrefix(
+      project.name,
+      existing.map((task) => task.identifier)
+    )
+
+    const result: TaskImportResult = {
+      created: 0,
+      skipped: 0,
+      errors: [],
+      warnings: [],
+      dryRun: input.dryRun,
+    }
+    for (const row of input.rows) {
+      const { task, error, warnings } = resolveImportRow(row, lookups)
+      if (error) result.errors.push(error)
+      result.warnings.push(...warnings)
+      if (!task) continue
+
+      const fingerprint = taskFingerprint(task.title, task.dueDate)
+      if (seen.has(fingerprint)) {
+        result.skipped += 1
+        continue
+      }
+      seen.add(fingerprint)
+      result.created += 1
+      if (input.dryRun) continue
+
+      const created = await this.repo.createTask({
+        ...task,
+        organizationId: ctx.organizationId,
+        projectId: input.projectId,
+        identifier: await allocateTaskIdentifier(
+          this.db,
+          ctx.organizationId,
+          prefix
+        ),
+        order: existing.length + result.created - 1,
+        createIssue: false,
+      })
+      const mapped = this.mapTask(created)
+      await this.ports.audit(ctx, {
+        action: AUDIT_ACTIONS.taskCreated,
+        entityType: "task",
+        entityId: mapped.id,
+        entityLabel: mapped.identifier,
+        after: { projectId: mapped.projectId, ...taskSnapshot(mapped) },
+      })
+    }
+
+    if (!input.dryRun && result.created > 0) {
+      await this.repo.addActivity({
+        projectId: input.projectId,
+        actorId: ctx.userId,
+        action: "imported",
+        target: String(result.created),
+      })
+    }
+    return result
+  }
+
   async updateTask(
     ctx: RequestContext,
     id: string,
     input: UpdateTaskInput
   ): Promise<Task> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
     const titleChanged =
@@ -903,7 +1009,7 @@ export class ProjectService {
     id: string,
     input: MoveTaskInput
   ): Promise<Task> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
     if (existing.status !== input.status) {
@@ -933,7 +1039,7 @@ export class ProjectService {
   }
 
   async removeTask(ctx: RequestContext, id: string): Promise<{ id: string }> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
     const snapshot = this.mapTask(existing)
@@ -967,7 +1073,7 @@ export class ProjectService {
     taskId: string,
     subtaskId: string
   ): Promise<Task> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, taskId)
     if (!existing) throw new NotFoundError("Task")
     const toggled = await this.repo.toggleSubtask(taskId, subtaskId)
@@ -989,7 +1095,7 @@ export class ProjectService {
     taskId: string,
     input: AddCommentInput
   ): Promise<Task> {
-    this.canWrite(ctx)
+    this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, taskId)
     if (!existing) throw new NotFoundError("Task")
     await createTaskComment(
@@ -997,6 +1103,7 @@ export class ProjectService {
         db: this.db,
         notify: this.ports.notify,
         directory: this.ports.directory,
+        changed: this.ports.changed,
       },
       {
         organizationId: ctx.organizationId,
@@ -1049,8 +1156,8 @@ export class ProjectService {
   }
 
   async addMember(ctx: RequestContext, input: AddMemberInput): Promise<Member> {
-    this.canManage(ctx)
-    if (input.role === "owner" && ctx.role !== "owner") {
+    this.canManageMembers(ctx)
+    if (input.role === "owner" && !hasRole(ctx, "owner")) {
       throw new ForbiddenError("Only an owner can add another owner.", {
         code: "role_cannot_manage_members",
       })
@@ -1064,13 +1171,21 @@ export class ProjectService {
         code: "email_already_member",
       })
 
-    const member = await this.ports.directory.add(ctx.organizationId, input)
+    const member = await this.ports.directory.add(ctx.organizationId, {
+      name: input.name,
+      email: input.email,
+      roles: [input.role],
+    })
     await this.ports.audit(ctx, {
       action: AUDIT_ACTIONS.organizationMemberAdded,
       entityType: "member",
       entityId: member.userId,
       entityLabel: member.email,
-      after: { email: member.email, name: member.name, role: member.role },
+      after: {
+        email: member.email,
+        name: member.name,
+        role: member.roles.join(","),
+      },
     })
     return toMemberView(member)
   }
@@ -1080,13 +1195,13 @@ export class ProjectService {
     memberId: string,
     input: UpdateMemberRoleInput
   ): Promise<Member> {
-    this.canManage(ctx)
+    this.canManageMembers(ctx)
     const member = await this.ports.directory.find(ctx.organizationId, memberId)
     if (!member) throw new NotFoundError("Member")
 
-    const isTargetOwner = member.role === "owner"
+    const isTargetOwner = member.roles.includes("owner")
     // Only an owner may touch an owner, and only an owner may grant ownership.
-    if ((isTargetOwner || input.role === "owner") && ctx.role !== "owner") {
+    if ((isTargetOwner || input.role === "owner") && !hasRole(ctx, "owner")) {
       throw new ForbiddenError("Only an owner can change an owner's role.", {
         code: "role_cannot_manage_members",
       })
@@ -1100,24 +1215,26 @@ export class ProjectService {
     if (isTargetOwner && input.role !== "owner") {
       const owners = await this.ownerCount(ctx.organizationId)
       if (owners <= 1) {
-        throw new ForbiddenError("The last owner cannot be demoted.", {
-          code: "role_cannot_manage_members",
-        })
+        throw new ValidationError(
+          "The last owner cannot be demoted.",
+          undefined,
+          { code: "last_owner" }
+        )
       }
     }
 
     const updated = await this.ports.directory.updateRole(
       ctx.organizationId,
       member.userId,
-      input.role
+      [input.role]
     )
     await this.ports.audit(ctx, {
       action: AUDIT_ACTIONS.organizationMemberRoleChanged,
       entityType: "member",
       entityId: member.userId,
       entityLabel: member.email,
-      before: { role: member.role },
-      after: { role: input.role },
+      before: { role: member.roles.join(",") },
+      after: { role: updated.roles.join(",") },
     })
     return toMemberView(updated)
   }
@@ -1126,7 +1243,7 @@ export class ProjectService {
     ctx: RequestContext,
     memberId: string
   ): Promise<{ id: string }> {
-    this.canManage(ctx)
+    this.canManageMembers(ctx)
     const member = await this.ports.directory.find(ctx.organizationId, memberId)
     if (!member) throw new NotFoundError("Member")
 
@@ -1135,17 +1252,19 @@ export class ProjectService {
         code: "role_cannot_manage_members",
       })
     }
-    if (member.role === "owner") {
-      if (ctx.role !== "owner") {
+    if (member.roles.includes("owner")) {
+      if (!hasRole(ctx, "owner")) {
         throw new ForbiddenError("Only an owner can remove an owner.", {
           code: "role_cannot_manage_members",
         })
       }
       const owners = await this.ownerCount(ctx.organizationId)
       if (owners <= 1) {
-        throw new ForbiddenError("The last owner cannot be removed.", {
-          code: "role_cannot_manage_members",
-        })
+        throw new ValidationError(
+          "The last owner cannot be removed.",
+          undefined,
+          { code: "last_owner" }
+        )
       }
     }
 
@@ -1155,7 +1274,7 @@ export class ProjectService {
       entityType: "member",
       entityId: member.userId,
       entityLabel: member.email,
-      before: { role: member.role, email: member.email },
+      before: { role: member.roles.join(","), email: member.email },
     })
     return { id: memberId }
   }
@@ -1270,7 +1389,7 @@ export class ProjectService {
     ctx: RequestContext,
     id: string
   ): Promise<{ id: string }> {
-    this.canManage(ctx)
+    this.canManageMembers(ctx)
     const existing = await this.repo.findTemplate(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task template")
     await this.repo.deleteTemplate(id)
