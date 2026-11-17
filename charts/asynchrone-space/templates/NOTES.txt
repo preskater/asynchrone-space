@@ -26,6 +26,12 @@ Control tower:
   - service {{ .Release.Name }}-control-tower:{{ $ct.service.port }} (cluster-internal)
 {{- end }}
 
+{{- if and .Values.landing.enabled $copilot.enabled }}
+
+Public API (apex ingress routes /api/v1 to Copilot):
+  - https://asynchrone.space/api/v1
+{{- end }}
+
 Required secrets:
   - {{ $copilot.secret.existingSecret }} (DATABASE_URL, IDENTITY_DATABASE_URL and the
     per-app *_DATABASE_URL keys for the migrate Job, BETTER_AUTH_SECRET,
@@ -40,7 +46,8 @@ Required secrets:
 
 Scheduled jobs (formerly Vercel crons, exactly one owner each):
   - copilot: trial-expiry 0 6 * * *, organization-deletion 30 3 * * *,
-    audit-retention 45 3 * * *, data-exports */15 * * * *
+    audit-retention 45 3 * * *, data-exports */15 * * * *,
+    webhook-deliveries * * * * *
   - projects: repository-sync 0 * * * *
   - files: uploads-sweep 0 3 * * *
 

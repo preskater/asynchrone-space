@@ -32,7 +32,14 @@ describe("OAuth client manifest", () => {
       SERVICE_SCOPES.identityRead,
       SERVICE_SCOPES.identityWrite,
       SERVICE_SCOPES.notificationsWrite,
+      SERVICE_SCOPES.webhooksWrite,
     ])
+    expect(byKey.get("clients")?.clientCredentialsScopes).toContain(
+      SERVICE_SCOPES.webhooksWrite
+    )
+    expect(byKey.get("files")?.clientCredentialsScopes).not.toContain(
+      SERVICE_SCOPES.webhooksWrite
+    )
   })
 
   it("registers the Copilot service client for every domain audience", () => {

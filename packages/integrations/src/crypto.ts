@@ -6,33 +6,37 @@ import {
 } from "node:crypto"
 
 /**
- * Symmetric encryption for repository access tokens.
+ * Symmetric encryption for repository access tokens and webhook secrets.
  *
- * Tokens are encrypted with AES-256-GCM using a key derived from
- * `BETTER_AUTH_SECRET`. The format is `v1:<iv>:<tag>:<ciphertext>` with
- * base64url parts, so the scheme can evolve without losing old values.
+ * Secrets are encrypted with AES-256-GCM using a key derived from
+ * `BETTER_AUTH_SECRET` and a purpose string, so a ciphertext from one purpose
+ * cannot be decrypted with another. The format is `v1:<iv>:<tag>:<ciphertext>`
+ * with base64url parts, so the scheme can evolve without losing old values.
  *
- * Rotating `BETTER_AUTH_SECRET` invalidates stored repository tokens: the
- * connection must be re-authenticated with a fresh token (the connection row
- * itself stays; only `decryptSecret` fails).
+ * Rotating `BETTER_AUTH_SECRET` invalidates stored secrets: repository
+ * connections must be re-authenticated and webhook secrets must be rotated.
  */
 const VERSION = "v1"
+const DEFAULT_PURPOSE = "repository-token"
 
-function deriveKey(): Buffer {
+function deriveKey(purpose: string): Buffer {
   const secret = process.env.BETTER_AUTH_SECRET
   if (!secret) {
     throw new Error(
-      "BETTER_AUTH_SECRET is required to encrypt repository credentials."
+      "BETTER_AUTH_SECRET is required to encrypt stored credentials."
     )
   }
   return createHash("sha256")
-    .update(`asynchrone-space:repository-token:${secret}`)
+    .update(`asynchrone-space:${purpose}:${secret}`)
     .digest()
 }
 
-export function encryptSecret(plaintext: string): string {
+export function encryptSecret(
+  plaintext: string,
+  purpose = DEFAULT_PURPOSE
+): string {
   const iv = randomBytes(12)
-  const cipher = createCipheriv("aes-256-gcm", deriveKey(), iv)
+  const cipher = createCipheriv("aes-256-gcm", deriveKey(purpose), iv)
   const encrypted = Buffer.concat([
     cipher.update(plaintext, "utf8"),
     cipher.final(),
@@ -46,14 +50,17 @@ export function encryptSecret(plaintext: string): string {
   ].join(":")
 }
 
-export function decryptSecret(value: string): string {
+export function decryptSecret(
+  value: string,
+  purpose = DEFAULT_PURPOSE
+): string {
   const [version, iv, tag, data] = value.split(":")
   if (version !== VERSION || !iv || !tag || !data) {
-    throw new Error("Unsupported repository token format.")
+    throw new Error("Unsupported secret format.")
   }
   const decipher = createDecipheriv(
     "aes-256-gcm",
-    deriveKey(),
+    deriveKey(purpose),
     Buffer.from(iv, "base64url")
   )
   decipher.setAuthTag(Buffer.from(tag, "base64url"))

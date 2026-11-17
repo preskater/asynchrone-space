@@ -266,6 +266,10 @@ copilot:
         enabled: true
         schedule: "*/15 * * * *"
         path: /api/cron/data-exports
+      webhook-deliveries:
+        enabled: true
+        schedule: "* * * * *"
+        path: /api/cron/webhook-deliveries
 
 # ---------------------------------------------------------------------------
 # Domain app: projects. Own image, host-only OIDC session, repository sync.

@@ -18,6 +18,7 @@ import type {
 
 import { planForOrganization } from "@/lib/billing/plans"
 import { getOrganizationShell } from "@/lib/organization/shell"
+import { emitWebhookEvent } from "@/lib/webhooks"
 import { parseRoles } from "@workspace/organization/utils"
 
 /**
@@ -30,11 +31,11 @@ export interface IdentityRepository {
   getUser(id: string): Promise<IdentityUser | null>
   getEntitlements(organizationId: string): Promise<Entitlements | null>
   /** One read for a domain app's workspace gate. */
-  getWorkspace(sessionId: string, organizationId: string): Promise<Workspace | null>
-  addMember(
-    organizationId: string,
-    input: AddWorkspaceMember
-  ): Promise<Member>
+  getWorkspace(
+    sessionId: string,
+    organizationId: string
+  ): Promise<Workspace | null>
+  addMember(organizationId: string, input: AddWorkspaceMember): Promise<Member>
   updateMemberRole(
     organizationId: string,
     userId: string,
@@ -76,6 +77,7 @@ function mapEntitlements(
     requireTwoFactor: entitlements.requireTwoFactor,
     granularPermissions: entitlements.granularPermissions,
     apiAccess: entitlements.apiAccess,
+    apiRequestsPerMinute: entitlements.apiRequestsPerMinute,
     scim: entitlements.scim,
   }
 }
@@ -266,6 +268,18 @@ export const identityRepository: IdentityRepository = {
       },
       select: { role: true, clientId: true, createdAt: true },
     })
+    await emitWebhookEvent({
+      organizationId,
+      type: "member.added",
+      data: {
+        member: {
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          role: input.role,
+        },
+      },
+    })
     return {
       id: user.id,
       name: user.name,
@@ -300,9 +314,30 @@ export const identityRepository: IdentityRepository = {
   },
 
   async removeMember(organizationId, userId) {
+    const member = await prisma.member.findUnique({
+      where: { organizationId_userId: { organizationId, userId } },
+      select: {
+        role: true,
+        user: { select: { id: true, name: true, email: true } },
+      },
+    })
     await prisma.member.delete({
       where: { organizationId_userId: { organizationId, userId } },
     })
+    if (member) {
+      await emitWebhookEvent({
+        organizationId,
+        type: "member.removed",
+        data: {
+          member: {
+            userId: member.user.id,
+            name: member.user.name,
+            email: member.user.email,
+            role: member.role,
+          },
+        },
+      })
+    }
     return { id: userId }
   },
 

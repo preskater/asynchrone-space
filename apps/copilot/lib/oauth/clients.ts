@@ -50,6 +50,12 @@ const DOMAIN_KEYS = [
   "employees",
 ] as const
 
+/** Apps that emit outbound webhook events through Copilot. */
+const WEBHOOK_EMITTERS = new Set<(typeof DOMAIN_KEYS)[number]>([
+  "projects",
+  "clients",
+])
+
 /**
  * Cross-domain calls a domain app makes on behalf of its own user. The target
  * app still applies the delegated context; this list only decides which
@@ -99,6 +105,7 @@ function userClient(
       SERVICE_SCOPES.identityRead,
       SERVICE_SCOPES.identityWrite,
       SERVICE_SCOPES.notificationsWrite,
+      ...(WEBHOOK_EMITTERS.has(key) ? [SERVICE_SCOPES.webhooksWrite] : []),
       ...(crossDomain.audiences.length > 0
         ? [
             SERVICE_SCOPES.domainRead,

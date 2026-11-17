@@ -8,6 +8,9 @@ const { recordAudit, findUser } = vi.hoisted(() => ({
 vi.mock("./record", () => ({ recordAudit }))
 // The hook only reads the user table (for the target's email); no real client.
 vi.mock("@/lib/prisma", () => ({ prisma: { user: { findUnique: findUser } } }))
+vi.mock("@/lib/webhooks", () => ({
+  emitWebhookEvent: vi.fn(async () => undefined),
+}))
 
 import { recordAuthAuditEvent, type SessionLike } from "./auth-audit"
 

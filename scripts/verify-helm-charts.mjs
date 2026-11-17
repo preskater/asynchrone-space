@@ -38,6 +38,7 @@ const EXPECTED_CRONJOBS = [
   "asynchrone-space-copilot-data-exports",
   "asynchrone-space-copilot-organization-deletion",
   "asynchrone-space-copilot-trial-expiry",
+  "asynchrone-space-copilot-webhook-deliveries",
   "asynchrone-space-files-uploads-sweep",
   "asynchrone-space-projects-repository-sync",
 ]
@@ -172,6 +173,19 @@ check(
       'nginx.ingress.kubernetes.io/from-to-www-redirect: "true"'
     ),
   "www.asynchrone.space redirects to the apex"
+)
+
+const apiIngress = documents(rendered).find(
+  (doc) =>
+    kind(doc) === "Ingress" &&
+    doc.includes('host: "asynchrone.space"') &&
+    doc.includes("path: /api/v1")
+)
+check(
+  Boolean(apiIngress) &&
+    apiIngress.includes("name: asynchrone-space-copilot") &&
+    apiIngress.includes("number: 80"),
+  "the apex routes /api/v1 to Copilot"
 )
 
 check(

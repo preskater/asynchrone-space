@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { emitWebhookEvent } from "@/lib/webhooks"
 
 import { AUDIT_ACTIONS } from "./actions"
 import { recordAudit } from "./record"
@@ -77,6 +78,14 @@ async function emailFor(userId: string | null): Promise<string | null> {
   return user?.email ?? null
 }
 
+async function userFor(userId: string | null) {
+  if (!userId) return null
+  return prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true },
+  })
+}
+
 /**
  * Records one audit row for an organization endpoint. Safe to call for every
  * auth request: unhandled paths return immediately.
@@ -133,7 +142,9 @@ export async function recordAuthAuditEvent(
       case "/organization/remove-member": {
         const member = nested(returned, "member")
         const userId = text(member.userId)
-        const email = (await emailFor(userId)) ?? text(body.memberIdOrEmail)
+        const user = await userFor(userId)
+        const email =
+          user?.email ?? (await emailFor(userId)) ?? text(body.memberIdOrEmail)
         await recordAudit({
           ...actor,
           action: AUDIT_ACTIONS.organizationMemberRemoved,
@@ -142,6 +153,20 @@ export async function recordAuthAuditEvent(
           entityLabel: email,
           before: { role: text(member.role) },
         })
+        if (userId && email) {
+          await emitWebhookEvent({
+            organizationId,
+            type: "member.removed",
+            data: {
+              member: {
+                userId,
+                name: user?.name ?? "",
+                email,
+                role: text(member.role) ?? "member",
+              },
+            },
+          })
+        }
         return
       }
 
@@ -154,6 +179,20 @@ export async function recordAuthAuditEvent(
           entityLabel: session.user.email ?? null,
           before: { role: text(returned.role) },
         })
+        if (session.user.email) {
+          await emitWebhookEvent({
+            organizationId,
+            type: "member.removed",
+            data: {
+              member: {
+                userId: session.user.id,
+                name: session.user.name ?? "",
+                email: session.user.email,
+                role: text(returned.role) ?? "member",
+              },
+            },
+          })
+        }
         return
       }
 
@@ -199,6 +238,20 @@ export async function recordAuthAuditEvent(
           entityLabel: email,
           after: { email, role: text(nested(returned, "member").role) },
         })
+        if (session.user.email) {
+          await emitWebhookEvent({
+            organizationId,
+            type: "member.added",
+            data: {
+              member: {
+                userId: session.user.id,
+                name: session.user.name ?? "",
+                email: session.user.email,
+                role: text(nested(returned, "member").role) ?? "member",
+              },
+            },
+          })
+        }
         return
       }
 
