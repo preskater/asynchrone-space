@@ -62,3 +62,4 @@ collection.
 | [0036](0036-use-a-per-domain-app-template.md)                              | accepted | Move the domain apps with one documented template                         |
 | [0037](0037-deploy-the-fleet-from-one-generic-helm-chart.md)               | accepted | Deploy the app fleet from one generic Helm chart                          |
 | [0038](0038-budget-connections-and-observe-each-app.md)                    | accepted | Budget database connections and observe every app independently           |
+| [0039](0039-expose-a-versioned-public-rest-api.md)                         | accepted | Expose a versioned public REST API with outbound webhooks                 |

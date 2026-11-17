@@ -65,6 +65,14 @@ endpoints rather than a server action. They are covered by the `after` hook in
 `organizationHooks` only receive the target member, which is not enough for an
 audit trail).
 
+Public API mutations arrive through the owning app's normal service path, so
+they write their usual audit row; `recordUserAudit` reads `ctx.actor` and stores
+the token as the actor (`api-token:<id>`, with the token name and the creator's
+email), which is what Settings → Audit log shows. Token creation and revocation
+(`api_token.created` / `api_token.revoked`), webhook subscription changes
+(`webhook.subscription.*`) and replays (`webhook.delivery.replayed`) are audited
+in Copilot; none of them ever puts a token or signing secret in the row.
+
 Project messages and task comments write `project.message.added` / `task.comment.added`; they remain visible in the project activity feed too. Chat messages, calendar events and meeting requests write their own audit rows in the owning app; the project, client and employee mutations already did.
 
 ## Reading it

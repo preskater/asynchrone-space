@@ -258,6 +258,9 @@ certificates:
       dnsNames: ["*.copilot.asynchrone.space"]
 ```
 
+A dedicated apex Ingress route sends `/api/v1` to Copilot, so the public REST
+API lives on `asynchrone.space` without an API subdomain (ADR 0039).
+
 Every Ingress references the matching Secret: landing, Copilot and the control
 tower use `asynchrone-space-tls`; the six domain apps use
 `asynchrone-space-domain-tls`. `www.asynchrone.space` is an explicit landing
@@ -277,7 +280,7 @@ at your own Secret). The rendered Ingress TLS entries remain in place.
 | Ingress        | same nine names                                                                                        | One host each, wildcard TLS         |
 | ConfigMap      | same nine names                                                                                        | Non-secret runtime config           |
 | Certificate    | `asynchrone-space-tls`, `asynchrone-space-domain-tls`                                                  | cert-manager, apex + both wildcards |
-| CronJob        | `asynchrone-space-copilot-{trial-expiry,organization-deletion,audit-retention,data-exports}`           | Copilot identity jobs               |
+| CronJob        | `asynchrone-space-copilot-{trial-expiry,organization-deletion,audit-retention,data-exports,webhook-deliveries}` | Copilot identity and webhook jobs   |
 | CronJob        | `asynchrone-space-projects-repository-sync`                                                            | Hourly repository safety net        |
 | CronJob        | `asynchrone-space-files-uploads-sweep`                                                                 | Daily large-object sweep            |
 | Job (hook)     | `asynchrone-space-migrate`                                                                             | Pre-install and pre-upgrade         |
@@ -292,6 +295,7 @@ No app owns another app's CronJob. The ownership matrix is:
 | `organization-deletion` | copilot  | `30 3 * * *`   | `/api/cron/organization-deletion` |
 | `audit-retention`       | copilot  | `45 3 * * *`   | `/api/cron/audit-retention`       |
 | `data-exports`          | copilot  | `*/15 * * * *` | `/api/cron/data-exports`          |
+| `webhook-deliveries`    | copilot  | `* * * * *`    | `/api/cron/webhook-deliveries`    |
 | `repository-sync`       | projects | `0 * * * *`    | `/api/cron/repository-sync`       |
 | `uploads-sweep`         | files    | `0 3 * * *`    | `/api/files/uploads/sweep`        |
 
@@ -443,7 +447,8 @@ audit rows past each organization's plan window without touching
 owner-requested organization exports every 15 minutes and unlinks archives older
 than 7 days (ADR 0026); repository-sync reconciles repository connections as a
 safety net for missed webhooks; uploads-sweep removes incomplete upload
-sessions.
+sessions; webhook-deliveries sends pending outbound webhook rows and prunes
+deliveries older than 30 days (ADR 0039).
 
 Each CronJob calls the owning app's in-cluster Service with the same
 `CRON_SECRET` bearer token, read from that app's Secret. The corresponding route

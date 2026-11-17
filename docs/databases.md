@@ -9,7 +9,7 @@ orchestration is #184.
 
 | Database                   | Package                       | Owner                                                                                                                                                                           |
 | -------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `asynchrone_identity`      | `@workspace/db-identity`      | Copilot: users, sessions, organizations, members, OAuth, billing, notifications, assistant, portal, rate limits and exports |
+| `asynchrone_identity`      | `@workspace/db-identity`      | Copilot: users, sessions, organizations, members, OAuth, billing, notifications, assistant, portal, rate limits, API tokens, webhook subscriptions/deliveries and exports |
 | `asynchrone_projects`      | `@workspace/db-projects`      | Projects, tasks, templates, comments, activity, repository sync, its own `oidcSession`                                                                                          |
 | `asynchrone_calendars`     | `@workspace/db-calendars`     | Calendars, events, meeting requests/settings, its own `oidcSession`                                                                                                             |
 | `asynchrone_files`         | `@workspace/db-files`         | File nodes, versions, shares, upload sessions, `rateLimit`, its own `oidcSession`; large objects live in the same database                                                |
