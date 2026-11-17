@@ -170,8 +170,19 @@ export function createDomainHandler({
       domainOperationScope(operation) === "write"
         ? request.headers.get("idempotency-key")
         : null
+    // The key is client-chosen, so it must be namespaced by the delegated
+    // caller: two organizations or members using the same key must never
+    // share a cached result.
+    const caller = parsed.data.context
     const cacheKey = idempotencyKey
-      ? `${claims.client_id}|${operation}|${idempotencyKey}`
+      ? [
+          claims.client_id,
+          caller.organizationId,
+          caller.userId,
+          caller.portal?.clientId ?? "",
+          operation,
+          idempotencyKey,
+        ].join("|")
       : null
 
     let status = 200

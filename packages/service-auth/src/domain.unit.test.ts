@@ -70,6 +70,24 @@ describe("createDomainHandler", () => {
     })
   })
 
+  it("never replays a mutation across organizations or members", async () => {
+    const dispatch = vi.fn(async () => ({ id: "project_a" }))
+    const handle = createDomainHandler({
+      app: "projects",
+      verifier: verifier(),
+      dispatch,
+    })
+    const otherOrg = {
+      ...call,
+      context: { ...call.context, organizationId: "org_b", userId: "user_b" },
+    }
+
+    await handle(request(call, "shared-key"), params)
+    await handle(request(otherOrg, "shared-key"), params)
+
+    expect(dispatch).toHaveBeenCalledTimes(2)
+  })
+
   it("does not replay a read call, even with a key", async () => {
     const dispatch = vi.fn(async () => ({ projects: [] }))
     const handle = createDomainHandler({
