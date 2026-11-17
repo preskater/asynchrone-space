@@ -37,6 +37,7 @@ const domainScopes = [
   SERVICE_SCOPES.searchRead,
   SERVICE_SCOPES.exportRead,
   SERVICE_SCOPES.deleteWrite,
+  SERVICE_SCOPES.webhooksWrite,
 ]
 
 const resources = [

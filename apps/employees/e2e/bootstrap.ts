@@ -36,7 +36,7 @@ const crossAudiences = ["projects", "clients"] as const
 const resources = [
   {
     identifier: employeesResource,
-    name: "Projects",
+    name: "Employees",
     scopes: [...APP_USER_SCOPES],
   },
   {

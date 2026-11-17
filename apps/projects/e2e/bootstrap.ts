@@ -52,6 +52,7 @@ const resources = [
       SERVICE_SCOPES.searchRead,
       SERVICE_SCOPES.domainRead,
       SERVICE_SCOPES.domainWrite,
+      SERVICE_SCOPES.webhooksWrite,
     ],
   },
 ]
@@ -76,6 +77,12 @@ const client = await prisma.oauthClient.upsert({
   where: { clientId: E2E_OAUTH_CLIENT_ID },
   update: {
     clientSecret: hashClientSecret(E2E_OAUTH_CLIENT_SECRET),
+    clientCredentialsScopes: [
+      SERVICE_SCOPES.identityRead,
+      SERVICE_SCOPES.identityWrite,
+      SERVICE_SCOPES.notificationsWrite,
+      SERVICE_SCOPES.webhooksWrite,
+    ],
     redirectUris: [`${E2E_PROJECTS_URL}/api/auth/callback`],
     postLogoutRedirectUris: [E2E_PROJECTS_URL],
     backchannelLogoutUri: `${E2E_PROJECTS_URL}/api/auth/backchannel-logout`,
@@ -95,6 +102,7 @@ const client = await prisma.oauthClient.upsert({
       SERVICE_SCOPES.identityRead,
       SERVICE_SCOPES.identityWrite,
       SERVICE_SCOPES.notificationsWrite,
+      SERVICE_SCOPES.webhooksWrite,
     ],
     redirectUris: [`${E2E_PROJECTS_URL}/api/auth/callback`],
     postLogoutRedirectUris: [E2E_PROJECTS_URL],
