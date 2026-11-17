@@ -1,5 +1,6 @@
 import account from "./account.json"
 import activity from "./activity.json"
+import api from "./api.json"
 import audit from "./audit.json"
 import announcement from "./announcement.json"
 import appPages from "./appPages.json"
@@ -43,6 +44,7 @@ import userMenu from "./userMenu.json"
 export default {
   Account: account,
   Activity: activity,
+  Api: api,
   Audit: audit,
   Announcement: announcement,
   AppPages: appPages,

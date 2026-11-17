@@ -53,6 +53,20 @@
   },
   "userAgent": "{userAgent}",
   "actions": {
+    "api_token": {
+      "created": "Jeton d'API créé",
+      "revoked": "Jeton d'API révoqué"
+    },
+    "webhook": {
+      "subscription": {
+        "created": "Point de terminaison webhook créé",
+        "updated": "Point de terminaison webhook modifié",
+        "deleted": "Point de terminaison webhook supprimé"
+      },
+      "delivery": {
+        "replayed": "Livraison webhook rejouée"
+      }
+    },
     "project": {
       "created": "Projet créé",
       "updated": "Projet modifié",

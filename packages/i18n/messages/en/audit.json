@@ -53,6 +53,20 @@
   },
   "userAgent": "{userAgent}",
   "actions": {
+    "api_token": {
+      "created": "API token created",
+      "revoked": "API token revoked"
+    },
+    "webhook": {
+      "subscription": {
+        "created": "Webhook endpoint created",
+        "updated": "Webhook endpoint updated",
+        "deleted": "Webhook endpoint deleted"
+      },
+      "delivery": {
+        "replayed": "Webhook delivery replayed"
+      }
+    },
     "project": {
       "created": "Project created",
       "updated": "Project updated",

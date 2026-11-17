@@ -51,6 +51,7 @@ const TAB_IDS = [
   "members",
   "invitations",
   "audit",
+  "developers",
   "danger",
 ] as const
 type TabId = (typeof TAB_IDS)[number]
@@ -64,6 +65,7 @@ export function OrganizationSettings({
   deletionScheduledAt,
   twoFactorPolicy,
   exportCard,
+  developersCard,
   calendarsUrl,
 }: {
   checkout?: CheckoutReturn
@@ -72,10 +74,13 @@ export function OrganizationSettings({
   twoFactorPolicy: TwoFactorPolicy | null
   /** Server-rendered, owner-only data export card for the General tab. */
   exportCard?: React.ReactNode
+  /** Server-rendered API token card; absent for members and viewers. */
+  developersCard?: React.ReactNode
   /** Origin of the calendars app, which owns the meeting settings (#161). */
   calendarsUrl: string
 }) {
   const t = useTranslations("Org")
+  const tApi = useTranslations("Api")
   const tAudit = useTranslations("Audit")
   const tAppearance = useTranslations("Appearance")
   const tMeetings = useTranslations("MeetingRequests")
@@ -86,10 +91,14 @@ export function OrganizationSettings({
   const router = useRouter()
   // Returning from Stripe keeps `checkout`/`session_id` but no `tab`, so the
   // billing panel must be the one that mounts to finish the checkout.
-  const activeTab = resolveTab(
+  const requestedTab = resolveTab(
     searchParams.get("tab"),
     checkout ? "billing" : "general"
   )
+  // A member without the developer card must not land on an empty tab via a
+  // shared `?tab=developers` link.
+  const activeTab =
+    requestedTab === "developers" && !developersCard ? "general" : requestedTab
 
   function changeTab(value: string) {
     const tab = resolveTab(value, "general")
@@ -159,6 +168,9 @@ export function OrganizationSettings({
         <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
         {canReadAudit ? (
           <TabsTrigger value="audit">{tAudit("tab")}</TabsTrigger>
+        ) : null}
+        {developersCard ? (
+          <TabsTrigger value="developers">{tApi("title")}</TabsTrigger>
         ) : null}
         <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
       </TabsList>
@@ -271,6 +283,10 @@ export function OrganizationSettings({
             isOwner={permissions.isOwner}
           />
         </TabsContent>
+      ) : null}
+
+      {developersCard ? (
+        <TabsContent value="developers">{developersCard}</TabsContent>
       ) : null}
 
       <TabsContent value="danger">
