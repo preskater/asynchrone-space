@@ -1,9 +1,14 @@
 import { z } from "zod"
 
-import type {
-  DelegatedContext,
-  DomainCall,
-  DomainOperation,
+import {
+  DomainPageInputSchema,
+  PublicCreateProjectSchema,
+  PublicCreateTaskSchema,
+  PublicUpdateProjectSchema,
+  PublicUpdateTaskSchema,
+  type DelegatedContext,
+  type DomainCall,
+  type DomainOperation,
 } from "@workspace/contracts"
 import type { RequestContext } from "@workspace/core/context"
 import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
@@ -11,12 +16,15 @@ import {
   createProjectSchema,
   createTaskSchema,
   moveTaskSchema,
+  updateProjectSchema,
   updateTaskSchema,
 } from "@workspace/projects/schemas"
 import { setUserRepositoryTokenSchema } from "@workspace/projects/integrations/schemas"
 
 import { repositoryIntegrationService } from "@/lib/integrations"
 import { projectService } from "@/lib/projects"
+
+import { publicProject, publicTask } from "./public-resources"
 import {
   createProjectMessage,
   listProjectMessages,
@@ -34,6 +42,7 @@ function requestContext(context: DelegatedContext): RequestContext {
     userEmail: context.userEmail,
     organizationId: context.organizationId,
     role: context.role,
+    actor: context.actor ?? undefined,
   }
 }
 
@@ -107,8 +116,47 @@ export async function dispatchDomain(
   switch (operation) {
     case "list-projects":
       return projectService.list(ctx)
+    case "list-projects-page": {
+      const page = await projectService.listProjectsPage(
+        ctx,
+        DomainPageInputSchema.parse(call.input)
+      )
+      return {
+        items: page.items.map(publicProject),
+        nextCursor: page.nextCursor,
+      }
+    }
     case "get-project":
       return projectService.get(ctx, projectIdInput.parse(call.input).projectId)
+    case "get-public-project":
+      return publicProject(
+        await projectService.get(
+          ctx,
+          projectIdInput.parse(call.input).projectId
+        )
+      )
+    case "public-create-project": {
+      const input = PublicCreateProjectSchema.parse(call.input)
+      return publicProject(
+        await projectService.create(ctx, createProjectSchema.parse(input))
+      )
+    }
+    case "public-update-project": {
+      const { projectId } = projectIdInput.parse(call.input)
+      const input = PublicUpdateProjectSchema.parse(call.input)
+      return publicProject(
+        await projectService.update(
+          ctx,
+          projectId,
+          updateProjectSchema.parse(input)
+        )
+      )
+    }
+    case "public-delete-project":
+      return projectService.remove(
+        ctx,
+        projectIdInput.parse(call.input).projectId
+      )
     case "list-calendar-tasks": {
       const { tasks } = await projectService.listWorkspace(ctx, {
         taskLimit: 500,
@@ -215,6 +263,40 @@ export async function dispatchDomain(
         ctx,
         projectIdInput.parse(call.input).projectId
       )
+    case "list-tasks-page": {
+      const input = DomainPageInputSchema.extend({
+        projectId: z.string().min(1),
+        status: z.string().min(1).optional(),
+      }).parse(call.input)
+      const page = await projectService.listTasksPage(ctx, input)
+      return {
+        items: page.items.map(publicTask),
+        nextCursor: page.nextCursor,
+      }
+    }
+    case "get-task":
+      return publicTask(
+        await projectService.getTask(ctx, taskInput.parse(call.input).taskId)
+      )
+    case "public-create-task": {
+      const input = PublicCreateTaskSchema.parse(call.input)
+      return publicTask(
+        await projectService.createTask(ctx, createTaskSchema.parse(input))
+      )
+    }
+    case "public-update-task": {
+      const { taskId } = taskInput.parse(call.input)
+      const input = PublicUpdateTaskSchema.parse(call.input)
+      return publicTask(
+        await projectService.updateTask(
+          ctx,
+          taskId,
+          updateTaskSchema.parse(input)
+        )
+      )
+    }
+    case "public-delete-task":
+      return projectService.removeTask(ctx, taskInput.parse(call.input).taskId)
     case "create-project":
       return projectService.create(ctx, createProjectSchema.parse(call.input))
     case "create-task":

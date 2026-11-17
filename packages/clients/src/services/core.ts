@@ -2,6 +2,7 @@ import type { RequestContext } from "@workspace/core/context"
 import { ForbiddenError, ValidationError } from "@workspace/core/errors"
 import { toDateKey } from "../dates"
 import { resolveClientAccess, type ClientAccess } from "../access"
+import type { ClientEmitEvent } from "../ports"
 import type { ClientsRepository } from "../repository"
 import type {
   ClientActivityData,
@@ -118,7 +119,11 @@ function stringDetails(value: unknown): Record<string, string> {
 }
 
 export class ClientsServiceCore {
-  constructor(protected readonly repo: ClientsRepository) {}
+  constructor(
+    protected readonly repo: ClientsRepository,
+    /** Emits one outbound webhook event; the app adapter catches failures. */
+    protected readonly emitEvent: ClientEmitEvent = async () => undefined
+  ) {}
 
   protected accessFor(ctx: RequestContext): ClientAccess {
     return resolveClientAccess(ctx)

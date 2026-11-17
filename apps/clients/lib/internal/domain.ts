@@ -1,10 +1,18 @@
 import { z } from "zod"
 
 import { AUDIT_ACTIONS } from "@workspace/audit"
-import type {
-  DelegatedContext,
-  DomainCall,
-  DomainOperation,
+import {
+  DomainPageInputSchema,
+  PublicCreateClientSchema,
+  PublicCreateContactSchema,
+  PublicCreateDealSchema,
+  PublicMoveDealSchema,
+  PublicUpdateClientSchema,
+  PublicUpdateContactSchema,
+  PublicUpdateDealSchema,
+  type DelegatedContext,
+  type DomainCall,
+  type DomainOperation,
 } from "@workspace/contracts"
 import type { RequestContext } from "@workspace/core/context"
 import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
@@ -21,6 +29,8 @@ import {
 
 import { clientsService } from "@/lib/clients"
 import { clientFiles } from "@/lib/clients/ports"
+
+import { publicClient, publicContact, publicDeal } from "./public-resources"
 import { memberDirectory } from "@/lib/identity"
 import { recordUserAudit } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
@@ -32,6 +42,7 @@ function requestContext(context: DelegatedContext): RequestContext {
     userEmail: context.userEmail,
     organizationId: context.organizationId,
     role: context.role,
+    actor: context.actor ?? undefined,
   }
 }
 
@@ -100,10 +111,238 @@ export async function dispatchDomain(
     }
     case "get-clients-overview":
       return clientsService.getOverview(ctx)
+    case "list-clients-page": {
+      const page = await clientsService.listClientsPage(
+        ctx,
+        DomainPageInputSchema.parse(call.input)
+      )
+      return {
+        items: page.items.map(publicClient),
+        nextCursor: page.nextCursor,
+      }
+    }
     case "get-client":
       return clientsService.getClientDetail(ctx, idInput.parse(call.input).id)
+    case "get-public-client": {
+      const detail = await clientsService.getClientDetail(
+        ctx,
+        idInput.parse(call.input).id
+      )
+      return publicClient(detail.client)
+    }
+    case "public-create-client": {
+      const input = PublicCreateClientSchema.parse(call.input)
+      return publicClient(
+        await clientsService.saveClient(ctx, clientInputSchema.parse(input))
+      )
+    }
+    case "public-update-client": {
+      const { id } = idInput.parse(call.input)
+      const patch = PublicUpdateClientSchema.parse(call.input)
+      const current = (await clientsService.getClientDetail(ctx, id)).client
+      const input = clientInputSchema.parse({
+        id,
+        name: patch.name ?? current.name,
+        status: patch.status ?? current.status,
+        industry:
+          patch.industry !== undefined
+            ? patch.industry
+            : (current.industry ?? null),
+        website:
+          patch.website !== undefined
+            ? patch.website
+            : (current.website ?? null),
+        phone:
+          patch.phone !== undefined ? patch.phone : (current.phone ?? null),
+        address:
+          patch.address !== undefined
+            ? patch.address
+            : (current.address ?? null),
+        description:
+          patch.description !== undefined
+            ? patch.description
+            : (current.description ?? null),
+        source:
+          patch.source !== undefined ? patch.source : (current.source ?? null),
+        ownerId:
+          patch.ownerId !== undefined
+            ? patch.ownerId
+            : (current.ownerId ?? null),
+        contactEmail:
+          patch.contactEmail !== undefined
+            ? patch.contactEmail
+            : (current.contactEmail ?? null),
+        isActive: patch.isActive ?? current.isActive,
+        customFields: current.customFields,
+      })
+      return publicClient(await clientsService.saveClient(ctx, input))
+    }
+    case "list-contacts-page": {
+      const page = await clientsService.listContactsPage(
+        ctx,
+        DomainPageInputSchema.parse(call.input)
+      )
+      return {
+        items: page.items.map(publicContact),
+        nextCursor: page.nextCursor,
+      }
+    }
+    case "get-contact": {
+      const detail = await clientsService.getContactDetail(
+        ctx,
+        idInput.parse(call.input).id
+      )
+      return publicContact(detail.contact)
+    }
+    case "public-create-contact": {
+      const input = PublicCreateContactSchema.parse(call.input)
+      return publicContact(
+        await clientsService.saveContact(
+          ctx,
+          contactInputSchema.parse({
+            firstName: input.firstName,
+            lastName: input.lastName ?? "",
+            email: input.email,
+            phone: input.phone,
+            jobTitle: input.jobTitle,
+            notes: input.notes,
+            ownerId: input.ownerId,
+            companies: (input.clientIds ?? []).map((clientId) => ({
+              clientId,
+              jobTitle: null,
+              isPrimary: false,
+            })),
+          })
+        )
+      )
+    }
+    case "public-update-contact": {
+      const { id } = idInput.parse(call.input)
+      const patch = PublicUpdateContactSchema.parse(call.input)
+      const current = (await clientsService.getContactDetail(ctx, id)).contact
+      const companies =
+        patch.clientIds === undefined
+          ? current.companies.map((company) => ({
+              clientId: company.clientId,
+              jobTitle: company.jobTitle ?? null,
+              isPrimary: company.isPrimary,
+            }))
+          : patch.clientIds.map((clientId) => {
+              const existing = current.companies.find(
+                (company) => company.clientId === clientId
+              )
+              return {
+                clientId,
+                jobTitle: existing?.jobTitle ?? null,
+                isPrimary: existing?.isPrimary ?? false,
+              }
+            })
+      const input = contactInputSchema.parse({
+        id,
+        firstName: patch.firstName ?? current.firstName,
+        lastName: patch.lastName ?? current.lastName,
+        email:
+          patch.email !== undefined ? patch.email : (current.email ?? null),
+        phone:
+          patch.phone !== undefined ? patch.phone : (current.phone ?? null),
+        jobTitle:
+          patch.jobTitle !== undefined
+            ? patch.jobTitle
+            : (current.jobTitle ?? null),
+        notes:
+          patch.notes !== undefined ? patch.notes : (current.notes ?? null),
+        ownerId:
+          patch.ownerId !== undefined
+            ? patch.ownerId
+            : (current.ownerId ?? null),
+        customFields: current.customFields,
+        companies,
+      })
+      return publicContact(await clientsService.saveContact(ctx, input))
+    }
+    case "list-deals-page": {
+      const page = await clientsService.listDealsPage(
+        ctx,
+        DomainPageInputSchema.parse(call.input)
+      )
+      return {
+        items: page.items.map(publicDeal),
+        nextCursor: page.nextCursor,
+      }
+    }
     case "get-deal":
       return clientsService.getDealDetail(ctx, idInput.parse(call.input).id)
+    case "get-public-deal": {
+      const detail = await clientsService.getDealDetail(
+        ctx,
+        idInput.parse(call.input).id
+      )
+      return publicDeal(detail.deal)
+    }
+    case "public-create-deal": {
+      const input = PublicCreateDealSchema.parse(call.input)
+      return publicDeal(
+        await clientsService.saveDeal(ctx, dealInputSchema.parse(input))
+      )
+    }
+    case "public-update-deal": {
+      const { id } = idInput.parse(call.input)
+      const patch = PublicUpdateDealSchema.parse(call.input)
+      const current = (await clientsService.getDealDetail(ctx, id)).deal
+      const input = dealInputSchema.parse({
+        id,
+        name: patch.name ?? current.name,
+        clientId:
+          patch.clientId !== undefined
+            ? patch.clientId
+            : (current.clientId ?? null),
+        pipelineId:
+          patch.pipelineId !== undefined
+            ? patch.pipelineId
+            : (current.pipelineId ?? null),
+        stageId:
+          patch.stageId !== undefined
+            ? patch.stageId
+            : (current.stageId ?? null),
+        amount: patch.amount ?? current.amount,
+        currency: patch.currency ?? current.currency,
+        probability: patch.probability ?? current.probability,
+        expectedCloseDate:
+          patch.expectedCloseDate !== undefined
+            ? patch.expectedCloseDate
+            : (current.expectedCloseDate ?? null),
+        source:
+          patch.source !== undefined ? patch.source : (current.source ?? null),
+        description:
+          patch.description !== undefined
+            ? patch.description
+            : (current.description ?? null),
+        ownerId:
+          patch.ownerId !== undefined
+            ? patch.ownerId
+            : (current.ownerId ?? null),
+        customFields: current.customFields,
+        contactIds:
+          patch.contactIds ??
+          current.contacts.map((contact) => contact.contactId),
+      })
+      return publicDeal(await clientsService.saveDeal(ctx, input))
+    }
+    case "public-move-deal": {
+      const { id } = idInput.parse(call.input)
+      const input = PublicMoveDealSchema.parse(call.input)
+      return publicDeal(
+        await clientsService.moveDeal(
+          ctx,
+          moveDealSchema.parse({
+            dealId: id,
+            stageId: input.stageId,
+            position: input.position,
+            lossReason: input.lossReason,
+          })
+        )
+      )
+    }
     case "save-client":
       return clientsService.saveClient(ctx, clientInputSchema.parse(call.input))
     case "save-contact":

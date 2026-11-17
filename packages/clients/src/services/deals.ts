@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { NotFoundError, ValidationError } from "@workspace/core/errors"
 import {
   decodeCursor,
@@ -9,7 +9,7 @@ import {
   type PageInput,
 } from "@workspace/core/pagination"
 import { parseDateKey, toDateKey } from "../dates"
-import type { ClientNotify } from "../ports"
+import type { ClientEmitEvent, ClientNotify } from "../ports"
 import type { ClientsRepository } from "../repository"
 import type { CloseDealInput, DealInput, MoveDealInput } from "../schemas"
 import type { ClientDealData } from "../types"
@@ -23,9 +23,10 @@ import {
 export class ClientDealsService extends ClientsServiceCore {
   constructor(
     repo: ClientsRepository,
-    private readonly notify: ClientNotify
+    private readonly notify: ClientNotify,
+    emitEvent?: ClientEmitEvent
   ) {
-    super(repo)
+    super(repo, emitEvent)
   }
 
   private dealSnapshot(row: DealRow) {
@@ -169,7 +170,7 @@ export class ClientDealsService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: stageChanged ? "deal.stage_changed" : "deal.updated",
           entityType: "deal",
           entityId: row.id,
@@ -191,7 +192,14 @@ export class ClientDealsService extends ClientsServiceCore {
           },
         })
       }
-      return this.returnDeal(ctx, row.id)
+      const data = await this.returnDeal(ctx, row.id)
+      await this.emitEvent(ctx, {
+        type: stageChanged ? "deal.stage_changed" : "deal.updated",
+        deal: data,
+        previousStageId: existing.stageId ?? null,
+        previousStageName: existing.stage?.name ?? null,
+      })
+      return data
     }
 
     const payload = await this.dealPayload(ctx, fieldRows, input)
@@ -207,14 +215,16 @@ export class ClientDealsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "deal.created",
         entityType: "deal",
         entityId: row.id,
         after: this.dealSnapshot(row),
       },
     ])
-    return this.returnDeal(ctx, row.id)
+    const data = await this.returnDeal(ctx, row.id)
+    await this.emitEvent(ctx, { type: "deal.created", deal: data })
+    return data
   }
 
   async listDealsPage(
@@ -293,7 +303,7 @@ export class ClientDealsService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "deal.stage_changed",
           entityType: "deal",
           entityId: deal.id,
@@ -315,7 +325,16 @@ export class ClientDealsService extends ClientsServiceCore {
       })
     }
 
-    return this.returnDeal(ctx, deal.id)
+    const data = await this.returnDeal(ctx, deal.id)
+    if (stageChanged) {
+      await this.emitEvent(ctx, {
+        type: "deal.stage_changed",
+        deal: data,
+        previousStageId: deal.stageId ?? null,
+        previousStageName: deal.stage?.name ?? null,
+      })
+    }
+    return data
   }
 
   async closeDeal(
@@ -336,7 +355,7 @@ export class ClientDealsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: input.status === "won" ? "deal.won" : "deal.lost",
         entityType: "deal",
         entityId: row.id,
@@ -375,7 +394,7 @@ export class ClientDealsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "deal.reopened",
         entityType: "deal",
         entityId: row.id,
@@ -395,7 +414,7 @@ export class ClientDealsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "deal.archived",
         entityType: "deal",
         entityId: id,
@@ -413,7 +432,7 @@ export class ClientDealsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "deal.restored",
         entityType: "deal",
         entityId: id,

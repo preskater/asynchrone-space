@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { NotFoundError } from "@workspace/core/errors"
 import type { UpdateSalaryInput } from "../schemas"
 import type { SalaryProfileData, SalaryType } from "../types"
@@ -35,7 +35,7 @@ export class EmployeePayrollService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "salary.update",
         entityType: "salaryProfile",
         entityId: row.id,

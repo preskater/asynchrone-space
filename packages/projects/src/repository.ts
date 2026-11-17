@@ -14,6 +14,11 @@ export const projectInclude = {
   _count: { select: { tasks: true } },
 }
 
+/** Task relations a paginated list needs; comments and subtasks stay detail-only. */
+export const taskPageInclude = {
+  labels: { include: { label: true } },
+}
+
 /** Task relations shared by every task query. */
 export const taskInclude = {
   subtasks: { orderBy: { order: "asc" as const } },
@@ -46,6 +51,35 @@ export class ProjectRepository {
       by: ["projectId", "status"],
       where: { organizationId },
       _count: { _all: true },
+    })
+  }
+
+  /** Keyset page of projects, newest first (`(createdAt, id)` descending). */
+  listProjectsPage(
+    organizationId: string,
+    options: {
+      after?: { createdAt: Date; id: string } | null
+      take: number
+    }
+  ) {
+    return this.db.project.findMany({
+      where: {
+        organizationId,
+        ...(options.after
+          ? {
+              OR: [
+                { createdAt: { lt: options.after.createdAt } },
+                {
+                  createdAt: options.after.createdAt,
+                  id: { lt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      include: projectInclude,
+      take: options.take,
     })
   }
 
@@ -178,6 +212,39 @@ export class ProjectRepository {
       where: { organizationId, projectId },
       orderBy: [{ order: "asc" }, { createdAt: "asc" }],
       include: taskInclude,
+    })
+  }
+
+  /** Keyset page of tasks, newest first (`(createdAt, id)` descending). */
+  listTasksPage(
+    organizationId: string,
+    options: {
+      projectId?: string
+      status?: string
+      after?: { createdAt: Date; id: string } | null
+      take: number
+    }
+  ) {
+    return this.db.task.findMany({
+      where: {
+        organizationId,
+        ...(options.projectId ? { projectId: options.projectId } : {}),
+        ...(options.status ? { status: options.status } : {}),
+        ...(options.after
+          ? {
+              OR: [
+                { createdAt: { lt: options.after.createdAt } },
+                {
+                  createdAt: options.after.createdAt,
+                  id: { lt: options.after.id },
+                },
+              ],
+            }
+          : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      include: taskPageInclude,
+      take: options.take,
     })
   }
 

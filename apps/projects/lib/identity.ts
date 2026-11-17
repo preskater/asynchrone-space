@@ -3,8 +3,10 @@ import {
   DomainClient,
   IdentityClient,
   NotificationClient,
+  WebhookClient,
   type DomainAppKey,
   type NotificationInput,
+  type WebhookEventEnvelope,
   type Workspace,
 } from "@workspace/contracts"
 import {
@@ -37,6 +39,11 @@ export const identity = new IdentityClient({
 })
 
 const notifications = new NotificationClient({
+  baseUrl: env.COPILOT_APP_URL,
+  getToken: (request) => tokens.getToken(request),
+})
+
+const webhooks = new WebhookClient({
   baseUrl: env.COPILOT_APP_URL,
   getToken: (request) => tokens.getToken(request),
 })
@@ -142,5 +149,14 @@ export async function notify(args: NotifyArgs): Promise<void> {
     await notifications.create(input)
   } catch (error) {
     console.error("[notifications] delivery failed", error)
+  }
+}
+
+/** Emit one outbound webhook event; failures never fail the mutation. */
+export async function emitWebhook(event: WebhookEventEnvelope): Promise<void> {
+  try {
+    await webhooks.emit(event)
+  } catch (error) {
+    console.error("[webhooks] emit failed", error)
   }
 }

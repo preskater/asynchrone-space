@@ -1,9 +1,16 @@
+import { randomUUID } from "node:crypto"
+
 import { ClientsRepository } from "@workspace/clients/repository"
 import { ClientsService } from "@workspace/clients/service"
 
 import { recordAuditMany, withActorIdentity } from "@/lib/audit"
 import { clientFiles, clientProjects } from "@/lib/clients/ports"
-import { memberDirectory } from "@/lib/identity"
+import { emitWebhook, memberDirectory } from "@/lib/identity"
+import {
+  publicClient,
+  publicContact,
+  publicDeal,
+} from "@/lib/internal/public-resources"
 import { notificationService } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma"
 
@@ -39,6 +46,49 @@ export const clientsRepository = new ClientsRepository(
 
 export const clientsService = new ClientsService(clientsRepository, {
   notify: (args) => notificationService.notify(args),
+  emitEvent: async (ctx, event) => {
+    const base = {
+      id: randomUUID(),
+      occurredAt: new Date().toISOString(),
+      organizationId: ctx.organizationId,
+    }
+    if (event.type.startsWith("client.")) {
+      if (!event.client) return
+      await emitWebhook({
+        ...base,
+        type: event.type as "client.created" | "client.updated",
+        data: { client: publicClient(event.client) },
+      })
+      return
+    }
+    if (event.type.startsWith("contact.")) {
+      if (!event.contact) return
+      await emitWebhook({
+        ...base,
+        type: event.type as "contact.created" | "contact.updated",
+        data: { contact: publicContact(event.contact) },
+      })
+      return
+    }
+    if (!event.deal) return
+    if (event.type === "deal.stage_changed") {
+      await emitWebhook({
+        ...base,
+        type: "deal.stage_changed",
+        data: {
+          deal: publicDeal(event.deal),
+          previousStageId: event.previousStageId ?? null,
+          previousStageName: event.previousStageName ?? null,
+        },
+      })
+      return
+    }
+    await emitWebhook({
+      ...base,
+      type: event.type as "deal.created" | "deal.updated",
+      data: { deal: publicDeal(event.deal) },
+    })
+  },
 })
 
 export { ClientsRepository, ClientsService }

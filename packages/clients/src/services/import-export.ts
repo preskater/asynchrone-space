@@ -1,5 +1,5 @@
 import { toCsv } from "@workspace/core/csv"
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { toDateKey } from "../dates"
 import type {
   ExportInput,
@@ -207,7 +207,7 @@ export class ClientImportExportService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.import",
         entityType: "client",
         entityId: "import",
@@ -284,7 +284,7 @@ export class ClientImportExportService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "contact.import",
         entityType: "contact",
         entityId: "import",

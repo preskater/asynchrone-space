@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { parseDateKey } from "../date-utils"
 import type {
   AdjustBalanceInput,
@@ -36,7 +36,7 @@ export class EmployeeSettingsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "balance.set",
         entityType: "leaveBalance",
         entityId: row.id,
@@ -71,7 +71,7 @@ export class EmployeeSettingsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "balance.adjust",
         entityType: "leaveAdjustment",
         entityId: row.id,
@@ -98,7 +98,7 @@ export class EmployeeSettingsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "settings.update",
         entityType: "employeeSettings",
         entityId: row.id,
@@ -140,7 +140,7 @@ export class EmployeeSettingsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "profile.update",
         entityType: "employeeProfile",
         entityId: row.id,

@@ -1,10 +1,14 @@
 import { z } from "zod"
 
-import type {
-  DelegatedContext,
-  DomainCall,
-  DomainOperation,
+import {
+  DomainPageInputSchema,
+  PublicFileSchema,
+  type DelegatedContext,
+  type DomainCall,
+  type DomainOperation,
+  type PublicFile,
 } from "@workspace/contracts"
+import type { FileNode } from "@workspace/files/types"
 import type { RequestContext } from "@workspace/core/context"
 import { NotFoundError } from "@workspace/core/errors"
 import {
@@ -24,10 +28,26 @@ function requestContext(context: DelegatedContext): RequestContext {
     userEmail: context.userEmail,
     organizationId: context.organizationId,
     role: context.role,
+    actor: context.actor ?? undefined,
   }
 }
 
 const fileInput = z.object({ fileId: z.string().min(1) })
+
+function publicFile(file: FileNode): PublicFile {
+  return PublicFileSchema.parse({
+    id: file.id,
+    name: file.name,
+    kind: file.kind,
+    parentId: file.parentId,
+    ownerId: file.ownerId,
+    mimeType: file.mimeType ?? null,
+    sizeBytes: file.sizeBytes ?? null,
+    hasStorage: file.hasStorage ?? false,
+    trashed: file.trashed,
+    modifiedAt: file.modifiedAt,
+  })
+}
 
 export async function dispatchDomain(
   operation: DomainOperation,
@@ -38,6 +58,24 @@ export async function dispatchDomain(
   switch (operation) {
     case "list-files":
       return fileService.list(ctx)
+    case "list-files-page": {
+      const input = DomainPageInputSchema.extend({
+        parentId: z.string().min(1).optional(),
+      }).parse(call.input)
+      const page = await fileService.listPage(ctx, input)
+      return {
+        items: page.items.map(publicFile),
+        nextCursor: page.nextCursor,
+      }
+    }
+    case "get-file-metadata": {
+      const file = await fileService.get(
+        ctx,
+        fileInput.parse(call.input).fileId
+      )
+      if (file.trashed) throw new NotFoundError("File")
+      return publicFile(file)
+    }
     case "create-folder":
       return fileService.createFolder(ctx, createFolderSchema.parse(call.input))
     case "create-files":

@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { NotFoundError, ValidationError } from "@workspace/core/errors"
 import type { EmployeeAccess } from "../access"
 import { parseDateKey, toDateKey } from "../date-utils"
@@ -151,7 +151,7 @@ export class EmployeeAttendanceService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: existing ? "attendance.update" : "attendance.create",
         entityType: "attendance",
         entityId: row.id,
@@ -200,7 +200,7 @@ export class EmployeeAttendanceService extends EmployeesServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "attendance.clear",
           entityType: "attendance",
           entityId: `${targetUserId}:${input.date}`,

@@ -1,6 +1,13 @@
 import { AUDIT_ACTIONS } from "@workspace/audit"
 import { ForbiddenError, NotFoundError } from "@workspace/core/errors"
 import type { RequestContext } from "@workspace/core/context"
+import {
+  decodeCursor,
+  encodeCursor,
+  pageSize,
+  type Page,
+  type PageInput,
+} from "@workspace/core/pagination"
 import { roleRank } from "@workspace/organization/roles"
 
 import type {
@@ -47,9 +54,19 @@ function canWrite(ctx: RequestContext) {
 }
 
 type FileRow = Awaited<ReturnType<FileRepository["list"]>>[number]
+type FilePageRow = Awaited<ReturnType<FileRepository["listPage"]>>[number]
 type AncestorNode = Awaited<
   ReturnType<FileRepository["findAncestorChain"]>
 >[number]
+
+/** The fields the access resolver needs; list and page rows both satisfy it. */
+type AccessRow = {
+  id: string
+  ownerId: string
+  parentId: string | null
+  restricted: boolean
+  shares: { userId: string; permission: string }[]
+}
 
 interface FileAccess {
   canRead: boolean
@@ -103,7 +120,7 @@ export class FileService {
     private readonly deps: FileServiceDeps
   ) {}
 
-  private mapFile(row: FileRow): FileNode {
+  private mapFile(row: FilePageRow): FileNode {
     return {
       id: row.id,
       name: row.name,
@@ -233,7 +250,7 @@ export class FileService {
   private accessFromMap(
     ctx: RequestContext,
     id: string,
-    byId: Map<string, FileRow>,
+    byId: Map<string, AccessRow>,
     cache: Map<string, FileAccess>
   ): FileAccess {
     const cached = cache.get(id)
@@ -278,6 +295,54 @@ export class FileService {
     const access = { canRead, canWrite }
     cache.set(id, access)
     return access
+  }
+
+  /**
+   * Keyset page of visible, non-trashed metadata. The page is fetched at the
+   * repository layer; access inheritance needs the ancestors of the fetched
+   * rows only, which are loaded one tree level at a time.
+   */
+  async listPage(
+    ctx: RequestContext,
+    input: PageInput & { parentId?: string }
+  ): Promise<Page<FileNode>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { name: decoded[0], id: decoded[1] }
+        : null
+    const rows = await this.repo.listPage(ctx.organizationId, {
+      after,
+      parentId: input.parentId,
+      take: limit + 1,
+    })
+
+    const byId = new Map<string, AccessRow>(rows.map((row) => [row.id, row]))
+    let pending = rows
+      .map((row) => row.parentId)
+      .filter((id): id is string => Boolean(id))
+    while (pending.length > 0) {
+      const ids = [...new Set(pending)].filter((id) => !byId.has(id))
+      if (ids.length === 0) break
+      const parents = await this.repo.findManyByIds(ctx.organizationId, ids)
+      for (const parent of parents) byId.set(parent.id, parent)
+      pending = parents
+        .map((parent) => parent.parentId)
+        .filter((id): id is string => Boolean(id))
+    }
+
+    const cache = new Map<string, FileAccess>()
+    const examined = rows.slice(0, limit)
+    const visible = examined.filter(
+      (row) => this.accessFromMap(ctx, row.id, byId, cache).canRead
+    )
+    const last = examined.at(-1)
+    return {
+      items: visible.map((row) => this.mapFile(row)),
+      nextCursor:
+        rows.length > limit && last ? encodeCursor([last.name, last.id]) : null,
+    }
   }
 
   async get(ctx: RequestContext, id: string): Promise<FileNode> {

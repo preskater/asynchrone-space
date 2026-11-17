@@ -1,9 +1,12 @@
+import { randomUUID } from "node:crypto"
+
 import { ProjectRepository } from "@workspace/projects/repository"
 import { ProjectService } from "@workspace/projects/service"
 
 import { recordUserAudit } from "@/lib/audit"
-import { memberDirectory } from "@/lib/identity"
+import { memberDirectory, emitWebhook } from "@/lib/identity"
 import { repositoryIntegrationService } from "@/lib/integrations"
+import { publicProject, publicTask } from "@/lib/internal/public-resources"
 import { createNotificationService } from "@/lib/notifications"
 import { prisma } from "@/lib/prisma"
 
@@ -26,6 +29,29 @@ export const projectRepository = new ProjectRepository(prisma, memberDirectory)
 export const projectService = new ProjectService(projectRepository, prisma, {
   audit: recordUserAudit,
   notify: (args) => notificationService.notify(args),
+  emitEvent: async (ctx, event) => {
+    const base = {
+      id: randomUUID(),
+      occurredAt: new Date().toISOString(),
+      organizationId: ctx.organizationId,
+    }
+    if (event.type.startsWith("project.")) {
+      if (!event.project) return
+      await emitWebhook({
+        ...base,
+        type: event.type as
+          "project.created" | "project.updated" | "project.deleted",
+        data: { project: publicProject(event.project) },
+      })
+      return
+    }
+    if (!event.task) return
+    await emitWebhook({
+      ...base,
+      type: event.type as "task.created" | "task.updated" | "task.deleted",
+      data: { task: publicTask(event.task) },
+    })
+  },
   repository: repositoryIntegrationService,
   directory: memberDirectory,
 })

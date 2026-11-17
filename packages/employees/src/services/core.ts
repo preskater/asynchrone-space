@@ -19,6 +19,7 @@ import {
   type DayPeriod,
   type EmployeeMemberData,
   type EmployeeProfileData,
+  type EmployeeProfileSummaryData,
   type EmployeeSettingsData,
   type InternalActivityData,
   type LeaveAdjustmentData,
@@ -235,6 +236,51 @@ export class EmployeesServiceCore {
     return resolveEmployeeAccess(ctx, profile?.isValidator ?? false)
   }
 
+  protected mapSettings(
+    row: Awaited<ReturnType<EmployeesRepository["findSettings"]>>
+  ): EmployeeSettingsData {
+    return row
+      ? {
+          defaultWeeklyHours: row.defaultWeeklyHours,
+          defaultAllowanceDays: row.defaultAllowanceDays,
+          lowBalanceThreshold: row.lowBalanceThreshold,
+          pendingValidationDays: row.pendingValidationDays,
+          defaultEmployeeRate: row.defaultEmployeeRate,
+          defaultEmployerRate: row.defaultEmployerRate,
+        }
+      : DEFAULT_SETTINGS
+  }
+
+  /**
+   * The public employee list pages members in Copilot's identity database and
+   * asks this app only for the bounded set of profiles it needs.
+   */
+  async getProfiles(
+    ctx: RequestContext,
+    userIds: string[]
+  ): Promise<{ profiles: EmployeeProfileSummaryData[] }> {
+    const [profileRows, settingsRow] = await Promise.all([
+      this.repo.listProfiles(ctx.organizationId),
+      this.repo.findSettings(ctx.organizationId),
+    ])
+    const settings = this.mapSettings(settingsRow)
+    const profileByUser = new Map(profileRows.map((row) => [row.userId, row]))
+    return {
+      profiles: userIds.map((userId) => {
+        const profile = this.mapProfile(profileByUser.get(userId), settings)
+        return {
+          userId,
+          employmentType: profile.employmentType,
+          contractType: profile.contractType,
+          weeklyHours: profile.weeklyHours,
+          managerId: profile.managerId ?? null,
+          isValidator: profile.isValidator,
+          isActive: profile.isActive,
+        }
+      }),
+    }
+  }
+
   protected async loadMembers(organizationId: string): Promise<{
     members: EmployeeMemberData[]
     nameById: Map<string, string>
@@ -245,16 +291,7 @@ export class EmployeesServiceCore {
       this.repo.listProfiles(organizationId),
       this.repo.findSettings(organizationId),
     ])
-    const settings: EmployeeSettingsData = settingsRow
-      ? {
-          defaultWeeklyHours: settingsRow.defaultWeeklyHours,
-          defaultAllowanceDays: settingsRow.defaultAllowanceDays,
-          lowBalanceThreshold: settingsRow.lowBalanceThreshold,
-          pendingValidationDays: settingsRow.pendingValidationDays,
-          defaultEmployeeRate: settingsRow.defaultEmployeeRate,
-          defaultEmployerRate: settingsRow.defaultEmployerRate,
-        }
-      : DEFAULT_SETTINGS
+    const settings = this.mapSettings(settingsRow)
     const profileByUser = new Map(profileRows.map((row) => [row.userId, row]))
     const members = memberRows.map((row) =>
       this.mapMember(row, profileByUser, settings)

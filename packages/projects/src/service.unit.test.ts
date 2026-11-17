@@ -37,6 +37,7 @@ const project = {
   repository: null,
   _count: { tasks: 0 },
   createdAt: new Date("2026-11-01T10:00:00Z"),
+  updatedAt: new Date("2026-11-01T10:00:00Z"),
   dueDate: null,
 }
 
@@ -58,6 +59,7 @@ const createdTask = {
   externalPrNumber: null,
   externalPrUrl: null,
   createdAt: new Date("2026-11-01T10:01:00Z"),
+  updatedAt: new Date("2026-11-01T10:01:00Z"),
   subtasks: [],
   comments: [],
   labels: [],
@@ -87,6 +89,7 @@ function ports(
   return {
     audit: vi.fn(async () => undefined),
     notify: vi.fn(async () => undefined),
+    emitEvent: vi.fn(async () => undefined),
     directory: {
       list: vi.fn(async () => []),
       find: vi.fn(async () => null),

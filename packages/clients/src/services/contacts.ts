@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import {
   decodeCursor,
@@ -175,7 +175,7 @@ export class ClientContactsService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "contact.updated",
           entityType: "contact",
           entityId: row.id,
@@ -183,7 +183,9 @@ export class ClientContactsService extends ClientsServiceCore {
           after: this.contactSnapshot(row),
         },
       ])
-      return this.returnContact(ctx, row.id)
+      const data = await this.returnContact(ctx, row.id)
+      await this.emitEvent(ctx, { type: "contact.updated", contact: data })
+      return data
     }
 
     const row = await this.repo.createContact(
@@ -193,14 +195,16 @@ export class ClientContactsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "contact.created",
         entityType: "contact",
         entityId: row.id,
         after: this.contactSnapshot(row),
       },
     ])
-    return this.returnContact(ctx, row.id)
+    const data = await this.returnContact(ctx, row.id)
+    await this.emitEvent(ctx, { type: "contact.created", contact: data })
+    return data
   }
 
   async archiveContact(
@@ -215,7 +219,7 @@ export class ClientContactsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "contact.archived",
         entityType: "contact",
         entityId: id,
@@ -236,7 +240,7 @@ export class ClientContactsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "contact.restored",
         entityType: "contact",
         entityId: id,

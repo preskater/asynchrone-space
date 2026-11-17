@@ -1,6 +1,8 @@
 import type { RequestContext } from "@workspace/core/context"
 import type { NotifyArgs } from "@workspace/notifications"
 
+import type { ClientContactData, ClientData, ClientDealData } from "./types"
+
 /**
  * Ports the owning app binds in its adapter.
  *
@@ -34,8 +36,33 @@ export type ClientAudit = (
 /** Sends one inbox notification (the identity app owns the inbox). */
 export type ClientNotify = (args: NotifyArgs) => Promise<void>
 
+export type ClientEventType =
+  | "client.created"
+  | "client.updated"
+  | "contact.created"
+  | "contact.updated"
+  | "deal.created"
+  | "deal.updated"
+  | "deal.stage_changed"
+
+/** One outbound webhook event; the app adapter maps the snapshot and sends it. */
+export interface ClientEvent {
+  type: ClientEventType
+  client?: ClientData
+  contact?: ClientContactData
+  deal?: ClientDealData
+  previousStageId?: string | null
+  previousStageName?: string | null
+}
+
+export type ClientEmitEvent = (
+  ctx: RequestContext,
+  event: ClientEvent
+) => Promise<void>
+
 export interface ClientServicePorts {
   notify: ClientNotify
+  emitEvent: ClientEmitEvent
 }
 
 /** One internal member of the organization, used for owner names and access. */
@@ -69,7 +96,10 @@ export interface ClientProjects {
   countForClient(ctx: RequestContext, clientId: string): Promise<number>
   listOptions(ctx: RequestContext): Promise<ClientProjectRow[]>
   listLinkOptions(ctx: RequestContext): Promise<ClientProjectRow[]>
-  listForClient(ctx: RequestContext, clientId: string): Promise<ClientProjectRow[]>
+  listForClient(
+    ctx: RequestContext,
+    clientId: string
+  ): Promise<ClientProjectRow[]>
   find(ctx: RequestContext, id: string): Promise<ClientProjectRow | null>
   setClient(
     ctx: RequestContext,

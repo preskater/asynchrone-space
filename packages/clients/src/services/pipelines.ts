@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import type { MoveStageInput, PipelineInput, StageInput } from "../schemas"
 import type { ClientPipelineData } from "../types"
@@ -34,7 +34,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "pipeline.updated",
           entityType: "pipeline",
           entityId: input.id,
@@ -60,7 +60,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "pipeline.created",
         entityType: "pipeline",
         entityId: created.id,
@@ -85,7 +85,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "pipeline.default",
         entityType: "pipeline",
         entityId: pipelineId,
@@ -121,7 +121,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "pipeline.deleted",
         entityType: "pipeline",
         entityId: pipelineId,
@@ -156,7 +156,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "stage.updated",
           entityType: "pipeline",
           entityId: input.pipelineId,
@@ -180,7 +180,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "stage.created",
         entityType: "pipeline",
         entityId: input.pipelineId,
@@ -242,7 +242,7 @@ export class ClientPipelinesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "stage.deleted",
         entityType: "pipeline",
         entityId: stage.pipelineId,

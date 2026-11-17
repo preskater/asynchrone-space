@@ -252,6 +252,7 @@ export function ProjectStoreProvider({
             : [currentUserId],
           labelIds: input.labelIds ?? [],
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         }
         setProjects((prev) => [optimistic, ...prev])
         void actions
@@ -322,6 +323,7 @@ export function ProjectStoreProvider({
           templateId: input.templateId ?? undefined,
           customFields: input.customFields ?? {},
           createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
           subtasks: [],
           comments: [],
         }

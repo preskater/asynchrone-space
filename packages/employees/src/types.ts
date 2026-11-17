@@ -157,6 +157,17 @@ export interface EmployeeMemberData {
   profile: EmployeeProfileData
 }
 
+/** The profile half of an employee, flattened for the public API. */
+export interface EmployeeProfileSummaryData {
+  userId: string
+  employmentType: EmploymentType
+  contractType: ContractType
+  weeklyHours: number
+  managerId: string | null
+  isValidator: boolean
+  isActive: boolean
+}
+
 export interface AttendanceEntryData {
   id: string
   userId: string

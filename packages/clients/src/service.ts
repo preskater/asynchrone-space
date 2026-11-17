@@ -71,9 +71,9 @@ export class ClientsService {
 
   constructor(repo: ClientsRepository, ports: ClientServicePorts) {
     this.overview = new ClientOverviewService(repo)
-    this.clients = new ClientCompaniesService(repo)
-    this.contacts = new ClientContactsService(repo)
-    this.deals = new ClientDealsService(repo, ports.notify)
+    this.clients = new ClientCompaniesService(repo, ports.emitEvent)
+    this.contacts = new ClientContactsService(repo, ports.emitEvent)
+    this.deals = new ClientDealsService(repo, ports.notify, ports.emitEvent)
     this.pipelines = new ClientPipelinesService(repo)
     this.fields = new ClientFieldsService(repo)
     this.documents = new ClientDocumentsService(repo)

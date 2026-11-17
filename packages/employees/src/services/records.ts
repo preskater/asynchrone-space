@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { NotFoundError } from "@workspace/core/errors"
 import { parseDateKey } from "../date-utils"
 import type {
@@ -41,7 +41,7 @@ export class EmployeeRecordsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: input.id ? "client.update" : "client.create",
         entityType: "client",
         entityId: row.id,
@@ -85,7 +85,7 @@ export class EmployeeRecordsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: input.id ? "activity.update" : "activity.create",
         entityType: "internalActivity",
         entityId: row.id,
@@ -103,10 +103,7 @@ export class EmployeeRecordsService extends EmployeesServiceCore {
     const access = await this.accessFor(ctx)
     requireAdmin(access)
 
-    const existing = await this.repo.findProject(
-      ctx,
-      input.projectId
-    )
+    const existing = await this.repo.findProject(ctx, input.projectId)
     if (!existing) throw new NotFoundError("Project")
 
     if (input.clientId) {
@@ -132,7 +129,7 @@ export class EmployeeRecordsService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "project.update",
         entityType: "project",
         entityId: input.projectId,

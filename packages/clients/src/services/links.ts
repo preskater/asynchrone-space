@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import type { LinkProjectInput, UnlinkProjectInput } from "../schemas"
 import type {
@@ -53,7 +53,7 @@ export class ClientLinksService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.project.linked",
         entityType: "client",
         entityId: input.clientId,
@@ -84,7 +84,7 @@ export class ClientLinksService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.project.unlinked",
         entityType: "client",
         entityId: input.clientId,

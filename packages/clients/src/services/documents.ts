@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import type {
   LinkDocumentInput,
@@ -85,7 +85,7 @@ export class ClientDocumentsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: `${input.entity}.document.linked`,
         entityType: input.entity,
         entityId: input.entityId,
@@ -107,7 +107,7 @@ export class ClientDocumentsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: `${row.entity}.document.unlinked`,
         entityType: row.entity,
         entityId: row.entityId,
@@ -133,7 +133,7 @@ export class ClientDocumentsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action:
           input.visibility === "client"
             ? `${row.entity}.document.shared`

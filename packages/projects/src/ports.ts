@@ -4,6 +4,7 @@ import type { NotifyArgs } from "@workspace/notifications"
 import type { MemberDirectoryPort } from "@workspace/organization/directory"
 
 import type { TaskExternalLink } from "./integrations/types"
+import type { Project, Task } from "./types"
 
 /**
  * Ports the owning app binds in its adapter.
@@ -24,6 +25,26 @@ export type ProjectAudit = (
 
 /** Sends one inbox notification (the identity app owns the inbox). */
 export type ProjectNotify = (args: NotifyArgs) => Promise<void>
+
+export type ProjectEventType =
+  | "project.created"
+  | "project.updated"
+  | "project.deleted"
+  | "task.created"
+  | "task.updated"
+  | "task.deleted"
+
+/** One outbound webhook event; the app adapter maps the snapshot and sends it. */
+export interface ProjectEvent {
+  type: ProjectEventType
+  project?: Project
+  task?: Task
+}
+
+export type ProjectEmitEvent = (
+  ctx: RequestContext,
+  event: ProjectEvent
+) => Promise<void>
 
 /**
  * The repository operations the task service needs before it commits a local
@@ -51,6 +72,7 @@ export interface ProjectRepositorySync {
 export interface ProjectServicePorts {
   audit: ProjectAudit
   notify: ProjectNotify
+  emitEvent: ProjectEmitEvent
   repository: ProjectRepositorySync
   /** Identity reads and the member-management writes the settings card exposes. */
   directory: MemberDirectoryPort

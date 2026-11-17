@@ -48,6 +48,7 @@ import type {
   Task,
   TaskCustomFieldValue,
   TaskCustomFieldValues,
+  TaskSummary,
   TaskTemplate,
   TaskTemplateField,
   TaskTemplateFieldType,
@@ -280,6 +281,7 @@ export class ProjectService {
       startDate: iso(row.startDate) ?? null,
       endDate: iso(row.endDate) ?? null,
       createdAt: requiredIso(row.createdAt),
+      updatedAt: requiredIso(row.updatedAt),
       dueDate: iso(row.dueDate),
     }
   }
@@ -304,6 +306,7 @@ export class ProjectService {
       externalPrNumber: row.externalPrNumber ?? undefined,
       externalPrUrl: row.externalPrUrl ?? undefined,
       createdAt: requiredIso(row.createdAt),
+      updatedAt: requiredIso(row.updatedAt),
       subtasks: row.subtasks.map((subtask): Subtask => ({
         id: subtask.id,
         title: subtask.title,
@@ -463,6 +466,7 @@ export class ProjectService {
       entityLabel: project.name,
       after: projectSnapshot(project),
     })
+    await this.ports.emitEvent(ctx, { type: "project.created", project })
     return project
   }
 
@@ -574,6 +578,7 @@ export class ProjectService {
       before: projectSnapshot(before),
       after: projectSnapshot(project),
     })
+    await this.ports.emitEvent(ctx, { type: "project.updated", project })
     return project
   }
 
@@ -588,6 +593,7 @@ export class ProjectService {
       entityLabel: project.name,
       before: projectSnapshot(project),
     })
+    await this.ports.emitEvent(ctx, { type: "project.deleted", project })
     return { id }
   }
 
@@ -632,6 +638,71 @@ export class ProjectService {
     const row = await this.repo.findTask(ctx.organizationId, id)
     if (!row) throw new NotFoundError("Task")
     return this.mapTask(row)
+  }
+
+  /** Keyset page of projects, newest first (`(createdAt, id)` descending). */
+  async listProjectsPage(
+    ctx: RequestContext,
+    input: PageInput = {}
+  ): Promise<Page<Project>> {
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const rows = await this.repo.listProjectsPage(ctx.organizationId, {
+      after,
+      take: limit + 1,
+    })
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row) => this.mapProject(row)),
+      nextCursor: page.nextCursor,
+    }
+  }
+
+  /** Keyset page of tasks, newest first; `projectId` is always scoped. */
+  async listTasksPage(
+    ctx: RequestContext,
+    input: PageInput & { projectId: string; status?: string }
+  ): Promise<Page<TaskSummary>> {
+    await this.get(ctx, input.projectId)
+    const limit = pageSize(input.limit)
+    const decoded = decodeCursor(input.cursor)
+    const after =
+      decoded && decoded[0] && decoded[1]
+        ? { createdAt: new Date(decoded[0]), id: decoded[1] }
+        : null
+    const rows = await this.repo.listTasksPage(ctx.organizationId, {
+      projectId: input.projectId,
+      status: input.status,
+      after,
+      take: limit + 1,
+    })
+    const page = toPage(rows, limit, (row) =>
+      encodeCursor([row.createdAt.toISOString(), row.id])
+    )
+    return {
+      items: page.items.map((row): TaskSummary => ({
+        id: row.id,
+        identifier: row.identifier,
+        projectId: row.projectId,
+        title: row.title,
+        description: row.description ?? undefined,
+        status: row.status as TaskSummary["status"],
+        priority: row.priority as TaskSummary["priority"],
+        assigneeId: row.assigneeId ?? undefined,
+        labelIds: row.labels.map((label) => label.labelId),
+        dueDate: iso(row.dueDate),
+        endDate: iso(row.endDate),
+        createdAt: requiredIso(row.createdAt),
+        updatedAt: requiredIso(row.updatedAt),
+      })),
+      nextCursor: page.nextCursor,
+    }
   }
 
   async createTask(ctx: RequestContext, input: CreateTaskInput): Promise<Task> {
@@ -729,6 +800,7 @@ export class ProjectService {
       entityLabel: task.identifier,
       after: { projectId: task.projectId, ...taskSnapshot(task) },
     })
+    await this.ports.emitEvent(ctx, { type: "task.created", task })
     return task
   }
 
@@ -822,6 +894,7 @@ export class ProjectService {
       before: taskSnapshot(before),
       after: taskSnapshot(task),
     })
+    await this.ports.emitEvent(ctx, { type: "task.updated", task })
     return task
   }
 
@@ -854,13 +927,16 @@ export class ProjectService {
       })
     }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
-    return this.mapTask(fresh ?? existing)
+    const task = this.mapTask(fresh ?? existing)
+    await this.ports.emitEvent(ctx, { type: "task.updated", task })
+    return task
   }
 
   async removeTask(ctx: RequestContext, id: string): Promise<{ id: string }> {
     this.canWrite(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    const snapshot = this.mapTask(existing)
     // Close the issue first, otherwise the next sync would resurrect the
     // task; access errors abort the delete.
     await this.ports.repository.closeTaskIssue(ctx, id)
@@ -882,6 +958,7 @@ export class ProjectService {
         status: existing.status,
       },
     })
+    await this.ports.emitEvent(ctx, { type: "task.deleted", task: snapshot })
     return { id }
   }
 
@@ -963,10 +1040,7 @@ export class ProjectService {
       take: limit + 1,
     })
     const page = toPage(rows, limit, (row) =>
-      encodeCursor([
-        (row.joinedAt ?? new Date(0)).toISOString(),
-        row.userId,
-      ])
+      encodeCursor([(row.joinedAt ?? new Date(0)).toISOString(), row.userId])
     )
     return {
       items: page.items.map((row) => this.mapMember(row)),
@@ -1007,10 +1081,7 @@ export class ProjectService {
     input: UpdateMemberRoleInput
   ): Promise<Member> {
     this.canManage(ctx)
-    const member = await this.ports.directory.find(
-      ctx.organizationId,
-      memberId
-    )
+    const member = await this.ports.directory.find(ctx.organizationId, memberId)
     if (!member) throw new NotFoundError("Member")
 
     const isTargetOwner = member.role === "owner"
@@ -1056,10 +1127,7 @@ export class ProjectService {
     memberId: string
   ): Promise<{ id: string }> {
     this.canManage(ctx)
-    const member = await this.ports.directory.find(
-      ctx.organizationId,
-      memberId
-    )
+    const member = await this.ports.directory.find(ctx.organizationId, memberId)
     if (!member) throw new NotFoundError("Member")
 
     if (member.userId === ctx.userId) {

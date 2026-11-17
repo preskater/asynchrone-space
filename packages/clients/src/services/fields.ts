@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { NotFoundError } from "@workspace/core/errors"
 import type { FieldDefinitionInput } from "../schemas"
 import type { ClientFieldDefinitionData } from "../types"
@@ -27,7 +27,7 @@ export class ClientFieldsService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "clientField.updated",
           entityType: "clientField",
           entityId: row.id,
@@ -68,7 +68,7 @@ export class ClientFieldsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "clientField.created",
         entityType: "clientField",
         entityId: row.id,
@@ -90,7 +90,7 @@ export class ClientFieldsService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "clientField.deleted",
         entityType: "clientField",
         entityId: id,

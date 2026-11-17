@@ -115,8 +115,29 @@ export interface Task {
   externalPrNumber?: number
   externalPrUrl?: string
   createdAt: string
+  updatedAt: string
   subtasks: Subtask[]
   comments: Comment[]
+}
+
+/**
+ * The task fields a paginated list needs. Comments, subtasks, templates and
+ * custom fields are detail-only and would make a page unnecessarily heavy.
+ */
+export interface TaskSummary {
+  id: string
+  identifier: string
+  projectId: string
+  title: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  assigneeId?: string
+  labelIds: string[]
+  dueDate?: string
+  endDate?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface Project {
@@ -142,6 +163,7 @@ export interface Project {
   startDate?: string | null
   endDate?: string | null
   createdAt: string
+  updatedAt: string
   dueDate?: string
 }
 

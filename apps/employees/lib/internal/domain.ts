@@ -24,6 +24,7 @@ function requestContext(context: DelegatedContext): RequestContext {
     userEmail: context.userEmail,
     organizationId: context.organizationId,
     role: context.role,
+    actor: context.actor ?? undefined,
   }
 }
 
@@ -38,6 +39,12 @@ export async function dispatchDomain(
   switch (operation) {
     case "get-employees-overview":
       return employeesService.getOverview(ctx)
+    case "get-employee-profiles": {
+      const { userIds } = z
+        .object({ userIds: z.array(z.string().min(1)).min(1).max(100) })
+        .parse(call.input)
+      return employeesService.getProfiles(ctx, userIds)
+    }
     case "fetch-attendance": {
       const range = rangeInput.parse(call.input)
       return employeesService.fetchAttendance(ctx, range.from, range.to)

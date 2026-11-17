@@ -10,6 +10,25 @@ const FILE_INCLUDE = {
   activities: { orderBy: { at: "desc" as const }, take: 20 },
 }
 
+/** The lean shape a metadata page needs, including the access fields. */
+const FILE_PAGE_SELECT = {
+  id: true,
+  name: true,
+  kind: true,
+  parentId: true,
+  ownerId: true,
+  modifiedAt: true,
+  sizeBytes: true,
+  mimeType: true,
+  oid: true,
+  starred: true,
+  trashed: true,
+  trashedAt: true,
+  shared: true,
+  restricted: true,
+  shares: { select: { userId: true, permission: true } },
+} as const
+
 export class FileRepository {
   constructor(private readonly db: PrismaClient) {}
 
@@ -25,6 +44,46 @@ export class FileRepository {
     return this.db.fileNode.findFirst({
       where: { id, organizationId },
       include: FILE_INCLUDE,
+    })
+  }
+
+  /** Keyset page of non-trashed nodes, ordered by `(name, id)` ascending. */
+  listPage(
+    organizationId: string,
+    options: {
+      after?: { name: string; id: string } | null
+      parentId?: string
+      take: number
+    }
+  ) {
+    return this.db.fileNode.findMany({
+      where: {
+        organizationId,
+        trashed: false,
+        ...(options.parentId !== undefined
+          ? { parentId: options.parentId }
+          : {}),
+        ...(options.after
+          ? {
+              OR: [
+                { name: { gt: options.after.name } },
+                { name: options.after.name, id: { gt: options.after.id } },
+              ],
+            }
+          : {}),
+      },
+      select: FILE_PAGE_SELECT,
+      orderBy: [{ name: "asc" }, { id: "asc" }],
+      take: options.take,
+    })
+  }
+
+  /** Ancestor rows for the page's access check (one query per tree level). */
+  findManyByIds(organizationId: string, ids: string[]) {
+    if (ids.length === 0) return Promise.resolve([])
+    return this.db.fileNode.findMany({
+      where: { organizationId, id: { in: ids } },
+      select: FILE_PAGE_SELECT,
     })
   }
 
@@ -107,9 +166,7 @@ export class FileRepository {
     }[]
   ) {
     return this.db.$transaction(
-      data.map((item) =>
-        this.db.fileNode.create({ data: item })
-      )
+      data.map((item) => this.db.fileNode.create({ data: item }))
     )
   }
 

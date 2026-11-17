@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import {
   ConflictError,
   NotFoundError,
@@ -112,7 +112,7 @@ export class EmployeeLeaveService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "leave.create",
         entityType: "leaveRequest",
         entityId: row.id,
@@ -211,7 +211,7 @@ export class EmployeeLeaveService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: `leave.${input.decision}`,
         entityType: "leaveRequest",
         entityId: requestId,
@@ -255,7 +255,7 @@ export class EmployeeLeaveService extends EmployeesServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "leave.cancel",
         entityType: "leaveRequest",
         entityId: requestId,

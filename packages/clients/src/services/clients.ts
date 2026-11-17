@@ -1,4 +1,4 @@
-import type { RequestContext } from "@workspace/core/context"
+import { auditActorFields, type RequestContext } from "@workspace/core/context"
 import { ConflictError, NotFoundError } from "@workspace/core/errors"
 import {
   decodeCursor,
@@ -148,7 +148,7 @@ export class ClientCompaniesService extends ClientsServiceCore {
       await this.repo.createAudit([
         {
           organizationId: ctx.organizationId,
-          actorId: ctx.userId,
+          ...auditActorFields(ctx),
           action: "client.updated",
           entityType: "client",
           entityId: row.id,
@@ -156,7 +156,9 @@ export class ClientCompaniesService extends ClientsServiceCore {
           after: this.clientSnapshot(row),
         },
       ])
-      return this.returnClient(ctx, row.id)
+      const data = await this.returnClient(ctx, row.id)
+      await this.emitEvent(ctx, { type: "client.updated", client: data })
+      return data
     }
 
     const duplicate = await this.repo.findClientByName(
@@ -176,14 +178,16 @@ export class ClientCompaniesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.created",
         entityType: "client",
         entityId: row.id,
         after: this.clientSnapshot(row),
       },
     ])
-    return this.returnClient(ctx, row.id)
+    const data = await this.returnClient(ctx, row.id)
+    await this.emitEvent(ctx, { type: "client.created", client: data })
+    return data
   }
 
   async archiveClient(ctx: RequestContext, id: string): Promise<ClientData> {
@@ -195,7 +199,7 @@ export class ClientCompaniesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.archived",
         entityType: "client",
         entityId: id,
@@ -214,7 +218,7 @@ export class ClientCompaniesService extends ClientsServiceCore {
     await this.repo.createAudit([
       {
         organizationId: ctx.organizationId,
-        actorId: ctx.userId,
+        ...auditActorFields(ctx),
         action: "client.restored",
         entityType: "client",
         entityId: id,
