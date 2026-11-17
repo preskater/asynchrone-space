@@ -58,6 +58,12 @@ export const AUDIT_ACTIONS = {
   organizationExportRequested: "organization.export.request",
   memberTwoFactorEnabled: "member.two_factor_enabled",
   memberTwoFactorDisabled: "member.two_factor_disabled",
+  apiTokenCreated: "api_token.created",
+  apiTokenRevoked: "api_token.revoked",
+  webhookSubscriptionCreated: "webhook.subscription.created",
+  webhookSubscriptionUpdated: "webhook.subscription.updated",
+  webhookSubscriptionDeleted: "webhook.subscription.deleted",
+  webhookDeliveryReplayed: "webhook.delivery.replayed",
 
   // Written by earlier releases; listed so the filter and labels still know
   // them.
@@ -144,6 +150,9 @@ export const AUDIT_ENTITY_TYPES = [
   "member",
   "user",
   "invitation",
+  "apiToken",
+  "webhookSubscription",
+  "webhookDelivery",
   "project",
   "task",
   "file",

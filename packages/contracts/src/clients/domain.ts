@@ -11,6 +11,7 @@ import {
   PortalTaskDetailSchema,
   ProjectMessageSchema,
   TaskCommentSchema,
+  domainOperationScope,
   isDomainOperation,
   type DelegatedContext,
   type DomainOperation,
@@ -112,22 +113,7 @@ export class DomainClient {
       )
     }
 
-    const isWrite =
-      operation.startsWith("create-") ||
-      operation.startsWith("save-") ||
-      operation.startsWith("link-") ||
-      operation.startsWith("unlink-") ||
-      operation.startsWith("set-") ||
-      operation.startsWith("move-") ||
-      operation.startsWith("rename-") ||
-      operation.startsWith("trash-") ||
-      operation.startsWith("send-") ||
-      operation.startsWith("decide-") ||
-      operation.startsWith("respond-") ||
-      operation.startsWith("accept-") ||
-      operation.startsWith("decline-") ||
-      operation.startsWith("update-") ||
-      operation.startsWith("portal-create-")
+    const isWrite = domainOperationScope(operation) === "write"
     const attempts = isWrite
       ? options.idempotencyKey
         ? this.options.writeRetries
@@ -169,21 +155,7 @@ export class DomainClient {
     const token = await this.options.getToken({
       audience: this.audience,
       scopes: [
-        operation.startsWith("create-") ||
-        operation.startsWith("save-") ||
-        operation.startsWith("link-") ||
-        operation.startsWith("unlink-") ||
-        operation.startsWith("set-") ||
-        operation.startsWith("move-") ||
-        operation.startsWith("rename-") ||
-        operation.startsWith("trash-") ||
-        operation.startsWith("send-") ||
-        operation.startsWith("decide-") ||
-        operation.startsWith("respond-") ||
-        operation.startsWith("accept-") ||
-        operation.startsWith("decline-") ||
-        operation.startsWith("update-") ||
-        operation.startsWith("portal-create-")
+        domainOperationScope(operation) === "write"
           ? SERVICE_SCOPES.domainWrite
           : SERVICE_SCOPES.domainRead,
       ],

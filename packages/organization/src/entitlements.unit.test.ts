@@ -37,6 +37,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     scim: false,
     granularPermissions: false,
     apiAccess: true,
+    apiRequestsPerMinute: 60,
     requireTwoFactor: false,
   },
   team: {
@@ -48,6 +49,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     scim: false,
     granularPermissions: true,
     apiAccess: true,
+    apiRequestsPerMinute: 300,
     requireTwoFactor: true,
   },
   enterprise: {
@@ -59,6 +61,7 @@ const expected: Record<OrgPlan, Record<Entitlement, number | boolean>> = {
     scim: true,
     granularPermissions: true,
     apiAccess: true,
+    apiRequestsPerMinute: 1200,
     requireTwoFactor: true,
   },
 }

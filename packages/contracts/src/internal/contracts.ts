@@ -48,6 +48,7 @@ export const INTERNAL_ROUTES = {
   invalidate: internalPath("invalidate"),
   search: internalPath("search"),
   notifications: internalPath("notifications"),
+  webhookEvents: internalPath("webhooks", "events"),
   exportOrganization: (organizationId: string) =>
     internalPath("organizations", organizationId, "export"),
   deleteOrganization: (organizationId: string) =>
@@ -88,6 +89,7 @@ export const SERVICE_SCOPES = {
   auditWrite: "internal:audit:write",
   searchRead: "internal:search:read",
   notificationsWrite: "internal:notifications:write",
+  webhooksWrite: "internal:webhooks:write",
   exportRead: "internal:export:read",
   deleteWrite: "internal:delete:write",
   domainRead: "internal:domain:read",
@@ -110,6 +112,12 @@ export const ServiceTokenClaimsSchema = z.object({
   jti: z.string().min(1).optional(),
 })
 export type ServiceTokenClaims = z.infer<typeof ServiceTokenClaimsSchema>
+
+/** Result of the internal webhook event ingress. */
+export const WebhookEmitResultSchema = z.object({
+  queued: z.number().int().nonnegative(),
+})
+export type WebhookEmitResult = z.infer<typeof WebhookEmitResultSchema>
 
 export const MemberRoleSchema = z.enum([
   "owner",
@@ -147,9 +155,7 @@ export type AddWorkspaceMember = z.infer<typeof AddWorkspaceMemberSchema>
 export const UpdateWorkspaceMemberSchema = z.object({
   role: MemberRoleSchema,
 })
-export type UpdateWorkspaceMember = z.infer<
-  typeof UpdateWorkspaceMemberSchema
->
+export type UpdateWorkspaceMember = z.infer<typeof UpdateWorkspaceMemberSchema>
 
 export const PresenceEntrySchema = z.object({
   userId: z.string().min(1),
@@ -210,6 +216,7 @@ export const EntitlementsSchema = z.object({
   requireTwoFactor: z.boolean(),
   granularPermissions: z.boolean(),
   apiAccess: z.boolean(),
+  apiRequestsPerMinute: z.number().int().nonnegative(),
   scim: z.boolean(),
 })
 export type Entitlements = z.infer<typeof EntitlementsSchema>
@@ -234,9 +241,7 @@ export const WorkspaceOrganizationSchema = OrganizationSchema.extend({
   role: MemberRoleSchema,
   clientId: z.string().nullable(),
 })
-export type WorkspaceOrganization = z.infer<
-  typeof WorkspaceOrganizationSchema
->
+export type WorkspaceOrganization = z.infer<typeof WorkspaceOrganizationSchema>
 
 /**
  * One read for a domain app's workspace gate: the Copilot sign-in, the user,

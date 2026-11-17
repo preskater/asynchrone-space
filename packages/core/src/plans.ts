@@ -17,6 +17,7 @@ export type Entitlement =
   | "scim"
   | "granularPermissions"
   | "apiAccess"
+  | "apiRequestsPerMinute"
   | "requireTwoFactor"
 
 export type Entitlements = {
@@ -29,6 +30,8 @@ export type Entitlements = {
   scim: boolean
   granularPermissions: boolean
   apiAccess: boolean
+  /** Public API requests allowed per token per minute (0 = API disabled). */
+  apiRequestsPerMinute: number
   /** Owners and admins may make two-factor authentication mandatory. */
   requireTwoFactor: boolean
 }
@@ -49,6 +52,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: false,
     granularPermissions: false,
     apiAccess: true,
+    apiRequestsPerMinute: 60,
     requireTwoFactor: false,
   },
   team: {
@@ -61,6 +65,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: false,
     granularPermissions: true,
     apiAccess: true,
+    apiRequestsPerMinute: 300,
     requireTwoFactor: true,
   },
   enterprise: {
@@ -72,6 +77,7 @@ const ENTITLEMENTS: Record<OrgPlan, Entitlements> = {
     scim: true,
     granularPermissions: true,
     apiAccess: true,
+    apiRequestsPerMinute: 1200,
     requireTwoFactor: true,
   },
 }

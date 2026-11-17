@@ -24,6 +24,7 @@ const entitlements = {
   requireTwoFactor: true,
   granularPermissions: true,
   apiAccess: true,
+  apiRequestsPerMinute: 300,
   scim: false,
 }
 

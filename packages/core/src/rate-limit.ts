@@ -22,6 +22,10 @@ export interface RateLimitResult {
   allowed: boolean
   /** Seconds until the window resets; 0 when allowed. */
   retryAfter: number
+  /** Requests left in the current window; 0 when denied. */
+  remaining: number
+  /** Epoch seconds when the window resets. */
+  resetAt: number
 }
 
 export interface RateLimitOptions {
@@ -72,17 +76,33 @@ export function createRateLimiter(queryRaw: RateLimitQuery): RateLimiter {
             THEN ${now}::bigint ELSE "rateLimit"."lastRequest" END
         RETURNING "count", "lastRequest"
       `
-      if (row!.count <= limit) return { allowed: true, retryAfter: 0 }
-      const resetAt = Number(row!.lastRequest) + windowMs
+      const resetAtMs = Number(row!.lastRequest) + windowMs
+      const resetAt = Math.ceil(resetAtMs / 1000)
+      if (row!.count <= limit) {
+        return {
+          allowed: true,
+          retryAfter: 0,
+          remaining: Math.max(0, limit - row!.count),
+          resetAt,
+        }
+      }
       return {
         allowed: false,
-        retryAfter: Math.max(1, Math.ceil((resetAt - now) / 1000)),
+        retryAfter: Math.max(1, Math.ceil((resetAtMs - now) / 1000)),
+        remaining: 0,
+        resetAt,
       }
     } catch (error) {
       console.error(`[rate-limit] store unavailable for ${key}`, error)
+      const resetAt = Math.ceil((now + windowMs) / 1000)
       return failOpen
-        ? { allowed: true, retryAfter: 0 }
-        : { allowed: false, retryAfter: Math.ceil(windowMs / 1000) }
+        ? { allowed: true, retryAfter: 0, remaining: limit, resetAt }
+        : {
+            allowed: false,
+            retryAfter: Math.ceil(windowMs / 1000),
+            remaining: 0,
+            resetAt,
+          }
     }
   }
 

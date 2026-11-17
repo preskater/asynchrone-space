@@ -25,6 +25,18 @@ export const DelegatedContextSchema = z.object({
   /** Set when a platform operator impersonates the user. */
   impersonatedBy: z.string().min(1).nullable().optional(),
   /**
+   * Set when a public API token acts for the user. The target app writes its
+   * audit rows with this actor instead of the member.
+   */
+  actor: z
+    .object({
+      id: z.string().min(1),
+      name: z.string().min(1).nullable().optional(),
+      email: z.string().email().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  /**
    * Portal callers only. The target app must filter every row by this client
    * company; it never accepts a project/client id from the client itself.
    */
@@ -48,6 +60,15 @@ export type DomainCall = z.infer<typeof DomainCallSchema>
 export const DomainOperationScopeSchema = z.enum(["read", "write"])
 export type DomainOperationScope = z.infer<typeof DomainOperationScopeSchema>
 
+/** Cursor page request shared by the public read operations. */
+export const DomainPageInputSchema = z.object({
+  limit: z.number().int().min(1).max(100).optional(),
+  // `pageQuery` forwards its `PageInput` verbatim, which uses `null` for the
+  // first page; accept both spellings at the internal boundary.
+  cursor: z.string().min(1).nullable().optional(),
+})
+export type DomainPageInput = z.infer<typeof DomainPageInputSchema>
+
 /**
  * Operations exposed by the domain apps. The operation name is also the last
  * path segment, so a route audit is a one-line grep.
@@ -55,8 +76,18 @@ export type DomainOperationScope = z.infer<typeof DomainOperationScopeSchema>
 export const DOMAIN_OPERATIONS = [
   // projects
   "list-projects",
+  "list-projects-page",
   "get-project",
+  "get-public-project",
+  "public-create-project",
+  "public-update-project",
+  "public-delete-project",
   "list-tasks",
+  "list-tasks-page",
+  "get-task",
+  "public-create-task",
+  "public-update-task",
+  "public-delete-task",
   "list-calendar-tasks",
   "list-project-options",
   "count-projects-by-client",
@@ -99,6 +130,8 @@ export const DOMAIN_OPERATIONS = [
   "portal-cancel-meeting",
   // files
   "list-files",
+  "list-files-page",
+  "get-file-metadata",
   "create-folder",
   "create-files",
   "rename-file",
@@ -117,8 +150,21 @@ export const DOMAIN_OPERATIONS = [
   "create-channel",
   // clients
   "get-clients-overview",
+  "list-clients-page",
   "get-client",
+  "get-public-client",
+  "public-create-client",
+  "public-update-client",
+  "list-contacts-page",
+  "get-contact",
+  "public-create-contact",
+  "public-update-contact",
+  "list-deals-page",
   "get-deal",
+  "get-public-deal",
+  "public-create-deal",
+  "public-update-deal",
+  "public-move-deal",
   "save-client",
   "save-contact",
   "save-deal",
@@ -137,6 +183,7 @@ export const DOMAIN_OPERATIONS = [
   "save-client-basics",
   // employees
   "get-employees-overview",
+  "get-employee-profiles",
   "fetch-attendance",
   "set-attendance",
   "set-day-status",
@@ -153,6 +200,19 @@ const WRITE_OPERATIONS: ReadonlySet<DomainOperation> = new Set([
   "create-task",
   "update-task",
   "move-task",
+  "public-create-project",
+  "public-update-project",
+  "public-delete-project",
+  "public-create-task",
+  "public-update-task",
+  "public-delete-task",
+  "public-create-client",
+  "public-update-client",
+  "public-create-contact",
+  "public-update-contact",
+  "public-create-deal",
+  "public-update-deal",
+  "public-move-deal",
   "create-project-message",
   "create-task-comment",
   "portal-create-message",

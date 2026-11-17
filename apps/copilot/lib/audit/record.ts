@@ -53,14 +53,14 @@ export async function currentRequestMeta(): Promise<RequestMeta> {
 function actor(
   ctx: Pick<
     RequestContext,
-    "organizationId" | "userId" | "userName" | "userEmail"
+    "organizationId" | "userId" | "userName" | "userEmail" | "actor"
   >
 ): AuditActor {
   return {
     organizationId: ctx.organizationId,
-    userId: ctx.userId,
-    userName: ctx.userName,
-    userEmail: ctx.userEmail,
+    userId: ctx.actor?.id ?? ctx.userId,
+    userName: ctx.actor?.name ?? ctx.userName,
+    userEmail: ctx.actor?.email ?? ctx.userEmail,
   }
 }
 

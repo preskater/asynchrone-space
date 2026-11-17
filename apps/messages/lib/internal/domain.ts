@@ -21,6 +21,7 @@ function requestContext(context: DelegatedContext): RequestContext {
     userEmail: context.userEmail,
     organizationId: context.organizationId,
     role: context.role,
+    actor: context.actor ?? undefined,
   }
 }
 

@@ -15,14 +15,16 @@ describe("rateLimit", () => {
   it("allows up to the limit and reports the remaining window after it", async () => {
     const start = BigInt(Date.now() - 20_000)
     queryRaw.mockResolvedValueOnce([{ count: 3, lastRequest: start }])
-    expect(await rateLimit("k", 3, 60_000, { failOpen: false })).toEqual({
+    expect(await rateLimit("k", 3, 60_000, { failOpen: false })).toMatchObject({
       allowed: true,
       retryAfter: 0,
+      remaining: 0,
     })
 
     queryRaw.mockResolvedValueOnce([{ count: 4, lastRequest: start }])
     const denied = await rateLimit("k", 3, 60_000, { failOpen: false })
     expect(denied.allowed).toBe(false)
+    expect(denied.remaining).toBe(0)
     expect(denied.retryAfter).toBeGreaterThanOrEqual(39)
     expect(denied.retryAfter).toBeLessThanOrEqual(40)
   })
@@ -38,9 +40,10 @@ describe("rateLimit", () => {
     expect((await rateLimit("k", 1, 60_000, { failOpen: true })).allowed).toBe(
       true
     )
-    expect(await rateLimit("k", 1, 60_000, { failOpen: false })).toEqual({
+    expect(await rateLimit("k", 1, 60_000, { failOpen: false })).toMatchObject({
       allowed: false,
       retryAfter: 60,
+      remaining: 0,
     })
   })
 

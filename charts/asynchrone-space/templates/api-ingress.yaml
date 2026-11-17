@@ -1,0 +1,38 @@
+{{- if and .Values.landing.enabled .Values.copilot.enabled -}}
+{{- /*
+The public API lives on the apex, not a subdomain. The landing ingress owns
+`/`; this more specific path wins in NGINX's longest-prefix match and sends
+`/api/v1/*` to Copilot. The landing's www->apex redirect stays the only www
+rule, so www.asynchrone.space/api/v1 is redirected before it is routed here.
+*/ -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ printf "%s-api" .Release.Name | trunc 63 | trimSuffix "-" }}
+  labels:
+    app.kubernetes.io/name: asynchrone-space-api
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "8m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    # File downloads stream through Copilot; buffering would double memory.
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+spec:
+  ingressClassName: {{ .Values.landing.ingress.className | default "nginx" }}
+  tls:
+    - hosts:
+        - "asynchrone.space"
+      secretName: asynchrone-space-tls
+  rules:
+    - host: "asynchrone.space"
+      http:
+        paths:
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ printf "%s-copilot" .Release.Name | trunc 63 | trimSuffix "-" }}
+                port:
+                  number: {{ .Values.copilot.service.port | default 80 }}
+{{- end }}

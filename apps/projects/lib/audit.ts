@@ -20,7 +20,7 @@ import { prisma } from "@/lib/prisma"
 export async function recordUserAudit(
   ctx: Pick<
     RequestContext,
-    "organizationId" | "userId" | "userName" | "userEmail"
+    "organizationId" | "userId" | "userName" | "userEmail" | "actor"
   >,
   input: UserAuditInput,
   db: AuditDb = prisma
@@ -29,9 +29,9 @@ export async function recordUserAudit(
   await recordUserAuditWithMeta(
     {
       organizationId: ctx.organizationId,
-      userId: ctx.userId,
-      userName: ctx.userName,
-      userEmail: ctx.userEmail,
+      userId: ctx.actor?.id ?? ctx.userId,
+      userName: ctx.actor?.name ?? ctx.userName,
+      userEmail: ctx.actor?.email ?? ctx.userEmail,
     },
     input,
     meta,

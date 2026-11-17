@@ -9,7 +9,9 @@ import { siteUrl } from "@/lib/seo"
  */
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    // `/api/v1` is the public REST API, served by Copilot through the apex
+    // ingress; it is not a page and must not be indexed.
+    rules: [{ userAgent: "*", allow: "/", disallow: ["/api/"] }],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,
   }
