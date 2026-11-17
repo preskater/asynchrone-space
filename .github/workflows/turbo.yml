@@ -81,6 +81,9 @@ jobs:
       - name: Check workspace boundaries
         run: npm run check:boundaries
 
+      - name: Verify the OpenAPI spec
+        run: npm run verify:openapi
+
       - name: Verify the fleet connection budget
         run: npm run verify:connection-budget
 

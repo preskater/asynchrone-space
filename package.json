@@ -12,6 +12,8 @@
     "test:contracts": "turbo test:contracts",
     "check:boundaries": "node scripts/check-boundaries.mjs",
     "verify:helm": "node scripts/verify-helm-charts.mjs",
+    "verify:openapi": "npm run openapi:generate --workspace=copilot -- --check",
+    "verify:public-api": "npm run verify:public-api --workspace=copilot",
     "verify:connection-budget": "node scripts/verify-connection-budget.mjs",
     "split:prisma": "node scripts/split-prisma-schema.mjs",
     "verify:prisma-schemas": "node scripts/verify-prisma-schemas.mjs",

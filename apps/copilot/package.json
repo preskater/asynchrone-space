@@ -15,8 +15,10 @@
     "test:contracts": "vitest run --config vitest.contracts.config.ts",
     "test:e2e": "tsx e2e/bootstrap.ts && playwright test",
     "verify:trial": "tsx scripts/verify-trial.ts",
+    "verify:public-api": "tsx scripts/verify-public-api.ts",
     "legal:pdfs": "tsx scripts/build-legal-pdfs.ts",
-    "oauth:clients": "tsx scripts/provision-oauth-clients.ts"
+    "oauth:clients": "tsx scripts/provision-oauth-clients.ts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts"
   },
   "dependencies": {
     "@better-auth/cimd": "^1.7.13",
