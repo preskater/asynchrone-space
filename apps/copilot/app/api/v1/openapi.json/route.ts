@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
 
-import { buildOpenApiDocument } from "@/lib/api/openapi"
+import { buildOpenApiDocument } from "@/lib/public-api/openapi"
 
 export const runtime = "nodejs"
 
-/** Public contract of `/api/v1`; it holds no data, so it needs no token. */
-export function GET(request: Request) {
-  return NextResponse.json(buildOpenApiDocument(new URL(request.url).origin), {
+/** Same document as the landing download; it holds no data, so no token. */
+export function GET() {
+  return NextResponse.json(buildOpenApiDocument(), {
     headers: { "Cache-Control": "public, max-age=300" },
   })
 }

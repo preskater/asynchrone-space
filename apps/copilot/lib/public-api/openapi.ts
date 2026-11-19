@@ -12,10 +12,15 @@ import {
  * OpenAPI 3.1 is built from the same Zod schemas the routes validate with.
  * `z.toJSONSchema` targets JSON Schema 2020-12, the dialect OpenAPI 3.1 uses.
  */
-function jsonSchema(schema: z.ZodType): Record<string, unknown> {
+function jsonSchema(
+  schema: z.ZodType,
+  io: "input" | "output" = "output"
+): Record<string, unknown> {
+  // Request bodies use the input view: routes strip unknown keys, never reject them.
   const generated = z.toJSONSchema(schema, {
     target: "draft-2020-12",
     unrepresentable: "any",
+    io,
   }) as Record<string, unknown>
   delete generated.$schema
   return generated
@@ -132,7 +137,9 @@ function operation(route: PublicApiRoute): Record<string, unknown> {
       ? {
           requestBody: {
             required: true,
-            content: { "application/json": { schema: jsonSchema(route.body) } },
+            content: {
+              "application/json": { schema: jsonSchema(route.body, "input") },
+            },
           },
         }
       : {}),

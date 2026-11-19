@@ -677,8 +677,7 @@
                 },
                 "required": [
                   "name"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -1027,7 +1026,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false
+                "minProperties": 1
               }
             }
           }
@@ -1589,8 +1588,7 @@
                 "required": [
                   "projectId",
                   "title"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -1974,7 +1972,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false
+                "minProperties": 1
               }
             }
           }
@@ -2524,8 +2522,7 @@
                 },
                 "required": [
                   "name"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -2919,7 +2916,7 @@
                     "type": "boolean"
                   }
                 },
-                "additionalProperties": false
+                "minProperties": 1
               }
             }
           }
@@ -3301,8 +3298,7 @@
                 },
                 "required": [
                   "firstName"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -3664,7 +3660,7 @@
                     }
                   }
                 },
-                "additionalProperties": false
+                "minProperties": 1
               }
             }
           }
@@ -4083,8 +4079,7 @@
                 },
                 "required": [
                   "name"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -4483,7 +4478,7 @@
                     }
                   }
                 },
-                "additionalProperties": false
+                "minProperties": 1
               }
             }
           }
@@ -4656,8 +4651,7 @@
                 },
                 "required": [
                   "stageId"
-                ],
-                "additionalProperties": false
+                ]
               }
             }
           }
@@ -5738,6 +5732,30 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "name": {
+                  "type": "string"
+                },
+                "color": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "color"
+              ],
+              "additionalProperties": false
+            }
           }
         },
         "required": [
@@ -5754,7 +5772,8 @@
           "plannedHours",
           "isBillable",
           "memberIds",
-          "labelIds"
+          "labelIds",
+          "labels"
         ],
         "additionalProperties": false
       },

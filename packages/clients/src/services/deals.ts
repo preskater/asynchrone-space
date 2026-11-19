@@ -8,7 +8,7 @@ import {
   type Page,
   type PageInput,
 } from "@workspace/core/pagination"
-import { parseDateKey, toDateKey } from "../dates"
+import { parseDateColumn, toDateColumnKey } from "../dates"
 import type { ClientEmitEvent, ClientNotify } from "../ports"
 import type { ClientsRepository } from "../repository"
 import type { CloseDealInput, DealInput, MoveDealInput } from "../schemas"
@@ -38,7 +38,7 @@ export class ClientDealsService extends ClientsServiceCore {
       amount: row.amount,
       probability: row.probability,
       expectedCloseDate: row.expectedCloseDate
-        ? toDateKey(row.expectedCloseDate)
+        ? toDateColumnKey(row.expectedCloseDate)
         : null,
       ownerId: row.ownerId,
     }
@@ -115,7 +115,7 @@ export class ClientDealsService extends ClientsServiceCore {
         probability: input.probability,
         status,
         expectedCloseDate: input.expectedCloseDate
-          ? parseDateKey(input.expectedCloseDate)
+          ? parseDateColumn(input.expectedCloseDate)
           : null,
         actualCloseDate,
         lossReason: status === "lost" ? (existing?.lossReason ?? null) : null,
@@ -348,7 +348,7 @@ export class ClientDealsService extends ClientsServiceCore {
     const row = await this.repo.updateDeal(input.dealId, {
       status: input.status,
       actualCloseDate: input.actualCloseDate
-        ? parseDateKey(input.actualCloseDate)
+        ? parseDateColumn(input.actualCloseDate)
         : new Date(),
       lossReason: input.status === "lost" ? (input.lossReason ?? null) : null,
     })

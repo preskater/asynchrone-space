@@ -40,6 +40,7 @@ export const PublicUpdateProjectSchema = z
     dueDate: optionalDate,
   })
   .refine((value) => Object.keys(value).length > 0, REQUIRED_PATCH)
+  .meta({ minProperties: 1 })
 export type PublicUpdateProject = z.infer<typeof PublicUpdateProjectSchema>
 
 export const PublicCreateTaskSchema = z.object({
@@ -67,6 +68,7 @@ export const PublicUpdateTaskSchema = z
     endDate: optionalDate,
   })
   .refine((value) => Object.keys(value).length > 0, REQUIRED_PATCH)
+  .meta({ minProperties: 1 })
 export type PublicUpdateTask = z.infer<typeof PublicUpdateTaskSchema>
 
 export const PublicCreateClientSchema = z.object({
@@ -99,6 +101,7 @@ export const PublicUpdateClientSchema = z
     isActive: z.boolean().optional(),
   })
   .refine((value) => Object.keys(value).length > 0, REQUIRED_PATCH)
+  .meta({ minProperties: 1 })
 export type PublicUpdateClient = z.infer<typeof PublicUpdateClientSchema>
 
 export const PublicCreateContactSchema = z.object({
@@ -125,6 +128,7 @@ export const PublicUpdateContactSchema = z
     clientIds: z.array(z.string().min(1)).max(20).optional(),
   })
   .refine((value) => Object.keys(value).length > 0, REQUIRED_PATCH)
+  .meta({ minProperties: 1 })
 export type PublicUpdateContact = z.infer<typeof PublicUpdateContactSchema>
 
 export const PublicCreateDealSchema = z.object({
@@ -159,6 +163,7 @@ export const PublicUpdateDealSchema = z
     contactIds: z.array(z.string().min(1)).max(20).optional(),
   })
   .refine((value) => Object.keys(value).length > 0, REQUIRED_PATCH)
+  .meta({ minProperties: 1 })
 export type PublicUpdateDeal = z.infer<typeof PublicUpdateDealSchema>
 
 export const PublicMoveDealSchema = z.object({

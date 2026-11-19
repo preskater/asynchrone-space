@@ -227,6 +227,24 @@ describe("ProjectService task authorization", () => {
     )
   })
 
+  it("rejects a label of another organization before writing", async () => {
+    repo.listLabels.mockResolvedValue([
+      { id: "label_own", name: "Bug", color: "red" },
+    ] as never)
+    const { projectService } = service(repo)
+
+    await expect(
+      projectService.createTask(context("member"), {
+        ...taskInput,
+        labelIds: ["label_own", "label_foreign"],
+      })
+    ).rejects.toMatchObject({
+      status: 422,
+      details: { labelIds: ["label_foreign"] },
+    })
+    expect(repo.createTask).not.toHaveBeenCalled()
+  })
+
   it("keeps a task local when issue creation is opted out", async () => {
     const { projectService, ports: p } = service(repo)
 

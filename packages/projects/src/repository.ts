@@ -147,10 +147,10 @@ export class ProjectRepository {
         description: data.description,
         status: data.status ?? "active",
         members: {
-          create: data.memberIds.map((userId) => ({ userId })),
+          create: [...new Set(data.memberIds)].map((userId) => ({ userId })),
         },
         labels: {
-          create: data.labelIds.map((labelId) => ({ labelId })),
+          create: [...new Set(data.labelIds)].map((labelId) => ({ labelId })),
         },
       },
       include: projectInclude,
@@ -306,7 +306,7 @@ export class ProjectRepository {
         externalIssueUrl: data.externalIssueUrl ?? null,
         externalUpdatedAt: data.externalUpdatedAt ?? null,
         labels: {
-          create: data.labelIds.map((labelId) => ({ labelId })),
+          create: [...new Set(data.labelIds)].map((labelId) => ({ labelId })),
         },
       },
       include: taskInclude,

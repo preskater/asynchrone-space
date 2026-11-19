@@ -42,7 +42,12 @@ export const projectService = new ProjectService(projectRepository, prisma, {
         ...base,
         type: event.type as
           "project.created" | "project.updated" | "project.deleted",
-        data: { project: publicProject(event.project) },
+        data: {
+          project: publicProject(
+            event.project,
+            await projectRepository.listLabels(ctx.organizationId)
+          ),
+        },
       })
       return
     }

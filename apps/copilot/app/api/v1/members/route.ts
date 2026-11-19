@@ -1,28 +1,29 @@
-import { apiList, withApiToken } from "@/lib/api/v1"
-import { ApiMemberSchema } from "@/lib/api/schemas"
-import { prisma } from "@/lib/prisma"
+import { PUBLIC_API_SCOPES, PublicApiMemberSchema } from "@workspace/contracts"
 import { parseRoles } from "@workspace/organization/roles"
+
+import { prisma } from "@/lib/prisma"
+import { publicPage, withPublicApi } from "@/lib/public-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 /** Workspace members (portal accounts excluded), to resolve task assignees. */
-export const GET = withApiToken(
-  "/api/v1/members",
-  "members:read",
-  async (token) => {
+export const GET = withPublicApi({
+  route: "GET /api/v1/members",
+  scope: PUBLIC_API_SCOPES.membersRead,
+  handler: async (ctx) => {
     const rows = await prisma.member.findMany({
-      where: { organizationId: token.ctx.organizationId, clientId: null },
+      where: { organizationId: ctx.organization.id, clientId: null },
       select: {
         role: true,
         user: { select: { id: true, name: true, email: true } },
       },
       orderBy: { user: { name: "asc" } },
     })
-    return apiList(
-      rows.map(({ role, user }) =>
-        ApiMemberSchema.parse({ ...user, roles: parseRoles(role) })
-      )
+    const members = rows.map(({ role, user }) =>
+      PublicApiMemberSchema.parse({ ...user, roles: parseRoles(role) })
     )
-  }
-)
+    // The directory is one page: an organization's members are bounded.
+    return publicPage(members, null, ctx)
+  },
+})

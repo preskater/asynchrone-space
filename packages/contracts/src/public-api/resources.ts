@@ -55,6 +55,13 @@ export const PUBLIC_FILE_KINDS = [
   "other",
 ] as const
 
+export const PublicLabelSchema = z.object({
+  id: z.string().min(1),
+  name: z.string(),
+  color: z.string(),
+})
+export type PublicLabel = z.infer<typeof PublicLabelSchema>
+
 export const PublicProjectSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
@@ -70,6 +77,8 @@ export const PublicProjectSchema = z.object({
   isBillable: z.boolean(),
   memberIds: z.array(z.string().min(1)),
   labelIds: z.array(z.string().min(1)),
+  /** The labels behind `labelIds`, so clients can resolve them by name. */
+  labels: z.array(PublicLabelSchema),
 })
 export type PublicProject = z.infer<typeof PublicProjectSchema>
 

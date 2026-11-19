@@ -1,6 +1,6 @@
 import { toCsv } from "@workspace/core/csv"
 import { auditActorFields, type RequestContext } from "@workspace/core/context"
-import { toDateKey } from "../dates"
+import { toDateColumnKey, toDateKey } from "../dates"
 import type {
   ExportInput,
   ImportClientsInput,
@@ -128,8 +128,8 @@ export class ClientImportExportService extends ClientsServiceCore {
         row.amount,
         row.currency,
         row.probability,
-        row.expectedCloseDate ? toDateKey(row.expectedCloseDate) : "",
-        row.actualCloseDate ? toDateKey(row.actualCloseDate) : "",
+        row.expectedCloseDate ? toDateColumnKey(row.expectedCloseDate) : "",
+        row.actualCloseDate ? toDateColumnKey(row.actualCloseDate) : "",
         row.lossReason ?? "",
         row.ownerId ? (nameById.get(row.ownerId) ?? "") : "",
         toDateKey(row.createdAt),

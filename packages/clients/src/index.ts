@@ -7,6 +7,12 @@ export type {
   ClientServicePorts,
 } from "./ports"
 export { resolveClientAccess } from "./access"
-export { isDateKey, parseDateKey, toDateKey } from "./dates"
+export {
+  isDateKey,
+  parseDateColumn,
+  parseDateKey,
+  toDateColumnKey,
+  toDateKey,
+} from "./dates"
 export * from "./schemas"
 export * from "./types"

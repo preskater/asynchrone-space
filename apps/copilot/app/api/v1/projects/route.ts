@@ -1,60 +1,53 @@
-import { z } from "zod"
-
 import {
+  PUBLIC_API_SCOPES,
   PublicCreateProjectSchema,
   PublicProjectSchema,
+  publicPageResultSchema,
 } from "@workspace/contracts"
 
-import { apiJson, apiList, apiUserAgent, withApiToken } from "@/lib/api/v1"
-import { ApiProjectSchema, ProjectShellSchema } from "@/lib/api/schemas"
-import { callDomain, delegatedContext } from "@/lib/internal/domain"
-import { idempotencyKey, readJsonBody } from "@/lib/public-api"
+import { callDomain } from "@/lib/internal/domain"
+import {
+  delegatedApiContext,
+  idempotencyKey,
+  pageQuery,
+  publicJson,
+  publicPage,
+  readJsonBody,
+  withPublicApi,
+} from "@/lib/public-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
-/** Projects of the token's organization, each with its labels. */
-export const GET = withApiToken(
-  "/api/v1/projects",
-  "projects:read",
-  async (token, request) => {
-    const { projects, labels } = await callDomain(
+export const GET = withPublicApi({
+  route: "GET /api/v1/projects",
+  scope: PUBLIC_API_SCOPES.projectsRead,
+  handler: async (ctx, request) => {
+    const query = pageQuery(new URL(request.url))
+    const page = await callDomain(
       "projects",
-      "list-project-shell",
-      delegatedContext(token.ctx),
-      {},
-      ProjectShellSchema,
-      { userAgent: apiUserAgent(token, request) }
+      "list-projects-page",
+      delegatedApiContext(ctx),
+      query,
+      publicPageResultSchema(PublicProjectSchema)
     )
-    const byId = new Map(labels.map((label) => [label.id, label]))
-    return apiList(
-      z.array(ApiProjectSchema).parse(
-        projects.map(({ labelIds, ...project }) => ({
-          ...project,
-          labels: labelIds.flatMap((id) => byId.get(id) ?? []),
-        }))
-      )
-    )
-  }
-)
+    return publicPage(page.items, page.nextCursor, ctx)
+  },
+})
 
-/** Creates a project; retrying with the same `Idempotency-Key` is safe. */
-export const POST = withApiToken(
-  "/api/v1/projects",
-  "projects:write",
-  async (token, request) => {
+export const POST = withPublicApi({
+  route: "POST /api/v1/projects",
+  scope: PUBLIC_API_SCOPES.projectsWrite,
+  handler: async (ctx, request) => {
     const body = PublicCreateProjectSchema.parse(await readJsonBody(request))
     const project = await callDomain(
       "projects",
       "public-create-project",
-      delegatedContext(token.ctx),
+      delegatedApiContext(ctx),
       body,
       PublicProjectSchema,
-      {
-        userAgent: apiUserAgent(token, request),
-        idempotencyKey: idempotencyKey(request),
-      }
+      { idempotencyKey: idempotencyKey(request) }
     )
-    return apiJson(project, { status: 201 })
-  }
-)
+    return publicJson(project, ctx, {}, { status: 201 })
+  },
+})

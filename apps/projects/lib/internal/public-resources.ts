@@ -4,10 +4,15 @@ import {
   type PublicProject,
   type PublicTask,
 } from "@workspace/contracts"
-import type { Project, TaskSummary } from "@workspace/projects/types"
+import type { Label, Project, TaskSummary } from "@workspace/projects/types"
 
 /** The public API and the webhook emitter share these mappers. */
-export function publicProject(project: Project): PublicProject {
+/** `labels` is the organization's label list; only the project's are kept. */
+export function publicProject(
+  project: Project,
+  labels: readonly Label[]
+): PublicProject {
+  const byId = new Map(labels.map((label) => [label.id, label]))
   return PublicProjectSchema.parse({
     id: project.id,
     name: project.name,
@@ -23,6 +28,10 @@ export function publicProject(project: Project): PublicProject {
     isBillable: project.isBillable,
     memberIds: project.memberIds,
     labelIds: project.labelIds,
+    labels: project.labelIds.flatMap((id) => {
+      const label = byId.get(id)
+      return label ? [{ id, name: label.name, color: label.color }] : []
+    }),
   })
 }
 

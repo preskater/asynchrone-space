@@ -111,6 +111,18 @@ export class ProjectService {
     private readonly ports: ProjectServicePorts
   ) {}
 
+  /** Labels are organization rows: an unknown or foreign id is a client error. */
+  private async assertLabels(ctx: RequestContext, labelIds?: string[]) {
+    if (!labelIds?.length) return
+    const known = new Set(
+      (await this.repo.listLabels(ctx.organizationId)).map((label) => label.id)
+    )
+    const unknown = [...new Set(labelIds)].filter((id) => !known.has(id))
+    if (unknown.length > 0) {
+      throw new ValidationError("Unknown label.", { labelIds: unknown })
+    }
+  }
+
   private canWrite(ctx: RequestContext) {
     if (can(ctx, "project:write")) return
     throw new ForbiddenError("Your role cannot modify projects.", {
@@ -470,6 +482,7 @@ export class ProjectService {
     input: CreateProjectInput
   ): Promise<Project> {
     this.canWrite(ctx)
+    await this.assertLabels(ctx, input.labelIds)
     const row = await this.repo.create(ctx.organizationId, {
       name: input.name,
       description: input.description,
@@ -573,6 +586,7 @@ export class ProjectService {
   ): Promise<Project> {
     this.canWrite(ctx)
     const before = await this.get(ctx, id)
+    await this.assertLabels(ctx, input.labelIds)
     await this.repo.update(id, {
       name: input.name,
       description: input.description,
@@ -727,6 +741,7 @@ export class ProjectService {
   async createTask(ctx: RequestContext, input: CreateTaskInput): Promise<Task> {
     this.canWriteTasks(ctx)
     const project = await this.get(ctx, input.projectId)
+    await this.assertLabels(ctx, input.labelIds)
     const existing = await this.repo.listTasks(
       ctx.organizationId,
       input.projectId
@@ -918,6 +933,7 @@ export class ProjectService {
     this.canWriteTasks(ctx)
     const existing = await this.repo.findTask(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Task")
+    await this.assertLabels(ctx, input.labelIds)
     const titleChanged =
       input.title !== undefined && input.title !== existing.title
     const descriptionChanged =

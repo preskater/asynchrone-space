@@ -1,27 +1,22 @@
-import { apiJson, withApiToken } from "@/lib/api/v1"
-import { ApiTokenInfoSchema } from "@/lib/api/schemas"
-import { prisma } from "@/lib/prisma"
+import { PublicApiTokenInfoSchema } from "@workspace/contracts"
+
+import { publicJson, withPublicApi } from "@/lib/public-api"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
 
 /** The calling token, its owner and its organization; needs no scope. */
-export const GET = withApiToken("/api/v1/token", null, async (token) => {
-  const organization = await prisma.organization.findUniqueOrThrow({
-    where: { id: token.ctx.organizationId },
-    select: { id: true, name: true, slug: true },
-  })
-  return apiJson(
-    ApiTokenInfoSchema.parse({
-      prefix: token.prefix,
-      scopes: token.scopes,
-      expiresAt: token.expiresAt?.toISOString() ?? null,
-      user: {
-        id: token.ctx.userId,
-        name: token.ctx.userName,
-        email: token.ctx.userEmail,
-      },
-      organization,
-    })
-  )
+export const GET = withPublicApi({
+  route: "GET /api/v1/token",
+  handler: (ctx) =>
+    publicJson(
+      PublicApiTokenInfoSchema.parse({
+        prefix: ctx.token.prefix,
+        scopes: ctx.token.scopes,
+        expiresAt: ctx.token.expiresAt?.toISOString() ?? null,
+        user: { id: ctx.userId, name: ctx.userName, email: ctx.userEmail },
+        organization: ctx.organization,
+      }),
+      ctx
+    ),
 })

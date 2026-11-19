@@ -131,8 +131,9 @@ export async function dispatchDomain(
         ctx,
         DomainPageInputSchema.parse(call.input)
       )
+      const labels = await projectService.listLabels(ctx)
       return {
-        items: page.items.map(publicProject),
+        items: page.items.map((project) => publicProject(project, labels)),
         nextCursor: page.nextCursor,
       }
     }
@@ -143,12 +144,14 @@ export async function dispatchDomain(
         await projectService.get(
           ctx,
           projectIdInput.parse(call.input).projectId
-        )
+        ),
+        await projectService.listLabels(ctx)
       )
     case "public-create-project": {
       const input = PublicCreateProjectSchema.parse(call.input)
       return publicProject(
-        await projectService.create(ctx, createProjectSchema.parse(input))
+        await projectService.create(ctx, createProjectSchema.parse(input)),
+        await projectService.listLabels(ctx)
       )
     }
     case "public-update-project": {
@@ -159,7 +162,8 @@ export async function dispatchDomain(
           ctx,
           projectId,
           updateProjectSchema.parse(input)
-        )
+        ),
+        await projectService.listLabels(ctx)
       )
     }
     case "public-delete-project":

@@ -1,6 +1,6 @@
 import type { RequestContext } from "@workspace/core/context"
 import { ForbiddenError, ValidationError } from "@workspace/core/errors"
-import { toDateKey } from "../dates"
+import { toDateColumnKey } from "../dates"
 import { resolveClientAccess, type ClientAccess } from "../access"
 import type { ClientEmitEvent } from "../ports"
 import type { ClientsRepository } from "../repository"
@@ -341,10 +341,10 @@ export class ClientsServiceCore {
       probability: row.probability,
       status: row.status as ClientDealData["status"],
       expectedCloseDate: row.expectedCloseDate
-        ? toDateKey(row.expectedCloseDate)
+        ? toDateColumnKey(row.expectedCloseDate)
         : undefined,
       actualCloseDate: row.actualCloseDate
-        ? toDateKey(row.actualCloseDate)
+        ? toDateColumnKey(row.actualCloseDate)
         : undefined,
       lossReason: text(row.lossReason),
       source: text(row.source),

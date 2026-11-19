@@ -22,6 +22,7 @@ const project = {
   isBillable: true,
   memberIds: ["u1"],
   labelIds: [],
+  labels: [],
 }
 
 describe("public resource schemas", () => {
