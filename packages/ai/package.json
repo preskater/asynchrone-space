@@ -11,7 +11,7 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "@openai/agents": "^0.21.0",
+    "@openai/agents": "^0.22.0",
     "@workspace/core": "*",
     "@workspace/db": "*",
     "react": "19.3.1"
@@ -21,7 +21,7 @@
     "@types/react": "^19",
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "typescript": "^7",
     "vitest": "^5.0.5"
   },
