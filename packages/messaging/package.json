@@ -19,8 +19,8 @@
     "@workspace/organization": "*",
     "@workspace/storage": "*",
     "@workspace/ui": "*",
-    "lucide-react": "^1.70.0",
-    "next-intl": "^4.14.9",
+    "lucide-react": "^1.74.0",
+    "next-intl": "^4.15.1",
     "react": "19.3.1",
     "sonner": "^2.0.8",
     "zod": "^4.6.7"
@@ -30,7 +30,7 @@
     "@types/react": "^19",
     "@workspace/eslint-config": "*",
     "@workspace/typescript-config": "*",
-    "eslint": "^10.14.0",
+    "eslint": "^10.15.0",
     "typescript": "^7",
     "vitest": "^5.0.5"
   },
